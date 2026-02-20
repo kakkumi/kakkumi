@@ -1,0 +1,97 @@
+// AI Development Guideline 참조: 데이터 무결성을 위한 스키마 설계
+// 데이터베이스는 PostgreSQL을 사용합니다.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 사용자 권한 설정
+enum Role {
+  USER
+  CREATOR
+  ADMIN
+}
+
+// 테마 상태 (마켓플레이스 노출 여부)
+enum ThemeStatus {
+  DRAFT      // 작성 중 (미공개)
+  PUBLISHED  // 마켓에 공개됨
+  HIDDEN     // 숨김 처리됨
+}
+
+// 빌드 진행 상태
+enum BuildStatus {
+  PENDING    // 큐 대기 중
+  PROCESSING // 빌드 워커가 작업 중
+  SUCCESS    // 빌드 성공 및 S3 업로드 완료
+  FAILED     // 빌드 실패
+}
+
+// 결제 상태
+enum PurchaseStatus {
+  PENDING
+  COMPLETED
+  REFUNDED
+}
+
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  name      String
+  role      Role       @default(USER)
+  createdAt DateTime   @default(now())
+
+  // Relations
+  themes    Theme[]    @relation("UserThemes")
+  purchases Purchase[] @relation("UserPurchases")
+}
+
+model Theme {
+  id           String        @id @default(uuid())
+  creatorId    String
+  title        String
+  description  String?
+  price        Int           @default(0) // 0이면 무료
+  status       ThemeStatus   @default(DRAFT)
+  thumbnailUrl String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  // Relations
+  creator      User          @relation("UserThemes", fields: [creatorId], references: [id])
+  versions     ThemeVersion[]
+  purchases    Purchase[]
+}
+
+model ThemeVersion {
+  id             String      @id @default(uuid())
+  themeId        String
+  version        String      // ex) "1.0.0"
+  configJson     Json        // 프론트엔드 에디터의 상태값 (색상, 이미지 URL 등)
+  kthemeFileUrl  String?     // iOS 빌드 결과물 S3 링크
+  apkFileUrl     String?     // Android 빌드 결과물 S3 링크
+  buildStatus    BuildStatus @default(PENDING)
+  createdAt      DateTime    @default(now())
+
+  // Relations
+  theme          Theme       @relation(fields: [themeId], references: [id], onDelete: Cascade)
+}
+
+model Purchase {
+  id              String         @id @default(uuid())
+  buyerId         String
+  themeId         String
+  amount          Int            // 실제 결제 금액 (검증용 SSOT)
+  pgTransactionId String?        @unique // 토스/포트원 결제 고유키
+  status          PurchaseStatus @default(PENDING)
+  createdAt       DateTime       @default(now())
+
+  // Relations
+  buyer           User           @relation("UserPurchases", fields: [buyerId], references: [id])
+  theme           Theme          @relation(fields: [themeId], references: [id])
+}
