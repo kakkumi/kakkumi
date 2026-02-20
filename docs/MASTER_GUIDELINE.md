@@ -1,4 +1,4 @@
-카카오톡 테마 제작 & 마켓플레이스 플랫폼 - 마스터 개발 가이드라인 
+카카오톡 테마 제작 & 마켓플레이스 플랫폼 - 마스터 개발 가이드라인  
 
 (Single Source of Truth for AI & Developers)
 
