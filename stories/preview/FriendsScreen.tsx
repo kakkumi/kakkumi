@@ -96,7 +96,23 @@ export const FriendsScreen = () => {
       
       {/* 1. 상단 헤더 */}
       <header style={{ ...headerBaseStyle, color: friendsTab.headerTitleColor }}>
-        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>어피치</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 11,
+              backgroundColor: 'rgba(255,255,255,0.65)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 15,
+            }}
+          >
+            🍑
+          </div>
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>어피치</h2>
+        </div>
         <div style={iconRowStyle}>
           <Search size={20} strokeWidth={2.3} />
           <UserPlus size={20} strokeWidth={2.3} />

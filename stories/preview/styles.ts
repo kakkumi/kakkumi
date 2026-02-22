@@ -1,8 +1,9 @@
 import type { CSSProperties } from 'react';
 
 export const frameStyle: CSSProperties = {
-  width: 375,
-  height: 720,
+  width: '100%',
+  height: '100%',
+  boxSizing: 'border-box',
   borderRadius: 30,
   overflow: 'hidden',
   border: '1px solid #f0d3d3',

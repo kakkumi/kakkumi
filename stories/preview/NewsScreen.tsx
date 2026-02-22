@@ -72,7 +72,23 @@ export const NewsScreen = () => {
       }}
     >
       <header style={{ ...headerBaseStyle, color: friendsTab.headerTitleColor }}>
-        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>어피치</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 11,
+              backgroundColor: 'rgba(255,255,255,0.65)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 15,
+            }}
+          >
+            🍑
+          </div>
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>어피치</h2>
+        </div>
         <div style={iconRowStyle}>
           <Search size={20} strokeWidth={2.3} />
           <UserPlus size={20} strokeWidth={2.3} />
@@ -116,7 +132,7 @@ export const NewsScreen = () => {
         <div style={{ padding: '0 14px 12px 14px' }}>
           <div
             style={{
-              backgroundColor: chatsTab.filterChipBg,
+              backgroundColor: 'rgba(255, 255, 255, 0.6)',
               borderRadius: 11,
               padding: '13px 15px',
               display: 'flex',
@@ -129,7 +145,23 @@ export const NewsScreen = () => {
               <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: global.textColor }}>오늘의 카카오가 궁금하다면?</p>
               <p style={{ margin: '3px 0 0', fontSize: 11, color: global.descriptionColor }}>카카오소식 보러가기</p>
             </div>
-            <div style={{ display: 'flex', gap: 3, fontSize: 20 }}>🍈🧀</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 22 }}>
+              <span style={{ transform: 'rotate(-10deg)' }}>🍈</span>
+              <span style={{ transform: 'rotate(10deg)' }}>🧀</span>
+              <div
+                style={{
+                  backgroundColor: '#191919',
+                  color: '#fff',
+                  fontSize: 12,
+                  fontWeight: 800,
+                  padding: '2px 6px',
+                  borderRadius: 4,
+                  marginLeft: 4,
+                }}
+              >
+                31
+              </div>
+            </div>
           </div>
         </div>
 
