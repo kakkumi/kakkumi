@@ -151,7 +151,7 @@ function MacInput({
 /* ── iOS 목업 ── */
 function IOSMockup({ config }: { config: ThemeConfig }) {
   return (
-    <div className="relative mx-auto select-none" style={{ width: 300, height: 600 }}>
+    <div className="relative mx-auto select-none" style={{ width: 360, height: 720 }}>
       <div
         className="absolute inset-0 rounded-[40px] border-[5px] border-zinc-800"
         style={{
@@ -212,7 +212,7 @@ function IOSMockup({ config }: { config: ThemeConfig }) {
 /* ── Android 목업 ── */
 function AndroidMockup({ config }: { config: ThemeConfig }) {
   return (
-    <div className="relative mx-auto select-none" style={{ width: 300, height: 600 }}>
+    <div className="relative mx-auto select-none" style={{ width: 360, height: 720 }}>
       <div
         className="absolute inset-0 rounded-[28px] border-[5px] border-zinc-800"
         style={{
@@ -281,7 +281,7 @@ function AndroidMockup({ config }: { config: ThemeConfig }) {
 /* ── 채팅방 목업 ── */
 function ChatMockup({ config }: { config: ThemeConfig }) {
   return (
-    <div className="relative mx-auto select-none" style={{ width: 300, height: 600 }}>
+    <div className="relative mx-auto select-none" style={{ width: 360, height: 720 }}>
       <div
         className="absolute inset-0 rounded-[40px] border-[5px] border-zinc-800"
         style={{
@@ -358,7 +358,7 @@ function ChatMockup({ config }: { config: ThemeConfig }) {
   );
 }
 
-type PreviewTab = "friends" | "chat";
+type PreviewTab = "friends" | "chat" | "openchat" | "shopping" | "more";
 
 export default function CreatePage() {
   const [os, setOs] = useState<OS>("ios");
@@ -511,65 +511,27 @@ export default function CreatePage() {
         </aside>
 
         {/* ── 중앙 프리뷰 ── */}
-        <main className="flex-1 flex flex-col items-center justify-start gap-4 overflow-y-auto pt-5 pb-8 mac-scroll">
+        <main className="flex-1 flex flex-col items-center justify-start gap-4 overflow-y-auto pt-2 pb-8 mac-scroll">
           {/* OS 토글 */}
-          <div
-            className="flex items-center gap-0.5 p-1 rounded-xl"
-            style={{
-              background: "rgba(0,0,0,0.06)",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.08) inset",
-            }}
-          >
+          <div className="flex items-center border-b border-black/10">
             {(["ios", "android"] as OS[]).map((o) => (
               <button
                 key={o}
                 onClick={() => setOs(o)}
-                className="px-5 py-1.5 rounded-lg text-[13px] font-medium transition-all"
-                style={
-                  os === o
-                    ? {
-                        background: "rgba(255,255,255,0.85)",
-                        color: "#1c1c1e",
-                        boxShadow: "0 1px 4px rgba(0,0,0,0.12), 0 1px 0 rgba(255,255,255,0.8) inset",
-                      }
-                    : { color: "#8e8e93" }
-                }
+                className="px-6 py-2 text-[13px] font-medium transition-all relative"
+                style={{
+                  color: os === o ? "#1c1c1e" : "#8e8e93",
+                  borderBottom: os === o ? "2px solid #1c1c1e" : "2px solid transparent",
+                  marginBottom: "-1px",
+                }}
               >
-                {o === "ios" ? "🍎 iOS" : "🤖 Android"}
-              </button>
-            ))}
-          </div>
-
-          {/* 프리뷰 탭 */}
-          <div
-            className="flex items-center gap-0.5 p-1 rounded-xl"
-            style={{
-              background: "rgba(0,0,0,0.06)",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.08) inset",
-            }}
-          >
-            {(["friends", "chat"] as PreviewTab[]).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setPreviewTab(tab)}
-                className="px-4 py-1 rounded-lg text-[12px] font-medium transition-all"
-                style={
-                  previewTab === tab
-                    ? {
-                        background: "rgba(255,255,255,0.85)",
-                        color: "#1c1c1e",
-                        boxShadow: "0 1px 4px rgba(0,0,0,0.12), 0 1px 0 rgba(255,255,255,0.8) inset",
-                      }
-                    : { color: "#8e8e93" }
-                }
-              >
-                {tab === "friends" ? "👥 친구 화면" : "💬 채팅방"}
+                {o === "ios" ? "iOS" : "Android"}
               </button>
             ))}
           </div>
 
           {/* 목업 */}
-          <div className="transition-all duration-300 ease-out">
+          <div className="transition-all duration-300 ease-out mt-2">
             {previewTab === "friends"
               ? os === "ios"
                 ? <IOSMockup config={config} />
@@ -578,15 +540,37 @@ export default function CreatePage() {
             }
           </div>
 
+          {/* 프리뷰 탭 */}
+          <div className="flex items-center border-b border-black/10">
+            {(["friends", "chat", "openchat", "shopping", "more"] as PreviewTab[]).map((tab) => {
+              const labels: Record<PreviewTab, string> = {
+                friends: "친구",
+                chat: "채팅",
+                openchat: "오픈채팅",
+                shopping: "쇼핑",
+                more: "더보기",
+              };
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setPreviewTab(tab)}
+                  className="px-4 py-2 text-[12px] font-medium transition-all"
+                  style={{
+                    color: previewTab === tab ? "#1c1c1e" : "#8e8e93",
+                    borderBottom: previewTab === tab ? "2px solid #1c1c1e" : "2px solid transparent",
+                    marginBottom: "-1px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {labels[tab]}
+                </button>
+              );
+            })}
+          </div>
+
           {/* 가이드 배지 */}
           <div className="flex flex-wrap gap-1.5 justify-center max-w-xs">
-            {os === "ios" ? (
-              <>
-                <span className="text-[10px] rounded-full px-2.5 py-0.5 glass" style={{color:"#3a78c9"}}>2배수 이미지 권장</span>
-                <span className="text-[10px] rounded-full px-2.5 py-0.5 glass" style={{color:"#a57800"}}>.zip → .ktheme 변환</span>
-                <span className="text-[10px] rounded-full px-2.5 py-0.5 glass" style={{color:"#636366"}}>이미지 우선 적용</span>
-              </>
-            ) : (
+            {os === "android" && (
               <>
                 <span className="text-[10px] rounded-full px-2.5 py-0.5 glass" style={{color:"#28a745"}}>xhdpi / xxhdpi 대응</span>
                 <span className="text-[10px] rounded-full px-2.5 py-0.5 glass" style={{color:"#e07000"}}>targetSdk: {config.targetSdk}</span>
