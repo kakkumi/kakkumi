@@ -1,7 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+import { PreviewNewsMockup } from "../../stories/PreviewNewsMockup";
+import { PreviewMockup } from "../../stories/PreviewMockup";
+import { ScreenType, useThemeStore as usePreviewThemeStore } from "../../stories/useThemeStore";
 
 type OS = "ios" | "android";
 
@@ -973,6 +977,20 @@ export default function CreatePage() {
   const [config, setConfig] = useState<ThemeConfig>(defaultConfig);
   const [previewTab, setPreviewTab] = useState<PreviewTab>("friends");
   const [imageUploads, setImageUploads] = useState<Record<string, string>>({});
+  const setCurrentScreen = usePreviewThemeStore((state) => state.setCurrentScreen);
+
+  useEffect(() => {
+    const screenMap: Record<PreviewTab, ScreenType> = {
+      friends: "FRIENDS",
+      chat: "CHATS",
+      openchat: "OPENCHATS",
+      shopping: "SHOPPING",
+      more: "MORE",
+      passcode: "PASSCODE",
+    };
+
+    setCurrentScreen(screenMap[previewTab]);
+  }, [previewTab, setCurrentScreen]);
 
   const set = (key: keyof ThemeConfig) => (value: string | boolean) =>
     setConfig((prev) => ({ ...prev, [key]: value }));
@@ -1236,44 +1254,38 @@ export default function CreatePage() {
 
           {/* 목업 */}
           <div className="transition-all duration-300 ease-out mt-2">
-            {previewTab === "friends"
-              ? (
-                <div className="flex items-start gap-8">
-                  <div className="flex flex-col items-center">
-                    {os === "ios"
-                      ? <IOSMockup config={config} previewTab="friends" />
-                      : <AndroidMockup config={config} previewTab="friends" />
-                    }
-                  </div>
-                  <div className="flex flex-col items-center">
-                    {os === "ios"
-                      ? <IOSFriendsProfileMockup config={config} />
-                      : <AndroidFriendsProfileMockup config={config} />
-                    }
-                  </div>
+            {os === "ios" && previewTab === "friends" ? (
+              <div className="flex items-start gap-6">
+                <div>
+                  <PreviewMockup disableTabNavigation />
                 </div>
-              )
-              : previewTab === "chat"
-              ? (
-                <div className="flex items-start gap-8">
-                  <div className="flex flex-col items-center">
-                    {os === "ios"
-                      ? <IOSMockup config={config} previewTab="chat" />
-                      : <AndroidMockup config={config} previewTab="chat" />
-                    }
-                  </div>
-                  <div className="flex flex-col items-center">
-                    {os === "ios"
-                      ? <IOSChatRoomMockup config={config} />
-                      : <AndroidChatRoomMockup config={config} />
-                    }
-                  </div>
+                <div>
+                  <PreviewNewsMockup disableTabNavigation />
                 </div>
-              )
-              : os === "ios"
-                ? <IOSMockup config={config} previewTab={previewTab} />
-                : <AndroidMockup config={config} previewTab={previewTab} />
-            }
+              </div>
+            ) : os === "ios" ? (
+              <PreviewMockup disableTabNavigation />
+            ) : previewTab === "friends" ? (
+              <div className="flex items-start gap-8">
+                <div className="flex flex-col items-center">
+                  <AndroidMockup config={config} previewTab="friends" />
+                </div>
+                <div className="flex flex-col items-center">
+                  <AndroidFriendsProfileMockup config={config} />
+                </div>
+              </div>
+            ) : previewTab === "chat" ? (
+              <div className="flex items-start gap-8">
+                <div className="flex flex-col items-center">
+                  <AndroidMockup config={config} previewTab="chat" />
+                </div>
+                <div className="flex flex-col items-center">
+                  <AndroidChatRoomMockup config={config} />
+                </div>
+              </div>
+            ) : (
+              <AndroidMockup config={config} previewTab={previewTab} />
+            )}
           </div>
 
           {/* 프리뷰 탭 */}
@@ -1290,7 +1302,9 @@ export default function CreatePage() {
               return (
                 <button
                   key={tab}
-                  onClick={() => { setPreviewTab(tab); }}
+                  onClick={() => {
+                    setPreviewTab(tab);
+                  }}
                   className="px-4 py-2 text-[12px] font-medium transition-all"
                   style={{
                     color: previewTab === tab ? "#1c1c1e" : "#8e8e93",
@@ -1303,11 +1317,11 @@ export default function CreatePage() {
                 </button>
               );
             })}
-            {/* 구분선 */}
             <div className="w-px h-4 mx-1 self-center" style={{ backgroundColor: "rgba(0,0,0,0.12)" }} />
-            {/* 암호 별도 버튼 */}
             <button
-              onClick={() => { setPreviewTab(previewTab === "passcode" ? "friends" : "passcode"); }}
+              onClick={() => {
+                setPreviewTab(previewTab === "passcode" ? "friends" : "passcode");
+              }}
               className="px-3 py-2 text-[12px] font-medium transition-all"
               style={{
                 color: previewTab === "passcode" ? "#1c1c1e" : "#8e8e93",
