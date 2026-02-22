@@ -216,11 +216,10 @@ function Accordion({ title, badge, defaultOpen = false, children }: {
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="rounded-xl overflow-hidden mb-1.5"
-      style={{ border: "1px solid rgba(0,0,0,0.07)", background: "rgba(255,255,255,0.5)" }}>
+    <div className="rounded-xl overflow-hidden mb-0.5">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-3 py-2.5 transition-colors hover:bg-black/[0.02]"
+        className="w-full flex items-center justify-between px-1 py-2 transition-colors"
       >
         <div className="flex items-center gap-2">
           <span className="text-[12px] font-semibold text-[#1c1c1e]">{title}</span>
@@ -232,7 +231,7 @@ function Accordion({ title, badge, defaultOpen = false, children }: {
         <span className="text-[10px] text-[#8e8e93] transition-transform duration-200"
           style={{ display: "inline-block", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>▼</span>
       </button>
-      {open && <div className="px-2 pb-2.5 pt-0.5">{children}</div>}
+      {open && <div className="px-1 pb-2 pt-0.5">{children}</div>}
     </div>
   );
 }
@@ -245,6 +244,7 @@ function MacInput({
   placeholder,
   hint,
   type = "text",
+  readOnly = false,
 }: {
   label: string;
   value: string;
@@ -252,6 +252,7 @@ function MacInput({
   placeholder?: string;
   hint?: string;
   type?: string;
+  readOnly?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-1">
@@ -262,9 +263,10 @@ function MacInput({
       <input
         type={type}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => !readOnly && onChange(e.target.value)}
         placeholder={placeholder}
-        className="rounded-lg px-3 py-1.5 text-[13px] glass-input"
+        readOnly={readOnly}
+        className={`rounded-lg px-3 py-1.5 text-[13px] glass-input${readOnly ? " opacity-60 cursor-default select-none" : ""}`}
       />
     </div>
   );
@@ -1043,7 +1045,7 @@ export default function CreatePage() {
       <div className="flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 45px)" }}>
 
         {/* ── 좌측 사이드바 ── */}
-        <aside className="w-64 glass-sidebar overflow-y-auto mac-scroll shrink-0">
+        <aside className="w-80 glass-sidebar overflow-y-auto mac-scroll shrink-0">
           <div className="p-3 pt-3">
 
             {/* ══ 공통 설정 — 항상 표시 ══ */}
@@ -1322,19 +1324,12 @@ export default function CreatePage() {
 
           {/* 가이드 배지 */}
           <div className="flex flex-wrap gap-1.5 justify-center max-w-xs">
-            {os === "android" && (
-              <>
-                <span className="text-[10px] rounded-full px-2.5 py-0.5 glass" style={{color:"#28a745"}}>xhdpi / xxhdpi 대응</span>
-                <span className="text-[10px] rounded-full px-2.5 py-0.5 glass" style={{color:"#e07000"}}>targetSdk: {config.targetSdk}</span>
-                <span className="text-[10px] rounded-full px-2.5 py-0.5 glass" style={{color:"#636366"}}>레이아웃 변경 불가</span>
-              </>
-            )}
           </div>
         </main>
 
         {/* ── 우측 사이드바 ── */}
         <aside
-          className="w-60 overflow-y-auto mac-scroll shrink-0"
+          className="w-80 overflow-y-auto mac-scroll shrink-0"
           style={{
             background: "rgba(248, 248, 250, 0.78)",
             backdropFilter: "blur(40px) saturate(200%)",
@@ -1353,6 +1348,7 @@ export default function CreatePage() {
               value={config.version}
               onChange={set("version")}
               placeholder="1.0.0"
+              readOnly={true}
             />
             <MacInput
               label="패키지 ID"
@@ -1456,22 +1452,7 @@ export default function CreatePage() {
               </>
             )}
 
-            {/* 코드 미리보기 */}
-            <SectionTitle>{os === "ios" ? "CSS 미리보기" : "colors.xml 미리보기"}</SectionTitle>
-            <pre
-              className="text-[8.5px] rounded-xl p-3 overflow-x-auto leading-relaxed whitespace-pre-wrap break-all mac-scroll"
-              style={{
-                background: "rgba(28,28,30,0.88)",
-                color: "#a8ff78",
-                backdropFilter: "blur(8px)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
-                maxHeight: 260,
-                overflowY: "auto",
-              }}
-            >
-              {os === "ios" ? generateCSS(config) : generateColorsXml(config)}
-            </pre>
+
           </div>
         </aside>
       </div>
@@ -1520,26 +1501,3 @@ MessageReceiveStyle {
 }`;
 }
 
-function generateColorsXml(config: ThemeConfig): string {
-  return `<!-- colors.xml -->
-<!-- namespace: ${config.namespace} -->
-<!-- compileSdk: ${config.compileSdk} / targetSdk: ${config.targetSdk} -->
-<resources>
-  <color name="theme_tab_bar_bg">${config.tabBarBg}</color>
-  <color name="theme_tab_icon">${config.tabBarIcon}</color>
-  <color name="theme_tab_selected">${config.tabBarSelectedIcon}</color>
-  <color name="theme_header_bg">${config.headerBg}</color>
-  <color name="theme_header_text">${config.headerText}</color>
-  <color name="theme_body_bg">${config.bodyBg}</color>
-  <color name="theme_primary_text">${config.primaryText}</color>
-  <color name="theme_desc_text">${config.descText}</color>
-  <color name="theme_chat_bg">${config.chatBg}</color>
-  <color name="theme_input_bar_bg">${config.inputBarBg}</color>
-  <color name="theme_send_btn_bg">${config.sendBtnBg}</color>
-  <color name="theme_send_btn_icon">${config.sendBtnIcon}</color>
-  <color name="theme_my_bubble_bg">${config.myBubbleBg}</color>
-  <color name="theme_my_bubble_text">${config.myBubbleText}</color>
-  <color name="theme_other_bubble_bg">${config.otherBubbleBg}</color>
-  <color name="theme_other_bubble_text">${config.otherBubbleText}</color>
-</resources>`;
-}
