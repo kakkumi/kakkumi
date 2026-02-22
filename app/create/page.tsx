@@ -179,6 +179,13 @@ function TabIcon({ tab, active, color }: { tab: string; active: boolean; color: 
       <path d="M16 10a4 4 0 01-8 0" stroke={color} strokeWidth={active ? 2 : 1.6} strokeLinecap="round" />
     </svg>
   );
+  if (tab === "passcode") return (
+    <svg {...s} viewBox="0 0 24 24">
+      <rect x="5" y="11" width="14" height="10" rx="2" stroke={color} strokeWidth={active ? 2 : 1.6} />
+      <path d="M8 11V7a4 4 0 018 0v4" stroke={color} strokeWidth={active ? 2 : 1.6} strokeLinecap="round" />
+      <circle cx="12" cy="16" r="1.5" fill={color} />
+    </svg>
+  );
   // more
   return (
     <svg {...s} viewBox="0 0 24 24">
@@ -293,7 +300,7 @@ function MockupBody({ tab, config }: { tab: PreviewTab; config: ThemeConfig }) {
     </>
   );
   // more
-  return (
+  if (tab === "more") return (
     <>
       <div className="flex items-center gap-3 px-4 py-3 border-b" style={{ borderColor: `${config.primaryText}10` }}>
         <div className="w-12 h-12 rounded-full bg-zinc-300 shrink-0" />
@@ -316,6 +323,43 @@ function MockupBody({ tab, config }: { tab: PreviewTab; config: ThemeConfig }) {
       ))}
     </>
   );
+  // passcode
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-between py-8"
+      style={{ backgroundColor: config.bodyBg }}>
+      {/* 타이틀 */}
+      <div className="flex flex-col items-center gap-2 mt-4">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+          <rect x="5" y="11" width="14" height="10" rx="2" stroke={config.primaryText} strokeWidth="1.8" />
+          <path d="M8 11V7a4 4 0 018 0v4" stroke={config.primaryText} strokeWidth="1.8" strokeLinecap="round" />
+          <circle cx="12" cy="16" r="1.5" fill={config.primaryText} />
+        </svg>
+        <span className="text-[14px] font-semibold mt-1" style={{ color: config.primaryText }}>
+          비밀번호를 입력하세요
+        </span>
+        {/* 불릿 */}
+        <div className="flex gap-4 mt-3">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="w-3.5 h-3.5 rounded-full border-2"
+              style={{ borderColor: config.primaryText, backgroundColor: i < 2 ? config.primaryText : "transparent" }} />
+          ))}
+        </div>
+      </div>
+      {/* 키패드 */}
+      <div className="grid grid-cols-3 gap-3 w-full px-8">
+        {["1","2","3","4","5","6","7","8","9","*","0","⌫"].map((k) => (
+          <div key={k}
+            className="flex items-center justify-center rounded-2xl h-12 text-[16px] font-semibold"
+            style={{
+              backgroundColor: k === "⌫" || k === "*" ? "transparent" : `${config.primaryText}10`,
+              color: config.primaryText,
+            }}>
+            <span>{k}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 /* ── iOS 목업 ── */
@@ -326,10 +370,13 @@ function IOSMockup({ config, previewTab }: { config: ThemeConfig; previewTab: Pr
     { key: "openchat", label: "오픈채팅" },
     { key: "shopping", label: "쇼핑" },
     { key: "more", label: "더보기" },
+    { key: "passcode", label: "암호" },
   ];
   const headerLabels: Record<PreviewTab, string> = {
-    friends: "친구", chat: "채팅", openchat: "지금", shopping: "쇼핑", more: "더보기",
+    friends: "친구", chat: "채팅", openchat: "지금", shopping: "쇼핑", more: "더보기", passcode: "암호",
   };
+
+  const isPasscode = previewTab === "passcode";
 
   return (
     <div className="relative mx-auto select-none" style={{ width: 360, height: 720 }}>
@@ -342,40 +389,78 @@ function IOSMockup({ config, previewTab }: { config: ThemeConfig; previewTab: Pr
       >
         {/* 다이나믹 아일랜드 */}
         <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-24 h-6 bg-zinc-900 rounded-full z-10" />
-        {/* 헤더 */}
-        <div
-          className="absolute top-9 left-0 right-0 h-12 flex items-center px-5 gap-2"
-          style={{ backgroundColor: config.headerBg }}
-        >
-          <span className="font-bold text-[15px] flex-1" style={{ color: config.headerText }}>
-            {headerLabels[previewTab]}
-          </span>
-          <span className="text-[13px]" style={{ color: config.headerText }}>🔍</span>
-          <span className="text-[13px] ml-1" style={{ color: config.headerText }}>⚙︎</span>
-        </div>
-        {/* 바디 */}
-        <div
-          className="absolute left-0 right-0 overflow-y-auto overflow-x-hidden"
-          style={{ top: 84, bottom: 64, backgroundColor: config.bodyBg }}
-        >
-          <MockupBody tab={previewTab} config={config} />
-        </div>
-        {/* 탭바 */}
-        <div
-          className="absolute bottom-0 left-0 right-0 h-16 flex items-center justify-around rounded-b-[35px] border-t"
-          style={{ backgroundColor: config.tabBarBg, borderColor: `${config.primaryText}12` }}
-        >
-          {tabs.map(({ key, label }) => {
-            const active = previewTab === key;
-            const color = active ? config.tabBarSelectedIcon : config.tabBarIcon;
-            return (
-              <div key={key} className="flex flex-col items-center gap-0.5 pt-1">
-                <TabIcon tab={key} active={active} color={color} />
-                <span className="text-[9px]" style={{ color }}>{label}</span>
+
+        {isPasscode ? (
+          /* ── 암호 전체화면 ── */
+          <div className="absolute inset-0 rounded-[35px] flex flex-col items-center justify-between py-10 pt-16"
+            style={{ backgroundColor: config.bodyBg }}>
+            <div className="flex flex-col items-center gap-3">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+                <rect x="5" y="11" width="14" height="10" rx="2" stroke={config.primaryText} strokeWidth="1.8" />
+                <path d="M8 11V7a4 4 0 018 0v4" stroke={config.primaryText} strokeWidth="1.8" strokeLinecap="round" />
+                <circle cx="12" cy="16" r="1.5" fill={config.primaryText} />
+              </svg>
+              <span className="text-[15px] font-semibold" style={{ color: config.primaryText }}>
+                비밀번호를 입력하세요
+              </span>
+              <div className="flex gap-5 mt-2">
+                {[0,1,2,3].map((i) => (
+                  <div key={i} className="w-4 h-4 rounded-full border-2"
+                    style={{ borderColor: config.primaryText, backgroundColor: i < 2 ? config.primaryText : "transparent" }} />
+                ))}
               </div>
-            );
-          })}
-        </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3 w-full px-10 mb-4">
+              {["1","2","3","4","5","6","7","8","9","*","0","⌫"].map((k) => (
+                <div key={k}
+                  className="flex items-center justify-center rounded-2xl h-14 text-[18px] font-semibold"
+                  style={{
+                    backgroundColor: k === "⌫" || k === "*" ? "transparent" : `${config.primaryText}10`,
+                    color: config.primaryText,
+                  }}>
+                  {k}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* 헤더 */}
+            <div
+              className="absolute top-9 left-0 right-0 h-12 flex items-center px-5 gap-2"
+              style={{ backgroundColor: config.headerBg }}
+            >
+              <span className="font-bold text-[15px] flex-1" style={{ color: config.headerText }}>
+                {headerLabels[previewTab]}
+              </span>
+              <span className="text-[13px]" style={{ color: config.headerText }}>🔍</span>
+              <span className="text-[13px] ml-1" style={{ color: config.headerText }}>⚙︎</span>
+            </div>
+            {/* 바디 */}
+            <div
+              className="absolute left-0 right-0 overflow-y-auto overflow-x-hidden"
+              style={{ top: 84, bottom: 64, backgroundColor: config.bodyBg }}
+            >
+              <MockupBody tab={previewTab} config={config} />
+            </div>
+            {/* 탭바 */}
+            <div
+              className="absolute bottom-0 left-0 right-0 h-16 flex items-center justify-around rounded-b-[35px] border-t"
+              style={{ backgroundColor: config.tabBarBg, borderColor: `${config.primaryText}12` }}
+            >
+              {tabs.filter(t => t.key !== "passcode").map(({ key, label }) => {
+                const active = previewTab === key;
+                const color = active ? config.tabBarSelectedIcon : config.tabBarIcon;
+                return (
+                  <div key={key} className="flex flex-col items-center gap-0.5 pt-1">
+                    <TabIcon tab={key} active={active} color={color} />
+                    <span className="text-[9px]" style={{ color }}>{label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
       <div className="absolute right-[-6px] top-24 w-1 h-12 bg-zinc-700 rounded-r-md" />
       <div className="absolute left-[-6px] top-20 w-1 h-8 bg-zinc-700 rounded-l-md" />
@@ -392,12 +477,14 @@ function AndroidMockup({ config, previewTab }: { config: ThemeConfig; previewTab
     { key: "openchat", label: "오픈채팅" },
     { key: "shopping", label: "쇼핑" },
     { key: "more", label: "더보기" },
+    { key: "passcode", label: "암호" },
   ];
   const headerLabels: Record<PreviewTab, string> = {
-    friends: "친구", chat: "채팅", openchat: "지금", shopping: "쇼핑", more: "더보기",
+    friends: "친구", chat: "채팅", openchat: "지금", shopping: "쇼핑", more: "더보기", passcode: "암호",
   };
 
   const isChat = previewTab === "chat";
+  const isPasscode = previewTab === "passcode";
 
   return (
     <div className="relative mx-auto select-none" style={{ width: 360, height: 720 }}>
@@ -410,7 +497,40 @@ function AndroidMockup({ config, previewTab }: { config: ThemeConfig; previewTab
       >
         <div className="absolute top-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-zinc-700 z-10" />
 
-        {isChat ? (
+        {isPasscode ? (
+          /* ── 암호 전체화면 ── */
+          <div className="absolute inset-0 rounded-[23px] flex flex-col items-center justify-between py-10 pt-14"
+            style={{ backgroundColor: config.bodyBg }}>
+            <div className="flex flex-col items-center gap-3">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+                <rect x="5" y="11" width="14" height="10" rx="2" stroke={config.primaryText} strokeWidth="1.8" />
+                <path d="M8 11V7a4 4 0 018 0v4" stroke={config.primaryText} strokeWidth="1.8" strokeLinecap="round" />
+                <circle cx="12" cy="16" r="1.5" fill={config.primaryText} />
+              </svg>
+              <span className="text-[15px] font-semibold" style={{ color: config.primaryText }}>
+                비밀번호를 입력하세요
+              </span>
+              <div className="flex gap-5 mt-2">
+                {[0,1,2,3].map((i) => (
+                  <div key={i} className="w-4 h-4 rounded-full border-2"
+                    style={{ borderColor: config.primaryText, backgroundColor: i < 2 ? config.primaryText : "transparent" }} />
+                ))}
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3 w-full px-10 mb-4">
+              {["1","2","3","4","5","6","7","8","9","*","0","⌫"].map((k) => (
+                <div key={k}
+                  className="flex items-center justify-center rounded-xl h-14 text-[18px] font-semibold"
+                  style={{
+                    backgroundColor: k === "⌫" || k === "*" ? "transparent" : `${config.primaryText}10`,
+                    color: config.primaryText,
+                  }}>
+                  {k}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : isChat ? (
           /* ── 채팅방 화면 ── */
           <>
             {/* 채팅 헤더 */}
@@ -612,7 +732,7 @@ function ChatMockup({ config, previewTab }: { config: ThemeConfig; previewTab: P
   );
 }
 
-type PreviewTab = "friends" | "chat" | "openchat" | "shopping" | "more";
+type PreviewTab = "friends" | "chat" | "openchat" | "shopping" | "more" | "passcode";
 
 export default function CreatePage() {
   const [os, setOs] = useState<OS>("ios");
@@ -794,13 +914,14 @@ export default function CreatePage() {
 
           {/* 프리뷰 탭 */}
           <div className="flex items-center border-b border-black/10">
-            {(["friends", "chat", "openchat", "shopping", "more"] as PreviewTab[]).map((tab) => {
+            {(["friends", "chat", "openchat", "shopping", "more", "passcode"] as PreviewTab[]).map((tab) => {
               const labels: Record<PreviewTab, string> = {
                 friends: "친구",
                 chat: "채팅",
                 openchat: "오픈채팅",
                 shopping: "쇼핑",
                 more: "더보기",
+                passcode: "암호",
               };
               return (
                 <button
