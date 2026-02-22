@@ -396,52 +396,120 @@ function AndroidMockup({ config, previewTab }: { config: ThemeConfig; previewTab
   const headerLabels: Record<PreviewTab, string> = {
     friends: "친구", chat: "채팅", openchat: "지금", shopping: "쇼핑", more: "더보기",
   };
+
+  const isChat = previewTab === "chat";
+
   return (
     <div className="relative mx-auto select-none" style={{ width: 360, height: 720 }}>
       <div
         className="absolute inset-0 rounded-[28px] border-[5px] border-zinc-800"
         style={{
-          backgroundColor: config.bodyBg,
+          backgroundColor: isChat ? config.chatBg : config.bodyBg,
           boxShadow: "0 30px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15) inset",
         }}
       >
         <div className="absolute top-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-zinc-700 z-10" />
-        {/* 헤더 */}
-        <div
-          className="absolute top-7 left-0 right-0 h-11 flex items-center px-4 gap-2"
-          style={{ backgroundColor: config.headerBg }}
-        >
-          <span className="font-bold text-[15px] flex-1" style={{ color: config.headerText }}>
-            {headerLabels[previewTab]}
-          </span>
-          <span className="text-xs" style={{ color: config.headerText }}>🔍</span>
-          <span className="text-xs ml-1" style={{ color: config.headerText }}>⋮</span>
-        </div>
-        {/* 탭 헤더 */}
-        <div
-          className="absolute left-0 right-0 h-9 flex items-end"
-          style={{ top: 72, backgroundColor: config.headerBg }}
-        >
-          {tabs.map(({ key, label }) => (
+
+        {isChat ? (
+          /* ── 채팅방 화면 ── */
+          <>
+            {/* 채팅 헤더 */}
             <div
-              key={key}
-              className="flex-1 text-center text-[9px] font-semibold pb-1.5 truncate px-0.5"
-              style={{
-                color: config.headerText,
-                borderBottom: previewTab === key ? `2px solid ${config.headerText}` : "2px solid transparent",
-              }}
+              className="absolute top-7 left-0 right-0 h-11 flex items-center px-4 gap-2"
+              style={{ backgroundColor: config.headerBg }}
             >
-              {label}
+              <span className="text-[15px]" style={{ color: config.headerText }}>←</span>
+              <span className="font-bold text-[14px] flex-1" style={{ color: config.headerText }}>채팅방</span>
+              <span className="text-xs" style={{ color: config.headerText }}>⋮</span>
             </div>
-          ))}
-        </div>
-        {/* 바디 */}
-        <div
-          className="absolute left-0 right-0 overflow-y-auto overflow-x-hidden"
-          style={{ top: 113, bottom: 0, backgroundColor: config.bodyBg, borderBottomLeftRadius: 23, borderBottomRightRadius: 23 }}
-        >
-          <MockupBody tab={previewTab} config={config} />
-        </div>
+            {/* 메시지 영역 */}
+            <div
+              className="absolute left-0 right-0 flex flex-col gap-2.5 px-4 py-3 overflow-hidden"
+              style={{ top: 74, bottom: 110, backgroundColor: config.chatBg }}
+            >
+              <div className="flex items-end gap-1.5 self-start max-w-[75%]">
+                <div className="w-7 h-7 rounded-full bg-zinc-300 shrink-0" />
+                <div className="rounded-2xl rounded-tl-sm px-3 py-2 text-[11px] leading-snug shadow-sm"
+                  style={{ backgroundColor: config.otherBubbleBg, color: config.otherBubbleText }}>
+                  안녕하세요! 👋
+                </div>
+              </div>
+              <div className="flex items-end gap-1.5 self-end max-w-[75%]">
+                <div className="rounded-2xl rounded-tr-sm px-3 py-2 text-[11px] leading-snug shadow-sm"
+                  style={{ backgroundColor: config.myBubbleBg, color: config.myBubbleText }}>
+                  반가워요! 😊
+                </div>
+              </div>
+              <div className="flex items-end gap-1.5 self-start max-w-[75%]">
+                <div className="w-7 h-7 rounded-full bg-zinc-300 shrink-0" />
+                <div className="rounded-2xl rounded-tl-sm px-3 py-2 text-[11px] leading-snug shadow-sm"
+                  style={{ backgroundColor: config.otherBubbleBg, color: config.otherBubbleText }}>
+                  테마 예쁘네요 ✨
+                </div>
+              </div>
+              <div className="flex items-end gap-1.5 self-end max-w-[75%]">
+                <div className="rounded-2xl rounded-tr-sm px-3 py-2 text-[11px] leading-snug shadow-sm"
+                  style={{ backgroundColor: config.myBubbleBg, color: config.myBubbleText }}>
+                  감사합니다! 🎨
+                </div>
+              </div>
+            </div>
+            {/* 입력창 */}
+            <div
+              className="absolute left-0 right-0 h-14 flex items-center gap-2 px-3"
+              style={{ bottom: 0, backgroundColor: config.inputBarBg, borderBottomLeftRadius: 23, borderBottomRightRadius: 23 }}
+            >
+              <div className="flex-1 h-9 rounded-full flex items-center px-3"
+                style={{ backgroundColor: config.bodyBg }}>
+                <span className="text-[10px] text-zinc-400">메시지 입력</span>
+              </div>
+              <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 shadow-md"
+                style={{ backgroundColor: config.sendBtnBg }}>
+                <span className="text-xs" style={{ color: config.sendBtnIcon }}>▶</span>
+              </div>
+            </div>
+          </>
+        ) : (
+          /* ── 일반 화면 ── */
+          <>
+            {/* 헤더 */}
+            <div
+              className="absolute top-7 left-0 right-0 h-11 flex items-center px-4 gap-2"
+              style={{ backgroundColor: config.headerBg }}
+            >
+              <span className="font-bold text-[15px] flex-1" style={{ color: config.headerText }}>
+                {headerLabels[previewTab]}
+              </span>
+              <span className="text-xs" style={{ color: config.headerText }}>🔍</span>
+              <span className="text-xs ml-1" style={{ color: config.headerText }}>⋮</span>
+            </div>
+            {/* 탭 헤더 */}
+            <div
+              className="absolute left-0 right-0 h-9 flex items-end"
+              style={{ top: 72, backgroundColor: config.headerBg }}
+            >
+              {tabs.map(({ key, label }) => (
+                <div
+                  key={key}
+                  className="flex-1 text-center text-[9px] font-semibold pb-1.5 truncate px-0.5"
+                  style={{
+                    color: config.headerText,
+                    borderBottom: previewTab === key ? `2px solid ${config.headerText}` : "2px solid transparent",
+                  }}
+                >
+                  {label}
+                </div>
+              ))}
+            </div>
+            {/* 바디 */}
+            <div
+              className="absolute left-0 right-0 overflow-y-auto overflow-x-hidden"
+              style={{ top: 113, bottom: 0, backgroundColor: config.bodyBg, borderBottomLeftRadius: 23, borderBottomRightRadius: 23 }}
+            >
+              <MockupBody tab={previewTab} config={config} />
+            </div>
+          </>
+        )}
       </div>
       <div className="absolute right-[-6px] top-20 w-1 h-14 bg-zinc-700 rounded-r-md" />
     </div>
@@ -720,9 +788,7 @@ export default function CreatePage() {
           <div className="transition-all duration-300 ease-out mt-2">
             {os === "ios"
               ? <IOSMockup config={config} previewTab={previewTab} />
-              : previewTab === "chat"
-                ? <ChatMockup config={config} previewTab={previewTab} />
-                : <AndroidMockup config={config} previewTab={previewTab} />
+              : <AndroidMockup config={config} previewTab={previewTab} />
             }
           </div>
 
