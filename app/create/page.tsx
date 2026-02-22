@@ -11,6 +11,7 @@ interface ThemeConfig {
   packageId: string;
   authorName: string;
   darkMode: boolean;
+  // ── 공통 ──
   tabBarBg: string;
   tabBarIcon: string;
   tabBarSelectedIcon: string;
@@ -19,14 +20,44 @@ interface ThemeConfig {
   bodyBg: string;
   primaryText: string;
   descText: string;
+  // ── 친구 탭 ──
+  friendsNameText: string;
+  friendsBorderColor: string;
+  friendsSelectedBg: string;
+  // ── 채팅 탭 ──
+  chatListNameText: string;
+  chatListLastMsgText: string;
+  chatListHighlightText: string;
+  // ── 오픈채팅 탭 ──
+  openchatBg: string;
+  openchatText: string;
+  // ── 쇼핑 탭 ──
+  shoppingBg: string;
+  shoppingText: string;
+  // ── 더보기 탭 ──
+  moreBg: string;
+  moreTabText: string;
+  // ── 채팅방 ──
   chatBg: string;
   inputBarBg: string;
   sendBtnBg: string;
   sendBtnIcon: string;
+  menuBtnColor: string;
+  inputFieldBg: string;
   myBubbleBg: string;
   myBubbleText: string;
   otherBubbleBg: string;
   otherBubbleText: string;
+  unreadCountColor: string;
+  // ── 암호화면 ──
+  passcodeBg: string;
+  passcodeTitleText: string;
+  passcodeKeypadBg: string;
+  passcodeKeypadText: string;
+  // ── 알림 배너 ──
+  notifBannerBg: string;
+  notifBannerText: string;
+  // Android 전용
   compileSdk: string;
   targetSdk: string;
   namespace: string;
@@ -38,6 +69,7 @@ const defaultConfig: ThemeConfig = {
   packageId: "com.kakao.talk.theme.mytheme",
   authorName: "제작자",
   darkMode: false,
+  // 공통
   tabBarBg: "#FFFFFF",
   tabBarIcon: "#9E9E9E",
   tabBarSelectedIcon: "#3A1D1D",
@@ -46,14 +78,44 @@ const defaultConfig: ThemeConfig = {
   bodyBg: "#F5F5F5",
   primaryText: "#191919",
   descText: "#9E9E9E",
+  // 친구 탭
+  friendsNameText: "#191919",
+  friendsBorderColor: "#E5E5EA",
+  friendsSelectedBg: "#F2F2F7",
+  // 채팅 탭
+  chatListNameText: "#191919",
+  chatListLastMsgText: "#9E9E9E",
+  chatListHighlightText: "#3A1D1D",
+  // 오픈채팅 탭
+  openchatBg: "#F5F5F5",
+  openchatText: "#191919",
+  // 쇼핑 탭
+  shoppingBg: "#F5F5F5",
+  shoppingText: "#191919",
+  // 더보기 탭
+  moreBg: "#F5F5F5",
+  moreTabText: "#191919",
+  // 채팅방
   chatBg: "#B2C7D9",
   inputBarBg: "#FFFFFF",
   sendBtnBg: "#FEE500",
   sendBtnIcon: "#3A1D1D",
+  menuBtnColor: "#9E9E9E",
+  inputFieldBg: "#F2F2F7",
   myBubbleBg: "#FEE500",
   myBubbleText: "#191919",
   otherBubbleBg: "#FFFFFF",
   otherBubbleText: "#191919",
+  unreadCountColor: "#FF3B30",
+  // 암호화면
+  passcodeBg: "#F5F5F5",
+  passcodeTitleText: "#191919",
+  passcodeKeypadBg: "#FFFFFF",
+  passcodeKeypadText: "#191919",
+  // 알림 배너
+  notifBannerBg: "#FFFFFF",
+  notifBannerText: "#191919",
+  // Android
   compileSdk: "34",
   targetSdk: "34",
   namespace: "com.kakao.talk.theme.mytheme",
@@ -111,6 +173,66 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div className="text-[10px] font-semibold text-[#8e8e93] uppercase tracking-widest mt-5 mb-1 px-1">
       {children}
+    </div>
+  );
+}
+
+/* ── 이미지 업로드 행 ── */
+function ImageUploadRow({ label, tooltip, imgKey, imageUploads, onUpload }: {
+  label: string; tooltip: string; imgKey: string;
+  imageUploads: Record<string, string>;
+  onUpload: (key: string, file: File) => void;
+}) {
+  return (
+    <div className="mb-2">
+      <div className="flex items-center gap-1 mb-1">
+        <span className="text-[11px] text-[#3a3a3c]">{label}</span>
+        <div className="group relative">
+          <span className="text-[10px] text-[#8e8e93] cursor-help">?</span>
+          <div className="absolute left-4 top-0 z-50 hidden group-hover:block text-[10px] rounded-lg px-2.5 py-1.5 w-44 leading-snug glass shadow-xl" style={{ color: "#3a3a3c" }}>
+            {tooltip}
+          </div>
+        </div>
+      </div>
+      <label className="flex items-center gap-2 cursor-pointer">
+        <div className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden shrink-0 glass"
+          style={{ border: "1px solid rgba(0,0,0,0.08)" }}>
+          {imageUploads[imgKey]
+            // eslint-disable-next-line @next/next/no-img-element
+            ? <img src={imageUploads[imgKey]} alt={label} className="w-full h-full object-cover" />
+            : <span className="text-[#8e8e93] text-lg">+</span>}
+        </div>
+        <input type="file" accept="image/*" className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(imgKey, f); }} />
+        <span className="text-[10px] text-[#8e8e93]">클릭하여 업로드</span>
+      </label>
+    </div>
+  );
+}
+
+/* ── 아코디언 패널 ── */
+function Accordion({ title, badge, defaultOpen = false, children }: {
+  title: string; badge?: string; defaultOpen?: boolean; children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="rounded-xl overflow-hidden mb-1.5"
+      style={{ border: "1px solid rgba(0,0,0,0.07)", background: "rgba(255,255,255,0.5)" }}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-3 py-2.5 transition-colors hover:bg-black/[0.02]"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-[12px] font-semibold text-[#1c1c1e]">{title}</span>
+          {badge && (
+            <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full"
+              style={{ background: "rgba(0,0,0,0.06)", color: "#636366" }}>{badge}</span>
+          )}
+        </div>
+        <span className="text-[10px] text-[#8e8e93] transition-transform duration-200"
+          style={{ display: "inline-block", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>▼</span>
+      </button>
+      {open && <div className="px-2 pb-2.5 pt-0.5">{children}</div>}
     </div>
   );
 }
@@ -196,12 +318,52 @@ function TabIcon({ tab, active, color }: { tab: string; active: boolean; color: 
   );
 }
 
+/* ── 친구 목록 공유 컴포넌트 ── */
+function IOSMockupFriendsList({ config }: { config: ThemeConfig }) {
+  return (
+    <>
+      <div className="flex items-center gap-3 px-4 py-3 border-b"
+        style={{ borderColor: `${config.primaryText}10` }}>
+        <div className="w-12 h-12 rounded-full bg-zinc-300 shrink-0" />
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[13px] font-bold" style={{ color: config.primaryText }}>나</span>
+          <span className="text-[10px]" style={{ color: config.descText }}>상태메시지를 입력해주세요</span>
+        </div>
+      </div>
+      <div className="px-4 pt-3 pb-1">
+        <span className="text-[10px] font-semibold" style={{ color: config.descText }}>즐겨찾기</span>
+      </div>
+      <div className="flex gap-4 px-4 pb-3">
+        {["친구A", "친구B", "친구C"].map((n) => (
+          <div key={n} className="flex flex-col items-center gap-1">
+            <div className="w-11 h-11 rounded-full bg-zinc-200 shrink-0" />
+            <span className="text-[9px]" style={{ color: config.primaryText }}>{n}</span>
+          </div>
+        ))}
+      </div>
+      <div className="px-4 pb-1">
+        <span className="text-[10px] font-semibold" style={{ color: config.descText }}>친구 12</span>
+      </div>
+      {["친구 1", "친구 2", "친구 3", "친구 4", "친구 5"].map((name) => (
+        <div key={name} className="flex items-center gap-3 px-4 py-2">
+          <div className="w-10 h-10 rounded-full bg-zinc-200 shrink-0" />
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[12px] font-medium" style={{ color: config.friendsNameText }}>{name}</span>
+            <span className="text-[9px]" style={{ color: config.descText }}>상태메시지</span>
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
 /* ── 탭별 바디 콘텐츠 ── */
 function MockupBody({ tab, config }: { tab: PreviewTab; config: ThemeConfig }) {
   if (tab === "friends") return (
     <>
       {/* 내 프로필 */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b" style={{ borderColor: `${config.primaryText}10` }}>
+      <div className="flex items-center gap-3 px-4 py-3 border-b"
+        style={{ borderColor: `${config.primaryText}10` }}>
         <div className="w-12 h-12 rounded-full bg-zinc-300 shrink-0" />
         <div className="flex flex-col gap-0.5">
           <span className="text-[13px] font-bold" style={{ color: config.primaryText }}>나</span>
@@ -228,7 +390,7 @@ function MockupBody({ tab, config }: { tab: PreviewTab; config: ThemeConfig }) {
         <div key={name} className="flex items-center gap-3 px-4 py-2">
           <div className="w-10 h-10 rounded-full bg-zinc-200 shrink-0" />
           <div className="flex flex-col gap-0.5">
-            <span className="text-[12px] font-medium" style={{ color: config.primaryText }}>{name}</span>
+            <span className="text-[12px] font-medium" style={{ color: config.friendsNameText }}>{name}</span>
             <span className="text-[9px]" style={{ color: config.descText }}>상태메시지</span>
           </div>
         </div>
@@ -238,14 +400,15 @@ function MockupBody({ tab, config }: { tab: PreviewTab; config: ThemeConfig }) {
   if (tab === "chat") return (
     <>
       {["카카오팀", "친구 1", "친구 2", "단체채팅방", "친구 3"].map((name, i) => (
-        <div key={name} className="flex items-center gap-3 px-4 py-2.5 border-b" style={{ borderColor: `${config.primaryText}08` }}>
+        <div key={name} className="flex items-center gap-3 px-4 py-2.5 border-b"
+          style={{ borderColor: `${config.primaryText}08` }}>
           <div className={`shrink-0 rounded-${i === 3 ? "xl" : "full"} bg-zinc-200`} style={{ width: 42, height: 42 }} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
-              <span className="text-[12px] font-semibold" style={{ color: config.primaryText }}>{name}</span>
+              <span className="text-[12px] font-semibold" style={{ color: config.chatListNameText }}>{name}</span>
               <span className="text-[9px]" style={{ color: config.descText }}>오후 {i + 1}:{(i * 7).toString().padStart(2, "0")}</span>
             </div>
-            <span className="text-[10px] truncate block" style={{ color: config.descText }}>마지막 메시지 내용입니다</span>
+            <span className="text-[10px] truncate block" style={{ color: config.chatListLastMsgText }}>마지막 메시지 내용입니다</span>
           </div>
         </div>
       ))}
@@ -393,20 +556,20 @@ function IOSMockup({ config, previewTab }: { config: ThemeConfig; previewTab: Pr
         {isPasscode ? (
           /* ── 암호 전체화면 ── */
           <div className="absolute inset-0 rounded-[35px] flex flex-col items-center justify-between py-10 pt-16"
-            style={{ backgroundColor: config.bodyBg }}>
+            style={{ backgroundColor: config.passcodeBg }}>
             <div className="flex flex-col items-center gap-3">
               <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
-                <rect x="5" y="11" width="14" height="10" rx="2" stroke={config.primaryText} strokeWidth="1.8" />
-                <path d="M8 11V7a4 4 0 018 0v4" stroke={config.primaryText} strokeWidth="1.8" strokeLinecap="round" />
-                <circle cx="12" cy="16" r="1.5" fill={config.primaryText} />
+                <rect x="5" y="11" width="14" height="10" rx="2" stroke={config.passcodeTitleText} strokeWidth="1.8" />
+                <path d="M8 11V7a4 4 0 018 0v4" stroke={config.passcodeTitleText} strokeWidth="1.8" strokeLinecap="round" />
+                <circle cx="12" cy="16" r="1.5" fill={config.passcodeTitleText} />
               </svg>
-              <span className="text-[15px] font-semibold" style={{ color: config.primaryText }}>
+              <span className="text-[15px] font-semibold" style={{ color: config.passcodeTitleText }}>
                 비밀번호를 입력하세요
               </span>
               <div className="flex gap-5 mt-2">
                 {[0,1,2,3].map((i) => (
                   <div key={i} className="w-4 h-4 rounded-full border-2"
-                    style={{ borderColor: config.primaryText, backgroundColor: i < 2 ? config.primaryText : "transparent" }} />
+                    style={{ borderColor: config.passcodeTitleText, backgroundColor: i < 2 ? config.passcodeTitleText : "transparent" }} />
                 ))}
               </div>
             </div>
@@ -415,8 +578,8 @@ function IOSMockup({ config, previewTab }: { config: ThemeConfig; previewTab: Pr
                 <div key={k}
                   className="flex items-center justify-center rounded-2xl h-14 text-[18px] font-semibold"
                   style={{
-                    backgroundColor: k === "⌫" || k === "*" ? "transparent" : `${config.primaryText}10`,
-                    color: config.primaryText,
+                    backgroundColor: k === "⌫" || k === "*" ? "transparent" : config.passcodeKeypadBg,
+                    color: config.passcodeKeypadText,
                   }}>
                   {k}
                 </div>
@@ -469,6 +632,233 @@ function IOSMockup({ config, previewTab }: { config: ThemeConfig; previewTab: Pr
   );
 }
 
+/* ── 채팅 탭 전용: 목업 2개 나란히 ── */
+/* ── iOS 친구 프로필 목업 (친구 탭 듀얼용 — 오른쪽) ── */
+function IOSFriendsProfileMockup({ config }: { config: ThemeConfig }) {
+  return (
+    <div className="relative mx-auto select-none" style={{ width: 360, height: 720 }}>
+      <div className="absolute inset-0 rounded-[40px] border-[5px] border-zinc-800"
+        style={{
+          backgroundColor: config.bodyBg,
+          boxShadow: "0 30px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15) inset",
+        }}>
+        <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-24 h-6 bg-zinc-900 rounded-full z-10" />
+        <div className="absolute top-9 left-0 right-0 h-12 flex items-center px-5 gap-2"
+          style={{ backgroundColor: config.headerBg }}>
+          <span className="text-[13px]" style={{ color: config.headerText }}>←</span>
+          <span className="font-bold text-[15px] flex-1" style={{ color: config.headerText }}>친구</span>
+        </div>
+        <div className="absolute left-0 right-0 overflow-y-auto overflow-x-hidden"
+          style={{ top: 84, bottom: 64, backgroundColor: config.bodyBg }}>
+          <IOSMockupFriendsList config={config} />
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 h-16 flex items-center justify-around rounded-b-[35px] border-t"
+          style={{ backgroundColor: config.tabBarBg, borderColor: `${config.primaryText}12` }}>
+          {(["friends","chat","openchat","shopping","more"] as PreviewTab[]).map((key) => {
+            const active = key === "friends";
+            const color = active ? config.tabBarSelectedIcon : config.tabBarIcon;
+            return (
+              <div key={key} className="flex flex-col items-center gap-0.5 pt-1">
+                <TabIcon tab={key} active={active} color={color} />
+                <span className="text-[9px]" style={{ color }}>
+                  {({"friends":"친구","chat":"채팅","openchat":"오픈채팅","shopping":"쇼핑","more":"더보기"} as Record<string,string>)[key]}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      <div className="absolute right-[-6px] top-24 w-1 h-12 bg-zinc-700 rounded-r-md" />
+      <div className="absolute left-[-6px] top-20 w-1 h-8 bg-zinc-700 rounded-l-md" />
+      <div className="absolute left-[-6px] top-32 w-1 h-8 bg-zinc-700 rounded-l-md" />
+    </div>
+  );
+}
+
+/* ── Android 친구 프로필 목업 (친구 탭 듀얼용 — 오른쪽) ── */
+function AndroidFriendsProfileMockup({ config }: { config: ThemeConfig }) {
+  return (
+    <div className="relative mx-auto select-none" style={{ width: 360, height: 720 }}>
+      <div className="absolute inset-0 rounded-[28px] border-[5px] border-zinc-800"
+        style={{
+          backgroundColor: config.bodyBg,
+          boxShadow: "0 30px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15) inset",
+        }}>
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-zinc-700 z-10" />
+        <div className="absolute top-7 left-0 right-0 h-11 flex items-center px-4 gap-2"
+          style={{ backgroundColor: config.headerBg }}>
+          <span className="text-[14px]" style={{ color: config.headerText }}>←</span>
+          <span className="font-bold text-[15px] flex-1" style={{ color: config.headerText }}>친구</span>
+        </div>
+        <div className="absolute left-0 right-0 overflow-y-auto overflow-x-hidden"
+          style={{ top: 70, bottom: 0, backgroundColor: config.bodyBg, borderBottomLeftRadius: 23, borderBottomRightRadius: 23 }}>
+          <IOSMockupFriendsList config={config} />
+        </div>
+      </div>
+      <div className="absolute right-[-6px] top-20 w-1 h-14 bg-zinc-700 rounded-r-md" />
+    </div>
+  );
+}
+
+/* ── iOS 채팅방 목업 (채팅 탭 듀얼용) ── */
+function IOSChatRoomMockup({ config }: { config: ThemeConfig }) {
+  return (
+    <div className="relative mx-auto select-none" style={{ width: 360, height: 720 }}>
+      <div className="absolute inset-0 rounded-[40px] border-[5px] border-zinc-800"
+        style={{
+          backgroundColor: config.chatBg,
+          boxShadow: "0 30px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15) inset",
+        }}>
+        {/* 다이나믹 아일랜드 */}
+        <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-24 h-6 bg-zinc-900 rounded-full z-10" />
+        {/* 헤더 */}
+        <div className="absolute top-9 left-0 right-0 h-12 flex items-center px-5 gap-2"
+          style={{ backgroundColor: config.headerBg }}>
+          <span className="text-[14px]" style={{ color: config.headerText }}>←</span>
+          <span className="font-bold text-[14px] flex-1" style={{ color: config.headerText }}>친구 1</span>
+          <span className="text-[13px]" style={{ color: config.headerText }}>⋯</span>
+        </div>
+        {/* 메시지 영역 */}
+        <div className="absolute left-0 right-0 flex flex-col gap-2.5 px-4 py-3 overflow-hidden"
+          style={{ top: 84, bottom: 120, backgroundColor: config.chatBg }}>
+          <div className="flex items-end gap-1.5 self-start max-w-[75%]">
+            <div className="w-7 h-7 rounded-full bg-zinc-300 shrink-0" />
+            <div>
+              <span className="text-[9px] block mb-0.5" style={{ color: config.descText }}>친구 1</span>
+              <div className="rounded-2xl rounded-tl-sm px-3 py-2 text-[11px] leading-snug"
+                style={{ backgroundColor: config.otherBubbleBg, color: config.otherBubbleText }}>
+                안녕하세요! 👋
+              </div>
+            </div>
+            <span className="text-[8px] self-end mb-0.5" style={{ color: config.descText }}>오후 1:00</span>
+          </div>
+          <div className="flex items-end gap-1.5 self-end max-w-[75%]">
+            <span className="text-[8px] self-end mb-0.5" style={{ color: config.unreadCountColor }}>1</span>
+            <div className="rounded-2xl rounded-tr-sm px-3 py-2 text-[11px] leading-snug"
+              style={{ backgroundColor: config.myBubbleBg, color: config.myBubbleText }}>
+              반가워요! 😊
+            </div>
+          </div>
+          <div className="flex items-end gap-1.5 self-start max-w-[75%]">
+            <div className="w-7 h-7 rounded-full bg-zinc-300 shrink-0" />
+            <div className="rounded-2xl rounded-tl-sm px-3 py-2 text-[11px] leading-snug"
+              style={{ backgroundColor: config.otherBubbleBg, color: config.otherBubbleText }}>
+              테마 예쁘네요 ✨
+            </div>
+            <span className="text-[8px] self-end mb-0.5" style={{ color: config.descText }}>오후 1:02</span>
+          </div>
+          <div className="flex items-end gap-1.5 self-end max-w-[75%]">
+            <div className="rounded-2xl rounded-tr-sm px-3 py-2 text-[11px] leading-snug"
+              style={{ backgroundColor: config.myBubbleBg, color: config.myBubbleText }}>
+              감사합니다! 🎨
+            </div>
+          </div>
+        </div>
+        {/* 입력창 */}
+        <div className="absolute left-0 right-0 h-14 flex items-center gap-2 px-4"
+          style={{ bottom: 64, backgroundColor: config.inputBarBg }}>
+          <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+            style={{ backgroundColor: config.inputFieldBg }}>
+            <span className="text-[13px]" style={{ color: config.menuBtnColor }}>+</span>
+          </div>
+          <div className="flex-1 h-9 rounded-full px-3 flex items-center"
+            style={{ backgroundColor: config.inputFieldBg }}>
+            <span className="text-[10px] text-zinc-400">메시지 입력</span>
+          </div>
+          <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+            style={{ backgroundColor: config.sendBtnBg }}>
+            <span className="text-[11px]" style={{ color: config.sendBtnIcon }}>▶</span>
+          </div>
+        </div>
+        {/* 탭바 */}
+        <div className="absolute bottom-0 left-0 right-0 h-16 flex items-center justify-around rounded-b-[35px] border-t"
+          style={{ backgroundColor: config.tabBarBg, borderColor: `${config.primaryText}12` }}>
+          {(["friends","chat","openchat","shopping","more"] as PreviewTab[]).map((key) => {
+            const active = key === "chat";
+            const color = active ? config.tabBarSelectedIcon : config.tabBarIcon;
+            return (
+              <div key={key} className="flex flex-col items-center gap-0.5 pt-1">
+                <TabIcon tab={key} active={active} color={color} />
+                <span className="text-[9px]" style={{ color }}>
+                  {({"friends":"친구","chat":"채팅","openchat":"오픈채팅","shopping":"쇼핑","more":"더보기"} as Record<string,string>)[key]}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      <div className="absolute right-[-6px] top-24 w-1 h-12 bg-zinc-700 rounded-r-md" />
+      <div className="absolute left-[-6px] top-20 w-1 h-8 bg-zinc-700 rounded-l-md" />
+      <div className="absolute left-[-6px] top-32 w-1 h-8 bg-zinc-700 rounded-l-md" />
+    </div>
+  );
+}
+
+/* ── Android 채팅방 목업 (채팅 탭 듀얼용) ── */
+function AndroidChatRoomMockup({ config }: { config: ThemeConfig }) {
+  return (
+    <div className="relative mx-auto select-none" style={{ width: 360, height: 720 }}>
+      <div className="absolute inset-0 rounded-[28px] border-[5px] border-zinc-800"
+        style={{
+          backgroundColor: config.chatBg,
+          boxShadow: "0 30px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15) inset",
+        }}>
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-zinc-700 z-10" />
+        {/* 헤더 */}
+        <div className="absolute top-7 left-0 right-0 h-11 flex items-center px-4 gap-2"
+          style={{ backgroundColor: config.headerBg }}>
+          <span className="text-[14px]" style={{ color: config.headerText }}>←</span>
+          <span className="font-bold text-[14px] flex-1" style={{ color: config.headerText }}>친구 1</span>
+          <span className="text-xs" style={{ color: config.headerText }}>⋮</span>
+        </div>
+        {/* 메시지 영역 */}
+        <div className="absolute left-0 right-0 flex flex-col gap-2.5 px-4 py-3 overflow-hidden"
+          style={{ top: 74, bottom: 56, backgroundColor: config.chatBg }}>
+          <div className="flex items-end gap-1.5 self-start max-w-[75%]">
+            <div className="w-7 h-7 rounded-full bg-zinc-300 shrink-0" />
+            <div className="rounded-2xl rounded-tl-sm px-3 py-2 text-[11px] leading-snug shadow-sm"
+              style={{ backgroundColor: config.otherBubbleBg, color: config.otherBubbleText }}>
+              안녕하세요! 👋
+            </div>
+          </div>
+          <div className="flex items-end gap-1.5 self-end max-w-[75%]">
+            <div className="rounded-2xl rounded-tr-sm px-3 py-2 text-[11px] leading-snug shadow-sm"
+              style={{ backgroundColor: config.myBubbleBg, color: config.myBubbleText }}>
+              반가워요! 😊
+            </div>
+          </div>
+          <div className="flex items-end gap-1.5 self-start max-w-[75%]">
+            <div className="w-7 h-7 rounded-full bg-zinc-300 shrink-0" />
+            <div className="rounded-2xl rounded-tl-sm px-3 py-2 text-[11px] leading-snug shadow-sm"
+              style={{ backgroundColor: config.otherBubbleBg, color: config.otherBubbleText }}>
+              테마 예쁘네요 ✨
+            </div>
+          </div>
+          <div className="flex items-end gap-1.5 self-end max-w-[75%]">
+            <div className="rounded-2xl rounded-tr-sm px-3 py-2 text-[11px] leading-snug shadow-sm"
+              style={{ backgroundColor: config.myBubbleBg, color: config.myBubbleText }}>
+              감사합니다! 🎨
+            </div>
+          </div>
+        </div>
+        {/* 입력창 */}
+        <div className="absolute left-0 right-0 h-14 flex items-center gap-2 px-3"
+          style={{ bottom: 0, backgroundColor: config.inputBarBg, borderBottomLeftRadius: 23, borderBottomRightRadius: 23 }}>
+          <div className="flex-1 h-9 rounded-full flex items-center px-3"
+            style={{ backgroundColor: config.inputFieldBg }}>
+            <span className="text-[10px] text-zinc-400">메시지 입력</span>
+          </div>
+          <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 shadow-md"
+            style={{ backgroundColor: config.sendBtnBg }}>
+            <span className="text-xs" style={{ color: config.sendBtnIcon }}>▶</span>
+          </div>
+        </div>
+      </div>
+      <div className="absolute right-[-6px] top-20 w-1 h-14 bg-zinc-700 rounded-r-md" />
+    </div>
+  );
+}
+
 /* ── Android 목업 ── */
 function AndroidMockup({ config, previewTab }: { config: ThemeConfig; previewTab: PreviewTab }) {
   const tabs: { key: PreviewTab; label: string }[] = [
@@ -483,7 +873,6 @@ function AndroidMockup({ config, previewTab }: { config: ThemeConfig; previewTab
     friends: "친구", chat: "채팅", openchat: "지금", shopping: "쇼핑", more: "더보기", passcode: "암호",
   };
 
-  const isChat = previewTab === "chat";
   const isPasscode = previewTab === "passcode";
 
   return (
@@ -491,7 +880,7 @@ function AndroidMockup({ config, previewTab }: { config: ThemeConfig; previewTab
       <div
         className="absolute inset-0 rounded-[28px] border-[5px] border-zinc-800"
         style={{
-          backgroundColor: isChat ? config.chatBg : config.bodyBg,
+          backgroundColor: config.bodyBg,
           boxShadow: "0 30px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15) inset",
         }}
       >
@@ -530,65 +919,6 @@ function AndroidMockup({ config, previewTab }: { config: ThemeConfig; previewTab
               ))}
             </div>
           </div>
-        ) : isChat ? (
-          /* ── 채팅방 화면 ── */
-          <>
-            {/* 채팅 헤더 */}
-            <div
-              className="absolute top-7 left-0 right-0 h-11 flex items-center px-4 gap-2"
-              style={{ backgroundColor: config.headerBg }}
-            >
-              <span className="text-[15px]" style={{ color: config.headerText }}>←</span>
-              <span className="font-bold text-[14px] flex-1" style={{ color: config.headerText }}>채팅방</span>
-              <span className="text-xs" style={{ color: config.headerText }}>⋮</span>
-            </div>
-            {/* 메시지 영역 */}
-            <div
-              className="absolute left-0 right-0 flex flex-col gap-2.5 px-4 py-3 overflow-hidden"
-              style={{ top: 74, bottom: 110, backgroundColor: config.chatBg }}
-            >
-              <div className="flex items-end gap-1.5 self-start max-w-[75%]">
-                <div className="w-7 h-7 rounded-full bg-zinc-300 shrink-0" />
-                <div className="rounded-2xl rounded-tl-sm px-3 py-2 text-[11px] leading-snug shadow-sm"
-                  style={{ backgroundColor: config.otherBubbleBg, color: config.otherBubbleText }}>
-                  안녕하세요! 👋
-                </div>
-              </div>
-              <div className="flex items-end gap-1.5 self-end max-w-[75%]">
-                <div className="rounded-2xl rounded-tr-sm px-3 py-2 text-[11px] leading-snug shadow-sm"
-                  style={{ backgroundColor: config.myBubbleBg, color: config.myBubbleText }}>
-                  반가워요! 😊
-                </div>
-              </div>
-              <div className="flex items-end gap-1.5 self-start max-w-[75%]">
-                <div className="w-7 h-7 rounded-full bg-zinc-300 shrink-0" />
-                <div className="rounded-2xl rounded-tl-sm px-3 py-2 text-[11px] leading-snug shadow-sm"
-                  style={{ backgroundColor: config.otherBubbleBg, color: config.otherBubbleText }}>
-                  테마 예쁘네요 ✨
-                </div>
-              </div>
-              <div className="flex items-end gap-1.5 self-end max-w-[75%]">
-                <div className="rounded-2xl rounded-tr-sm px-3 py-2 text-[11px] leading-snug shadow-sm"
-                  style={{ backgroundColor: config.myBubbleBg, color: config.myBubbleText }}>
-                  감사합니다! 🎨
-                </div>
-              </div>
-            </div>
-            {/* 입력창 */}
-            <div
-              className="absolute left-0 right-0 h-14 flex items-center gap-2 px-3"
-              style={{ bottom: 0, backgroundColor: config.inputBarBg, borderBottomLeftRadius: 23, borderBottomRightRadius: 23 }}
-            >
-              <div className="flex-1 h-9 rounded-full flex items-center px-3"
-                style={{ backgroundColor: config.bodyBg }}>
-                <span className="text-[10px] text-zinc-400">메시지 입력</span>
-              </div>
-              <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 shadow-md"
-                style={{ backgroundColor: config.sendBtnBg }}>
-                <span className="text-xs" style={{ color: config.sendBtnIcon }}>▶</span>
-              </div>
-            </div>
-          </>
         ) : (
           /* ── 일반 화면 ── */
           <>
@@ -632,102 +962,6 @@ function AndroidMockup({ config, previewTab }: { config: ThemeConfig; previewTab
         )}
       </div>
       <div className="absolute right-[-6px] top-20 w-1 h-14 bg-zinc-700 rounded-r-md" />
-    </div>
-  );
-}
-
-/* ── 채팅방 목업 ── */
-function ChatMockup({ config, previewTab }: { config: ThemeConfig; previewTab: PreviewTab }) {
-  const tabs: { key: PreviewTab; label: string }[] = [
-    { key: "friends", label: "친구" },
-    { key: "chat", label: "채팅" },
-    { key: "openchat", label: "오픈채팅" },
-    { key: "shopping", label: "쇼핑" },
-    { key: "more", label: "더보기" },
-  ];
-  return (
-    <div className="relative mx-auto select-none" style={{ width: 360, height: 720 }}>
-      <div
-        className="absolute inset-0 rounded-[40px] border-[5px] border-zinc-800"
-        style={{
-          backgroundColor: config.chatBg,
-          boxShadow: "0 30px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15) inset",
-        }}
-      >
-        <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-24 h-6 bg-zinc-900 rounded-full z-10" />
-        {/* 채팅 헤더 */}
-        <div
-          className="absolute top-9 left-0 right-0 h-12 flex items-center px-4 gap-2"
-          style={{ backgroundColor: config.headerBg }}
-        >
-          <span className="text-[15px]" style={{ color: config.headerText }}>←</span>
-          <span className="font-bold text-[14px] flex-1" style={{ color: config.headerText }}>채팅방</span>
-          <span className="text-xs" style={{ color: config.headerText }}>⋮</span>
-        </div>
-        {/* 메시지 영역 */}
-        <div className="absolute left-0 right-0 flex flex-col gap-2.5 px-4 py-3 overflow-hidden"
-          style={{ top: 84, bottom: 80, backgroundColor: config.chatBg }}>
-          <div className="flex items-end gap-1.5 self-start max-w-[75%]">
-            <div className="w-7 h-7 rounded-full bg-zinc-300 shrink-0" />
-            <div className="rounded-2xl rounded-tl-sm px-3 py-2 text-[11px] leading-snug shadow-sm"
-              style={{ backgroundColor: config.otherBubbleBg, color: config.otherBubbleText }}>
-              안녕하세요! 👋
-            </div>
-          </div>
-          <div className="flex items-end gap-1.5 self-end max-w-[75%]">
-            <div className="rounded-2xl rounded-tr-sm px-3 py-2 text-[11px] leading-snug shadow-sm"
-              style={{ backgroundColor: config.myBubbleBg, color: config.myBubbleText }}>
-              반가워요! 😊
-            </div>
-          </div>
-          <div className="flex items-end gap-1.5 self-start max-w-[75%]">
-            <div className="w-7 h-7 rounded-full bg-zinc-300 shrink-0" />
-            <div className="rounded-2xl rounded-tl-sm px-3 py-2 text-[11px] leading-snug shadow-sm"
-              style={{ backgroundColor: config.otherBubbleBg, color: config.otherBubbleText }}>
-              테마 예쁘네요 ✨
-            </div>
-          </div>
-          <div className="flex items-end gap-1.5 self-end max-w-[75%]">
-            <div className="rounded-2xl rounded-tr-sm px-3 py-2 text-[11px] leading-snug shadow-sm"
-              style={{ backgroundColor: config.myBubbleBg, color: config.myBubbleText }}>
-              감사합니다! 🎨
-            </div>
-          </div>
-        </div>
-        {/* 입력창 */}
-        <div
-          className="absolute left-0 right-0 h-14 flex items-center gap-2 px-3"
-          style={{ bottom: 64, backgroundColor: config.inputBarBg }}
-        >
-          <div className="flex-1 h-9 rounded-full flex items-center px-3"
-            style={{ backgroundColor: config.bodyBg }}>
-            <span className="text-[10px] text-zinc-400">메시지 입력</span>
-          </div>
-          <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 shadow-md"
-            style={{ backgroundColor: config.sendBtnBg }}>
-            <span className="text-xs" style={{ color: config.sendBtnIcon }}>▶</span>
-          </div>
-        </div>
-        {/* 탭바 */}
-        <div
-          className="absolute bottom-0 left-0 right-0 h-16 flex items-center justify-around rounded-b-[35px] border-t"
-          style={{ backgroundColor: config.tabBarBg, borderColor: `${config.primaryText}12` }}
-        >
-          {tabs.map(({ key, label }) => {
-            const active = previewTab === key;
-            const color = active ? config.tabBarSelectedIcon : config.tabBarIcon;
-            return (
-              <div key={key} className="flex flex-col items-center gap-0.5 pt-1">
-                <TabIcon tab={key} active={active} color={color} />
-                <span className="text-[9px]" style={{ color }}>{label}</span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-      <div className="absolute right-[-6px] top-24 w-1 h-12 bg-zinc-700 rounded-r-md" />
-      <div className="absolute left-[-6px] top-20 w-1 h-8 bg-zinc-700 rounded-l-md" />
-      <div className="absolute left-[-6px] top-32 w-1 h-8 bg-zinc-700 rounded-l-md" />
     </div>
   );
 }
@@ -809,78 +1043,174 @@ export default function CreatePage() {
       <div className="flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 45px)" }}>
 
         {/* ── 좌측 사이드바 ── */}
-        <aside className="w-60 glass-sidebar overflow-y-auto mac-scroll shrink-0">
-          <div className="p-3 pt-2">
-            {/* 이미지 업로드 */}
-            <SectionTitle>이미지 리소스</SectionTitle>
-            {[
-              { key: "icon", label: "앱 아이콘 (162×162)", tooltip: "commonIcoTheme.png — 테마 목록 아이콘" },
-              { key: "splash", label: "스플래시 이미지", tooltip: "2배수 기준 이미지 사용 권장" },
-              { key: "myBubble", label: "내 말풍선 이미지", tooltip: "-ios-background-image (send)" },
-              { key: "otherBubble", label: "상대 말풍선 이미지", tooltip: "-ios-background-image (receive)" },
-              { key: "tabBg", label: "탭바 배경 이미지", tooltip: "-ios-background-image (TabBar)" },
-            ].map(({ key, label, tooltip }) => (
-              <div key={key} className="mb-2">
-                <div className="flex items-center gap-1 mb-1">
-                  <span className="text-[11px] text-[#3a3a3c]">{label}</span>
-                  <div className="group relative">
-                    <span className="text-[10px] text-[#8e8e93] cursor-help">?</span>
-                    <div className="absolute left-4 top-0 z-50 hidden group-hover:block text-[10px] rounded-lg px-2.5 py-1.5 w-44 leading-snug glass shadow-xl" style={{color:"#3a3a3c"}}>
-                      {tooltip}
-                    </div>
-                  </div>
-                </div>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden shrink-0 glass"
-                    style={{ border: "1px solid rgba(0,0,0,0.08)" }}
-                  >
-                    {imageUploads[key] ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={imageUploads[key]} alt={label} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-[#8e8e93] text-lg">+</span>
-                    )}
-                  </div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleImageUpload(key, file);
-                    }}
-                  />
-                  <span className="text-[10px] text-[#8e8e93]">클릭하여 업로드</span>
-                </label>
+        <aside className="w-64 glass-sidebar overflow-y-auto mac-scroll shrink-0">
+          <div className="p-3 pt-3">
+
+            {/* ══ 공통 설정 — 항상 표시 ══ */}
+            <div className="text-[10px] font-bold text-[#8e8e93] uppercase tracking-widest mb-2 px-1">공통 설정</div>
+
+            <Accordion title="배경 · 바디" badge="MainViewStyle" defaultOpen={true}>
+              <ColorRow label="배경색" value={config.bodyBg} onChange={set("bodyBg")} tooltip="background-color — MainViewStyle" />
+              <ImageUploadRow label="배경 이미지" tooltip="mainBgImage.png (상단/센터 크롭)" imgKey="mainBg" imageUploads={imageUploads} onUpload={handleImageUpload} />
+            </Accordion>
+
+            <Accordion title="헤더" badge="HeaderStyle">
+              <ColorRow label="배경색" value={config.headerBg} onChange={set("headerBg")} tooltip="background-color — HeaderStyle" />
+              <ColorRow label="타이틀 · 아이콘 색" value={config.headerText} onChange={set("headerText")} tooltip="-ios-text-color (타이틀, 검색, 설정 아이콘)" />
+            </Accordion>
+
+            <Accordion title="하단 탭바" badge="TabBarStyle">
+              <ColorRow label="탭바 배경색" value={config.tabBarBg} onChange={set("tabBarBg")} tooltip="background-color — TabBarStyle" />
+              <ColorRow label="일반 아이콘" value={config.tabBarIcon} onChange={set("tabBarIcon")} tooltip="각 탭 -normal 아이콘 컬러" />
+              <ColorRow label="선택 아이콘" value={config.tabBarSelectedIcon} onChange={set("tabBarSelectedIcon")} tooltip="각 탭 -selected 아이콘 컬러" />
+              <ImageUploadRow label="탭바 배경 이미지" tooltip="maintabBgImage.png" imgKey="tabBg" imageUploads={imageUploads} onUpload={handleImageUpload} />
+            </Accordion>
+
+            <Accordion title="기본 프로필" badge="DefaultProfileStyle">
+              <ImageUploadRow label="기본 프로필 이미지" tooltip="profileImg01.png" imgKey="defaultProfile" imageUploads={imageUploads} onUpload={handleImageUpload} />
+              <ImageUploadRow label="앱 아이콘 (162×162)" tooltip="commonIcoTheme.png — 테마 목록 아이콘" imgKey="icon" imageUploads={imageUploads} onUpload={handleImageUpload} />
+            </Accordion>
+
+            {/* ══ 탭별 전용 설정 ══ */}
+            {previewTab !== "passcode" && (
+              <div className="text-[10px] font-bold text-[#8e8e93] uppercase tracking-widest mt-5 mb-2 px-1">
+                {previewTab === "friends" && "친구 탭 설정"}
+                {previewTab === "chat" && "채팅 탭 설정"}
+                {previewTab === "openchat" && "오픈채팅 탭 설정"}
+                {previewTab === "shopping" && "쇼핑 탭 설정"}
+                {previewTab === "more" && "더보기 탭 설정"}
               </div>
-            ))}
+            )}
 
-            <SectionTitle>탭바 (TabBar)</SectionTitle>
-            <ColorRow label="배경색" value={config.tabBarBg} onChange={set("tabBarBg")} tooltip="background-color" />
-            <ColorRow label="아이콘" value={config.tabBarIcon} onChange={set("tabBarIcon")} tooltip="-normal 아이콘 컬러" />
-            <ColorRow label="선택 아이콘" value={config.tabBarSelectedIcon} onChange={set("tabBarSelectedIcon")} tooltip="-selected 아이콘 컬러" />
+            {/* 친구 탭 */}
+            {previewTab === "friends" && (
+              <>
+                <Accordion title="친구 목록" badge="FriendsStyle" defaultOpen={true}>
+                  <ColorRow label="이름 텍스트" value={config.friendsNameText} onChange={set("friendsNameText")} tooltip="-ios-text-color (친구 이름)" />
+                  <ColorRow label="상태메시지 텍스트" value={config.descText} onChange={set("descText")} tooltip="-ios-description-text-color (상태 메시지, 생일 섹션)" />
+                  <ColorRow label="구분선 색" value={config.friendsBorderColor} onChange={set("friendsBorderColor")} tooltip="border-color (리스트 구분선)" />
+                  <ColorRow label="선택 시 배경" value={config.friendsSelectedBg} onChange={set("friendsSelectedBg")} tooltip="-ios-selected-background-color (친구 클릭 시)" />
+                </Accordion>
+                <Accordion title="탭 아이콘" badge="TabIcon">
+                  <ImageUploadRow label="친구 탭 일반" tooltip="tabFriendsNormal.png" imgKey="tabFriendsNormal" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ImageUploadRow label="친구 탭 선택" tooltip="tabFriendsSelected.png" imgKey="tabFriendsSelected" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                </Accordion>
+              </>
+            )}
 
-            <SectionTitle>헤더 (Header)</SectionTitle>
-            <ColorRow label="배경색" value={config.headerBg} onChange={set("headerBg")} tooltip="background-color" />
-            <ColorRow label="텍스트/아이콘" value={config.headerText} onChange={set("headerText")} tooltip="-ios-text-color" />
+            {/* 채팅 탭 */}
+            {previewTab === "chat" && (
+              <>
+                <Accordion title="채팅 목록" badge="ChatsStyle" defaultOpen={true}>
+                  <ColorRow label="채팅방 이름" value={config.chatListNameText} onChange={set("chatListNameText")} tooltip="-ios-text-color (채팅방 이름)" />
+                  <ColorRow label="마지막 메시지" value={config.chatListLastMsgText} onChange={set("chatListLastMsgText")} tooltip="-ios-paragraph-text-color (마지막 메시지)" />
+                  <ColorRow label="클릭 시 이름 색" value={config.chatListHighlightText} onChange={set("chatListHighlightText")} tooltip="-ios-highlighted-text-color (채팅방 이름 클릭 시)" />
+                </Accordion>
+                <Accordion title="채팅방 배경" badge="ChatRoomStyle" defaultOpen={true}>
+                  <ColorRow label="배경색" value={config.chatBg} onChange={set("chatBg")} tooltip="background-color — ChatRoomStyle" />
+                  <ImageUploadRow label="배경 이미지" tooltip="chatroomBgImage.png" imgKey="chatroomBg" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                </Accordion>
+                <Accordion title="입력창" badge="InputBar">
+                  <ColorRow label="인풋바 배경" value={config.inputBarBg} onChange={set("inputBarBg")} tooltip="background-color (인풋바)" />
+                  <ColorRow label="보내기 버튼 배경" value={config.sendBtnBg} onChange={set("sendBtnBg")} tooltip="-ios-send-normal-background-color" />
+                  <ColorRow label="보내기 아이콘 색" value={config.sendBtnIcon} onChange={set("sendBtnIcon")} tooltip="-ios-send-normal-foreground-color" />
+                  <ColorRow label="메뉴(+) 아이콘 색" value={config.menuBtnColor} onChange={set("menuBtnColor")} tooltip="-ios-button-normal-foreground-color" />
+                  <ColorRow label="입력 필드 배경" value={config.inputFieldBg} onChange={set("inputFieldBg")} tooltip="-ios-button-normal-background-color" />
+                </Accordion>
+                <Accordion title="말풍선" badge="MessageStyle">
+                  <div className="text-[9px] text-[#8e8e93] px-1 mb-1">보낸 메시지 (Send)</div>
+                  <ColorRow label="배경색" value={config.myBubbleBg} onChange={set("myBubbleBg")} tooltip="BubbleSend01/02.png 대체색" />
+                  <ColorRow label="텍스트" value={config.myBubbleText} onChange={set("myBubbleText")} tooltip="-ios-text-color (send)" />
+                  <ImageUploadRow label="말풍선 이미지 1" tooltip="BubbleSend01.png" imgKey="bubbleSend1" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ImageUploadRow label="말풍선 이미지 2" tooltip="BubbleSend02.png (연속)" imgKey="bubbleSend2" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <div className="text-[9px] text-[#8e8e93] px-1 mt-2 mb-1">받은 메시지 (Receive)</div>
+                  <ColorRow label="배경색" value={config.otherBubbleBg} onChange={set("otherBubbleBg")} tooltip="BubbleReceive01/02.png 대체색" />
+                  <ColorRow label="텍스트" value={config.otherBubbleText} onChange={set("otherBubbleText")} tooltip="-ios-text-color (receive)" />
+                  <ImageUploadRow label="말풍선 이미지 1" tooltip="BubbleReceive01.png" imgKey="bubbleReceive1" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ImageUploadRow label="말풍선 이미지 2" tooltip="BubbleReceive02.png (연속)" imgKey="bubbleReceive2" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <div className="text-[9px] text-[#8e8e93] px-1 mt-2 mb-1">공통</div>
+                  <ColorRow label="안읽은 숫자 색" value={config.unreadCountColor} onChange={set("unreadCountColor")} tooltip="-ios-unread-text-color" />
+                </Accordion>
+                <Accordion title="탭 아이콘" badge="TabIcon">
+                  <ImageUploadRow label="채팅 탭 일반" tooltip="tabChatNormal.png" imgKey="tabChatNormal" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ImageUploadRow label="채팅 탭 선택" tooltip="tabChatSelected.png" imgKey="tabChatSelected" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                </Accordion>
+              </>
+            )}
 
-            <SectionTitle>바디 (MainView)</SectionTitle>
-            <ColorRow label="배경색" value={config.bodyBg} onChange={set("bodyBg")} tooltip="background-color" />
-            <ColorRow label="기본 텍스트" value={config.primaryText} onChange={set("primaryText")} tooltip="Primary text color" />
-            <ColorRow label="부가 텍스트" value={config.descText} onChange={set("descText")} tooltip="Description text color" />
+            {/* 오픈채팅 탭 */}
+            {previewTab === "openchat" && (
+              <>
+                <Accordion title="오픈채팅 스타일" badge="OpenChatStyle" defaultOpen={true}>
+                  <ColorRow label="바디 배경색" value={config.openchatBg} onChange={set("openchatBg")} tooltip="background-color (오픈채팅 바디)" />
+                  <ColorRow label="타이틀 · 본문 텍스트" value={config.openchatText} onChange={set("openchatText")} tooltip="-ios-text-color (커뮤니티 타이틀, 피드 본문)" />
+                </Accordion>
+                <Accordion title="탭 아이콘" badge="TabIcon">
+                  <ImageUploadRow label="오픈채팅 탭 일반" tooltip="tabOpenNormal.png" imgKey="tabOpenNormal" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ImageUploadRow label="오픈채팅 탭 선택" tooltip="tabOpenSelected.png" imgKey="tabOpenSelected" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                </Accordion>
+              </>
+            )}
 
-            <SectionTitle>채팅방 (ChatRoom)</SectionTitle>
-            <ColorRow label="채팅 배경" value={config.chatBg} onChange={set("chatBg")} tooltip="background-color" />
-            <ColorRow label="입력창 배경" value={config.inputBarBg} onChange={set("inputBarBg")} tooltip="InputBar background-color" />
-            <ColorRow label="보내기 버튼 배경" value={config.sendBtnBg} onChange={set("sendBtnBg")} tooltip="-ios-send-normal-background-color" />
-            <ColorRow label="보내기 버튼 아이콘" value={config.sendBtnIcon} onChange={set("sendBtnIcon")} tooltip="-ios-send-normal-foreground-color" />
+            {/* 쇼핑 탭 */}
+            {previewTab === "shopping" && (
+              <>
+                <Accordion title="쇼핑 스타일" badge="ShoppingStyle" defaultOpen={true}>
+                  <ColorRow label="배경색" value={config.shoppingBg} onChange={set("shoppingBg")} tooltip="background-color (쇼핑 메인)" />
+                  <ColorRow label="상품명 · 정보 텍스트" value={config.shoppingText} onChange={set("shoppingText")} tooltip="-ios-text-color (상품명, 정보)" />
+                </Accordion>
+                <Accordion title="탭 아이콘" badge="TabIcon">
+                  <ImageUploadRow label="쇼핑 탭 일반" tooltip="tabShopNormal.png" imgKey="tabShopNormal" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ImageUploadRow label="쇼핑 탭 선택" tooltip="tabShopSelected.png" imgKey="tabShopSelected" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                </Accordion>
+              </>
+            )}
 
-            <SectionTitle>말풍선 (Message)</SectionTitle>
-            <ColorRow label="내 말풍선 배경" value={config.myBubbleBg} onChange={set("myBubbleBg")} tooltip="Send 말풍선 배경색" />
-            <ColorRow label="내 말풍선 텍스트" value={config.myBubbleText} onChange={set("myBubbleText")} tooltip="-ios-text-color (send)" />
-            <ColorRow label="상대 말풍선 배경" value={config.otherBubbleBg} onChange={set("otherBubbleBg")} tooltip="Receive 말풍선 배경색" />
-            <ColorRow label="상대 말풍선 텍스트" value={config.otherBubbleText} onChange={set("otherBubbleText")} tooltip="-ios-text-color (receive)" />
+            {/* 더보기 탭 */}
+            {previewTab === "more" && (
+              <>
+                <Accordion title="더보기 스타일" badge="MoreStyle" defaultOpen={true}>
+                  <ColorRow label="상단 영역 배경" value={config.moreBg} onChange={set("moreBg")} tooltip="background-color (더보기 상단)" />
+                  <ColorRow label="그리드 라벨 텍스트" value={config.moreTabText} onChange={set("moreTabText")} tooltip="-ios-tab-text-color (그리드 아이콘 하단 라벨)" />
+                  <ColorRow label="기본 텍스트" value={config.primaryText} onChange={set("primaryText")} tooltip="-ios-text-color (기본 텍스트)" />
+                </Accordion>
+                <Accordion title="탭 아이콘" badge="TabIcon">
+                  <ImageUploadRow label="더보기 탭 일반" tooltip="tabMoreNormal.png" imgKey="tabMoreNormal" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ImageUploadRow label="더보기 탭 선택" tooltip="tabMoreSelected.png" imgKey="tabMoreSelected" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                </Accordion>
+                <Accordion title="알림 배너" badge="NotificationBar">
+                  <ColorRow label="알림 배경" value={config.notifBannerBg} onChange={set("notifBannerBg")} tooltip="background-color — MessageNotificationBar" />
+                  <ColorRow label="알림 텍스트" value={config.notifBannerText} onChange={set("notifBannerText")} tooltip="-ios-text-color (알림 배너)" />
+                </Accordion>
+              </>
+            )}
+
+            {/* ══ 암호 설정 — passcode 탭일 때만 표시 ══ */}
+            {previewTab === "passcode" && (
+              <>
+                <div className="text-[10px] font-bold text-[#8e8e93] uppercase tracking-widest mt-5 mb-2 px-1">암호 설정</div>
+
+                <Accordion title="암호화면 스타일" badge="PasscodeStyle" defaultOpen={true}>
+                  <ColorRow label="배경색" value={config.passcodeBg} onChange={set("passcodeBg")} tooltip="background-color — PasscodeStyle" />
+                  <ColorRow label="안내 텍스트 색" value={config.passcodeTitleText} onChange={set("passcodeTitleText")} tooltip="-ios-text-color (비밀번호 입력 안내)" />
+                  <ColorRow label="키패드 배경" value={config.passcodeKeypadBg} onChange={set("passcodeKeypadBg")} tooltip="-ios-keypad-background-color" />
+                  <ColorRow label="키패드 텍스트" value={config.passcodeKeypadText} onChange={set("passcodeKeypadText")} tooltip="-ios-keypad-text-normal-color" />
+                  <ImageUploadRow label="배경 이미지" tooltip="passcodeBgImage.png" imgKey="passcodeBgImg" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                </Accordion>
+
+                <Accordion title="불릿 이미지" badge="Bullet (8종)">
+                  <div className="text-[9px] text-[#8e8e93] px-1 mb-1">미입력 (4종)</div>
+                  {["bullet1Empty","bullet2Empty","bullet3Empty","bullet4Empty"].map((k, i) => (
+                    <ImageUploadRow key={k} label={`불릿 ${i+1} (미입력)`} tooltip={`-ios-bullet-${["first","second","third","fourth"][i]}-image`} imgKey={k} imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  ))}
+                  <div className="text-[9px] text-[#8e8e93] px-1 mt-2 mb-1">입력 시 (4종)</div>
+                  {["bullet1Fill","bullet2Fill","bullet3Fill","bullet4Fill"].map((k, i) => (
+                    <ImageUploadRow key={k} label={`불릿 ${i+1} (입력)`} tooltip={`-ios-bullet-${["first","second","third","fourth"][i]}-selected-image`} imgKey={k} imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  ))}
+                </Accordion>
+              </>
+            )}
+
           </div>
         </aside>
 
@@ -906,15 +1236,49 @@ export default function CreatePage() {
 
           {/* 목업 */}
           <div className="transition-all duration-300 ease-out mt-2">
-            {os === "ios"
-              ? <IOSMockup config={config} previewTab={previewTab} />
-              : <AndroidMockup config={config} previewTab={previewTab} />
+            {previewTab === "friends"
+              ? (
+                <div className="flex items-start gap-8">
+                  <div className="flex flex-col items-center">
+                    {os === "ios"
+                      ? <IOSMockup config={config} previewTab="friends" />
+                      : <AndroidMockup config={config} previewTab="friends" />
+                    }
+                  </div>
+                  <div className="flex flex-col items-center">
+                    {os === "ios"
+                      ? <IOSFriendsProfileMockup config={config} />
+                      : <AndroidFriendsProfileMockup config={config} />
+                    }
+                  </div>
+                </div>
+              )
+              : previewTab === "chat"
+              ? (
+                <div className="flex items-start gap-8">
+                  <div className="flex flex-col items-center">
+                    {os === "ios"
+                      ? <IOSMockup config={config} previewTab="chat" />
+                      : <AndroidMockup config={config} previewTab="chat" />
+                    }
+                  </div>
+                  <div className="flex flex-col items-center">
+                    {os === "ios"
+                      ? <IOSChatRoomMockup config={config} />
+                      : <AndroidChatRoomMockup config={config} />
+                    }
+                  </div>
+                </div>
+              )
+              : os === "ios"
+                ? <IOSMockup config={config} previewTab={previewTab} />
+                : <AndroidMockup config={config} previewTab={previewTab} />
             }
           </div>
 
           {/* 프리뷰 탭 */}
           <div className="flex items-center border-b border-black/10">
-            {(["friends", "chat", "openchat", "shopping", "more", "passcode"] as PreviewTab[]).map((tab) => {
+            {(["friends", "chat", "openchat", "shopping", "more"] as PreviewTab[]).map((tab) => {
               const labels: Record<PreviewTab, string> = {
                 friends: "친구",
                 chat: "채팅",
@@ -926,7 +1290,7 @@ export default function CreatePage() {
               return (
                 <button
                   key={tab}
-                  onClick={() => setPreviewTab(tab)}
+                  onClick={() => { setPreviewTab(tab); }}
                   className="px-4 py-2 text-[12px] font-medium transition-all"
                   style={{
                     color: previewTab === tab ? "#1c1c1e" : "#8e8e93",
@@ -939,6 +1303,21 @@ export default function CreatePage() {
                 </button>
               );
             })}
+            {/* 구분선 */}
+            <div className="w-px h-4 mx-1 self-center" style={{ backgroundColor: "rgba(0,0,0,0.12)" }} />
+            {/* 암호 별도 버튼 */}
+            <button
+              onClick={() => { setPreviewTab(previewTab === "passcode" ? "friends" : "passcode"); }}
+              className="px-3 py-2 text-[12px] font-medium transition-all"
+              style={{
+                color: previewTab === "passcode" ? "#1c1c1e" : "#8e8e93",
+                borderBottom: previewTab === "passcode" ? "2px solid #1c1c1e" : "2px solid transparent",
+                marginBottom: "-1px",
+                whiteSpace: "nowrap",
+              }}
+            >
+              암호
+            </button>
           </div>
 
           {/* 가이드 배지 */}
