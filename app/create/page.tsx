@@ -131,13 +131,13 @@ interface ColorRowProps {
 
 function ColorRow({ label, value, onChange, tooltip }: ColorRowProps) {
   return (
-    <div className="flex items-center justify-between gap-2 py-1.5 px-1 rounded-lg hover:bg-black/[0.03] transition-colors">
-      <div className="flex items-center gap-1 min-w-0">
-        <span className="text-[11px] text-[#3a3a3c] truncate">{label}</span>
+    <div className="flex items-center justify-between gap-2 py-2.5 px-2 rounded-lg hover:bg-black/[0.03] transition-colors">
+      <div className="flex items-center gap-1.5 min-w-0">
+        <span className="text-[13px] truncate" style={{color:"#706765"}}>{label}</span>
         {tooltip && (
           <div className="group relative">
-            <span className="text-[10px] text-[#8e8e93] cursor-help">?</span>
-            <div className="absolute left-4 top-0 z-50 hidden group-hover:block text-[10px] rounded-lg px-2.5 py-1.5 w-44 leading-snug glass shadow-xl" style={{color:"#3a3a3c"}}>
+            <span className="text-[11px] cursor-help" style={{color:"#706765"}}>?</span>
+            <div className="absolute left-4 top-0 z-50 hidden group-hover:block text-[11px] rounded-lg px-2.5 py-1.5 w-44 leading-snug glass shadow-xl" style={{color:"#706765"}}>
               {tooltip}
             </div>
           </div>
@@ -171,7 +171,7 @@ function ColorRow({ label, value, onChange, tooltip }: ColorRowProps) {
 /* ── 섹션 타이틀 ── */
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[10px] font-semibold text-[#8e8e93] uppercase tracking-widest mt-5 mb-1 px-1">
+    <div className="text-[12px] font-semibold uppercase tracking-widest mt-6 mb-2 px-2" style={{color:"#706765"}}>
       {children}
     </div>
   );
@@ -184,12 +184,12 @@ function ImageUploadRow({ label, tooltip, imgKey, imageUploads, onUpload }: {
   onUpload: (key: string, file: File) => void;
 }) {
   return (
-    <div className="mb-2">
-      <div className="flex items-center gap-1 mb-1">
-        <span className="text-[11px] text-[#3a3a3c]">{label}</span>
+    <div className="mb-3">
+      <div className="flex items-center gap-1.5 mb-1.5">
+        <span className="text-[13px]" style={{color:"#706765"}}>{label}</span>
         <div className="group relative">
-          <span className="text-[10px] text-[#8e8e93] cursor-help">?</span>
-          <div className="absolute left-4 top-0 z-50 hidden group-hover:block text-[10px] rounded-lg px-2.5 py-1.5 w-44 leading-snug glass shadow-xl" style={{ color: "#3a3a3c" }}>
+          <span className="text-[11px] cursor-help" style={{color:"#706765"}}>?</span>
+          <div className="absolute left-4 top-0 z-50 hidden group-hover:block text-[11px] rounded-lg px-2.5 py-1.5 w-44 leading-snug glass shadow-xl" style={{ color: "#706765" }}>
             {tooltip}
           </div>
         </div>
@@ -200,38 +200,49 @@ function ImageUploadRow({ label, tooltip, imgKey, imageUploads, onUpload }: {
           {imageUploads[imgKey]
             // eslint-disable-next-line @next/next/no-img-element
             ? <img src={imageUploads[imgKey]} alt={label} className="w-full h-full object-cover" />
-            : <span className="text-[#8e8e93] text-lg">+</span>}
+            : <span className="text-lg" style={{color:"#706765"}}>+</span>}
         </div>
         <input type="file" accept="image/*" className="hidden"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(imgKey, f); }} />
-        <span className="text-[10px] text-[#8e8e93]">클릭하여 업로드</span>
+        <span className="text-[12px]" style={{color:"#706765"}}>클릭하여 업로드</span>
       </label>
     </div>
   );
 }
 
 /* ── 아코디언 패널 ── */
-function Accordion({ title, badge, defaultOpen = false, children }: {
-  title: string; badge?: string; defaultOpen?: boolean; children: React.ReactNode;
+function Accordion({ title, badge, children }: {
+  title: string; badge?: string; children: React.ReactNode;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
+  const storageKey = `accordion_${title}`;
+  const [open, setOpen] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const saved = localStorage.getItem(storageKey);
+    return saved === null ? false : saved === "true";
+  });
+  const toggle = () => {
+    setOpen((prev) => {
+      const next = !prev;
+      localStorage.setItem(storageKey, String(next));
+      return next;
+    });
+  };
   return (
-    <div className="rounded-xl overflow-hidden mb-0.5">
+    <div className="rounded-xl overflow-hidden mb-1">
       <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-1 py-2 transition-colors"
+        onClick={() => toggle()}
+        className="w-full flex items-center justify-between px-2 py-3 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <span className="text-[12px] font-semibold text-[#1c1c1e]">{title}</span>
+          <span className="text-[14px] font-semibold" style={{color:"#706765"}}>{title}</span>
           {badge && (
-            <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full"
+            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
               style={{ background: "rgba(0,0,0,0.06)", color: "#636366" }}>{badge}</span>
           )}
         </div>
-        <span className="text-[10px] text-[#8e8e93] transition-transform duration-200"
-          style={{ display: "inline-block", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>▼</span>
+        <span className="text-[11px] transition-transform duration-200" style={{ color:"#706765", display: "inline-block", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>▼</span>
       </button>
-      {open && <div className="px-1 pb-2 pt-0.5">{children}</div>}
+      {open && <div className="px-2 pb-3 pt-1">{children}</div>}
     </div>
   );
 }
@@ -256,9 +267,9 @@ function MacInput({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-[11px] font-semibold text-[#3a3a3c]">
+      <label className="text-[11px] font-semibold" style={{color:"#706765"}}>
         {label}
-        {hint && <span className="ml-1 font-normal text-[#8e8e93]">{hint}</span>}
+        {hint && <span className="ml-1 font-normal" style={{color:"#706765"}}>{hint}</span>}
       </label>
       <input
         type={type}
@@ -975,6 +986,7 @@ export default function CreatePage() {
   const [config, setConfig] = useState<ThemeConfig>(defaultConfig);
   const [previewTab, setPreviewTab] = useState<PreviewTab>("friends");
   const [imageUploads, setImageUploads] = useState<Record<string, string>>({});
+  const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
 
   const set = (key: keyof ThemeConfig) => (value: string | boolean) =>
     setConfig((prev) => ({ ...prev, [key]: value }));
@@ -1001,7 +1013,7 @@ export default function CreatePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#f1f0ed" }}>
+    <div className="min-h-screen flex flex-col" style={{ backgroundImage: "url('/back.jpg')", backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundAttachment: "fixed" }}>
       {/* ── macOS 타이틀바 ── */}
       <header
         className="flex items-center px-5 py-2.5 sticky top-0 z-50 shrink-0"
@@ -1040,18 +1052,30 @@ export default function CreatePage() {
         >
           {os === "ios" ? "⬇ .ktheme" : "⬇ APK 빌드"}
         </button>
+        {/* 우측 사이드바 토글 버튼 */}
+        <button
+          onClick={() => setRightSidebarOpen((v) => !v)}
+          className="ml-2 flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold transition-all active:scale-95"
+          style={{
+            background: rightSidebarOpen ? "rgba(0,0,0,0.12)" : "rgba(0,0,0,0.06)",
+            color: "#3a3a3c",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+          }}
+        >
+          ⚙ 설정
+        </button>
       </header>
 
-      <div className="flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 45px)" }}>
+      <div className="flex flex-1" style={{ height: "calc(100vh - 45px)" }}>
 
         {/* ── 좌측 사이드바 ── */}
-        <aside className="w-80 glass-sidebar overflow-y-auto mac-scroll shrink-0">
-          <div className="p-3 pt-3">
+        <aside className="w-80 overflow-y-auto mac-scroll shrink-0" style={{ background: "rgba(255,255,255,0.25)", backdropFilter: "blur(20px) saturate(180%)", WebkitBackdropFilter: "blur(20px) saturate(180%)", borderRight: "1px solid rgba(255,255,255,0.35)" }}>
+          <div className="p-4 pt-4">
 
             {/* ══ 공통 설정 — 항상 표시 ══ */}
-            <div className="text-[10px] font-bold text-[#8e8e93] uppercase tracking-widest mb-2 px-1">공통 설정</div>
+            <div className="text-[12px] font-bold uppercase tracking-widest mb-3 px-2" style={{color:"#000000"}}>공통 설정</div>
 
-            <Accordion title="배경 · 바디" badge="MainViewStyle" defaultOpen={true}>
+            <Accordion title="배경 · 바디" badge="MainViewStyle">
               <ColorRow label="배경색" value={config.bodyBg} onChange={set("bodyBg")} tooltip="background-color — MainViewStyle" />
               <ImageUploadRow label="배경 이미지" tooltip="mainBgImage.png (상단/센터 크롭)" imgKey="mainBg" imageUploads={imageUploads} onUpload={handleImageUpload} />
             </Accordion>
@@ -1075,7 +1099,7 @@ export default function CreatePage() {
 
             {/* ══ 탭별 전용 설정 ══ */}
             {previewTab !== "passcode" && (
-              <div className="text-[10px] font-bold text-[#8e8e93] uppercase tracking-widest mt-5 mb-2 px-1">
+              <div className="text-[12px] font-bold uppercase tracking-widest mt-6 mb-3 px-2" style={{color:"#000000"}}>
                 {previewTab === "friends" && "친구 탭 설정"}
                 {previewTab === "chat" && "채팅 탭 설정"}
                 {previewTab === "openchat" && "오픈채팅 탭 설정"}
@@ -1087,7 +1111,7 @@ export default function CreatePage() {
             {/* 친구 탭 */}
             {previewTab === "friends" && (
               <>
-                <Accordion title="친구 목록" badge="FriendsStyle" defaultOpen={true}>
+                <Accordion title="친구 목록" badge="FriendsStyle">
                   <ColorRow label="이름 텍스트" value={config.friendsNameText} onChange={set("friendsNameText")} tooltip="-ios-text-color (친구 이름)" />
                   <ColorRow label="상태메시지 텍스트" value={config.descText} onChange={set("descText")} tooltip="-ios-description-text-color (상태 메시지, 생일 섹션)" />
                   <ColorRow label="구분선 색" value={config.friendsBorderColor} onChange={set("friendsBorderColor")} tooltip="border-color (리스트 구분선)" />
@@ -1103,12 +1127,12 @@ export default function CreatePage() {
             {/* 채팅 탭 */}
             {previewTab === "chat" && (
               <>
-                <Accordion title="채팅 목록" badge="ChatsStyle" defaultOpen={true}>
+                <Accordion title="채팅 목록" badge="ChatsStyle">
                   <ColorRow label="채팅방 이름" value={config.chatListNameText} onChange={set("chatListNameText")} tooltip="-ios-text-color (채팅방 이름)" />
                   <ColorRow label="마지막 메시지" value={config.chatListLastMsgText} onChange={set("chatListLastMsgText")} tooltip="-ios-paragraph-text-color (마지막 메시지)" />
                   <ColorRow label="클릭 시 이름 색" value={config.chatListHighlightText} onChange={set("chatListHighlightText")} tooltip="-ios-highlighted-text-color (채팅방 이름 클릭 시)" />
                 </Accordion>
-                <Accordion title="채팅방 배경" badge="ChatRoomStyle" defaultOpen={true}>
+                <Accordion title="채팅방 배경" badge="ChatRoomStyle">
                   <ColorRow label="배경색" value={config.chatBg} onChange={set("chatBg")} tooltip="background-color — ChatRoomStyle" />
                   <ImageUploadRow label="배경 이미지" tooltip="chatroomBgImage.png" imgKey="chatroomBg" imageUploads={imageUploads} onUpload={handleImageUpload} />
                 </Accordion>
@@ -1120,17 +1144,17 @@ export default function CreatePage() {
                   <ColorRow label="입력 필드 배경" value={config.inputFieldBg} onChange={set("inputFieldBg")} tooltip="-ios-button-normal-background-color" />
                 </Accordion>
                 <Accordion title="말풍선" badge="MessageStyle">
-                  <div className="text-[9px] text-[#8e8e93] px-1 mb-1">보낸 메시지 (Send)</div>
+                  <div className="text-[12px] px-1 mb-1" style={{color:"#706765"}}>보낸 메시지 (Send)</div>
                   <ColorRow label="배경색" value={config.myBubbleBg} onChange={set("myBubbleBg")} tooltip="BubbleSend01/02.png 대체색" />
                   <ColorRow label="텍스트" value={config.myBubbleText} onChange={set("myBubbleText")} tooltip="-ios-text-color (send)" />
                   <ImageUploadRow label="말풍선 이미지 1" tooltip="BubbleSend01.png" imgKey="bubbleSend1" imageUploads={imageUploads} onUpload={handleImageUpload} />
                   <ImageUploadRow label="말풍선 이미지 2" tooltip="BubbleSend02.png (연속)" imgKey="bubbleSend2" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <div className="text-[9px] text-[#8e8e93] px-1 mt-2 mb-1">받은 메시지 (Receive)</div>
+                  <div className="text-[12px] px-1 mt-2 mb-1" style={{color:"#706765"}}>받은 메시지 (Receive)</div>
                   <ColorRow label="배경색" value={config.otherBubbleBg} onChange={set("otherBubbleBg")} tooltip="BubbleReceive01/02.png 대체색" />
                   <ColorRow label="텍스트" value={config.otherBubbleText} onChange={set("otherBubbleText")} tooltip="-ios-text-color (receive)" />
                   <ImageUploadRow label="말풍선 이미지 1" tooltip="BubbleReceive01.png" imgKey="bubbleReceive1" imageUploads={imageUploads} onUpload={handleImageUpload} />
                   <ImageUploadRow label="말풍선 이미지 2" tooltip="BubbleReceive02.png (연속)" imgKey="bubbleReceive2" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <div className="text-[9px] text-[#8e8e93] px-1 mt-2 mb-1">공통</div>
+                  <div className="text-[12px] px-1 mt-2 mb-1" style={{color:"#706765"}}>공통</div>
                   <ColorRow label="안읽은 숫자 색" value={config.unreadCountColor} onChange={set("unreadCountColor")} tooltip="-ios-unread-text-color" />
                 </Accordion>
                 <Accordion title="탭 아이콘" badge="TabIcon">
@@ -1143,7 +1167,7 @@ export default function CreatePage() {
             {/* 오픈채팅 탭 */}
             {previewTab === "openchat" && (
               <>
-                <Accordion title="오픈채팅 스타일" badge="OpenChatStyle" defaultOpen={true}>
+                <Accordion title="오픈채팅 스타일" badge="OpenChatStyle">
                   <ColorRow label="바디 배경색" value={config.openchatBg} onChange={set("openchatBg")} tooltip="background-color (오픈채팅 바디)" />
                   <ColorRow label="타이틀 · 본문 텍스트" value={config.openchatText} onChange={set("openchatText")} tooltip="-ios-text-color (커뮤니티 타이틀, 피드 본문)" />
                 </Accordion>
@@ -1157,7 +1181,7 @@ export default function CreatePage() {
             {/* 쇼핑 탭 */}
             {previewTab === "shopping" && (
               <>
-                <Accordion title="쇼핑 스타일" badge="ShoppingStyle" defaultOpen={true}>
+                <Accordion title="쇼핑 스타일" badge="ShoppingStyle">
                   <ColorRow label="배경색" value={config.shoppingBg} onChange={set("shoppingBg")} tooltip="background-color (쇼핑 메인)" />
                   <ColorRow label="상품명 · 정보 텍스트" value={config.shoppingText} onChange={set("shoppingText")} tooltip="-ios-text-color (상품명, 정보)" />
                 </Accordion>
@@ -1171,7 +1195,7 @@ export default function CreatePage() {
             {/* 더보기 탭 */}
             {previewTab === "more" && (
               <>
-                <Accordion title="더보기 스타일" badge="MoreStyle" defaultOpen={true}>
+                <Accordion title="더보기 스타일" badge="MoreStyle">
                   <ColorRow label="상단 영역 배경" value={config.moreBg} onChange={set("moreBg")} tooltip="background-color (더보기 상단)" />
                   <ColorRow label="그리드 라벨 텍스트" value={config.moreTabText} onChange={set("moreTabText")} tooltip="-ios-tab-text-color (그리드 아이콘 하단 라벨)" />
                   <ColorRow label="기본 텍스트" value={config.primaryText} onChange={set("primaryText")} tooltip="-ios-text-color (기본 텍스트)" />
@@ -1190,9 +1214,9 @@ export default function CreatePage() {
             {/* ══ 암호 설정 — passcode 탭일 때만 표시 ══ */}
             {previewTab === "passcode" && (
               <>
-                <div className="text-[10px] font-bold text-[#8e8e93] uppercase tracking-widest mt-5 mb-2 px-1">암호 설정</div>
+                <div className="text-[12px] font-bold uppercase tracking-widest mt-6 mb-3 px-2" style={{color:"#000000"}}>암호 설정</div>
 
-                <Accordion title="암호화면 스타일" badge="PasscodeStyle" defaultOpen={true}>
+                <Accordion title="암호화면 스타일" badge="PasscodeStyle">
                   <ColorRow label="배경색" value={config.passcodeBg} onChange={set("passcodeBg")} tooltip="background-color — PasscodeStyle" />
                   <ColorRow label="안내 텍스트 색" value={config.passcodeTitleText} onChange={set("passcodeTitleText")} tooltip="-ios-text-color (비밀번호 입력 안내)" />
                   <ColorRow label="키패드 배경" value={config.passcodeKeypadBg} onChange={set("passcodeKeypadBg")} tooltip="-ios-keypad-background-color" />
@@ -1201,11 +1225,11 @@ export default function CreatePage() {
                 </Accordion>
 
                 <Accordion title="불릿 이미지" badge="Bullet (8종)">
-                  <div className="text-[9px] text-[#8e8e93] px-1 mb-1">미입력 (4종)</div>
+                  <div className="text-[12px] px-1 mb-1" style={{color:"#706765"}}>미입력 (4종)</div>
                   {["bullet1Empty","bullet2Empty","bullet3Empty","bullet4Empty"].map((k, i) => (
                     <ImageUploadRow key={k} label={`불릿 ${i+1} (미입력)`} tooltip={`-ios-bullet-${["first","second","third","fourth"][i]}-image`} imgKey={k} imageUploads={imageUploads} onUpload={handleImageUpload} />
                   ))}
-                  <div className="text-[9px] text-[#8e8e93] px-1 mt-2 mb-1">입력 시 (4종)</div>
+                  <div className="text-[12px] px-1 mt-2 mb-1" style={{color:"#706765"}}>입력 시 (4종)</div>
                   {["bullet1Fill","bullet2Fill","bullet3Fill","bullet4Fill"].map((k, i) => (
                     <ImageUploadRow key={k} label={`불릿 ${i+1} (입력)`} tooltip={`-ios-bullet-${["first","second","third","fourth"][i]}-selected-image`} imgKey={k} imageUploads={imageUploads} onUpload={handleImageUpload} />
                   ))}
@@ -1293,9 +1317,9 @@ export default function CreatePage() {
                 <button
                   key={tab}
                   onClick={() => { setPreviewTab(tab); }}
-                  className="px-4 py-2 text-[12px] font-medium transition-all"
+                  className="px-7 py-2 text-[13px] font-semibold transition-all"
                   style={{
-                    color: previewTab === tab ? "#1c1c1e" : "#8e8e93",
+                    color: previewTab === tab ? "#1c1c1e" : "#6b6b6b",
                     borderBottom: previewTab === tab ? "2px solid #1c1c1e" : "2px solid transparent",
                     marginBottom: "-1px",
                     whiteSpace: "nowrap",
@@ -1310,9 +1334,9 @@ export default function CreatePage() {
             {/* 암호 별도 버튼 */}
             <button
               onClick={() => { setPreviewTab(previewTab === "passcode" ? "friends" : "passcode"); }}
-              className="px-3 py-2 text-[12px] font-medium transition-all"
+              className="px-7 py-2 text-[13px] font-semibold transition-all"
               style={{
-                color: previewTab === "passcode" ? "#1c1c1e" : "#8e8e93",
+                color: previewTab === "passcode" ? "#1c1c1e" : "#6b6b6b",
                 borderBottom: previewTab === "passcode" ? "2px solid #1c1c1e" : "2px solid transparent",
                 marginBottom: "-1px",
                 whiteSpace: "nowrap",
@@ -1328,6 +1352,7 @@ export default function CreatePage() {
         </main>
 
         {/* ── 우측 사이드바 ── */}
+        {rightSidebarOpen && (
         <aside
           className="w-80 overflow-y-auto mac-scroll shrink-0"
           style={{
@@ -1455,6 +1480,7 @@ export default function CreatePage() {
 
           </div>
         </aside>
+        )}
       </div>
     </div>
   );
