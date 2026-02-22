@@ -16,13 +16,13 @@ const headerBaseStyle: React.CSSProperties = {
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  padding: '26px 16px 8px 16px',
+  padding: '27px 14px 8px 14px',
   backgroundColor: 'transparent',
 };
 
 const iconRowStyle: React.CSSProperties = {
   display: 'flex',
-  gap: '16px',
+  gap: '14px',
   alignItems: 'center',
 };
 
@@ -31,7 +31,7 @@ const avatarStyle: React.CSSProperties = {
   alignItems: 'center',
   justifyContent: 'center',
   fontWeight: 'bold',
-  fontSize: '16px',
+  fontSize: '15px',
 };
 
 const useThemeStore = (selector: any) => {
@@ -72,23 +72,23 @@ export const NewsScreen = () => {
       }}
     >
       <header style={{ ...headerBaseStyle, color: friendsTab.headerTitleColor }}>
-        <h2 style={{ margin: 0, fontSize: 23, fontWeight: 800 }}>어피치</h2>
+        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>어피치</h2>
         <div style={iconRowStyle}>
-          <Search size={22} />
-          <UserPlus size={22} />
-          <Music size={22} />
-          <Settings size={22} />
+          <Search size={20} strokeWidth={2.3} />
+          <UserPlus size={20} strokeWidth={2.3} />
+          <Music size={20} strokeWidth={2.3} />
+          <Settings size={20} strokeWidth={2.3} />
         </div>
       </header>
 
-      <div style={{ display: 'flex', gap: 8, padding: '4px 16px 16px 16px' }}>
+      <div style={{ display: 'flex', gap: 7, padding: '2px 14px 12px 14px' }}>
         <button
           style={{
             backgroundColor: 'transparent',
             color: global.textColor,
             borderRadius: 999,
-            padding: '7px 16px',
-            fontSize: 14,
+            padding: '6px 14px',
+            fontSize: 13,
             fontWeight: 600,
             border: `1px solid ${global.textColor}20`,
             cursor: 'pointer',
@@ -101,8 +101,8 @@ export const NewsScreen = () => {
             backgroundColor: global.textColor,
             color: global.backgroundColor,
             borderRadius: 999,
-            padding: '7px 16px',
-            fontSize: 14,
+            padding: '6px 14px',
+            fontSize: 13,
             fontWeight: 700,
             border: 'none',
             cursor: 'pointer',
@@ -113,12 +113,12 @@ export const NewsScreen = () => {
       </div>
 
       <div className="news-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        <div style={{ padding: '0 16px 16px 16px' }}>
+        <div style={{ padding: '0 14px 12px 14px' }}>
           <div
             style={{
               backgroundColor: chatsTab.filterChipBg,
-              borderRadius: 14,
-              padding: '16px',
+              borderRadius: 11,
+              padding: '13px 15px',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
@@ -127,30 +127,30 @@ export const NewsScreen = () => {
           >
             <div>
               <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: global.textColor }}>오늘의 카카오가 궁금하다면?</p>
-              <p style={{ margin: '4px 0 0', fontSize: 12, color: global.descriptionColor }}>카카오소식 보러가기</p>
+              <p style={{ margin: '3px 0 0', fontSize: 11, color: global.descriptionColor }}>카카오소식 보러가기</p>
             </div>
-            <div style={{ display: 'flex', gap: 4, fontSize: 22 }}>🍈🧀</div>
+            <div style={{ display: 'flex', gap: 3, fontSize: 20 }}>🍈🧀</div>
           </div>
         </div>
 
-        <section style={{ padding: '8px 16px 20px' }}>
-          <article style={{ marginBottom: 24 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                <div style={{ ...avatarStyle, width: 40, height: 40, borderRadius: 14, backgroundColor: '#FEE500', color: '#000' }}>춘</div>
+        <section style={{ padding: '6px 14px 16px' }}>
+          <article style={{ marginBottom: 18 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
+                <div style={{ ...avatarStyle, width: 38, height: 38, borderRadius: 13, backgroundColor: '#FEE500', color: '#000' }}>춘</div>
                 <div>
-                  <p style={{ margin: 0, color: global.textColor, fontSize: 15, fontWeight: 700 }}>춘식이</p>
-                  <p style={{ margin: '2px 0 0', color: global.descriptionColor, fontSize: 12 }}>8분 전</p>
+                  <p style={{ margin: 0, color: global.textColor, fontSize: 14, fontWeight: 700 }}>춘식이</p>
+                  <p style={{ margin: '2px 0 0', color: global.descriptionColor, fontSize: 11 }}>8분 전</p>
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <button
                   style={{
                     backgroundColor: 'transparent',
                     border: `1px solid ${global.descriptionColor}40`,
                     borderRadius: 999,
-                    padding: '5px 12px',
-                    fontSize: 12,
+                    padding: '4px 10px',
+                    fontSize: 11,
                     fontWeight: 600,
                     color: global.textColor,
                     cursor: 'pointer',
@@ -158,19 +158,19 @@ export const NewsScreen = () => {
                 >
                   친구추가
                 </button>
-                <MoreHorizontal size={20} color={global.descriptionColor} style={{ cursor: 'pointer' }} />
+                <MoreHorizontal size={18} color={global.descriptionColor} style={{ cursor: 'pointer' }} />
               </div>
             </div>
 
-            <p style={{ margin: '0 0 12px 0', fontSize: 14, color: global.textColor, lineHeight: 1.5 }}>이번에 새로 들인 식물..🌱</p>
+            <p style={{ margin: '0 0 10px 0', fontSize: 13, color: global.textColor, lineHeight: 1.45 }}>이번에 새로 들인 식물..🌱</p>
 
             <div
               style={{
                 width: '100%',
-                height: 280,
+                height: 252,
                 backgroundColor: '#EBEBEB',
-                borderRadius: 16,
-                marginBottom: 12,
+                borderRadius: 14,
+                marginBottom: 10,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -178,29 +178,29 @@ export const NewsScreen = () => {
                 boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.05)',
               }}
             >
-              <span style={{ fontSize: 80 }}>🪴</span>
+              <span style={{ fontSize: 72 }}>🪴</span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 16, cursor: 'pointer' }}>
-              <MapPin size={15} color={global.textColor} />
-              <span style={{ fontSize: 13, color: global.textColor, fontWeight: 500 }}>분당구 삼평동</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 14, cursor: 'pointer' }}>
+              <MapPin size={14} color={global.textColor} />
+              <span style={{ fontSize: 12, color: global.textColor, fontWeight: 500 }}>분당구 삼평동</span>
             </div>
 
-            <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-                <Heart size={22} color={global.textColor} strokeWidth={1.5} />
-                <span style={{ fontSize: 14, color: global.textColor, fontWeight: 500 }}>24</span>
+            <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}>
+                <Heart size={20} color={global.textColor} strokeWidth={1.5} />
+                <span style={{ fontSize: 13, color: global.textColor, fontWeight: 500 }}>24</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-                <MessageCircle size={22} color={global.textColor} strokeWidth={1.5} />
-                <span style={{ fontSize: 14, color: global.textColor, fontWeight: 500 }}>8</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}>
+                <MessageCircle size={20} color={global.textColor} strokeWidth={1.5} />
+                <span style={{ fontSize: 13, color: global.textColor, fontWeight: 500 }}>8</span>
               </div>
 
               <div style={{ flex: 1 }} />
 
-              <div style={{ display: 'flex', gap: 16 }}>
-                <Upload size={22} color={global.textColor} strokeWidth={1.5} style={{ cursor: 'pointer', marginTop: -2 }} />
-                <Bookmark size={22} color={global.textColor} strokeWidth={1.5} style={{ cursor: 'pointer' }} />
+              <div style={{ display: 'flex', gap: 14 }}>
+                <Upload size={20} color={global.textColor} strokeWidth={1.5} style={{ cursor: 'pointer', marginTop: -2 }} />
+                <Bookmark size={20} color={global.textColor} strokeWidth={1.5} style={{ cursor: 'pointer' }} />
               </div>
             </div>
           </article>

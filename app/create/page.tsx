@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { PreviewNewsMockup } from "../../stories/PreviewNewsMockup";
+import { PreviewChatRoomMockup } from "../../stories/PreviewChatRoomMockup";
 import { PreviewMockup } from "../../stories/PreviewMockup";
 import { ScreenType, useThemeStore as usePreviewThemeStore } from "../../stories/useThemeStore";
 
@@ -1261,6 +1262,15 @@ export default function CreatePage() {
                 </div>
                 <div>
                   <PreviewNewsMockup disableTabNavigation />
+                </div>
+              </div>
+            ) : os === "ios" && previewTab === "chat" ? (
+              <div className="flex items-start gap-6">
+                <div>
+                  <PreviewMockup disableTabNavigation />
+                </div>
+                <div>
+                  <PreviewChatRoomMockup />
                 </div>
               </div>
             ) : os === "ios" ? (

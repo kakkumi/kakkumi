@@ -14,7 +14,7 @@ export const frameStyle: CSSProperties = {
 };
 
 export const headerBaseStyle: CSSProperties = {
-  padding: '26px 16px 10px',
+  padding: '31px 16px 10px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
