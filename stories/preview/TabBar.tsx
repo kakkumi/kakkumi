@@ -4,12 +4,25 @@ import { ScreenType, useThemeStore } from '../useThemeStore';
 
 export const tabScreens: ScreenType[] = ['FRIENDS', 'CHATS', 'OPENCHATS', 'SHOPPING', 'MORE'];
 
+type TabScreenKey = 'FRIENDS' | 'CHATS' | 'OPENCHATS' | 'SHOPPING' | 'MORE';
+type TabElementId = 'tabBar-friends' | 'tabBar-chats' | 'tabBar-openchats' | 'tabBar-shopping' | 'tabBar-more';
+
+const tabElementMap: Record<TabScreenKey, TabElementId> = {
+  FRIENDS: 'tabBar-friends',
+  CHATS: 'tabBar-chats',
+  OPENCHATS: 'tabBar-openchats',
+  SHOPPING: 'tabBar-shopping',
+  MORE: 'tabBar-more',
+};
+
 export const TabBar = ({ disabled = false }: { disabled?: boolean }) => {
   const currentScreen = useThemeStore((state) => state.currentScreen);
   const setCurrentScreen = useThemeStore((state) => state.setCurrentScreen);
+  const activeElementId = useThemeStore((state) => state.activeElementId);
+  const setActiveElementId = useThemeStore((state) => state.setActiveElementId);
   const tabBar = useThemeStore((state) => state.tabBar);
 
-  const tabs: { key: ScreenType; label: string; icon: React.ReactNode }[] = [
+  const tabs: { key: TabScreenKey; label: string; icon: React.ReactNode }[] = [
     { key: 'FRIENDS', label: '친구', icon: <User size={20} /> },
     { key: 'CHATS', label: '채팅', icon: <MessageCircle size={20} /> },
     {
@@ -38,16 +51,17 @@ export const TabBar = ({ disabled = false }: { disabled?: boolean }) => {
     >
       {tabs.map((tab) => {
         const active = tab.key === currentScreen;
+        const focused = activeElementId === tabElementMap[tab.key];
 
         return (
           <button
             key={tab.key}
             type="button"
             onClick={() => {
+              setActiveElementId(tabElementMap[tab.key]);
               if (disabled) return;
               setCurrentScreen(tab.key);
             }}
-            disabled={disabled}
             style={{
               border: 0,
               backgroundColor: 'transparent',
@@ -58,7 +72,10 @@ export const TabBar = ({ disabled = false }: { disabled?: boolean }) => {
               gap: 4,
               fontSize: 10,
               fontWeight: active ? 700 : 500,
-              cursor: disabled ? 'default' : 'pointer',
+              cursor: 'pointer',
+              borderRadius: 8,
+              boxShadow: focused ? '0 0 0 2px #3b82f6 inset' : 'none',
+              transition: 'box-shadow 0.15s ease',
             }}
           >
             {tab.icon}

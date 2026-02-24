@@ -9,8 +9,17 @@ export type ScreenType =
   | 'CHATROOM'
   | 'PASSCODE';
 
+export type ActiveElementId =
+  | 'tabBar-friends'
+  | 'tabBar-chats'
+  | 'tabBar-openchats'
+  | 'tabBar-shopping'
+  | 'tabBar-more'
+  | null;
+
 type ThemeState = {
   currentScreen: ScreenType;
+  activeElementId: ActiveElementId;
   tabBar: {
     activeIconColor: string;
     inactiveIconColor: string;
@@ -39,10 +48,12 @@ type ThemeState = {
     keypadTextColor: string;
   };
   setCurrentScreen: (screen: ScreenType) => void;
+  setActiveElementId: (id: ActiveElementId) => void;
 };
 
 export const useThemeStore = create<ThemeState>((set) => ({
   currentScreen: 'CHATS',
+  activeElementId: null,
   tabBar: {
     activeIconColor: '#664242',
     inactiveIconColor: '#B39898',
@@ -71,4 +82,5 @@ export const useThemeStore = create<ThemeState>((set) => ({
     keypadTextColor: '#664242',
   },
   setCurrentScreen: (screen) => set({ currentScreen: screen }),
+  setActiveElementId: (id) => set({ activeElementId: id }),
 }));

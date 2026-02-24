@@ -227,8 +227,8 @@ function ImageUploadRow({ label, tooltip, imgKey, imageUploads, onUpload }: {
 }
 
 /* ── 아코디언 패널 ── */
-function Accordion({ title, badge, children }: {
-  title: string; badge?: string; children: React.ReactNode;
+function Accordion({ title, badge, children, autoOpenSignal }: {
+  title: string; badge?: string; children: React.ReactNode; autoOpenSignal?: string | null;
 }) {
   const storageKey = `accordion_${title}`;
   const [open, setOpen] = useState(() => {
@@ -236,6 +236,15 @@ function Accordion({ title, badge, children }: {
     const saved = localStorage.getItem(storageKey);
     return saved === null ? false : saved === "true";
   });
+
+  useEffect(() => {
+    if (!autoOpenSignal) return;
+    setOpen(true);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(storageKey, "true");
+    }
+  }, [autoOpenSignal, storageKey]);
+
   const toggle = () => {
     setOpen((prev) => {
       const next = !prev;
@@ -905,6 +914,7 @@ export default function CreatePage() {
   const [imageUploads, setImageUploads] = useState<Record<string, string>>({});
   const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
   const setCurrentScreen = usePreviewThemeStore((state) => state.setCurrentScreen);
+  const activeElementId = usePreviewThemeStore((state) => state.activeElementId);
 
   useEffect(() => {
     const screenMap: Record<PreviewTab, ScreenType> = {
@@ -1015,11 +1025,73 @@ export default function CreatePage() {
               <ColorRow label="타이틀 · 아이콘 색" value={config.headerText} onChange={set("headerText")} tooltip="-ios-text-color (타이틀, 검색, 설정 아이콘)" />
             </Accordion>
 
-            <Accordion title="하단 탭바" badge="TabBarStyle">
+            <Accordion
+              title="하단 탭바"
+              badge="TabBarStyle"
+              autoOpenSignal={activeElementId?.startsWith("tabBar-") ? activeElementId : null}
+            >
               <ColorRow label="탭바 배경색" value={config.tabBarBg} onChange={set("tabBarBg")} tooltip="background-color — TabBarStyle" />
               <ColorRow label="일반 아이콘" value={config.tabBarIcon} onChange={set("tabBarIcon")} tooltip="각 탭 -normal 아이콘 컬러" />
               <ColorRow label="선택 아이콘" value={config.tabBarSelectedIcon} onChange={set("tabBarSelectedIcon")} tooltip="각 탭 -selected 아이콘 컬러" />
               <ImageUploadRow label="탭바 배경 이미지" tooltip="maintabBgImage.png" imgKey="tabBg" imageUploads={imageUploads} onUpload={handleImageUpload} />
+              <div className="mt-3 mb-1 text-[11px] font-semibold px-1" style={{ color: "#706765" }}>
+                탭 아이콘 이미지 (전체)
+              </div>
+              {[
+                {
+                  label: "친구",
+                  normalKey: "tabFriendsNormal",
+                  selectedKey: "tabFriendsSelected",
+                  normalTooltip: "-ios-friends-normal-icon-image",
+                  selectedTooltip: "-ios-friends-selected-icon-image",
+                },
+                {
+                  label: "채팅",
+                  normalKey: "tabChatNormal",
+                  selectedKey: "tabChatSelected",
+                  normalTooltip: "-ios-chats-normal-icon-image",
+                  selectedTooltip: "-ios-chats-selected-icon-image",
+                },
+                {
+                  label: "오픈채팅",
+                  normalKey: "tabOpenNormal",
+                  selectedKey: "tabOpenSelected",
+                  normalTooltip: "-ios-openchats-normal-icon-image",
+                  selectedTooltip: "-ios-openchats-selected-icon-image",
+                },
+                {
+                  label: "쇼핑",
+                  normalKey: "tabShopNormal",
+                  selectedKey: "tabShopSelected",
+                  normalTooltip: "-ios-shopping-normal-icon-image",
+                  selectedTooltip: "-ios-shopping-selected-icon-image",
+                },
+                {
+                  label: "더보기",
+                  normalKey: "tabMoreNormal",
+                  selectedKey: "tabMoreSelected",
+                  normalTooltip: "-ios-more-normal-icon-image",
+                  selectedTooltip: "-ios-more-selected-icon-image",
+                },
+              ].map((item) => (
+                <div key={item.label} className="rounded-lg px-2 py-2 mb-2" style={{ background: "rgba(255,255,255,0.45)", border: "1px solid rgba(0,0,0,0.06)" }}>
+                  <div className="text-[12px] font-semibold mb-1" style={{ color: "#706765" }}>{item.label}</div>
+                  <ImageUploadRow
+                    label={`${item.label} 탭 일반`}
+                    tooltip={item.normalTooltip}
+                    imgKey={item.normalKey}
+                    imageUploads={imageUploads}
+                    onUpload={handleImageUpload}
+                  />
+                  <ImageUploadRow
+                    label={`${item.label} 탭 선택`}
+                    tooltip={item.selectedTooltip}
+                    imgKey={item.selectedKey}
+                    imageUploads={imageUploads}
+                    onUpload={handleImageUpload}
+                  />
+                </div>
+              ))}
             </Accordion>
 
             <Accordion title="기본 프로필" badge="DefaultProfileStyle">
@@ -1046,10 +1118,6 @@ export default function CreatePage() {
                   <ColorRow label="상태메시지 텍스트" value={config.descText} onChange={set("descText")} tooltip="-ios-description-text-color (상태 메시지, 생일 섹션)" />
                   <ColorRow label="구분선 색" value={config.friendsBorderColor} onChange={set("friendsBorderColor")} tooltip="border-color (리스트 구분선)" />
                   <ColorRow label="선택 시 배경" value={config.friendsSelectedBg} onChange={set("friendsSelectedBg")} tooltip="-ios-selected-background-color (친구 클릭 시)" />
-                </Accordion>
-                <Accordion title="탭 아이콘" badge="TabIcon">
-                  <ImageUploadRow label="친구 탭 일반" tooltip="tabFriendsNormal.png" imgKey="tabFriendsNormal" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ImageUploadRow label="친구 탭 선택" tooltip="tabFriendsSelected.png" imgKey="tabFriendsSelected" imageUploads={imageUploads} onUpload={handleImageUpload} />
                 </Accordion>
               </>
             )}
@@ -1087,10 +1155,6 @@ export default function CreatePage() {
                   <div className="text-[12px] px-1 mt-2 mb-1" style={{color:"#706765"}}>공통</div>
                   <ColorRow label="안읽은 숫자 색" value={config.unreadCountColor} onChange={set("unreadCountColor")} tooltip="-ios-unread-text-color" />
                 </Accordion>
-                <Accordion title="탭 아이콘" badge="TabIcon">
-                  <ImageUploadRow label="채팅 탭 일반" tooltip="tabChatNormal.png" imgKey="tabChatNormal" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ImageUploadRow label="채팅 탭 선택" tooltip="tabChatSelected.png" imgKey="tabChatSelected" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                </Accordion>
               </>
             )}
 
@@ -1100,10 +1164,6 @@ export default function CreatePage() {
                 <Accordion title="오픈채팅 스타일" badge="OpenChatStyle">
                   <ColorRow label="바디 배경색" value={config.openchatBg} onChange={set("openchatBg")} tooltip="background-color (오픈채팅 바디)" />
                   <ColorRow label="타이틀 · 본문 텍스트" value={config.openchatText} onChange={set("openchatText")} tooltip="-ios-text-color (커뮤니티 타이틀, 피드 본문)" />
-                </Accordion>
-                <Accordion title="탭 아이콘" badge="TabIcon">
-                  <ImageUploadRow label="오픈채팅 탭 일반" tooltip="tabOpenNormal.png" imgKey="tabOpenNormal" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ImageUploadRow label="오픈채팅 탭 선택" tooltip="tabOpenSelected.png" imgKey="tabOpenSelected" imageUploads={imageUploads} onUpload={handleImageUpload} />
                 </Accordion>
               </>
             )}
@@ -1115,10 +1175,6 @@ export default function CreatePage() {
                   <ColorRow label="배경색" value={config.shoppingBg} onChange={set("shoppingBg")} tooltip="background-color (쇼핑 메인)" />
                   <ColorRow label="상품명 · 정보 텍스트" value={config.shoppingText} onChange={set("shoppingText")} tooltip="-ios-text-color (상품명, 정보)" />
                 </Accordion>
-                <Accordion title="탭 아이콘" badge="TabIcon">
-                  <ImageUploadRow label="쇼핑 탭 일반" tooltip="tabShopNormal.png" imgKey="tabShopNormal" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ImageUploadRow label="쇼핑 탭 선택" tooltip="tabShopSelected.png" imgKey="tabShopSelected" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                </Accordion>
               </>
             )}
 
@@ -1129,10 +1185,6 @@ export default function CreatePage() {
                   <ColorRow label="상단 영역 배경" value={config.moreBg} onChange={set("moreBg")} tooltip="background-color (더보기 상단)" />
                   <ColorRow label="그리드 라벨 텍스트" value={config.moreTabText} onChange={set("moreTabText")} tooltip="-ios-tab-text-color (그리드 아이콘 하단 라벨)" />
                   <ColorRow label="기본 텍스트" value={config.primaryText} onChange={set("primaryText")} tooltip="-ios-text-color (기본 텍스트)" />
-                </Accordion>
-                <Accordion title="탭 아이콘" badge="TabIcon">
-                  <ImageUploadRow label="더보기 탭 일반" tooltip="tabMoreNormal.png" imgKey="tabMoreNormal" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ImageUploadRow label="더보기 탭 선택" tooltip="tabMoreSelected.png" imgKey="tabMoreSelected" imageUploads={imageUploads} onUpload={handleImageUpload} />
                 </Accordion>
                 <Accordion title="알림 배너" badge="NotificationBar">
                   <ColorRow label="알림 배경" value={config.notifBannerBg} onChange={set("notifBannerBg")} tooltip="background-color — MessageNotificationBar" />
