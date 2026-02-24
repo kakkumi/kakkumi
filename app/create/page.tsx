@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 
 type OS = "ios" | "android";
@@ -1029,10 +1030,9 @@ export default function CreatePage() {
         <div className="flex items-center gap-2">
           <Link
             href="/"
-            className="text-[14px] font-semibold tracking-tight transition-opacity hover:opacity-60 select-none"
-            style={{ color: "#1c1c1e" }}
+            className="transition-opacity hover:opacity-60 select-none"
           >
-            카꾸미
+            <Image src="/카꾸미.png" alt="카꾸미" width={120} height={48} style={{ objectFit: "contain" }} />
           </Link>
           <span className="text-[#8e8e93] text-[13px] select-none">—</span>
           <span className="text-[13px] text-[#3a3a3c] select-none">{config.name}</span>
