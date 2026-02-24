@@ -231,11 +231,11 @@ function Accordion({ title, badge, children, autoOpenSignal }: {
   title: string; badge?: string; children: React.ReactNode; autoOpenSignal?: string | null;
 }) {
   const storageKey = `accordion_${title}`;
-  const [open, setOpen] = useState(() => {
-    if (typeof window === "undefined") return false;
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
     const saved = localStorage.getItem(storageKey);
-    return saved === null ? false : saved === "true";
-  });
+    if (saved !== null) setOpen(saved === "true");
+  }, [storageKey]);
 
   useEffect(() => {
     if (!autoOpenSignal) return;
@@ -716,7 +716,7 @@ function IOSFriendsProfileMockup({ config }: { config: ThemeConfig }) {
 /* ── Android 친구 프로필 목업 (친구 탭 듀얼용 — 오른쪽) ── */
 function AndroidFriendsProfileMockup({ config }: { config: ThemeConfig }) {
   return (
-    <div className="relative mx-auto select-none" style={{ width: 387, height: 736 }}>
+    <div className="relative mx-auto select-none" style={{ width: 368, height: 699 }}>
       <div className="absolute inset-0 rounded-[28px] border-[5px] border-zinc-800"
         style={{
           backgroundColor: config.bodyBg,
@@ -835,7 +835,7 @@ function IOSChatRoomMockup({ config }: { config: ThemeConfig }) {
 /* ── Android 채팅방 목업 (채팅 탭 듀얼용) ── */
 function AndroidChatRoomMockup({ config }: { config: ThemeConfig }) {
   return (
-    <div className="relative mx-auto select-none" style={{ width: 387, height: 736 }}>
+    <div className="relative mx-auto select-none" style={{ width: 368, height: 699 }}>
       <div className="absolute inset-0 rounded-[28px] border-[5px] border-zinc-800"
         style={{
           backgroundColor: config.chatBg,
@@ -856,7 +856,6 @@ function AndroidChatRoomMockup({ config }: { config: ThemeConfig }) {
   );
 }
 
-/* ── Android 목업 ── */
 function AndroidMockup({ config, previewTab }: { config: ThemeConfig; previewTab: PreviewTab }) {
   const renderScreen = () => {
     switch (previewTab) {
@@ -880,7 +879,7 @@ function AndroidMockup({ config, previewTab }: { config: ThemeConfig; previewTab
   const showTabBar = previewTab !== "passcode";
 
   return (
-    <div className="relative mx-auto select-none" style={{ width: 387, height: 736 }}>
+    <div className="relative mx-auto select-none" style={{ width: 368, height: 699 }}>
       <div
         className="absolute inset-0 rounded-[28px] border-[5px] border-zinc-800"
         style={{
@@ -957,7 +956,7 @@ export default function CreatePage() {
     <div className="min-h-screen flex flex-col" style={{ backgroundImage: "url('/back.jpg')", backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundAttachment: "fixed" }}>
       {/* ── macOS 타이틀바 ── */}
       <header
-        className="flex items-center px-5 py-2.5 sticky top-0 z-50 shrink-0"
+        className="flex items-center px-5 py-0.2 sticky top-0 z-50 shrink-0"
         style={{
           background: "rgba(236, 236, 240, 0.72)",
           backdropFilter: "blur(40px) saturate(200%)",
@@ -972,7 +971,7 @@ export default function CreatePage() {
             href="/"
             className="transition-opacity hover:opacity-60 select-none"
           >
-            <Image src="/카꾸미.png" alt="카꾸미" width={120} height={48} style={{ objectFit: "contain" }} />
+            <Image src="/카꾸미.png" alt="카꾸미" width={120} height={48} quality={100} unoptimized style={{ objectFit: "contain" }} />
           </Link>
           <span className="text-[#8e8e93] text-[13px] select-none">—</span>
           <span className="text-[13px] text-[#3a3a3c] select-none">{config.name}</span>
