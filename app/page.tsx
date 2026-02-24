@@ -117,139 +117,93 @@ export default function Home() {
           </a>
         </div>
 
-        {/* 히어로 목업 이미지 힌트 */}
-        <div className="mt-16 flex items-end justify-center gap-6 select-none">
-          {/* 폰 목업 3개 — 색 블록으로 표현 */}
-          {[
-            { bg: "#FEE500", rotate: "-6deg", scale: "0.88", label: "옐로우" },
-            { bg: "#ffffff", rotate: "0deg", scale: "1", label: "화이트" },
-            { bg: "#1c1c1e", rotate: "6deg", scale: "0.88", label: "블랙" },
-          ].map(({ bg, rotate, scale, label }) => (
+        {/* 히어로 목업 — macOS 스타일 카드 2장 */}
+        <div className="mt-16 relative select-none" style={{ width: 420, height: 420 }}>
+          {/* 뒤 카드 — 기본 테마 */}
+          <div
+            className="absolute rounded-2xl overflow-hidden"
+            style={{
+              width: 260,
+              height: 340,
+              background: "#f5f5f5",
+              top: 20,
+              left: 0,
+              boxShadow: "0 8px 40px rgba(0,0,0,0.12)",
+              border: "1px solid rgba(0,0,0,0.06)",
+            }}
+          >
+            {/* 타이틀바 */}
             <div
-              key={label}
-              style={{
-                transform: `rotate(${rotate}) scale(${scale})`,
-                transformOrigin: "bottom center",
-              }}
+              className="flex items-center gap-2 px-4 py-3"
+              style={{ background: "#fff", borderBottom: "1px solid rgba(0,0,0,0.06)" }}
             >
-              <div
-                className="relative rounded-[32px] border-[5px] border-zinc-800 overflow-hidden"
-                style={{
-                  width: 180,
-                  height: 360,
-                  background: bg,
-                  boxShadow:
-                    "0 24px 64px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,255,255,0.1) inset",
-                }}
-              >
-                {/* 다이나믹 아일랜드 */}
-                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-16 h-4 bg-zinc-900 rounded-full z-10" />
-                {/* 헤더 */}
-                <div
-                  className="absolute top-7 left-0 right-0 h-9 flex items-center px-3"
-                  style={{
-                    background:
-                      bg === "#1c1c1e" ? "#2c2c2e" : "rgba(0,0,0,0.06)",
-                  }}
-                >
-                  <span
-                    className="text-[9px] font-bold flex-1"
-                    style={{
-                      color: bg === "#1c1c1e" ? "#ffffff" : "#1c1c1e",
-                    }}
-                  >
-                    친구
-                  </span>
-                  <span
-                    className="text-[8px]"
-                    style={{
-                      color: bg === "#1c1c1e" ? "#ffffff" : "#1c1c1e",
-                    }}
-                  >
-                    🔍
-                  </span>
-                </div>
-                {/* 프로필 */}
-                <div
-                  className="absolute flex items-center gap-2 px-3"
-                  style={{ top: 56 }}
-                >
-                  <div className="w-8 h-8 rounded-full bg-zinc-400 shrink-0" />
-                  <div>
-                    <div
-                      className="w-12 h-2 rounded-sm mb-1"
-                      style={{
-                        background:
-                          bg === "#1c1c1e"
-                            ? "rgba(255,255,255,0.3)"
-                            : "rgba(0,0,0,0.15)",
-                      }}
-                    />
-                    <div
-                      className="w-16 h-1.5 rounded-sm"
-                      style={{
-                        background:
-                          bg === "#1c1c1e"
-                            ? "rgba(255,255,255,0.15)"
-                            : "rgba(0,0,0,0.08)",
-                      }}
-                    />
-                  </div>
-                </div>
-                {/* 친구 목록 */}
-                {[80, 104, 128, 152, 176, 200, 224].map((top) => (
-                  <div
-                    key={top}
-                    className="absolute flex items-center gap-2 px-3"
-                    style={{ top }}
-                  >
-                    <div
-                      className="w-6 h-6 rounded-full bg-zinc-300 shrink-0"
-                      style={{
-                        opacity: bg === "#1c1c1e" ? 0.3 : 0.5,
-                      }}
-                    />
-                    <div
-                      className="w-14 h-1.5 rounded-sm"
-                      style={{
-                        background:
-                          bg === "#1c1c1e"
-                            ? "rgba(255,255,255,0.15)"
-                            : "rgba(0,0,0,0.1)",
-                      }}
-                    />
-                  </div>
-                ))}
-                {/* 탭바 */}
-                <div
-                  className="absolute bottom-0 left-0 right-0 h-12 flex items-center justify-around rounded-b-[26px]"
-                  style={{
-                    background:
-                      bg === "#1c1c1e" ? "#2c2c2e" : "rgba(255,255,255,0.8)",
-                  }}
-                >
-                  {["●", "○", "○", "○", "○"].map((dot, i) => (
-                    <span
-                      key={i}
-                      className="text-[6px]"
-                      style={{
-                        color:
-                          bg === "#1c1c1e"
-                            ? i === 0
-                              ? "#FEE500"
-                              : "#666"
-                            : i === 0
-                            ? "#3A1D1D"
-                            : "#aaa",
-                      }}
-                    >
-                      {dot}
-                    </span>
-                  ))}
-                </div>
+              <div className="flex gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
+                <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
               </div>
+              <span className="text-[11px] font-medium ml-2" style={{ color: "#888" }}>기본 테마</span>
             </div>
-          ))}
+            <div className="px-4 py-3 flex flex-col gap-3">
+              {[
+                { nameW: "w-14", msgW: "w-20" },
+                { nameW: "w-10", msgW: "w-24" },
+                { nameW: "w-16", msgW: "w-16" },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-zinc-300 shrink-0" />
+                  <div className="flex flex-col gap-1">
+                    <div className={`h-2 rounded-sm ${item.nameW}`} style={{ background: "rgba(0,0,0,0.15)" }} />
+                    <div className={`h-1.5 rounded-sm ${item.msgW}`} style={{ background: "rgba(0,0,0,0.08)" }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 앞 카드 — #f5e87a 테마 */}
+          <div
+            className="absolute rounded-2xl overflow-hidden"
+            style={{
+              width: 260,
+              height: 360,
+              background: "#f5e87a",
+              top: 60,
+              left: 120,
+              boxShadow: "0 12px 48px rgba(180,160,0,0.18)",
+              border: "1px solid rgba(255,255,255,0.5)",
+            }}
+          >
+            {/* 타이틀바 */}
+            <div
+              className="flex items-center gap-2 px-4 py-3"
+              style={{ background: "rgba(0,0,0,0.06)", borderBottom: "1px solid rgba(0,0,0,0.08)" }}
+            >
+              <div className="flex gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
+                <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
+              </div>
+              <span className="text-[11px] font-bold ml-2" style={{ color: "#3a3200" }}>내가 만든 테마</span>
+            </div>
+            <div className="px-4 py-3 flex flex-col gap-3">
+              {[
+                { nameW: "w-14", msgW: "w-20" },
+                { nameW: "w-10", msgW: "w-24" },
+                { nameW: "w-16", msgW: "w-16" },
+                { nameW: "w-12", msgW: "w-20" },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full shrink-0" style={{ background: "rgba(0,0,0,0.14)" }} />
+                  <div className="flex flex-col gap-1">
+                    <div className={`h-2 rounded-sm ${item.nameW}`} style={{ background: "rgba(0,0,0,0.2)" }} />
+                    <div className={`h-1.5 rounded-sm ${item.msgW}`} style={{ background: "rgba(0,0,0,0.1)" }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+          </div>
         </div>
       </section>
 
