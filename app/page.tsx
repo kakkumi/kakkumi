@@ -6,11 +6,9 @@ export default function Home() {
     <div
       className="min-h-screen flex flex-col mac-scroll"
       style={{
-        backgroundImage: "url('/back.jpg')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        backgroundAttachment: "fixed",
+        backgroundColor: "#fdfcfc",
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23noise)' opacity='0.5'/%3E%3C/svg%3E")`,
+        backgroundRepeat: "repeat",
       }}
     >
       {/* ── 네비게이션 바 ── */}
@@ -72,11 +70,12 @@ export default function Home() {
           style={{
             color: "#1c1c1e",
             textShadow: "0 1px 2px rgba(255,255,255,0.6)",
+            fontFamily: "'KotraBold', sans-serif",
           }}
         >
           나만의 카카오톡 테마,
           <br />
-          <span style={{ color: "#b8860b" }}>카꾸미</span>로 쉽게 만들어요
+          <span style={{ color: "#edb0b9" }}>카</span><span style={{ color: "#a3cee8" }}>꾸</span><span style={{ color: "#f3df56" }}>미</span>로 쉽게 만들어요
         </h1>
 
         <p
@@ -93,7 +92,7 @@ export default function Home() {
             <button
               className="px-8 py-3.5 rounded-xl text-[16px] font-bold transition-all active:scale-95 hover:brightness-105"
               style={{
-                background: "rgba(255,229,0,0.95)",
+                background: "rgba(255,231,58,0.95)",
                 color: "#3A1D1D",
                 boxShadow:
                   "0 4px 16px rgba(255,200,0,0.4), 0 1px 0 rgba(255,255,255,0.5) inset",
@@ -161,13 +160,13 @@ export default function Home() {
             </div>
           </div>
 
-          {/* 앞 카드 — #f5e87a 테마 */}
+          {/* 앞 카드 */}
           <div
             className="absolute rounded-2xl overflow-hidden"
             style={{
               width: 260,
               height: 360,
-              background: "#f5e87a",
+              background: "#eaeaea",
               top: 60,
               left: 120,
               boxShadow: "0 12px 48px rgba(180,160,0,0.18)",
