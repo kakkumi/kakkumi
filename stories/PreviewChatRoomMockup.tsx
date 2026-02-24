@@ -3,12 +3,12 @@ import { frameStyle } from './preview/styles';
 
 export const PreviewChatRoomMockup = () => {
   return (
-    <div style={{ position: 'relative', width: 387, height: 736 }}>
+    <div style={{ position: 'relative', width: 368, height: 699 }}>
       <div
         style={{
           position: 'absolute',
           inset: 0,
-          borderRadius: 42,
+          borderRadius: 40,
           border: '5px solid #27272a',
           backgroundColor: '#fff',
           boxShadow: '0 24px 60px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,255,255,0.2) inset',
@@ -21,8 +21,8 @@ export const PreviewChatRoomMockup = () => {
             top: 10,
             left: '50%',
             transform: 'translateX(-50%)',
-            width: 96,
-            height: 24,
+            width: 91,
+            height: 23,
             borderRadius: 999,
             backgroundColor: '#111827',
             zIndex: 20,
@@ -40,9 +40,9 @@ export const PreviewChatRoomMockup = () => {
         style={{
           position: 'absolute',
           right: -6,
-          top: 96,
+          top: 91,
           width: 4,
-          height: 46,
+          height: 44,
           borderRadius: 4,
           backgroundColor: '#3f3f46',
         }}
@@ -51,9 +51,9 @@ export const PreviewChatRoomMockup = () => {
         style={{
           position: 'absolute',
           left: -6,
-          top: 88,
+          top: 84,
           width: 4,
-          height: 30,
+          height: 29,
           borderRadius: 4,
           backgroundColor: '#3f3f46',
         }}
@@ -62,9 +62,9 @@ export const PreviewChatRoomMockup = () => {
         style={{
           position: 'absolute',
           left: -6,
-          top: 130,
+          top: 124,
           width: 4,
-          height: 30,
+          height: 29,
           borderRadius: 4,
           backgroundColor: '#3f3f46',
         }}
