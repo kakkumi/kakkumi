@@ -6,6 +6,16 @@ import { useEffect, useState } from "react";
 import { PreviewNewsMockup } from "../../stories/PreviewNewsMockup";
 import { PreviewChatRoomMockup } from "../../stories/PreviewChatRoomMockup";
 import { PreviewMockup } from "../../stories/PreviewMockup";
+import { ChatRoomScreen } from "../../stories/preview/ChatRoomScreen";
+import { FriendsScreen } from "../../stories/preview/FriendsScreen";
+import { MainScreen } from "../../stories/preview/MainScreen";
+import { MoreScreen } from "../../stories/preview/MoreScreen";
+import { NewsScreen } from "../../stories/preview/NewsScreen";
+import { OpenChatsScreen } from "../../stories/preview/OpenChatsScreen";
+import { PasscodeScreen } from "../../stories/preview/PasscodeScreen";
+import { ShoppingScreen } from "../../stories/preview/ShoppingScreen";
+import { TabBar } from "../../stories/preview/TabBar";
+import { frameStyle } from "../../stories/preview/styles";
 import { ScreenType, useThemeStore as usePreviewThemeStore } from "../../stories/useThemeStore";
 
 type OS = "ios" | "android";
@@ -683,21 +693,21 @@ function IOSFriendsProfileMockup({ config }: { config: ThemeConfig }) {
 /* ── Android 친구 프로필 목업 (친구 탭 듀얼용 — 오른쪽) ── */
 function AndroidFriendsProfileMockup({ config }: { config: ThemeConfig }) {
   return (
-    <div className="relative mx-auto select-none" style={{ width: 360, height: 720 }}>
+    <div className="relative mx-auto select-none" style={{ width: 387, height: 736 }}>
       <div className="absolute inset-0 rounded-[28px] border-[5px] border-zinc-800"
         style={{
           backgroundColor: config.bodyBg,
           boxShadow: "0 30px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15) inset",
         }}>
         <div className="absolute top-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-zinc-700 z-10" />
-        <div className="absolute top-7 left-0 right-0 h-11 flex items-center px-4 gap-2"
-          style={{ backgroundColor: config.headerBg }}>
-          <span className="text-[14px]" style={{ color: config.headerText }}>←</span>
-          <span className="font-bold text-[15px] flex-1" style={{ color: config.headerText }}>친구</span>
-        </div>
-        <div className="absolute left-0 right-0 overflow-y-auto overflow-x-hidden"
-          style={{ top: 70, bottom: 0, backgroundColor: config.bodyBg, borderBottomLeftRadius: 23, borderBottomRightRadius: 23 }}>
-          <IOSMockupFriendsList config={config} />
+        <div className="absolute left-0 right-0"
+          style={{ top: 0, bottom: 0 }}>
+          <section style={{ ...frameStyle, borderRadius: 23, border: 'none', boxShadow: 'none' }}>
+            <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
+              <NewsScreen />
+            </div>
+            <TabBar disabled />
+          </section>
         </div>
       </div>
       <div className="absolute right-[-6px] top-20 w-1 h-14 bg-zinc-700 rounded-r-md" />
@@ -802,61 +812,20 @@ function IOSChatRoomMockup({ config }: { config: ThemeConfig }) {
 /* ── Android 채팅방 목업 (채팅 탭 듀얼용) ── */
 function AndroidChatRoomMockup({ config }: { config: ThemeConfig }) {
   return (
-    <div className="relative mx-auto select-none" style={{ width: 360, height: 720 }}>
+    <div className="relative mx-auto select-none" style={{ width: 387, height: 736 }}>
       <div className="absolute inset-0 rounded-[28px] border-[5px] border-zinc-800"
         style={{
           backgroundColor: config.chatBg,
           boxShadow: "0 30px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15) inset",
         }}>
         <div className="absolute top-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-zinc-700 z-10" />
-        {/* 헤더 */}
-        <div className="absolute top-7 left-0 right-0 h-11 flex items-center px-4 gap-2"
-          style={{ backgroundColor: config.headerBg }}>
-          <span className="text-[14px]" style={{ color: config.headerText }}>←</span>
-          <span className="font-bold text-[14px] flex-1" style={{ color: config.headerText }}>친구 1</span>
-          <span className="text-xs" style={{ color: config.headerText }}>⋮</span>
-        </div>
-        {/* 메시지 영역 */}
-        <div className="absolute left-0 right-0 flex flex-col gap-2.5 px-4 py-3 overflow-hidden"
-          style={{ top: 74, bottom: 56, backgroundColor: config.chatBg }}>
-          <div className="flex items-end gap-1.5 self-start max-w-[75%]">
-            <div className="w-7 h-7 rounded-full bg-zinc-300 shrink-0" />
-            <div className="rounded-2xl rounded-tl-sm px-3 py-2 text-[11px] leading-snug shadow-sm"
-              style={{ backgroundColor: config.otherBubbleBg, color: config.otherBubbleText }}>
-              안녕하세요! 👋
+        <div className="absolute left-0 right-0"
+          style={{ top: 0, bottom: 0 }}>
+          <section style={{ ...frameStyle, borderRadius: 23, border: 'none', boxShadow: 'none' }}>
+            <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
+              <ChatRoomScreen />
             </div>
-          </div>
-          <div className="flex items-end gap-1.5 self-end max-w-[75%]">
-            <div className="rounded-2xl rounded-tr-sm px-3 py-2 text-[11px] leading-snug shadow-sm"
-              style={{ backgroundColor: config.myBubbleBg, color: config.myBubbleText }}>
-              반가워요! 😊
-            </div>
-          </div>
-          <div className="flex items-end gap-1.5 self-start max-w-[75%]">
-            <div className="w-7 h-7 rounded-full bg-zinc-300 shrink-0" />
-            <div className="rounded-2xl rounded-tl-sm px-3 py-2 text-[11px] leading-snug shadow-sm"
-              style={{ backgroundColor: config.otherBubbleBg, color: config.otherBubbleText }}>
-              테마 예쁘네요 ✨
-            </div>
-          </div>
-          <div className="flex items-end gap-1.5 self-end max-w-[75%]">
-            <div className="rounded-2xl rounded-tr-sm px-3 py-2 text-[11px] leading-snug shadow-sm"
-              style={{ backgroundColor: config.myBubbleBg, color: config.myBubbleText }}>
-              감사합니다! 🎨
-            </div>
-          </div>
-        </div>
-        {/* 입력창 */}
-        <div className="absolute left-0 right-0 h-14 flex items-center gap-2 px-3"
-          style={{ bottom: 0, backgroundColor: config.inputBarBg, borderBottomLeftRadius: 23, borderBottomRightRadius: 23 }}>
-          <div className="flex-1 h-9 rounded-full flex items-center px-3"
-            style={{ backgroundColor: config.inputFieldBg }}>
-            <span className="text-[10px] text-zinc-400">메시지 입력</span>
-          </div>
-          <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 shadow-md"
-            style={{ backgroundColor: config.sendBtnBg }}>
-            <span className="text-xs" style={{ color: config.sendBtnIcon }}>▶</span>
-          </div>
+          </section>
         </div>
       </div>
       <div className="absolute right-[-6px] top-20 w-1 h-14 bg-zinc-700 rounded-r-md" />
@@ -866,22 +835,29 @@ function AndroidChatRoomMockup({ config }: { config: ThemeConfig }) {
 
 /* ── Android 목업 ── */
 function AndroidMockup({ config, previewTab }: { config: ThemeConfig; previewTab: PreviewTab }) {
-  const tabs: { key: PreviewTab; label: string }[] = [
-    { key: "friends", label: "친구" },
-    { key: "chat", label: "채팅" },
-    { key: "openchat", label: "오픈채팅" },
-    { key: "shopping", label: "쇼핑" },
-    { key: "more", label: "더보기" },
-    { key: "passcode", label: "암호" },
-  ];
-  const headerLabels: Record<PreviewTab, string> = {
-    friends: "친구", chat: "채팅", openchat: "지금", shopping: "쇼핑", more: "더보기", passcode: "암호",
+  const renderScreen = () => {
+    switch (previewTab) {
+      case "friends":
+        return <FriendsScreen />;
+      case "chat":
+        return <MainScreen />;
+      case "openchat":
+        return <OpenChatsScreen />;
+      case "shopping":
+        return <ShoppingScreen />;
+      case "more":
+        return <MoreScreen />;
+      case "passcode":
+        return <PasscodeScreen />;
+      default:
+        return <MainScreen />;
+    }
   };
 
-  const isPasscode = previewTab === "passcode";
+  const showTabBar = previewTab !== "passcode";
 
   return (
-    <div className="relative mx-auto select-none" style={{ width: 360, height: 720 }}>
+    <div className="relative mx-auto select-none" style={{ width: 387, height: 736 }}>
       <div
         className="absolute inset-0 rounded-[28px] border-[5px] border-zinc-800"
         style={{
@@ -891,80 +867,15 @@ function AndroidMockup({ config, previewTab }: { config: ThemeConfig; previewTab
       >
         <div className="absolute top-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-zinc-700 z-10" />
 
-        {isPasscode ? (
-          /* ── 암호 전체화면 ── */
-          <div className="absolute inset-0 rounded-[23px] flex flex-col items-center justify-between py-10 pt-14"
-            style={{ backgroundColor: config.bodyBg }}>
-            <div className="flex flex-col items-center gap-3">
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
-                <rect x="5" y="11" width="14" height="10" rx="2" stroke={config.primaryText} strokeWidth="1.8" />
-                <path d="M8 11V7a4 4 0 018 0v4" stroke={config.primaryText} strokeWidth="1.8" strokeLinecap="round" />
-                <circle cx="12" cy="16" r="1.5" fill={config.primaryText} />
-              </svg>
-              <span className="text-[15px] font-semibold" style={{ color: config.primaryText }}>
-                비밀번호를 입력하세요
-              </span>
-              <div className="flex gap-5 mt-2">
-                {[0,1,2,3].map((i) => (
-                  <div key={i} className="w-4 h-4 rounded-full border-2"
-                    style={{ borderColor: config.primaryText, backgroundColor: i < 2 ? config.primaryText : "transparent" }} />
-                ))}
-              </div>
+        <div className="absolute left-0 right-0"
+          style={{ top: 0, bottom: 0 }}>
+          <section style={{ ...frameStyle, borderRadius: 23, border: 'none', boxShadow: 'none' }}>
+            <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
+              {renderScreen()}
             </div>
-            <div className="grid grid-cols-3 gap-3 w-full px-10 mb-4">
-              {["1","2","3","4","5","6","7","8","9","*","0","⌫"].map((k) => (
-                <div key={k}
-                  className="flex items-center justify-center rounded-xl h-14 text-[18px] font-semibold"
-                  style={{
-                    backgroundColor: k === "⌫" || k === "*" ? "transparent" : `${config.primaryText}10`,
-                    color: config.primaryText,
-                  }}>
-                  {k}
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          /* ── 일반 화면 ── */
-          <>
-            {/* 헤더 */}
-            <div
-              className="absolute top-7 left-0 right-0 h-11 flex items-center px-4 gap-2"
-              style={{ backgroundColor: config.headerBg }}
-            >
-              <span className="font-bold text-[15px] flex-1" style={{ color: config.headerText }}>
-                {headerLabels[previewTab]}
-              </span>
-              <span className="text-xs" style={{ color: config.headerText }}>🔍</span>
-              <span className="text-xs ml-1" style={{ color: config.headerText }}>⋮</span>
-            </div>
-            {/* 탭 헤더 */}
-            <div
-              className="absolute left-0 right-0 h-9 flex items-end"
-              style={{ top: 72, backgroundColor: config.headerBg }}
-            >
-              {tabs.map(({ key, label }) => (
-                <div
-                  key={key}
-                  className="flex-1 text-center text-[9px] font-semibold pb-1.5 truncate px-0.5"
-                  style={{
-                    color: config.headerText,
-                    borderBottom: previewTab === key ? `2px solid ${config.headerText}` : "2px solid transparent",
-                  }}
-                >
-                  {label}
-                </div>
-              ))}
-            </div>
-            {/* 바디 */}
-            <div
-              className="absolute left-0 right-0 overflow-y-auto overflow-x-hidden"
-              style={{ top: 113, bottom: 0, backgroundColor: config.bodyBg, borderBottomLeftRadius: 23, borderBottomRightRadius: 23 }}
-            >
-              <MockupBody tab={previewTab} config={config} />
-            </div>
-          </>
-        )}
+            {showTabBar ? <TabBar disabled /> : null}
+          </section>
+        </div>
       </div>
       <div className="absolute right-[-6px] top-20 w-1 h-14 bg-zinc-700 rounded-r-md" />
     </div>
@@ -1344,16 +1255,6 @@ export default function CreatePage() {
             </button>
           </div>
 
-          {/* 가이드 배지 */}
-          <div className="flex flex-wrap gap-1.5 justify-center max-w-xs">
-            {os === "android" && (
-              <>
-                <span className="text-[10px] rounded-full px-2.5 py-0.5 glass" style={{color:"#28a745"}}>xhdpi / xxhdpi 대응</span>
-                <span className="text-[10px] rounded-full px-2.5 py-0.5 glass" style={{color:"#e07000"}}>targetSdk: {config.targetSdk}</span>
-                <span className="text-[10px] rounded-full px-2.5 py-0.5 glass" style={{color:"#636366"}}>레이아웃 변경 불가</span>
-              </>
-            )}
-          </div>
         </main>
 
         {/* ── 우측 사이드바 ── */}
