@@ -1,0 +1,249 @@
+import React from 'react';
+import {
+  Bookmark,
+  Heart,
+  MapPin,
+  MessageCircle,
+  MoreHorizontal,
+  Music,
+  Search,
+  Settings,
+  Upload,
+  UserPlus,
+} from 'lucide-react';
+
+const headerBaseStyle: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  padding: '27px 14px 8px 14px',
+  backgroundColor: 'transparent',
+};
+
+const iconRowStyle: React.CSSProperties = {
+  display: 'flex',
+  gap: '14px',
+  alignItems: 'center',
+};
+
+const avatarStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontWeight: 'bold',
+  fontSize: '15px',
+};
+
+const useThemeStore = (selector: any) => {
+  const state = {
+    themeConfig: {
+      global: {
+        backgroundColor: '#FFDEDE',
+        textColor: '#664242',
+        descriptionColor: '#805959',
+      },
+      friendsTab: {
+        headerTitleColor: '#664242',
+      },
+      chatsTab: {
+        filterChipBg: '#F66C6C',
+      },
+    },
+  };
+
+  return selector(state);
+};
+
+export const NewsScreen = () => {
+  const themeConfig = useThemeStore((state: any) => state.themeConfig);
+  const { global, friendsTab, chatsTab } = themeConfig;
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+        minHeight: 0,
+        width: '100%',
+        overflow: 'hidden',
+        backgroundColor: global.backgroundColor,
+        fontFamily: 'sans-serif',
+      }}
+    >
+      <header style={{ ...headerBaseStyle, color: friendsTab.headerTitleColor }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 11,
+              backgroundColor: 'rgba(255,255,255,0.65)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 15,
+            }}
+          >
+            🍑
+          </div>
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>어피치</h2>
+        </div>
+        <div style={iconRowStyle}>
+          <Search size={20} strokeWidth={2.3} />
+          <UserPlus size={20} strokeWidth={2.3} />
+          <Music size={20} strokeWidth={2.3} />
+          <Settings size={20} strokeWidth={2.3} />
+        </div>
+      </header>
+
+      <div style={{ display: 'flex', gap: 7, padding: '2px 14px 12px 14px' }}>
+        <button
+          style={{
+            backgroundColor: 'transparent',
+            color: global.textColor,
+            borderRadius: 999,
+            padding: '6px 14px',
+            fontSize: 13,
+            fontWeight: 600,
+            border: `1px solid ${global.textColor}20`,
+            cursor: 'pointer',
+          }}
+        >
+          친구
+        </button>
+        <button
+          style={{
+            backgroundColor: global.textColor,
+            color: global.backgroundColor,
+            borderRadius: 999,
+            padding: '6px 14px',
+            fontSize: 13,
+            fontWeight: 700,
+            border: 'none',
+            cursor: 'pointer',
+          }}
+        >
+          소식
+        </button>
+      </div>
+
+      <div className="news-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <div style={{ padding: '0 14px 12px 14px' }}>
+          <div
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.6)',
+              borderRadius: 11,
+              padding: '13px 15px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+            }}
+          >
+            <div>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: global.textColor }}>오늘의 카카오가 궁금하다면?</p>
+              <p style={{ margin: '3px 0 0', fontSize: 11, color: global.descriptionColor }}>카카오소식 보러가기</p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 22 }}>
+              <span style={{ transform: 'rotate(-10deg)' }}>🍈</span>
+              <span style={{ transform: 'rotate(10deg)' }}>🧀</span>
+              <div
+                style={{
+                  backgroundColor: '#191919',
+                  color: '#fff',
+                  fontSize: 12,
+                  fontWeight: 800,
+                  padding: '2px 6px',
+                  borderRadius: 4,
+                  marginLeft: 4,
+                }}
+              >
+                31
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <section style={{ padding: '6px 14px 16px' }}>
+          <article style={{ marginBottom: 18 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
+                <div style={{ ...avatarStyle, width: 38, height: 38, borderRadius: 13, backgroundColor: '#FEE500', color: '#000' }}>춘</div>
+                <div>
+                  <p style={{ margin: 0, color: global.textColor, fontSize: 14, fontWeight: 700 }}>춘식이</p>
+                  <p style={{ margin: '2px 0 0', color: global.descriptionColor, fontSize: 11 }}>8분 전</p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button
+                  style={{
+                    backgroundColor: 'transparent',
+                    border: `1px solid ${global.descriptionColor}40`,
+                    borderRadius: 999,
+                    padding: '4px 10px',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: global.textColor,
+                    cursor: 'pointer',
+                  }}
+                >
+                  친구추가
+                </button>
+                <MoreHorizontal size={18} color={global.descriptionColor} style={{ cursor: 'pointer' }} />
+              </div>
+            </div>
+
+            <p style={{ margin: '0 0 10px 0', fontSize: 13, color: global.textColor, lineHeight: 1.45 }}>이번에 새로 들인 식물..🌱</p>
+
+            <div
+              style={{
+                width: '100%',
+                height: 252,
+                backgroundColor: '#EBEBEB',
+                borderRadius: 14,
+                marginBottom: 10,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+                boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.05)',
+              }}
+            >
+              <span style={{ fontSize: 72 }}>🪴</span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 14, cursor: 'pointer' }}>
+              <MapPin size={14} color={global.textColor} />
+              <span style={{ fontSize: 12, color: global.textColor, fontWeight: 500 }}>분당구 삼평동</span>
+            </div>
+
+            <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}>
+                <Heart size={20} color={global.textColor} strokeWidth={1.5} />
+                <span style={{ fontSize: 13, color: global.textColor, fontWeight: 500 }}>24</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}>
+                <MessageCircle size={20} color={global.textColor} strokeWidth={1.5} />
+                <span style={{ fontSize: 13, color: global.textColor, fontWeight: 500 }}>8</span>
+              </div>
+
+              <div style={{ flex: 1 }} />
+
+              <div style={{ display: 'flex', gap: 14 }}>
+                <Upload size={20} color={global.textColor} strokeWidth={1.5} style={{ cursor: 'pointer', marginTop: -2 }} />
+                <Bookmark size={20} color={global.textColor} strokeWidth={1.5} style={{ cursor: 'pointer' }} />
+              </div>
+            </div>
+          </article>
+        </section>
+      </div>
+
+      <style jsx>{`
+        .news-scroll::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+    </div>
+  );
+};

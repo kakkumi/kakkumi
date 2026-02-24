@@ -83,6 +83,15 @@ body {
   background: rgba(0, 0, 0, 0.32);
 }
 
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* 배경 메시 그라디언트 */
 .mesh-bg {
   background-color: #e8e8ed;
