@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { PreviewNewsMockup } from "../../stories/PreviewNewsMockup";
 import { PreviewChatRoomMockup } from "../../stories/PreviewChatRoomMockup";
@@ -231,7 +231,32 @@ function Accordion({ title, badge, children, autoOpenSignal }: {
   title: string; badge?: string; children: React.ReactNode; autoOpenSignal?: string | null;
 }) {
   const storageKey = `accordion_${title}`;
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const anchorRef = useRef<HTMLDivElement | null>(null);
+  const headerRef = useRef<HTMLButtonElement | null>(null);
   const [open, setOpen] = useState(false);
+  const [stickyTop, setStickyTop] = useState(0);
+  const [stickyZIndex, setStickyZIndex] = useState(10);
+
+  const getStackedTop = () => {
+    const node = wrapperRef.current;
+    if (!node) return 0;
+
+    const parent = node.parentElement;
+    if (!parent) return 0;
+
+    const accordions = Array.from(parent.querySelectorAll('[data-accordion-sticky="true"]')) as HTMLElement[];
+    const myIndex = accordions.indexOf(node);
+    if (myIndex < 0) return 0;
+
+    let top = 0;
+    for (let i = 0; i < myIndex; i += 1) {
+      const prevHeader = accordions[i].querySelector('[data-accordion-header="true"]') as HTMLElement | null;
+      top += prevHeader?.offsetHeight ?? 46;
+    }
+
+    return top;
+  };
   useEffect(() => {
     const saved = localStorage.getItem(storageKey);
     if (saved !== null) setOpen(saved === "true");
@@ -245,18 +270,77 @@ function Accordion({ title, badge, children, autoOpenSignal }: {
     }
   }, [autoOpenSignal, storageKey]);
 
+  useEffect(() => {
+    const node = wrapperRef.current;
+    if (!node) return;
+
+    const recalcStickyTop = () => {
+      const parent = node.parentElement;
+      if (!parent) return;
+
+      const accordions = Array.from(parent.querySelectorAll('[data-accordion-sticky="true"]')) as HTMLElement[];
+      const myIndex = accordions.indexOf(node);
+      if (myIndex < 0) {
+        setStickyTop(0);
+        setStickyZIndex(10);
+        return;
+      }
+
+      const top = getStackedTop();
+
+      const z = 100 - myIndex;
+      setStickyTop(top);
+      setStickyZIndex(z);
+    };
+
+    recalcStickyTop();
+    window.addEventListener("resize", recalcStickyTop);
+
+    return () => {
+      window.removeEventListener("resize", recalcStickyTop);
+    };
+  }, [open]);
+
   const toggle = () => {
     setOpen((prev) => {
       const next = !prev;
       localStorage.setItem(storageKey, String(next));
+
+      if (next) {
+        const scrollHost = wrapperRef.current?.closest("aside") as HTMLElement | null;
+        const anchorNode = anchorRef.current;
+
+        if (scrollHost && anchorNode) {
+          requestAnimationFrame(() => {
+            const hostRect = scrollHost.getBoundingClientRect();
+            const anchorRect = anchorNode.getBoundingClientRect();
+            const desiredTop = getStackedTop();
+            const delta = anchorRect.top - hostRect.top - desiredTop;
+            const targetTop = Math.max(0, scrollHost.scrollTop + delta);
+            scrollHost.scrollTo({ top: targetTop, behavior: "smooth" });
+          });
+        }
+      }
+
       return next;
     });
   };
   return (
-    <div className="rounded-xl overflow-hidden mb-1">
+    <div ref={wrapperRef} data-accordion-sticky="true" style={{ display: "contents" }}>
+      <div ref={anchorRef} aria-hidden="true" className="h-0" />
       <button
+        ref={headerRef}
+        data-accordion-header="true"
         onClick={() => toggle()}
-        className="w-full flex items-center justify-between px-2 py-3 transition-colors"
+        className="w-full sticky top-0 z-10 flex items-center justify-between px-2 py-3 transition-colors"
+        style={{
+          position: "sticky",
+          top: stickyTop,
+          zIndex: stickyZIndex,
+          background: "rgba(255,255,255,0.92)",
+          backdropFilter: "blur(6px)",
+          WebkitBackdropFilter: "blur(6px)",
+        }}
       >
         <div className="flex items-center gap-2">
           <span className="text-[14px] font-semibold" style={{color:"#706765"}}>{title}</span>
@@ -267,7 +351,7 @@ function Accordion({ title, badge, children, autoOpenSignal }: {
         </div>
         <span className="text-[11px] transition-transform duration-200" style={{ color:"#706765", display: "inline-block", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>▼</span>
       </button>
-      {open && <div className="px-2 pb-3 pt-1">{children}</div>}
+      {open && <div className="px-2 pb-3 pt-1 mb-1">{children}</div>}
     </div>
   );
 }
@@ -953,7 +1037,7 @@ export default function CreatePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundImage: "url('/back.jpg')", backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundAttachment: "fixed" }}>
+   <div className="h-screen overflow-hidden flex flex-col" style={{ backgroundImage: "url('/back.jpg')", backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundAttachment: "fixed" }}>
       {/* ── macOS 타이틀바 ── */}
       <header
         className="flex items-center px-5 py-0.2 sticky top-0 z-50 shrink-0"
@@ -1222,7 +1306,7 @@ export default function CreatePage() {
         </aside>
 
         {/* ── 중앙 프리뷰 ── */}
-        <main className="flex-1 flex flex-col items-center justify-start gap-4 overflow-y-auto pt-2 pb-8 mac-scroll">
+          <main className="flex-1 flex flex-col items-center justify-start gap-4 overflow-hidden pt-2 pb-8">
           {/* OS 토글 */}
           <div className="flex items-center border-b border-black/10">
             {(["ios", "android"] as OS[]).map((o) => (
