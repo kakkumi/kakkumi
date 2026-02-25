@@ -79,8 +79,8 @@ export const MainScreen = () => {
     >
       {/* 1. 상단 헤더 */}
       <header style={{ ...headerBaseStyle, color: chatsTab.headerTitleColor }}>
-        <h2 style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>채팅</h2>
-        <div style={iconRowStyle}>
+        <h2 data-active-element-id="header-title-icon" style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>채팅</h2>
+        <div data-active-element-id="header-title-icon" style={iconRowStyle}>
           <Search size={22} strokeWidth={2.5} />
           <MessageCircle size={22} strokeWidth={2.5} />
           <Settings size={22} strokeWidth={2.5} />
