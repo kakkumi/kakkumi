@@ -42,7 +42,7 @@ export default function Home() {
             <section className="flex flex-col items-center justify-center text-center px-6 pt-20 pb-24">
                 <h1
                     className="text-[56px] font-extrabold leading-tight tracking-tight mb-4"
-                    style={{ color: "#333232", textShadow: "0 1px 2px rgba(255,255,255,0.6)", fontFamily: "'SchoolSafetyPoster', sans-serif" }}
+                    style={{ color: "#333232", textShadow: "0 1px 2px rgba(255,255,255,0.6)", fontFamily: "'ReperepointSpecialItalic', sans-serif" }}
                 >
                     나만의 카카오톡 테마,<br />
                     <span style={{ color: "#edb0b9" }}>카</span>
