@@ -13,14 +13,14 @@ export default function Home() {
         >
             {/* ── 네비게이션 바 ── */}
             <header
-                className="sticky top-0 z-50 flex items-center justify-between px-8 py-0"
+                className="sticky top-0 z-50 flex items-center justify-between px-6 py-0"
                 style={{
                     background: "rgba(236, 236, 240, 0.72)",
                     backdropFilter: "blur(40px) saturate(200%)",
                     WebkitBackdropFilter: "blur(40px) saturate(200%)",
                     borderBottom: "1px solid rgba(0,0,0,0.07)",
                     boxShadow: "0 1px 0 rgba(255,255,255,0.6) inset",
-                    height: 52,
+                    height: 48,
                 }}
             >
                 <Image src="/카꾸미.png" alt="카꾸미" width={110} height={44} quality={100} unoptimized style={{ objectFit: "contain" }} />
@@ -39,9 +39,9 @@ export default function Home() {
             </header>
 
             {/* ── 히어로 섹션 ── */}
-            <section className="flex flex-col items-center justify-center text-center px-6 pt-28 pb-24">
+            <section className="flex flex-col items-center justify-center text-center px-6 pt-24 pb-24">
                 <h1
-                    className="text-[56px] font-extrabold leading-tight tracking-tight mb-6"
+                    className="text-[56px] font-extrabold leading-tight tracking-tight mb-4"
                     style={{ color: "#1c1c1e", textShadow: "0 1px 2px rgba(255,255,255,0.6)", fontFamily: "'KotraBold', sans-serif" }}
                 >
                     나만의 카카오톡 테마,<br />
