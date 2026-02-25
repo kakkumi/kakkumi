@@ -72,7 +72,7 @@ export const NewsScreen = () => {
       }}
     >
       <header style={{ ...headerBaseStyle, color: friendsTab.headerTitleColor }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div data-active-element-id="header-title-icon" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div
             style={{
               width: 28,
@@ -89,7 +89,7 @@ export const NewsScreen = () => {
           </div>
           <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>어피치</h2>
         </div>
-        <div style={iconRowStyle}>
+        <div data-active-element-id="header-title-icon" style={iconRowStyle}>
           <Search size={20} strokeWidth={2.3} />
           <UserPlus size={20} strokeWidth={2.3} />
           <Music size={20} strokeWidth={2.3} />

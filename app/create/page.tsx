@@ -230,12 +230,13 @@ function ImageUploadRow({ label, tooltip, imgKey, imageUploads, onUpload }: {
 }
 
 /* ── 아코디언 패널 ── */
-function Accordion({ title, badge, children, autoOpenSignal, isSelected = false }: {
+function Accordion({ title, badge, children, autoOpenSignal, isSelected = false, settingKey }: {
   title: string;
   badge?: string;
   children: React.ReactNode;
   autoOpenSignal?: string | null;
   isSelected?: boolean;
+  settingKey?: string;
 }) {
   const storageKey = `accordion_${title}`;
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -338,6 +339,7 @@ function Accordion({ title, badge, children, autoOpenSignal, isSelected = false 
       <button
         ref={headerRef}
         data-setting-item="true"
+        data-setting-key={settingKey}
         data-accordion-header="true"
         onClick={() => toggle()}
         className="w-full sticky top-0 z-10 flex items-center justify-between px-2 py-3 transition-colors"
@@ -1028,6 +1030,7 @@ export default function CreatePage() {
     if (!activeElementId) return;
 
     const settingMap: Record<string, string> = {
+      "header-title-icon": "header-title-icon-color",
       "tabBar-friends": "tab-friends",
       "tabBar-chats": "tab-chat",
       "tabBar-openchats": "tab-openchat",
@@ -1097,8 +1100,48 @@ export default function CreatePage() {
       onMouseDownCapture={(event) => {
         const target = event.target as HTMLElement | null;
 
+        const activeElementTarget = target?.closest("[data-active-element-id]") as HTMLElement | null;
+        if (activeElementTarget) {
+          const activeId = activeElementTarget.getAttribute("data-active-element-id");
+          if (activeId === "header-title-icon") {
+            setActiveElementId("header-title-icon");
+            setSelectedSettingKey("header-title-icon-color");
+
+            const currentSelected = document.querySelectorAll('[data-active-element-id][data-active-selected="true"]');
+            currentSelected.forEach((item) => item.removeAttribute("data-active-selected"));
+
+            const sameElements = document.querySelectorAll('[data-active-element-id="header-title-icon"]');
+            sameElements.forEach((item) => item.setAttribute("data-active-selected", "true"));
+            return;
+          }
+        }
+
         const settingKey = target?.closest("[data-setting-key]")?.getAttribute("data-setting-key") ?? null;
         if (settingKey) {
+          const settingToActiveMap: Record<string, string> = {
+            "header-title-icon-color": "header-title-icon",
+            "tab-friends": "tabBar-friends",
+            "tab-chat": "tabBar-chats",
+            "tab-openchat": "tabBar-openchats",
+            "tab-shopping": "tabBar-shopping",
+            "tab-more": "tabBar-more",
+          };
+
+          const mappedActiveId = settingToActiveMap[settingKey] ?? null;
+          if (mappedActiveId) {
+            setActiveElementId(mappedActiveId as Parameters<typeof setActiveElementId>[0]);
+          } else if (activeElementId !== null) {
+            setActiveElementId(null);
+          }
+
+          const currentSelected = document.querySelectorAll('[data-active-element-id][data-active-selected="true"]');
+          currentSelected.forEach((item) => item.removeAttribute("data-active-selected"));
+
+          if (mappedActiveId === "header-title-icon") {
+            const sameElements = document.querySelectorAll('[data-active-element-id="header-title-icon"]');
+            sameElements.forEach((item) => item.setAttribute("data-active-selected", "true"));
+          }
+
           setSelectedSettingKey(settingKey);
           return;
         }
@@ -1107,6 +1150,8 @@ export default function CreatePage() {
         if (activeElementId !== null) {
           setActiveElementId(null);
         }
+        const currentSelected = document.querySelectorAll('[data-active-element-id][data-active-selected="true"]');
+        currentSelected.forEach((item) => item.removeAttribute("data-active-selected"));
         setSelectedSettingKey(null);
       }}
       style={{ backgroundImage: "url('/back.jpg')", backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundAttachment: "fixed" }}
@@ -1176,9 +1221,15 @@ export default function CreatePage() {
               <ImageUploadRow label="배경 이미지" tooltip="mainBgImage.png (상단/센터 크롭)" imgKey="mainBg" imageUploads={imageUploads} onUpload={handleImageUpload} />
             </Accordion>
 
-            <Accordion title="헤더" badge="HeaderStyle">
-              <ColorRow label="배경색" value={config.headerBg} onChange={set("headerBg")} tooltip="background-color — HeaderStyle" />
-              <ColorRow label="타이틀 · 아이콘 색" value={config.headerText} onChange={set("headerText")} tooltip="-ios-text-color (타이틀, 검색, 설정 아이콘)" />
+            <Accordion
+              title="헤더"
+              badge="HeaderStyle"
+              autoOpenSignal={activeElementId === "header-title-icon" ? activeElementId : null}
+              isSelected={false}
+            >
+              <div data-setting-key="header-title-icon-color">
+                <ColorRow label="타이틀 · 아이콘 색" value={config.headerText} onChange={set("headerText")} tooltip="-ios-text-color (타이틀, 검색, 설정 아이콘)" />
+              </div>
             </Accordion>
 
             <Accordion
@@ -1631,6 +1682,13 @@ export default function CreatePage() {
         </aside>
         )}
       </div>
+      <style jsx global>{`
+        [data-active-element-id][data-active-selected="true"] {
+          background: rgba(0, 0, 0, 0.05);
+          box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+          border-radius: 10px;
+        }
+      `}</style>
     </div>
   );
 }

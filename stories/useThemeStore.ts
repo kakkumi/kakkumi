@@ -10,6 +10,7 @@ export type ScreenType =
   | 'PASSCODE';
 
 export type ActiveElementId =
+  | 'header-title-icon'
   | 'tabBar-friends'
   | 'tabBar-chats'
   | 'tabBar-openchats'

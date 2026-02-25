@@ -54,8 +54,8 @@ export const ShoppingScreen = () => {
     >
       {/* 1. 상단 헤더 */}
       <header style={{ ...headerBaseStyle, color: global.textColor }}>
-        <h2 style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>쇼핑</h2>
-        <div style={iconRowStyle}>
+        <h2 data-active-element-id="header-title-icon" style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>쇼핑</h2>
+        <div data-active-element-id="header-title-icon" style={iconRowStyle}>
           <Search size={24} strokeWidth={2.5} />
           <div style={{ position: 'relative' }}>
             <ShoppingBag size={24} strokeWidth={2.5} />
@@ -91,7 +91,7 @@ export const ShoppingScreen = () => {
       <div className="no-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: 'auto', backgroundColor: '#FFFFFF' }}>
 
         {/* 배너 카드 영역 (가로 스크롤) */}
-        <section className="no-scrollbar" style={{ display: 'flex', gap: 12, padding: '16px', overflowX: 'auto', snapType: 'x mandatory' }}>
+        <section className="no-scrollbar" style={{ display: 'flex', gap: 12, padding: '16px', overflowX: 'auto', scrollSnapType: 'x mandatory' }}>
 
           {/* 카드 1 : 베이비&키즈페어 */}
           <div style={{

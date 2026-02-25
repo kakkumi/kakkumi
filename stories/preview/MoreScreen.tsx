@@ -73,8 +73,8 @@ export const MoreScreen = () => {
     >
       {/* 1. 상단 헤더 */}
       <header style={{ ...headerBaseStyle, color: global.textColor }}>
-        <h2 style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>더보기</h2>
-        <div style={iconRowStyle}>
+        <h2 data-active-element-id="header-title-icon" style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>더보기</h2>
+        <div data-active-element-id="header-title-icon" style={iconRowStyle}>
           <Search size={22} strokeWidth={2.5} />
           <ScanLine size={22} strokeWidth={2.5} />
           <Settings size={22} strokeWidth={2.5} />
