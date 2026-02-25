@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import AuthStatus from "./components/AuthStatus";
 
 export default function Home() {
     return (
@@ -27,6 +28,7 @@ export default function Home() {
                 <nav className="flex items-center gap-6">
                     <a href="#features" className="text-[13px] font-medium transition-opacity hover:opacity-60" style={{ color: "#3a3a3c" }}>기능</a>
                     <a href="#how" className="text-[13px] font-medium transition-opacity hover:opacity-60" style={{ color: "#3a3a3c" }}>사용 방법</a>
+                    <AuthStatus />
                     <Link href="/create">
                         <button
                             className="px-4 py-1.5 rounded-lg text-[13px] font-semibold transition-all active:scale-95"
