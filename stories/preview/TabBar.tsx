@@ -57,6 +57,7 @@ export const TabBar = ({ disabled = false }: { disabled?: boolean }) => {
           <button
             key={tab.key}
             type="button"
+            data-keep-active-element="true"
             onClick={() => {
               setActiveElementId(tabElementMap[tab.key]);
               if (disabled) return;
@@ -64,7 +65,6 @@ export const TabBar = ({ disabled = false }: { disabled?: boolean }) => {
             }}
             style={{
               border: 0,
-              backgroundColor: 'transparent',
               color: active ? tabBar.activeIconColor : tabBar.inactiveIconColor,
               display: 'flex',
               flexDirection: 'column',
@@ -74,8 +74,9 @@ export const TabBar = ({ disabled = false }: { disabled?: boolean }) => {
               fontWeight: active ? 700 : 500,
               cursor: 'pointer',
               borderRadius: 8,
-              boxShadow: focused ? '0 0 0 2px #3b82f6 inset' : 'none',
-              transition: 'box-shadow 0.15s ease',
+              backgroundColor: focused ? 'rgba(0,0,0,0.05)' : 'transparent',
+              boxShadow: focused ? '0 0 0 1px rgba(0,0,0,0.14) inset' : 'none',
+              transition: 'box-shadow 0.15s ease, background-color 0.15s ease',
             }}
           >
             {tab.icon}

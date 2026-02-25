@@ -147,7 +147,10 @@ interface ColorRowProps {
 
 function ColorRow({ label, value, onChange, tooltip }: ColorRowProps) {
   return (
-    <div className="flex items-center justify-between gap-2 py-2.5 px-2 rounded-lg hover:bg-black/[0.03] transition-colors">
+    <div
+      data-setting-item="true"
+      className="flex items-center justify-between gap-2 py-2.5 px-2 rounded-lg hover:bg-black/[0.03] transition-colors"
+    >
       <div className="flex items-center gap-1.5 min-w-0">
         <span className="text-[13px] truncate" style={{color:"#706765"}}>{label}</span>
         {tooltip && (
@@ -200,7 +203,7 @@ function ImageUploadRow({ label, tooltip, imgKey, imageUploads, onUpload }: {
   onUpload: (key: string, file: File) => void;
 }) {
   return (
-    <div className="mb-3">
+    <div data-setting-item="true" className="mb-3 rounded-lg px-2 py-1">
       <div className="flex items-center gap-1.5 mb-1.5">
         <span className="text-[13px]" style={{color:"#706765"}}>{label}</span>
         <div className="group relative">
@@ -227,8 +230,12 @@ function ImageUploadRow({ label, tooltip, imgKey, imageUploads, onUpload }: {
 }
 
 /* ── 아코디언 패널 ── */
-function Accordion({ title, badge, children, autoOpenSignal }: {
-  title: string; badge?: string; children: React.ReactNode; autoOpenSignal?: string | null;
+function Accordion({ title, badge, children, autoOpenSignal, isSelected = false }: {
+  title: string;
+  badge?: string;
+  children: React.ReactNode;
+  autoOpenSignal?: string | null;
+  isSelected?: boolean;
 }) {
   const storageKey = `accordion_${title}`;
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -330,6 +337,7 @@ function Accordion({ title, badge, children, autoOpenSignal }: {
       <div ref={anchorRef} aria-hidden="true" className="h-0" />
       <button
         ref={headerRef}
+        data-setting-item="true"
         data-accordion-header="true"
         onClick={() => toggle()}
         className="w-full sticky top-0 z-10 flex items-center justify-between px-2 py-3 transition-colors"
@@ -337,7 +345,8 @@ function Accordion({ title, badge, children, autoOpenSignal }: {
           position: "sticky",
           top: stickyTop,
           zIndex: stickyZIndex,
-          background: "rgba(255,255,255,0.92)",
+          background: isSelected ? "rgba(255,255,255,0.98)" : "rgba(255,255,255,0.92)",
+          boxShadow: isSelected ? "0 0 0 1px rgba(0,0,0,0.12) inset" : "none",
           backdropFilter: "blur(6px)",
           WebkitBackdropFilter: "blur(6px)",
         }}
@@ -991,13 +1000,16 @@ function AndroidMockup({ config, previewTab }: { config: ThemeConfig; previewTab
 type PreviewTab = "friends" | "chat" | "openchat" | "shopping" | "more" | "passcode";
 
 export default function CreatePage() {
+  const leftAsideRef = useRef<HTMLElement | null>(null);
   const [os, setOs] = useState<OS>("ios");
   const [config, setConfig] = useState<ThemeConfig>(defaultConfig);
   const [previewTab, setPreviewTab] = useState<PreviewTab>("friends");
   const [imageUploads, setImageUploads] = useState<Record<string, string>>({});
   const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
+  const [selectedSettingKey, setSelectedSettingKey] = useState<string | null>(null);
   const setCurrentScreen = usePreviewThemeStore((state) => state.setCurrentScreen);
   const activeElementId = usePreviewThemeStore((state) => state.activeElementId);
+  const setActiveElementId = usePreviewThemeStore((state) => state.setActiveElementId);
 
   useEffect(() => {
     const screenMap: Record<PreviewTab, ScreenType> = {
@@ -1011,6 +1023,49 @@ export default function CreatePage() {
 
     setCurrentScreen(screenMap[previewTab]);
   }, [previewTab, setCurrentScreen]);
+
+  useEffect(() => {
+    if (!activeElementId) return;
+
+    const settingMap: Record<string, string> = {
+      "tabBar-friends": "tab-friends",
+      "tabBar-chats": "tab-chat",
+      "tabBar-openchats": "tab-openchat",
+      "tabBar-shopping": "tab-shopping",
+      "tabBar-more": "tab-more",
+    };
+
+    setSelectedSettingKey(settingMap[activeElementId] ?? null);
+  }, [activeElementId]);
+
+  useEffect(() => {
+    if (!selectedSettingKey) return;
+
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+    let cancelled = false;
+
+    const tryScroll = (attempt: number) => {
+      if (cancelled) return;
+
+      const host = leftAsideRef.current;
+      const target = host?.querySelector(`[data-setting-key="${selectedSettingKey}"]`) as HTMLElement | null;
+
+      if (host && target) {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+
+      if (attempt >= 8) return;
+      retryTimer = setTimeout(() => tryScroll(attempt + 1), 60);
+    };
+
+    tryScroll(0);
+
+    return () => {
+      cancelled = true;
+      if (retryTimer) clearTimeout(retryTimer);
+    };
+  }, [selectedSettingKey]);
 
   const set = (key: keyof ThemeConfig) => (value: string | boolean) =>
     setConfig((prev) => ({ ...prev, [key]: value }));
@@ -1037,7 +1092,25 @@ export default function CreatePage() {
   };
 
   return (
-   <div className="h-screen overflow-hidden flex flex-col" style={{ backgroundImage: "url('/back.jpg')", backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundAttachment: "fixed" }}>
+   <div
+      className="h-screen overflow-hidden flex flex-col"
+      onMouseDownCapture={(event) => {
+        const target = event.target as HTMLElement | null;
+
+        const settingKey = target?.closest("[data-setting-key]")?.getAttribute("data-setting-key") ?? null;
+        if (settingKey) {
+          setSelectedSettingKey(settingKey);
+          return;
+        }
+
+        if (target?.closest('[data-keep-active-element="true"]')) return;
+        if (activeElementId !== null) {
+          setActiveElementId(null);
+        }
+        setSelectedSettingKey(null);
+      }}
+      style={{ backgroundImage: "url('/back.jpg')", backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundAttachment: "fixed" }}
+    >
       {/* ── macOS 타이틀바 ── */}
       <header
         className="flex items-center px-5 py-0.2 sticky top-0 z-50 shrink-0"
@@ -1092,7 +1165,7 @@ export default function CreatePage() {
       <div className="flex flex-1" style={{ height: "calc(100vh - 45px)" }}>
 
         {/* ── 좌측 사이드바 ── */}
-        <aside className="w-80 overflow-y-auto mac-scroll shrink-0" style={{ background: "rgba(255,255,255,0.25)", backdropFilter: "blur(20px) saturate(180%)", WebkitBackdropFilter: "blur(20px) saturate(180%)", borderRight: "1px solid rgba(255,255,255,0.35)" }}>
+        <aside ref={leftAsideRef} className="w-80 overflow-y-auto mac-scroll shrink-0" style={{ background: "rgba(255,255,255,0.25)", backdropFilter: "blur(20px) saturate(180%)", WebkitBackdropFilter: "blur(20px) saturate(180%)", borderRight: "1px solid rgba(255,255,255,0.35)" }}>
           <div className="p-4 pt-4">
 
             {/* ══ 공통 설정 — 항상 표시 ══ */}
@@ -1112,6 +1185,7 @@ export default function CreatePage() {
               title="하단 탭바"
               badge="TabBarStyle"
               autoOpenSignal={activeElementId?.startsWith("tabBar-") ? activeElementId : null}
+              isSelected={(activeElementId?.startsWith("tabBar-") ?? false) || (selectedSettingKey?.startsWith("tab-") ?? false)}
             >
               <ColorRow label="탭바 배경색" value={config.tabBarBg} onChange={set("tabBarBg")} tooltip="background-color — TabBarStyle" />
               <ColorRow label="일반 아이콘" value={config.tabBarIcon} onChange={set("tabBarIcon")} tooltip="각 탭 -normal 아이콘 컬러" />
@@ -1123,6 +1197,7 @@ export default function CreatePage() {
               {[
                 {
                   label: "친구",
+                  settingKey: "tab-friends",
                   normalKey: "tabFriendsNormal",
                   selectedKey: "tabFriendsSelected",
                   normalTooltip: "-ios-friends-normal-icon-image",
@@ -1130,6 +1205,7 @@ export default function CreatePage() {
                 },
                 {
                   label: "채팅",
+                  settingKey: "tab-chat",
                   normalKey: "tabChatNormal",
                   selectedKey: "tabChatSelected",
                   normalTooltip: "-ios-chats-normal-icon-image",
@@ -1137,6 +1213,7 @@ export default function CreatePage() {
                 },
                 {
                   label: "오픈채팅",
+                  settingKey: "tab-openchat",
                   normalKey: "tabOpenNormal",
                   selectedKey: "tabOpenSelected",
                   normalTooltip: "-ios-openchats-normal-icon-image",
@@ -1144,6 +1221,7 @@ export default function CreatePage() {
                 },
                 {
                   label: "쇼핑",
+                  settingKey: "tab-shopping",
                   normalKey: "tabShopNormal",
                   selectedKey: "tabShopSelected",
                   normalTooltip: "-ios-shopping-normal-icon-image",
@@ -1151,13 +1229,22 @@ export default function CreatePage() {
                 },
                 {
                   label: "더보기",
+                  settingKey: "tab-more",
                   normalKey: "tabMoreNormal",
                   selectedKey: "tabMoreSelected",
                   normalTooltip: "-ios-more-normal-icon-image",
                   selectedTooltip: "-ios-more-selected-icon-image",
                 },
               ].map((item) => (
-                <div key={item.label} className="rounded-lg px-2 py-2 mb-2" style={{ background: "rgba(255,255,255,0.45)", border: "1px solid rgba(0,0,0,0.06)" }}>
+                <div
+                  key={item.label}
+                  data-setting-key={item.settingKey}
+                  className="rounded-lg px-2 py-2 mb-2 transition-colors"
+                  style={{
+                    background: selectedSettingKey === item.settingKey ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.45)",
+                    border: selectedSettingKey === item.settingKey ? "1px solid rgba(0,0,0,0.14)" : "1px solid rgba(0,0,0,0.06)",
+                  }}
+                >
                   <div className="text-[12px] font-semibold mb-1" style={{ color: "#706765" }}>{item.label}</div>
                   <ImageUploadRow
                     label={`${item.label} 탭 일반`}
