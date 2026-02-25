@@ -39,10 +39,10 @@ export default function Home() {
             </header>
 
             {/* ── 히어로 섹션 ── */}
-            <section className="flex flex-col items-center justify-center text-center px-6 pt-24 pb-24">
+            <section className="flex flex-col items-center justify-center text-center px-6 pt-20 pb-24">
                 <h1
                     className="text-[56px] font-extrabold leading-tight tracking-tight mb-4"
-                    style={{ color: "#1c1c1e", textShadow: "0 1px 2px rgba(255,255,255,0.6)", fontFamily: "'KotraBold', sans-serif" }}
+                    style={{ color: "#333232", textShadow: "0 1px 2px rgba(255,255,255,0.6)", fontFamily: "'SchoolSafetyPoster', sans-serif" }}
                 >
                     나만의 카카오톡 테마,<br />
                     <span style={{ color: "#edb0b9" }}>카</span>
@@ -146,7 +146,7 @@ export default function Home() {
                 >
                     <div className="flex flex-col gap-4 max-w-2xl">
                         <span className="text-[12px] font-bold tracking-[0.2em] text-black/50 uppercase">특징</span>
-                        <h2 className="text-[38px] font-bold leading-[1.05] tracking-tight" style={{ color: "#1c1c1e" }}>
+                        <h2 className="text-[38px] font-bold leading-[1.05] tracking-tight" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>
                             왜 카꾸미인가요?<br />
                             <span className="opacity-50 text-[26px]">코드 없이 가볍게</span>
                         </h2>
@@ -248,7 +248,7 @@ export default function Home() {
                 >
                     <div className="flex flex-col gap-4 max-w-2xl">
                         <span className="text-[12px] font-bold tracking-[0.2em] text-black/40 uppercase">사용 방법</span>
-                        <h2 className="text-[38px] font-bold leading-[1.05] tracking-tight" style={{ color: "#1c1c1e" }}>
+                        <h2 className="text-[38px] font-bold leading-[1.05] tracking-tight" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>
                             3단계로 끝나는 테마 제작<br />
                             <span className="opacity-50 text-[26px]">어렵지 않아요</span>
                         </h2>

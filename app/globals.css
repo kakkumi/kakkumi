@@ -1,10 +1,16 @@
 @import "tailwindcss";
 
 @font-face {
-  font-family: 'KotraBold';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10-21@1.1/KOTRA_BOLD-Bold.woff') format('woff');
+  font-family: 'SchoolSafetyPoster';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2511-1@1.0/HakgyoansimPosterB.woff2') format('woff2');
   font-weight: normal;
   font-display: swap;
+}
+@font-face {
+    font-family: "ChosunIlboMyungjo";
+    src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/Chosunilbo_myungjo.woff") format("woff");
+    font-weight: normal;
+    font-display: swap;
 }
 
 :root {
