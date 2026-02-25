@@ -28,15 +28,16 @@ export default function Home() {
                 <nav className="flex items-center gap-6">
                     <a href="#features" className="text-[13px] font-medium transition-opacity hover:opacity-60" style={{ color: "#3a3a3c" }}>기능</a>
                     <a href="#how" className="text-[13px] font-medium transition-opacity hover:opacity-60" style={{ color: "#3a3a3c" }}>사용 방법</a>
-                    <AuthStatus />
-                    <Link href="/create">
-                        <button
-                            className="px-4 py-1.5 rounded-lg text-[13px] font-semibold transition-all active:scale-95"
-                            style={{ background: "rgba(255,229,0,0.9)", color: "#3A1D1D", boxShadow: "0 1px 3px rgba(0,0,0,0.15), 0 1px 0 rgba(255,255,255,0.5) inset" }}
-                        >
-                            테마 만들기
-                        </button>
+                    <Link
+                        href="/create"
+                        className="text-[13px] font-medium transition-opacity hover:opacity-60"
+                        style={{ color: "#3a3a3c" }}
+                    >
+                        테마 만들기
                     </Link>
+                    {/* 구분선 추가: 얇은 세로선 */}
+                    <div className="w-[1px] h-5 bg-[rgba(0,0,0,0.06)]" aria-hidden="true" />
+                    <AuthStatus />
                 </nav>
             </header>
 

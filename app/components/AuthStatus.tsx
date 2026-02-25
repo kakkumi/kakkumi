@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 type SessionData = {
     name?: string | null;
+    image?: string | null;
 };
 
 type SessionResponse = {
@@ -58,15 +59,26 @@ export default function AuthStatus() {
     }
 
     return (
-        <span className="text-[13px] font-semibold flex items-center gap-2" style={{ color: "#3A1D1D" }}>
-            {session.name ?? "로그인됨"}
+        <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-[13px] font-semibold" style={{ color: "#3A1D1D" }}>
+                {session.image ? (
+                    <img
+                        src={session.image}
+                        alt={session.name ?? "카카오 프로필"}
+                        className="w-5 h-5 rounded-full object-cover"
+                    />
+                ) : (
+                    <span className="w-5 h-5 rounded-full bg-[#ffe500]" />
+                )}
+                <span>{session.name ?? "로그인됨"}</span>
+            </div>
             <a
                 href="/api/auth/logout"
-                className="text-[12px] font-medium transition-opacity hover:opacity-70"
-                style={{ color: "#3A1D1D" }}
+                className="px-2 py-1 rounded-md text-[12px] font-semibold transition-opacity hover:opacity-70"
+                style={{ background: "rgba(255,229,0,0.85)", color: "#3A1D1D" }}
             >
                 로그아웃
             </a>
-        </span>
+        </div>
     );
 }
