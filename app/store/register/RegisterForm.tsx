@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const CATEGORIES = ["감성", "심플", "일러스트", "다크모드", "캐릭터", "패턴"];
@@ -12,42 +12,11 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
     const [description, setDescription] = useState("");
     const [category, setCategory] = useState("");
     const [price, setPrice] = useState("");
-    const [colors, setColors] = useState<string[]>(["", ""]);
     const [previewFile, setPreviewFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [themeFile, setThemeFile] = useState<File | null>(null);
     const [androidFile, setAndroidFile] = useState<File | null>(null);
     const [submitted, setSubmitted] = useState(false);
-
-    const gradient = useMemo(() => {
-        const filled = colors.filter(c => c !== "");
-        if (filled.length === 0) return "linear-gradient(135deg, #e5e5e5, #f0f0f0)";
-        if (filled.length === 1) return `linear-gradient(135deg, ${filled[0]}, ${filled[0]})`;
-        return `linear-gradient(135deg, ${filled.join(", ")})`;
-    }, [colors]);
-
-    const handleColorChange = (index: number, value: string) => {
-        const next = [...colors];
-        next[index] = value;
-        setColors(next);
-    };
-
-    const addColor = () => {
-        if (colors.length >= 5) return;
-        setColors([...colors, ""]);
-    };
-
-    const removeColor = (index: number) => {
-        if (colors.length > 2) {
-            // 3개 이상이면 슬롯 자체를 삭제
-            setColors(colors.filter((_, i) => i !== index));
-        } else {
-            // 2개일 때는 슬롯은 유지하고 빈값으로 초기화
-            const next = [...colors];
-            next[index] = "";
-            setColors(next);
-        }
-    };
 
     const handlePreviewFile = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] ?? null;
@@ -85,7 +54,7 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
     }
 
     return (
-        <form onSubmit={handleSubmit} className="w-full grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-10 items-start">
+        <form onSubmit={handleSubmit} noValidate className="w-full grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-10 items-start">
 
             {/* ── 좌측: 폼 ── */}
             <div className="flex flex-col gap-3">
@@ -99,7 +68,6 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
                             onChange={e => setName(e.target.value)}
                             placeholder="테마 이름을 입력해주세요"
                             maxLength={30}
-                            required
                             className="w-full px-4 py-3 rounded-xl text-[14px] outline-none transition-all"
                             style={{ background: "rgba(0,0,0,0.04)", border: "1.5px solid transparent", color: "#1c1c1e" }}
                             onFocus={e => e.currentTarget.style.borderColor = "rgba(0,0,0,0.2)"}
@@ -167,112 +135,6 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
                                 {p}
                             </button>
                         ))}
-                    </div>
-                </Row>
-
-                {/* 구분선 */}
-                <div className="my-1 h-px" style={{ background: "rgba(0,0,0,0.06)" }} />
-
-                {/* 대표 색상 */}
-                <Row label="대표 색상" required>
-                    <div className="flex flex-col gap-3 p-4 rounded-xl" style={{ background: "rgba(0,0,0,0.03)" }}>
-                        {/* 색상 목록 */}
-                        {colors.length > 0 ? (
-                            <div className="flex flex-wrap items-end gap-6">
-                                {colors.map((c, i) => (
-                                    <div key={i} className="relative flex flex-col items-center gap-1.5 group">
-                                        <div className="relative">
-                                            {c === "" ? (
-                                                /* 미선택 슬롯 */
-                                                <div
-                                                    className="w-10 h-10 rounded-full border-[2px] border-dashed flex items-center justify-center"
-                                                    style={{ borderColor: "rgba(0,0,0,0.2)", background: "rgba(0,0,0,0.03)" }}
-                                                >
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                        <circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/>
-                                                    </svg>
-                                                </div>
-                                            ) : (
-                                                /* 선택된 슬롯 */
-                                                <div
-                                                    className="w-10 h-10 rounded-full shadow-md"
-                                                    style={{ backgroundColor: c }}
-                                                />
-                                            )}
-                                            <input
-                                                type="color"
-                                                value={c === "" ? "#ffffff" : c}
-                                                onChange={e => handleColorChange(i, e.target.value)}
-                                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full rounded-full"
-                                            />
-                                            {c !== "" && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeColor(i)}
-                                                    className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                                                    style={{ background: "#e11d48" }}
-                                                >
-                                                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                                                </button>
-                                            )}
-                                        </div>
-                                        <span className="text-[10px] font-medium" style={{ color: "#8e8e93" }}>
-                                            {c === "" ? "선택" : c}
-                                        </span>
-                                    </div>
-                                ))}
-                                {/* 추가 버튼 */}
-                                {colors.length < 5 && (
-                                    <button
-                                        type="button"
-                                        onClick={addColor}
-                                        className="flex flex-col items-center gap-1.5"
-                                    >
-                                        <div
-                                            className="w-10 h-10 rounded-full border-[2px] border-dashed flex items-center justify-center transition-all hover:border-black/40"
-                                            style={{ borderColor: "rgba(0,0,0,0.2)" }}
-                                        >
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                                        </div>
-                                        <span className="text-[10px] font-medium" style={{ color: "#8e8e93" }}>추가</span>
-                                    </button>
-                                )}
-                                {/* 그라디언트 미리보기 */}
-                                <div className="ml-auto">
-                                    <div className="w-24 h-10 rounded-lg shadow-sm" style={{ background: gradient }} />
-                                </div>
-                            </div>
-                        ) : (
-                            /* 빈 상태 */
-                            <div className="flex items-center gap-3">
-                                <button
-                                    type="button"
-                                    onClick={addColor}
-                                    className="flex items-center gap-2 px-4 py-2 rounded-xl transition-all hover:opacity-70"
-                                    style={{ background: "rgba(0,0,0,0.06)", color: "#3a3a3c" }}
-                                >
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                                    <span className="text-[13px] font-medium">색상 추가</span>
-                                </button>
-                                <span className="text-[11px]" style={{ color: "#b0b0b5" }}>최소 2개 필수 · 최대 5개</span>
-                            </div>
-                        )}
-                        {colors.length > 0 && colors.length < 2 && (
-                            <p className="text-[11px]" style={{ color: "#e11d48" }}>색상을 최소 2개 선택해주세요.</p>
-                        )}
-                        {(() => {
-                            const filled = colors.filter(c => c !== "").length;
-                            return (
-                                <div className="flex flex-col gap-1">
-                                    <p className="text-[11px]" style={{ color: "#56565a" }}>
-                                        {filled}/5개 선택됨
-                                    </p>
-                                    {filled < 2 && (
-                                        <p className="text-[11px] font-medium" style={{ color: "#e11d48" }}>최소 2가지 색상을 선택해주세요.</p>
-                                    )}
-                                </div>
-                            );
-                        })()}
                     </div>
                 </Row>
 
@@ -375,7 +237,8 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
                 <div className="flex gap-3 pt-4">
                     <button
                         type="button"
-                        onClick={() => router.push("/store")}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => { window.location.href = "/store"; }}
                         className="px-6 py-3 rounded-xl text-[14px] font-medium transition-all hover:opacity-70"
                         style={{ background: "rgba(0,0,0,0.05)", color: "#3a3a3c" }}
                     >
@@ -405,7 +268,7 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
                     }}
                 >
                     {/* 커버 */}
-                    <div className="h-52 relative" style={{ background: previewUrl ? undefined : gradient }}>
+                    <div className="h-52 relative" style={{ background: previewUrl ? undefined : "rgba(0,0,0,0.06)" }}>
                         {previewUrl && <img src={previewUrl} alt="" className="w-full h-full object-cover" />}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
                         <div className="absolute top-3 left-3 flex gap-1.5">
@@ -435,12 +298,7 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
                             {description || "테마 설명이 여기에 표시됩니다."}
                         </p>
 
-                        <div className="flex items-center justify-between pt-1">
-                            <div className="flex gap-1.5">
-                                {colors.map((c, i) => (
-                                    <div key={i} className="w-4 h-4 rounded-full ring-2 ring-white shadow-sm" style={{ backgroundColor: c }} />
-                                ))}
-                            </div>
+                        <div className="flex items-center justify-end pt-1">
                             <div className="flex items-center gap-1.5 text-[11px] font-semibold" style={{ color: "#8e8e93" }}>
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l7.78 7.78 7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -462,7 +320,6 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
                             { label: "테마 설명", done: !!description },
                             { label: "카테고리", done: !!category },
                             { label: "가격 설정", done: !!price },
-                            { label: "대표 색상", done: colors.filter(c => c !== "").length >= 2 },
                             { label: "미리보기 이미지", done: !!previewFile },
                             { label: "테마 파일", done: !!(themeFile || androidFile) },
                         ].map(item => (
@@ -488,14 +345,14 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
                         <div className="flex justify-between mb-1">
                             <span className="text-[10px] font-bold" style={{ color: "#8e8e93" }}>완성도</span>
                             <span className="text-[12px] font-bold" style={{ color: "#e11d48" }}>
-                                {Math.round(([!!name, !!description, !!category, !!price, colors.filter(c => c !== "").length >= 2, !!previewFile, !!(themeFile || androidFile)].filter(Boolean).length / 7) * 100)}%
+                                {Math.round(([!!name, !!description, !!category, !!price, !!previewFile, !!(themeFile || androidFile)].filter(Boolean).length / 6) * 100)}%
                             </span>
                         </div>
                         <div className="w-full h-1.5 rounded-full" style={{ background: "rgba(0,0,0,0.06)" }}>
                             <div
                                 className="h-full rounded-full transition-all duration-500"
                                 style={{
-                                    width: `${Math.round(([!!name, !!description, !!category, !!price, colors.filter(c => c !== "").length >= 2, !!previewFile, !!(themeFile || androidFile)].filter(Boolean).length / 7) * 100)}%`,
+                                    width: `${Math.round(([!!name, !!description, !!category, !!price, !!previewFile, !!(themeFile || androidFile)].filter(Boolean).length / 6) * 100)}%`,
                                     background: "#e11d48",
                                 }}
                             />
@@ -556,10 +413,10 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
 function Row({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
     return (
         <div className="flex flex-col gap-2 py-3">
-            <label className="text-[13px] font-semibold flex items-center gap-1" style={{ color: "#1c1c1e" }}>
+            <div className="text-[13px] font-semibold flex items-center gap-1" style={{ color: "#1c1c1e" }}>
                 {label}
                 {required && <span style={{ color: "#e11d48" }}>*</span>}
-            </label>
+            </div>
             {children}
         </div>
     );
