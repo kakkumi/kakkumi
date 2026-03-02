@@ -65,7 +65,16 @@ type Tab = "faq" | "howto" | "contact";
 
 export default function SupportPage() {
     const [activeTab, setActiveTab] = useState<Tab>("faq");
-    const [openFaq, setOpenFaq] = useState<number | null>(null);
+    const [openFaqs, setOpenFaqs] = useState<Set<number>>(new Set());
+
+    const toggleFaq = (i: number) => {
+        setOpenFaqs((prev) => {
+            const next = new Set(prev);
+            if (next.has(i)) next.delete(i);
+            else next.add(i);
+            return next;
+        });
+    };
     const [contactForm, setContactForm] = useState({ title: "", content: "", email: "" });
     const [submitted, setSubmitted] = useState(false);
 
@@ -130,7 +139,7 @@ export default function SupportPage() {
 
                     {/* ── 자주 묻는 질문 ── */}
                     {activeTab === "faq" && (
-                        <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-3">
                             <div className="flex flex-col gap-1 mb-2">
                                 <h1 className="text-[28px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>자주 묻는 질문</h1>
                                 <p className="text-[14px]" style={{ color: "#8e8e93" }}>궁금한 점을 빠르게 확인해보세요.</p>
@@ -139,15 +148,10 @@ export default function SupportPage() {
                                 <div
                                     key={i}
                                     className="rounded-[20px] overflow-hidden transition-all"
-                                    style={{
-                                        background: "rgba(255,255,255,0.6)",
-                                        border: "1px solid rgba(255,255,255,0.8)",
-                                        boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
-                                    }}
                                 >
                                     <button
-                                        className="w-full text-left px-6 py-5 flex items-center justify-between gap-4"
-                                        onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                                        className="w-full text-left px-6 py-4 flex items-center justify-between gap-4"
+                                        onClick={() => toggleFaq(i)}
                                     >
                                         <span className="text-[14px] font-semibold" style={{ color: "#1c1c1e" }}>
                                             <span style={{ color: "#FF9500", marginRight: 8 }}>Q.</span>{faq.q}
@@ -155,13 +159,13 @@ export default function SupportPage() {
                                         <svg
                                             width="16" height="16" viewBox="0 0 24 24" fill="none"
                                             stroke="#8e8e93" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                                            style={{ transform: openFaq === i ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", flexShrink: 0 }}
+                                            style={{ transform: openFaqs.has(i) ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", flexShrink: 0 }}
                                         >
                                             <polyline points="6 9 12 15 18 9" />
                                         </svg>
                                     </button>
-                                    {openFaq === i && (
-                                        <div className="px-6 pb-5">
+                                    {openFaqs.has(i) && (
+                                        <div className="px-6 pb-3">
                                             <div className="h-[1px] mb-4" style={{ background: "rgba(0,0,0,0.06)" }} />
                                             <p className="text-[13px] leading-relaxed" style={{ color: "#48484a" }}>
                                                 <span style={{ color: "#aabde8", marginRight: 8, fontWeight: 700 }}>A.</span>{faq.a}
@@ -185,8 +189,6 @@ export default function SupportPage() {
                                     key={step}
                                     className="rounded-[20px] px-7 py-6 flex items-start gap-6"
                                     style={{
-                                        background: "rgba(255,255,255,0.6)",
-                                        border: "1px solid rgba(255,255,255,0.8)",
                                         boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
                                     }}
                                 >
@@ -212,8 +214,6 @@ export default function SupportPage() {
                                 <div
                                     className="rounded-[24px] p-12 flex flex-col items-center gap-5"
                                     style={{
-                                        background: "rgba(255,255,255,0.6)",
-                                        border: "1px solid rgba(255,255,255,0.8)",
                                         boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
                                     }}
                                 >
@@ -238,8 +238,6 @@ export default function SupportPage() {
                                 <form
                                     className="rounded-[24px] p-8 flex flex-col gap-5"
                                     style={{
-                                        background: "rgba(255,255,255,0.6)",
-                                        border: "1px solid rgba(255,255,255,0.8)",
                                         boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
                                     }}
                                     onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }}
