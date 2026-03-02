@@ -4,31 +4,155 @@ import { useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
+/* ── 자주 묻는 질문 카테고리 ── */
+const FAQ_CATEGORIES = ["전체", "주문/결제", "취소/환불", "이벤트/적립/혜택", "회원", "테마 등록", "기타"] as const;
+type FaqCategory = typeof FAQ_CATEGORIES[number];
+
+const TAG_STYLE: Record<string, { bg: string; color: string }> = {
+    "주문/결제":       { bg: "rgba(170,189,232,0.35)", color: "#3a5a8a" },
+    "취소/환불":       { bg: "rgba(255,100,100,0.15)", color: "#c0392b" },
+    "이벤트/적립/혜택": { bg: "rgba(255,239,154,0.6)",  color: "#7a5c00" },
+    "회원":           { bg: "rgba(199,239,199,0.6)",   color: "#1a6a3a" },
+    "테마 등록":       { bg: "rgba(237,187,139,0.35)", color: "#875322" },
+    "기타":           { bg: "rgba(0,0,0,0.07)",        color: "#4b4b4e" },
+};
+
 /* ── 자주 묻는 질문 데이터 ── */
-const faqs = [
+const faqs: { q: string; a: string; category: FaqCategory }[] = [
     {
+        category: "기타",
         q: "카꾸미는 무료인가요?",
         a: "네, 카꾸미의 기본 테마 제작 기능은 완전 무료로 제공됩니다. 별도의 설치 없이 브라우저에서 바로 사용하실 수 있어요.",
     },
     {
+        category: "기타",
         q: "만든 테마는 어떻게 적용하나요?",
         a: "테마 만들기 페이지에서 제작 완료 후 다운로드 버튼을 눌러 .ktheme 파일을 받고, 카카오톡 앱 설정 > 테마 메뉴에서 직접 적용할 수 있어요.",
     },
     {
+        category: "기타",
         q: "iOS와 Android 모두 지원하나요?",
         a: "네, iOS용 .ktheme 파일과 Android APK 빌드 모두 지원합니다. 제작 화면 상단에서 원하는 플랫폼을 선택해 주세요.",
     },
     {
-        q: "테마를 스토어에 등록하려면 어떻게 해야 하나요?",
-        a: "카카오 로그인 후 테마 등록 페이지에서 제작한 테마 파일과 미리보기 이미지를 업로드하면 됩니다. 검수 후 스토어에 게시돼요.",
+        category: "주문/결제",
+        q: "테마를 스토어에서 구매하려면 어떻게 하나요?",
+        a: "카카오 로그인 후 테마 스토어에서 원하는 테마를 선택하고 결제하시면 됩니다. 결제 완료 후 바로 다운로드할 수 있어요.",
     },
     {
+        category: "주문/결제",
+        q: "결제 수단은 어떤 것이 있나요?",
+        a: "카카오페이, 신용카드, 계좌이체를 지원합니다. 결제 시 원하는 수단을 선택해 주세요.",
+    },
+    {
+        category: "취소/환불",
+        q: "구매한 테마를 환불할 수 있나요?",
+        a: "디지털 콘텐츠 특성상 다운로드 전에만 환불이 가능합니다. 다운로드 이후에는 환불이 어려운 점 양해 부탁드려요.",
+    },
+    {
+        category: "이벤트/적립/혜택",
+        q: "적립금은 어떻게 쌓이나요?",
+        a: "테마 구매 시 결제 금액의 5%가 적립금으로 적립됩니다. 적립금은 다음 구매 시 현금처럼 사용할 수 있어요.",
+    },
+    {
+        category: "회원",
+        q: "회원 탈퇴 후 재가입이 가능한가요?",
+        a: "네, 탈퇴 후 30일이 지나면 동일한 카카오 계정으로 재가입이 가능합니다. 단, 탈퇴 시 보유한 적립금과 쿠폰은 소멸됩니다.",
+    },
+    {
+        category: "기타",
         q: "다크모드 테마도 만들 수 있나요?",
         a: "네, 테마 만들기 화면에서 다크모드 토글을 켜면 다크 테마를 별도로 설정할 수 있어요.",
     },
     {
+        category: "기타",
         q: "업로드한 이미지는 어디에 저장되나요?",
         a: "업로드하신 이미지는 테마 파일 생성에만 사용되며, 서버에 영구 저장되지 않습니다.",
+    },
+    {
+        category: "테마 등록",
+        q: "테마를 스토어에 등록하려면 어떻게 해야 하나요?",
+        a: "카카오 로그인 후 상단 메뉴의 '테마 등록'을 클릭해 제작한 테마 파일과 미리보기 이미지를 업로드하면 됩니다. 검수 후 스토어에 게시돼요.",
+    },
+    {
+        category: "테마 등록",
+        q: "검토는 얼마나 걸리나요?",
+        a: "등록 신청 후 영업일 기준 1~2일 이내에 검토가 완료됩니다. 검토 결과는 이메일로 안내드려요.",
+    },
+    {
+        category: "테마 등록",
+        q: "등록이 거절되면 어떻게 되나요?",
+        a: "거절 시 사유를 이메일로 안내해 드립니다. 사유를 확인하고 수정한 후 재등록 신청이 가능해요.",
+    },
+    {
+        category: "테마 등록",
+        q: "등록한 테마의 카테고리를 변경할 수 있나요?",
+        a: "한 번 등록한 테마는 카테고리 변경이 제한될 수 있습니다. 변경이 필요한 경우 고객센터 1:1 문의를 통해 요청해 주세요.",
+    },
+    {
+        category: "테마 등록",
+        q: "등록 후 테마 파일을 수정할 수 있나요?",
+        a: "등록 후 파일 수정은 재검토 절차가 필요합니다. 수정 후 재업로드하시면 검토 완료 후 반영돼요.",
+    },
+    {
+        category: "테마 등록",
+        q: "판매 수익은 언제 정산되나요?",
+        a: "판매 수익은 매월 1일에 정산되며, 등록하신 계좌로 지급됩니다. 정산 내역은 마이페이지에서 확인하실 수 있어요.",
+    },
+    {
+        category: "테마 등록",
+        q: "수익 구조는 어떻게 되나요?",
+        a: "테마 판매 금액에서 카꾸미 수수료 20%를 제외한 80%가 창작자에게 지급됩니다. 예를 들어 1,000원짜리 테마가 판매되면 800원이 창작자 수익으로 정산돼요.",
+    },
+    {
+        category: "주문/결제",
+        q: "결제 후 영수증을 받을 수 있나요?",
+        a: "결제 완료 후 등록된 이메일로 영수증이 자동 발송됩니다.",
+    },
+    {
+        category: "취소/환불",
+        q: "환불은 얼마나 걸리나요?",
+        a: "환불 신청 후 영업일 기준 3~5일 이내 처리됩니다. 카드사에 따라 최대 7일 소요될 수 있어요.",
+    },
+    {
+        category: "취소/환불",
+        q: "적립금으로 결제한 경우 환불은 어떻게 되나요?",
+        a: "적립금 사용분은 적립금으로 재환급되고, 현금 결제분은 원결제 수단으로 환불됩니다.",
+    },
+    {
+        category: "이벤트/적립/혜택",
+        q: "적립금 유효기간이 있나요?",
+        a: "적립금은 마지막 사용일 또는 적립일로부터 1년간 유효합니다.",
+    },
+    {
+        category: "이벤트/적립/혜택",
+        q: "친구 추천 혜택이 있나요?",
+        a: "친구 추천 시 추천인과 피추천인 모두에게 적립금 혜택을 드립니다. 마이페이지의 추천 코드를 공유해 보세요.",
+    },
+    {
+        category: "회원",
+        q: "개인정보는 어떻게 관리되나요?",
+        a: "개인정보는 암호화되어 저장되며, 제3자에게 제공되지 않습니다. 자세한 내용은 개인정보처리방침을 확인해 주세요.",
+    },
+    {
+        category: "테마 등록",
+        q: "테마 등록 개수 제한이 있나요?",
+        a: "1인당 최대 50개까지 등록 가능합니다. 한도 증가가 필요하면 1:1 문의로 요청해 주세요.",
+    },
+    {
+        category: "테마 등록",
+        q: "등록한 테마를 비공개로 전환할 수 있나요?",
+        a: "네, 마이페이지 > 내 테마에서 공개/비공개 전환이 가능합니다.",
+    },
+    {
+        category: "테마 등록",
+        q: "타인의 이미지를 사용한 테마는 등록 가능한가요?",
+        a: "저작권 침해 소지가 있는 이미지는 등록이 거절됩니다. 직접 제작하거나 상업적 이용이 가능한 이미지만 사용해 주세요.",
+    },
+    {
+        category: "테마 등록",
+        q: "테마 판매를 중단하고 싶어요",
+        a: "마이페이지 > 내 테마에서 판매 중단 처리가 가능합니다. 기존 구매자는 계속 사용할 수 있어요.",
     },
 ];
 
@@ -65,6 +189,7 @@ type Tab = "faq" | "howto" | "contact";
 
 export default function SupportPage() {
     const [activeTab, setActiveTab] = useState<Tab>("faq");
+    const [faqCategory, setFaqCategory] = useState<FaqCategory>("전체");
     const [openFaqs, setOpenFaqs] = useState<Set<number>>(new Set());
 
     const toggleFaq = (i: number) => {
@@ -144,7 +269,32 @@ export default function SupportPage() {
                                 <h1 className="text-[28px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>자주 묻는 질문</h1>
                                 <p className="text-[14px]" style={{ color: "#8e8e93" }}>궁금한 점을 빠르게 확인해보세요.</p>
                             </div>
-                            {faqs.map((faq, i) => (
+
+                            {/* ── 카테고리 필터 ── */}
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                                {FAQ_CATEGORIES.map((cat) => (
+                                    <button
+                                        key={cat}
+                                        onClick={() => { setFaqCategory(cat); setOpenFaqs(new Set()); }}
+                                        className="px-3 py-1.5 rounded-full text-[12px] font-semibold transition-all"
+                                        style={{
+                                            background: faqCategory === cat ? "#3a3a3c" : "rgba(0,0,0,0.06)",
+                                            color: faqCategory === cat ? "#fff" : "#3a3a3c",
+                                        }}
+                                    >
+                                        {cat}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {[...faqs]
+                                .filter((faq) => faqCategory === "전체" || faq.category === faqCategory)
+                                .sort((a, b) =>
+                                    faqCategory === "전체"
+                                        ? FAQ_CATEGORIES.indexOf(a.category) - FAQ_CATEGORIES.indexOf(b.category)
+                                        : 0
+                                )
+                                .map((faq, i) => (
                                 <div
                                     key={i}
                                     className="rounded-[20px] overflow-hidden transition-all"
@@ -153,8 +303,17 @@ export default function SupportPage() {
                                         className="w-full text-left px-6 py-4 flex items-center justify-between gap-4"
                                         onClick={() => toggleFaq(i)}
                                     >
-                                        <span className="text-[14px] font-semibold" style={{ color: "#1c1c1e" }}>
-                                            <span style={{ color: "#FF9500", marginRight: 8 }}>Q.</span>{faq.q}
+                                        <span className="flex items-center gap-2 text-[14px] font-semibold" style={{ color: "#1c1c1e" }}>
+                                            <span
+                                                className="shrink-0 px-2 py-0.5 rounded-full text-[11px] font-bold"
+                                                style={{
+                                                    background: TAG_STYLE[faq.category]?.bg,
+                                                    color: TAG_STYLE[faq.category]?.color,
+                                                }}
+                                            >
+                                                {faq.category}
+                                            </span>
+                                            {faq.q}
                                         </span>
                                         <svg
                                             width="16" height="16" viewBox="0 0 24 24" fill="none"

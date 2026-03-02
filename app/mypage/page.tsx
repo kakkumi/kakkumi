@@ -55,7 +55,7 @@ export default async function MyPage() {
                 { label: "작성 가능한 후기" },
                 { label: "쿠폰" },
                 { label: "주문 내역" },
-                { label: "취소/반품/교환 내역" },
+                { label: "취소/환불 내역" },
                 { label: "최근 본 상품" },
                 { label: "장바구니" },
                 { label: "좋아요" },
@@ -66,6 +66,13 @@ export default async function MyPage() {
             items: [
                 { label: "1:1문의 내역" },
                 { label: "리뷰" },
+            ],
+        },
+        {
+            category: "수익",
+            items: [
+                { label: "정산 내역" },
+                { label: "판매 통계" },
             ],
         },
         {

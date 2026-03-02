@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+html {
+  scrollbar-gutter: stable;
+}
+
 @font-face {
   font-family: 'SchoolSafetyPoster';
   src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2511-1@1.0/HakgyoansimPosterB.woff2') format('woff2');
