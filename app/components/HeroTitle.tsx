@@ -13,9 +13,9 @@ export default function HeroTitle() {
                     style={{
                         position: "absolute",
                         left: "-16px",
-                        top: "30%",
+                        top: "15%",
                         width: "calc(100% + 32px)",
-                        height: "80%",
+                        height: "100%",
                         zIndex: 0,
                         pointerEvents: "none",
                         overflow: "visible",
