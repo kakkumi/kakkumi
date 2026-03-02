@@ -291,7 +291,7 @@ export default function RegisterForm({ authorName, headerSlot }: { authorName: s
                     <button
                         type="submit"
                         className="flex-1 py-3 rounded-xl text-[14px] font-bold transition-all active:scale-95 hover:brightness-105"
-                        style={{ background: "#FFE500", color: "#3A1D1D", boxShadow: "0 4px 20px rgba(255,220,0,0.3)" }}
+                        style={{ background: "#efde5c", color: "#3A1D1D" , boxShadow: "0 4px 20px rgba(255,220,0,0.3)"}}
                     >
                         등록 신청하기
                     </button>
