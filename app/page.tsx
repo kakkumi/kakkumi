@@ -20,12 +20,51 @@ export default function Home() {
             <section className="flex flex-col items-center justify-center text-center px-6 pt-20 pb-24">
                 <h1
                     className="text-[56px] font-extrabold leading-tight tracking-tight mb-4"
-                    style={{ color: "#333232", textShadow: "0 1px 2px rgba(255,255,255,0.6)", fontFamily: "'ReperepointSpecialItalic', sans-serif" }}
+                    style={{ color: "#333232", textShadow: "0 1px 2px rgba(255,255,255,0.6)", fontFamily: "'YangjuByeolsan', sans-serif" }}
                 >
-                    나만의 카카오톡 테마,<br />
-                    <span style={{ color: "#edb0b9" }}>카</span>
-                    <span style={{ color: "#a3cee8" }}>꾸</span>
-                    <span style={{ color: "#f3df56" }}>미</span>로 쉽게 만들어요
+                    <span style={{ position: "relative", display: "inline-block" }}>
+                        <span
+                            style={{
+                                position: "absolute",
+                                left: 0,
+                                bottom: "4px",
+                                width: "100%",
+                                height: "10px",
+                                background: "rgba(255,231,58,0.55)",
+                                borderRadius: "4px",
+                                zIndex: 0,
+                            }}
+                        />
+                        <span style={{ position: "relative", zIndex: 1 }}>나만의 카카오톡 테마,</span>
+                    </span>
+                    <br />
+                    <span
+                        style={{
+                            color: "#edb0b9",
+                            display: "inline-block",
+                            textShadow: "0 2px 12px rgba(237,176,185,0.7)",
+                            transform: "rotate(-2deg)",
+                            fontSize: "62px",
+                        }}
+                    >카</span>
+                    <span
+                        style={{
+                            color: "#a3cee8",
+                            display: "inline-block",
+                            textShadow: "0 2px 12px rgba(163,206,232,0.7)",
+                            fontSize: "68px",
+                        }}
+                    >꾸</span>
+                    <span
+                        style={{
+                            color: "#f3df56",
+                            display: "inline-block",
+                            textShadow: "0 2px 12px rgba(243,223,86,0.8)",
+                            transform: "rotate(2deg)",
+                            fontSize: "62px",
+                        }}
+                    >미</span>
+                    <span style={{ color: "#333232" }}>로 쉽게 만들어요</span>
                 </h1>
 
                 <p className="text-[18px] leading-relaxed mb-10 max-w-xl" style={{ color: "#48484a" }}>

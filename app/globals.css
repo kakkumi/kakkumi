@@ -22,6 +22,12 @@ html {
   font-weight: normal;
   font-display: swap;
 }
+@font-face {
+  font-family: 'YangjuByeolsan';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2405@1.0/YangjuByeolsanA1.woff2') format('woff2');
+  font-weight: normal;
+  font-display: swap;
+}
 
 :root {
   --background: transparent;
