@@ -1,0 +1,316 @@
+"use client";
+
+import { useState } from "react";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
+
+/* ── 자주 묻는 질문 데이터 ── */
+const faqs = [
+    {
+        q: "카꾸미는 무료인가요?",
+        a: "네, 카꾸미의 기본 테마 제작 기능은 완전 무료로 제공됩니다. 별도의 설치 없이 브라우저에서 바로 사용하실 수 있어요.",
+    },
+    {
+        q: "만든 테마는 어떻게 적용하나요?",
+        a: "테마 만들기 페이지에서 제작 완료 후 다운로드 버튼을 눌러 .ktheme 파일을 받고, 카카오톡 앱 설정 > 테마 메뉴에서 직접 적용할 수 있어요.",
+    },
+    {
+        q: "iOS와 Android 모두 지원하나요?",
+        a: "네, iOS용 .ktheme 파일과 Android APK 빌드 모두 지원합니다. 제작 화면 상단에서 원하는 플랫폼을 선택해 주세요.",
+    },
+    {
+        q: "테마를 스토어에 등록하려면 어떻게 해야 하나요?",
+        a: "카카오 로그인 후 테마 등록 페이지에서 제작한 테마 파일과 미리보기 이미지를 업로드하면 됩니다. 검수 후 스토어에 게시돼요.",
+    },
+    {
+        q: "다크모드 테마도 만들 수 있나요?",
+        a: "네, 테마 만들기 화면에서 다크모드 토글을 켜면 다크 테마를 별도로 설정할 수 있어요.",
+    },
+    {
+        q: "업로드한 이미지는 어디에 저장되나요?",
+        a: "업로드하신 이미지는 테마 파일 생성에만 사용되며, 서버에 영구 저장되지 않습니다.",
+    },
+];
+
+/* ── 이용방법 데이터 ── */
+const howToSteps = [
+    {
+        step: "01",
+        title: "카카오 로그인",
+        desc: "우측 상단의 카카오 로그인 버튼을 눌러 계정으로 로그인하세요. 로그인 없이도 테마 제작은 가능하지만, 스토어 등록 및 마이페이지 기능을 이용하려면 로그인이 필요해요.",
+    },
+    {
+        step: "02",
+        title: "테마 만들기",
+        desc: "상단 메뉴의 '테마 만들기'를 클릭하세요. 왼쪽 패널에서 탭바, 헤더, 말풍선 등 각 요소의 색상을 컬러 피커로 자유롭게 변경할 수 있어요.",
+    },
+    {
+        step: "03",
+        title: "실시간 미리보기 확인",
+        desc: "중앙의 목업 화면에서 실시간으로 내 테마가 어떻게 보이는지 확인하세요. 친구 목록, 채팅방, 더보기 등 탭별로 미리볼 수 있어요.",
+    },
+    {
+        step: "04",
+        title: "테마 다운로드",
+        desc: "우측 상단 다운로드 버튼을 눌러 iOS용 .ktheme 파일 또는 Android APK를 받으세요. 카카오톡 앱에서 바로 적용할 수 있어요.",
+    },
+    {
+        step: "05",
+        title: "스토어에 등록 (선택)",
+        desc: "직접 만든 테마를 다른 사람들과 공유하고 싶다면 테마 등록 페이지에서 스토어에 올려보세요. 검수 후 카꾸미 스토어에 게시돼요.",
+    },
+];
+
+type Tab = "faq" | "howto" | "contact";
+
+export default function SupportPage() {
+    const [activeTab, setActiveTab] = useState<Tab>("faq");
+    const [openFaq, setOpenFaq] = useState<number | null>(null);
+    const [contactForm, setContactForm] = useState({ title: "", content: "", email: "" });
+    const [submitted, setSubmitted] = useState(false);
+
+    const tabs: { key: Tab; label: string }[] = [
+        { key: "faq", label: "자주 묻는 질문" },
+        { key: "howto", label: "이용방법" },
+        { key: "contact", label: "1:1 문의" },
+    ];
+
+    return (
+        <div
+            className="min-h-screen flex flex-col mac-scroll"
+            style={{
+                backgroundColor: "#fdfcfc",
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23noise)' opacity='0.45'/%3E%3C/svg%3E")`,
+                backgroundRepeat: "repeat",
+            }}
+        >
+            <Header />
+
+            <div className="flex w-full" style={{ maxWidth: 1400, margin: "0 auto" }}>
+
+                {/* ── 사이드바 ── */}
+                <aside className="fixed w-[220px] flex flex-col gap-1 px-6 pt-12">
+                    <span className="text-[11px] font-bold tracking-[0.15em] uppercase px-3 mb-1" style={{ color: "#8e8e93" }}>
+                        고객센터
+                    </span>
+                    {tabs.map((tab) => (
+                        <button
+                            key={tab.key}
+                            onClick={() => { setActiveTab(tab.key); setSubmitted(false); }}
+                            className="text-left px-3 py-2 rounded-xl text-[13px] font-medium transition-all"
+                            style={{
+                                color: activeTab === tab.key ? "#FF9500" : "#3a3a3c",
+                                fontWeight: activeTab === tab.key ? 700 : 500,
+                            }}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+
+                    <div className="my-3 h-[1px]" style={{ background: "rgba(0,0,0,0.18)" }} />
+
+                    <div className="px-3 flex flex-col gap-2">
+                        <p className="text-[11px] font-bold" style={{ color: "#8e8e93" }}>운영시간</p>
+                        <p className="text-[12px] leading-relaxed" style={{ color: "#3a3a3c" }}>
+                            평일 10:00 – 18:00<br />
+                            <span style={{ color: "#8e8e93" }}>점심 12:00 – 13:00 제외</span>
+                        </p>
+                        <a
+                            href="mailto:aaa@kakkumi.com"
+                            className="text-[12px] hover:underline mt-1"
+                            style={{ color: "#FF9500" }}
+                        >
+                            aaa@kakkumi.com
+                        </a>
+                    </div>
+                </aside>
+
+                {/* ── 메인 콘텐츠 ── */}
+                <main className="flex-1 flex flex-col gap-6 px-6 pt-12 pb-20" style={{ marginLeft: 220 }}>
+
+                    {/* ── 자주 묻는 질문 ── */}
+                    {activeTab === "faq" && (
+                        <div className="flex flex-col gap-4">
+                            <div className="flex flex-col gap-1 mb-2">
+                                <h1 className="text-[28px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>자주 묻는 질문</h1>
+                                <p className="text-[14px]" style={{ color: "#8e8e93" }}>궁금한 점을 빠르게 확인해보세요.</p>
+                            </div>
+                            {faqs.map((faq, i) => (
+                                <div
+                                    key={i}
+                                    className="rounded-[20px] overflow-hidden transition-all"
+                                    style={{
+                                        background: "rgba(255,255,255,0.6)",
+                                        border: "1px solid rgba(255,255,255,0.8)",
+                                        boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
+                                    }}
+                                >
+                                    <button
+                                        className="w-full text-left px-6 py-5 flex items-center justify-between gap-4"
+                                        onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                                    >
+                                        <span className="text-[14px] font-semibold" style={{ color: "#1c1c1e" }}>
+                                            <span style={{ color: "#FF9500", marginRight: 8 }}>Q.</span>{faq.q}
+                                        </span>
+                                        <svg
+                                            width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="#8e8e93" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                                            style={{ transform: openFaq === i ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", flexShrink: 0 }}
+                                        >
+                                            <polyline points="6 9 12 15 18 9" />
+                                        </svg>
+                                    </button>
+                                    {openFaq === i && (
+                                        <div className="px-6 pb-5">
+                                            <div className="h-[1px] mb-4" style={{ background: "rgba(0,0,0,0.06)" }} />
+                                            <p className="text-[13px] leading-relaxed" style={{ color: "#48484a" }}>
+                                                <span style={{ color: "#aabde8", marginRight: 8, fontWeight: 700 }}>A.</span>{faq.a}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* ── 이용방법 ── */}
+                    {activeTab === "howto" && (
+                        <div className="flex flex-col gap-4">
+                            <div className="flex flex-col gap-1 mb-2">
+                                <h1 className="text-[28px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>이용방법</h1>
+                                <p className="text-[14px]" style={{ color: "#8e8e93" }}>카꾸미 사용 방법을 단계별로 안내해드려요.</p>
+                            </div>
+                            {howToSteps.map(({ step, title, desc }) => (
+                                <div
+                                    key={step}
+                                    className="rounded-[20px] px-7 py-6 flex items-start gap-6"
+                                    style={{
+                                        background: "rgba(255,255,255,0.6)",
+                                        border: "1px solid rgba(255,255,255,0.8)",
+                                        boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
+                                    }}
+                                >
+                                    <span className="text-[26px] font-black shrink-0 leading-none mt-0.5" style={{ color: "#aabde8" }}>{step}</span>
+                                    <div className="flex flex-col gap-1.5">
+                                        <h3 className="text-[16px] font-bold" style={{ color: "#1c1c1e" }}>{title}</h3>
+                                        <p className="text-[13px] leading-relaxed break-keep" style={{ color: "#48484a" }}>{desc}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* ── 1:1 문의 ── */}
+                    {activeTab === "contact" && (
+                        <div className="flex flex-col gap-4">
+                            <div className="flex flex-col gap-1 mb-2">
+                                <h1 className="text-[28px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>1:1 문의</h1>
+                                <p className="text-[14px]" style={{ color: "#8e8e93" }}>궁금한 점이나 불편한 사항을 남겨주시면 빠르게 답변드릴게요.</p>
+                            </div>
+
+                            {submitted ? (
+                                <div
+                                    className="rounded-[24px] p-12 flex flex-col items-center gap-5"
+                                    style={{
+                                        background: "rgba(255,255,255,0.6)",
+                                        border: "1px solid rgba(255,255,255,0.8)",
+                                        boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
+                                    }}
+                                >
+                                    <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: "rgba(255,149,0,0.1)" }}>
+                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FF9500" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <polyline points="20 6 9 17 4 12" />
+                                        </svg>
+                                    </div>
+                                    <div className="flex flex-col gap-1.5 text-center">
+                                        <h2 className="text-[20px] font-bold" style={{ color: "#1c1c1e" }}>문의가 접수되었어요</h2>
+                                        <p className="text-[13px]" style={{ color: "#8e8e93" }}>평일 10:00–18:00 내 순차적으로 답변드릴게요.</p>
+                                    </div>
+                                    <button
+                                        onClick={() => { setSubmitted(false); setContactForm({ title: "", content: "", email: "" }); }}
+                                        className="px-6 py-2.5 rounded-xl text-[13px] font-semibold transition-all hover:brightness-105 active:scale-95"
+                                        style={{ background: "rgba(255,231,58,0.95)", color: "#3A1D1D", boxShadow: "0 2px 8px rgba(255,200,0,0.3)" }}
+                                    >
+                                        새 문의 작성
+                                    </button>
+                                </div>
+                            ) : (
+                                <form
+                                    className="rounded-[24px] p-8 flex flex-col gap-5"
+                                    style={{
+                                        background: "rgba(255,255,255,0.6)",
+                                        border: "1px solid rgba(255,255,255,0.8)",
+                                        boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
+                                    }}
+                                    onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }}
+                                >
+                                    {/* 이메일 */}
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[12px] font-semibold" style={{ color: "#3a3a3c" }}>답변 받을 이메일 <span style={{ color: "#FF3B30" }}>*</span></label>
+                                        <input
+                                            type="email"
+                                            required
+                                            placeholder="example@email.com"
+                                            value={contactForm.email}
+                                            onChange={(e) => setContactForm((f) => ({ ...f, email: e.target.value }))}
+                                            className="px-4 py-3 rounded-xl text-[13px] outline-none transition-all"
+                                            style={{
+                                                background: "rgba(255,255,255,0.8)",
+                                                border: "1px solid rgba(0,0,0,0.1)",
+                                                color: "#1c1c1e",
+                                            }}
+                                        />
+                                    </div>
+                                    {/* 제목 */}
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[12px] font-semibold" style={{ color: "#3a3a3c" }}>제목 <span style={{ color: "#FF3B30" }}>*</span></label>
+                                        <input
+                                            type="text"
+                                            required
+                                            placeholder="문의 제목을 입력해주세요"
+                                            value={contactForm.title}
+                                            onChange={(e) => setContactForm((f) => ({ ...f, title: e.target.value }))}
+                                            className="px-4 py-3 rounded-xl text-[13px] outline-none transition-all"
+                                            style={{
+                                                background: "rgba(255,255,255,0.8)",
+                                                border: "1px solid rgba(0,0,0,0.1)",
+                                                color: "#1c1c1e",
+                                            }}
+                                        />
+                                    </div>
+                                    {/* 내용 */}
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[12px] font-semibold" style={{ color: "#3a3a3c" }}>문의 내용 <span style={{ color: "#FF3B30" }}>*</span></label>
+                                        <textarea
+                                            required
+                                            rows={7}
+                                            placeholder="문의하실 내용을 자세히 적어주세요"
+                                            value={contactForm.content}
+                                            onChange={(e) => setContactForm((f) => ({ ...f, content: e.target.value }))}
+                                            className="px-4 py-3 rounded-xl text-[13px] outline-none resize-none transition-all"
+                                            style={{
+                                                background: "rgba(255,255,255,0.8)",
+                                                border: "1px solid rgba(0,0,0,0.1)",
+                                                color: "#1c1c1e",
+                                            }}
+                                        />
+                                    </div>
+                                    <button
+                                        type="submit"
+                                        className="self-start px-8 py-3 rounded-xl text-[14px] font-bold transition-all hover:brightness-105 active:scale-95"
+                                        style={{ background: "rgba(255,231,58,0.95)", color: "#3A1D1D", boxShadow: "0 4px 16px rgba(255,200,0,0.3)" }}
+                                    >
+                                        문의 접수하기
+                                    </button>
+                                </form>
+                            )}
+                        </div>
+                    )}
+
+                </main>
+            </div>
+
+            <Footer />
+        </div>
+    );
+}
