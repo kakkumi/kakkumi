@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const THEMES = [
     { id: 1, name: "봄 벚꽃", author: "카꾸미", price: "1,200원", priceNum: 1200, tag: "인기", colors: ["#f9b8c4", "#fde8ec", "#fff0f3"], sales: 842, createdAt: 3, likes: 312, reviews: 98, rating: 4.8 },
@@ -39,6 +40,7 @@ const SORT_OPTIONS = [
 type SortKey = "rank" | "priceAsc" | "priceDesc" | "sales" | "newest" | "likes" | "reviewCount" | "reviewRating";
 
 export default function StoreContent() {
+    const router = useRouter();
     const [activeCategory, setActiveCategory] = useState("전체");
     const [activePrice, setActivePrice] = useState("전체");
     const [activeSort, setActiveSort] = useState<SortKey>("rank");
@@ -140,6 +142,7 @@ export default function StoreContent() {
                         <p className="text-[13px]" style={{ color: "#8e8e93" }}>카꾸미에서 만든 다양한 카카오톡 테마를 바로 적용해보세요.</p>
                     </div>
                     <button
+                        onClick={() => router.push("/store/register")}
                         className="flex items-center gap-1.5 px-4 py-2 text-[12px] font-medium transition-all active:scale-95 hover:opacity-80 shrink-0"
                         style={{ border: "2px solid #e11d48", color: "#e11d48", borderRadius: 8 }}
                     >
