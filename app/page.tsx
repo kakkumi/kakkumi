@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
-import AuthStatus from "./components/AuthStatus";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
 
 export default function Home() {
     return (
@@ -13,29 +14,7 @@ export default function Home() {
             }}
         >
             {/* ── 네비게이션 바 ── */}
-            <header
-                className="sticky top-0 z-50 flex items-center justify-between px-6 py-0"
-                style={{
-                    background: "rgba(236, 236, 240, 0.72)",
-                    backdropFilter: "blur(40px) saturate(200%)",
-                    WebkitBackdropFilter: "blur(40px) saturate(200%)",
-                    borderBottom: "1px solid rgba(0,0,0,0.07)",
-                    boxShadow: "0 1px 0 rgba(255,255,255,0.6) inset",
-                    height: 48,
-                }}
-            >
-                <Image src="/카꾸미.png" alt="카꾸미" width={110} height={44} quality={100} unoptimized style={{ objectFit: "contain" }} />
-                <nav className="flex items-center gap-6">
-                    <a href="#features" className="text-[13px] font-medium transition-opacity hover:opacity-60" style={{ color: "#3a3a3c" }}>기능</a>
-                    <a href="#how" className="text-[13px] font-medium transition-opacity hover:opacity-60" style={{ color: "#3a3a3c" }}>사용 방법</a>
-                    <Link href="/store" className="text-[13px] font-medium transition-opacity hover:opacity-60" style={{ color: "#3a3a3c" }}>테마 스토어</Link>
-                    <Link href="/create" className="text-[13px] font-medium transition-opacity hover:opacity-60" style={{ color: "#3a3a3c" }}>테마 만들기</Link>
-                    <Link href="/store/register" className="text-[13px] font-medium transition-opacity hover:opacity-60" style={{ color: "#3a3a3c" }}>테마 등록</Link>
-                    {/* 구분선 추가: 얇은 세로선 */}
-                    <div className="w-[1px] h-5 bg-[rgba(0,0,0,0.25)]" aria-hidden="true" />
-                    <AuthStatus />
-                </nav>
-            </header>
+            <Header />
 
             {/* ── 히어로 섹션 ── */}
             <section className="flex flex-col items-center justify-center text-center px-6 pt-20 pb-24">
@@ -276,31 +255,7 @@ export default function Home() {
             </section>
 
             {/* ── 푸터 ── */}
-            <footer
-                className="mt-auto px-8 py-5 flex flex-col gap-2"
-                style={{ background: "rgba(236,236,240,0.6)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(0,0,0,0.07)" }}
-            >
-                <div className="flex items-center justify-between flex-wrap gap-4">
-                    <div className="flex flex-col gap-1">
-                        <p className="text-[12px]" style={{ color: "#3a3a3c" }}>
-                            주식회사 카꾸미 · 대표자 장환희 · 이메일 <a href="mailto:aaa@kakkumi.com" className="hover:underline" style={{ color: "#3a3a3c" }}>aaa@kakkumi.com</a>
-                        </p>
-                        <p className="text-[11px]" style={{ color: "#8e8e93" }}>© 2026 카꾸미. 카카오톡과 무관한 개인 제작 툴입니다.</p>
-                    </div>
-                    <div className="flex items-center gap-5">
-                        <a href="#" className="text-[12px] hover:underline" style={{ color: "#6b6b6b" }}>이용약관</a>
-                        <a href="#" className="text-[12px] hover:underline" style={{ color: "#6b6b6b" }}>개인정보처리방침</a>
-                        <a href="mailto:aaa@kakkumi.com" className="text-[12px] hover:underline" style={{ color: "#6b6b6b" }}>문의</a>
-                        <a href="https://instagram.com/kakkumi" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b6b6b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                <rect x="2" y="2" width="20" height="20" rx="5" />
-                                <circle cx="12" cy="12" r="4" />
-                                <circle cx="17.5" cy="6.5" r="1" fill="#6b6b6b" stroke="none" />
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 }

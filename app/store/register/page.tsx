@@ -1,8 +1,8 @@
-import Image from "next/image";
-import Link from "next/link";
 import { cookies } from "next/headers";
 import { createHmac } from "crypto";
 import RegisterForm from "./RegisterForm";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
 
 const SESSION_COOKIE_NAME = "kakkumi_session";
 
@@ -42,38 +42,7 @@ export default async function RegisterPage() {
             }}
         >
             {/* ── 네비게이션 바 ── */}
-            <header
-                className="sticky top-0 z-50 flex items-center justify-between px-6 py-0"
-                style={{
-                    background: "rgba(236, 236, 240, 0.72)",
-                    backdropFilter: "blur(40px) saturate(200%)",
-                    WebkitBackdropFilter: "blur(40px) saturate(200%)",
-                    borderBottom: "1px solid rgba(0,0,0,0.07)",
-                    boxShadow: "0 1px 0 rgba(255,255,255,0.6) inset",
-                    height: 48,
-                }}
-            >
-                <Link href="/">
-                    <Image src="/카꾸미.png" alt="카꾸미" width={110} height={44} quality={100} unoptimized style={{ objectFit: "contain" }} />
-                </Link>
-                <nav className="flex items-center gap-6">
-                    <Link href="/#features" className="text-[13px] font-medium transition-opacity hover:opacity-60" style={{ color: "#3a3a3c" }}>기능</Link>
-                    <Link href="/#how" className="text-[13px] font-medium transition-opacity hover:opacity-60" style={{ color: "#3a3a3c" }}>사용 방법</Link>
-                    <Link href="/store" className="text-[13px] font-medium transition-opacity hover:opacity-60" style={{ color: "#3a3a3c" }}>테마 스토어</Link>
-                    <Link href="/create" className="text-[13px] font-medium transition-opacity hover:opacity-60" style={{ color: "#3a3a3c" }}>테마 만들기</Link>
-                    <Link href="/store/register" className="text-[13px] font-medium transition-opacity hover:opacity-60" style={{ color: "#3a3a3c" }}>테마 등록</Link>
-                    <div className="w-[1px] h-5 bg-[rgba(0,0,0,0.25)]" aria-hidden="true" />
-                    {session ? (
-                        <div className="flex items-center gap-3">
-                            <span className="text-[13px] font-semibold" style={{ color: "#3A1D1D" }}>{session.name ?? "로그인됨"}</span>
-                            <Link href="/mypage" className="text-[13px] font-semibold transition-opacity hover:opacity-70" style={{ color: "#3A1D1D" }}>마이페이지</Link>
-                            <a href="/api/auth/logout" className="px-2 py-1 rounded-md text-[12px] font-semibold transition-opacity hover:opacity-70" style={{ border: "1px solid #3A1D1D", color: "#3A1D1D" }}>로그아웃</a>
-                        </div>
-                    ) : (
-                        <a href="/api/auth/kakao" className="text-[13px] font-semibold transition-opacity hover:opacity-70" style={{ color: "#3A1D1D" }}>카카오 로그인</a>
-                    )}
-                </nav>
-            </header>
+            <Header />
 
             {/* ── 본문 ── */}
             <div className="flex-1 max-w-[1200px] mx-auto w-full px-6 pt-10 pb-20 flex flex-col gap-6">
@@ -122,24 +91,7 @@ export default async function RegisterPage() {
             </div>
 
             {/* ── 푸터 ── */}
-            <footer
-                className="mt-auto px-8 py-5"
-                style={{ background: "rgba(236,236,240,0.6)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(0,0,0,0.07)" }}
-            >
-                <div className="flex items-center justify-between flex-wrap gap-4">
-                    <div className="flex flex-col gap-1">
-                        <p className="text-[12px]" style={{ color: "#3a3a3c" }}>
-                            주식회사 카꾸미 · 대표자 장환희 · 이메일 <a href="mailto:aaa@kakkumi.com" className="hover:underline" style={{ color: "#3a3a3c" }}>aaa@kakkumi.com</a>
-                        </p>
-                        <p className="text-[11px]" style={{ color: "#8e8e93" }}>© 2026 카꾸미. 카카오톡과 무관한 개인 제작 툴입니다.</p>
-                    </div>
-                    <div className="flex items-center gap-5">
-                        <a href="#" className="text-[12px] hover:underline" style={{ color: "#6b6b6b" }}>이용약관</a>
-                        <a href="#" className="text-[12px] hover:underline" style={{ color: "#6b6b6b" }}>개인정보처리방침</a>
-                        <a href="mailto:aaa@kakkumi.com" className="text-[12px] hover:underline" style={{ color: "#6b6b6b" }}>문의</a>
-                    </div>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 }
