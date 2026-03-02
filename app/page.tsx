@@ -36,7 +36,7 @@ export default function Home() {
                         테마 만들기
                     </Link>
                     {/* 구분선 추가: 얇은 세로선 */}
-                    <div className="w-[1px] h-5 bg-[rgba(0,0,0,0.06)]" aria-hidden="true" />
+                    <div className="w-[1px] h-5 bg-[rgba(0,0,0,0.25)]" aria-hidden="true" />
                     <AuthStatus />
                 </nav>
             </header>
