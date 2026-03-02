@@ -3,14 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-const CATEGORIES = ["감성", "심플", "일러스트", "다크모드", "캐릭터", "패턴"];
 const PRICE_OPTIONS = ["무료", "500원", "1,000원", "1,500원", "2,000원"];
 
 export default function RegisterForm({ authorName }: { authorName: string }) {
     const router = useRouter();
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
-    const [category, setCategory] = useState("");
+    const [categories, setCategories] = useState<string[]>([]);
+    const [categoryInput, setCategoryInput] = useState("");
     const [price, setPrice] = useState("");
     const [previewFile, setPreviewFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -26,7 +26,7 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!name || !price || !category || !description || !previewFile || (!themeFile && !androidFile)) return;
+        if (!name || !price || !categories.length || !description || !previewFile || (!themeFile && !androidFile)) return;
         setSubmitted(true);
     };
 
@@ -100,21 +100,71 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
 
                 {/* 카테고리 */}
                 <Row label="카테고리" required>
-                    <div className="flex flex-wrap gap-2">
-                        {CATEGORIES.map(cat => (
-                            <button
-                                key={cat}
-                                type="button"
-                                onClick={() => setCategory(cat)}
-                                className="px-4 py-2 rounded-full text-[13px] font-medium transition-all"
-                                style={{
-                                    background: category === cat ? "#1c1c1e" : "rgba(0,0,0,0.05)",
-                                    color: category === cat ? "#fff" : "#3a3a3c",
+                    <div className="flex flex-col gap-2">
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={categoryInput}
+                                onChange={e => setCategoryInput(e.target.value)}
+                                onKeyDown={e => {
+                                    if (e.key === "Enter") {
+                                        e.preventDefault();
+                                        const trimmed = categoryInput.trim();
+                                        if (trimmed && !categories.includes(trimmed) && categories.length < 10) {
+                                            setCategories(prev => [...prev, trimmed]);
+                                        }
+                                        setCategoryInput("");
+                                    }
                                 }}
+                                placeholder={categories.length >= 10 ? "최대 10개까지 추가할 수 있어요" : "카테고리 입력 후 Enter"}
+                                maxLength={10}
+                                className="flex-1 px-4 py-2.5 rounded-xl text-[13px] outline-none transition-all"
+                                style={{ background: "rgba(0,0,0,0.04)", border: "1.5px solid transparent", color: "#1c1c1e" }}
+                                onFocus={e => e.currentTarget.style.borderColor = "rgba(0,0,0,0.2)"}
+                                onBlur={e => e.currentTarget.style.borderColor = "transparent"}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const trimmed = categoryInput.trim();
+                                    if (trimmed && !categories.includes(trimmed) && categories.length < 10) {
+                                        setCategories(prev => [...prev, trimmed]);
+                                    }
+                                    setCategoryInput("");
+                                }}
+                                disabled={categories.length >= 10}
+                                className="px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all hover:brightness-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                                style={{ background: "#1c1c1e", color: "#fff" }}
                             >
-                                {cat}
+                                추가
                             </button>
-                        ))}
+                        </div>
+                        {categories.length > 0 && (
+                            <div className="flex flex-wrap gap-2 pt-1">
+                                {categories.map(cat => (
+                                    <span
+                                        key={cat}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium"
+                                        style={{ background: "rgba(0,0,0,0.12)", color: "#1c1c1e" }}
+                                    >
+                                        {cat}
+                                        <button
+                                            type="button"
+                                            onClick={() => setCategories(prev => prev.filter(c => c !== cat))}
+                                            className="flex items-center justify-center w-4 h-4 rounded-full transition-all hover:opacity-70"
+                                            style={{ background: "rgba(0,0,0,0.12)" }}
+                                        >
+                                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" strokeWidth="3" strokeLinecap="round">
+                                                <path d="M18 6L6 18M6 6l12 12"/>
+                                            </svg>
+                                        </button>
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                        <p className="text-[11px] mt-0.5" style={{ color: categories.length >= 10 ? "#e11d48" : "#b0b0b5" }}>
+                            {categories.length}/10
+                        </p>
                     </div>
                 </Row>
 
@@ -272,11 +322,11 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
                         {previewUrl && <img src={previewUrl} alt="" className="w-full h-full object-cover" />}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
                         <div className="absolute top-3 left-3 flex gap-1.5">
-                            {category && (
-                                <span className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ background: "rgba(255,255,255,0.9)", color: "#1c1c1e" }}>
-                                    {category}
+                            {categories.map(cat => (
+                                <span key={cat} className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ background: "rgba(255,255,255,0.9)", color: "#1c1c1e" }}>
+                                    {cat}
                                 </span>
-                            )}
+                            ))}
                         </div>
                     </div>
 
@@ -318,7 +368,7 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
                         {[
                             { label: "테마 이름", done: !!name },
                             { label: "테마 설명", done: !!description },
-                            { label: "카테고리", done: !!category },
+                            { label: "카테고리", done: categories.length > 0 },
                             { label: "가격 설정", done: !!price },
                             { label: "미리보기 이미지", done: !!previewFile },
                             { label: "테마 파일", done: !!(themeFile || androidFile) },
@@ -345,14 +395,14 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
                         <div className="flex justify-between mb-1">
                             <span className="text-[10px] font-bold" style={{ color: "#8e8e93" }}>완성도</span>
                             <span className="text-[12px] font-bold" style={{ color: "#e11d48" }}>
-                                {Math.round(([!!name, !!description, !!category, !!price, !!previewFile, !!(themeFile || androidFile)].filter(Boolean).length / 6) * 100)}%
+                                {Math.round(([!!name, !!description, categories.length > 0, !!price, !!previewFile, !!(themeFile || androidFile)].filter(Boolean).length / 6) * 100)}%
                             </span>
                         </div>
                         <div className="w-full h-1.5 rounded-full" style={{ background: "rgba(0,0,0,0.06)" }}>
                             <div
                                 className="h-full rounded-full transition-all duration-500"
                                 style={{
-                                    width: `${Math.round(([!!name, !!description, !!category, !!price, !!previewFile, !!(themeFile || androidFile)].filter(Boolean).length / 6) * 100)}%`,
+                                    width: `${Math.round(([!!name, !!description, categories.length > 0, !!price, !!previewFile, !!(themeFile || androidFile)].filter(Boolean).length / 6) * 100)}%`,
                                     background: "#e11d48",
                                 }}
                             />
