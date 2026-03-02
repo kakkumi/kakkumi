@@ -54,7 +54,7 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
     }
 
     return (
-        <form onSubmit={handleSubmit} noValidate className="w-full grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-10 items-start">
+        <form onSubmit={handleSubmit} noValidate className="w-full grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-10 items-start">
 
             {/* ── 좌측: 폼 ── */}
             <div className="flex flex-col gap-3">
@@ -68,35 +68,31 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
                             onChange={e => setName(e.target.value)}
                             placeholder="테마 이름을 입력해주세요"
                             maxLength={30}
-                            className="w-full px-4 py-3 rounded-xl text-[14px] outline-none transition-all"
-                            style={{ background: "rgba(0,0,0,0.04)", border: "1.5px solid transparent", color: "#1c1c1e" }}
-                            onFocus={e => e.currentTarget.style.borderColor = "rgba(0,0,0,0.2)"}
-                            onBlur={e => e.currentTarget.style.borderColor = "transparent"}
+                            className="w-full px-1 py-2 text-[14px] outline-none transition-all"
+                            style={{ background: "transparent", borderBottom: "1.5px solid rgba(0,0,0,0.15)", color: "#1c1c1e" }}
+                            onFocus={e => e.currentTarget.style.borderBottomColor = "#1c1c1e"}
+                            onBlur={e => e.currentTarget.style.borderBottomColor = "rgba(0,0,0,0.15)"}
                         />
-                        <span className="absolute bottom-3 right-4 text-[11px]" style={{ color: "#b0b0b5" }}>{name.length}/30</span>
+                        <span className="self-end text-[11px]" style={{ color: "#b0b0b5" }}>{name.length}/30</span>
                     </div>
                 </Row>
 
-                {/* 테마 설명 */}
                 <Row label="테마 설명" required>
-                    <div className="relative">
+                    <div className="flex flex-col gap-1">
                         <textarea
                             value={description}
                             onChange={e => setDescription(e.target.value)}
                             placeholder="어떤 분위기의 테마인지 알려주세요"
-                            rows={4}
+                            rows={1}
                             maxLength={200}
-                            className="w-full px-4 py-3 rounded-xl text-[14px] outline-none transition-all resize-none"
-                            style={{ background: "rgba(0,0,0,0.04)", border: "1.5px solid transparent", color: "#1c1c1e" }}
-                            onFocus={e => e.currentTarget.style.borderColor = "rgba(0,0,0,0.2)"}
-                            onBlur={e => e.currentTarget.style.borderColor = "transparent"}
+                            className="w-full px-1 py-2 text-[14px] outline-none transition-all resize-none"
+                            style={{ background: "transparent", borderBottom: "1.5px solid rgba(0,0,0,0.15)", color: "#1c1c1e" }}
+                            onFocus={e => e.currentTarget.style.borderBottomColor = "#1c1c1e"}
+                            onBlur={e => e.currentTarget.style.borderBottomColor = "rgba(0,0,0,0.15)"}
                         />
-                        <span className="absolute bottom-3 right-4 text-[11px]" style={{ color: "#b0b0b5" }}>{description.length}/200</span>
+                        <span className="self-end text-[11px]" style={{ color: "#b0b0b5" }}>{description.length}/200</span>
                     </div>
                 </Row>
-
-                {/* 구분선 */}
-                <div className="my-1 h-px" style={{ background: "rgba(0,0,0,0.06)" }} />
 
                 {/* 카테고리 */}
                 <Row label="카테고리" required>
@@ -118,10 +114,10 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
                                 }}
                                 placeholder={categories.length >= 10 ? "최대 10개까지 추가할 수 있어요" : "카테고리 입력 후 Enter"}
                                 maxLength={10}
-                                className="flex-1 px-4 py-2.5 rounded-xl text-[13px] outline-none transition-all"
-                                style={{ background: "rgba(0,0,0,0.04)", border: "1.5px solid transparent", color: "#1c1c1e" }}
-                                onFocus={e => e.currentTarget.style.borderColor = "rgba(0,0,0,0.2)"}
-                                onBlur={e => e.currentTarget.style.borderColor = "transparent"}
+                                className="flex-1 px-1 py-2 text-[13px] outline-none transition-all"
+                                style={{ background: "transparent", borderBottom: "1.5px solid rgba(0,0,0,0.15)", color: "#1c1c1e" }}
+                                onFocus={e => e.currentTarget.style.borderBottomColor = "#1c1c1e"}
+                                onBlur={e => e.currentTarget.style.borderBottomColor = "rgba(0,0,0,0.15)"}
                             />
                             <button
                                 type="button"
@@ -187,9 +183,6 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
                         ))}
                     </div>
                 </Row>
-
-                {/* 구분선 */}
-                <div className="my-1 h-px" style={{ background: "rgba(0,0,0,0.06)" }} />
 
                 {/* 미리보기 이미지 */}
                 <Row label="미리보기 이미지" required>
@@ -304,61 +297,8 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
                 </div>
             </div>
 
-            {/* ── 우측: 카드 미리보기 ── */}
+            {/* ── 우측 ── */}
             <aside className="lg:sticky lg:top-20 flex flex-col gap-3">
-                <p className="text-[11px] font-bold tracking-widest uppercase" style={{ color: "#555555" }}>스토어 카드 미리보기 <span className="normal-case tracking-normal font-normal" style={{ color: "#959090" }}>(입력한 정보가 실시간으로 반영됩니다)</span></p>
-
-                {/* 카드 */}
-                <div
-                    className="rounded-[22px] overflow-hidden"
-                    style={{
-                        background: "rgba(255,255,255,0.8)",
-                        border: "1px solid rgba(0,0,0,0.07)",
-                        boxShadow: "0 8px 40px rgba(0,0,0,0.08)",
-                    }}
-                >
-                    {/* 커버 */}
-                    <div className="h-52 relative" style={{ background: previewUrl ? undefined : "rgba(0,0,0,0.06)" }}>
-                        {previewUrl && <img src={previewUrl} alt="" className="w-full h-full object-cover" />}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                        <div className="absolute top-3 left-3 flex gap-1.5">
-                            {categories.map(cat => (
-                                <span key={cat} className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ background: "rgba(255,255,255,0.9)", color: "#1c1c1e" }}>
-                                    {cat}
-                                </span>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* 정보 */}
-                    <div className="p-5 flex flex-col gap-3">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <h3 className="text-[16px] font-bold leading-tight" style={{ color: "#1c1c1e" }}>
-                                    {name || "테마 이름"}
-                                </h3>
-                                <p className="text-[12px] mt-0.5" style={{ color: "#8e8e93" }}>by {authorName}</p>
-                            </div>
-                            <span className="text-[15px] font-extrabold" style={{ color: price ? "#1c1c1e" : "#c0c0c0" }}>
-                                {price || "—"}
-                            </span>
-                        </div>
-
-                        <p className="text-[12px] leading-relaxed" style={{ color: "#6b6b6b" }}>
-                            {description || "테마 설명이 여기에 표시됩니다."}
-                        </p>
-
-                        <div className="flex items-center justify-end pt-1">
-                            <div className="flex items-center gap-1.5 text-[11px] font-semibold" style={{ color: "#8e8e93" }}>
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l7.78 7.78 7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                </svg>
-                                0
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 {/* 등록 완성도 */}
                 <div className="rounded-[18px] p-5 flex flex-col gap-3" style={{ background: "rgba(255,255,255,0.8)", border: "1px solid rgba(0,0,0,0.07)", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}>
                     <p className="text-[12px] font-bold flex items-center gap-1.5" style={{ color: "#1c1c1e" }}>
@@ -390,7 +330,6 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
                             </div>
                         ))}
                     </div>
-                    {/* 진행 바 */}
                     <div className="mt-1">
                         <div className="flex justify-between mb-1">
                             <span className="text-[10px] font-bold" style={{ color: "#8e8e93" }}>완성도</span>
