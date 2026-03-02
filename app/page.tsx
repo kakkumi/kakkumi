@@ -30,7 +30,7 @@ export default function Home() {
                     <Link href="/create">
                         <button
                             className="px-8 py-3.5 rounded-xl text-[16px] font-bold transition-all active:scale-95 hover:brightness-105"
-                            style={{ background: "rgba(255,231,58,0.95)", color: "#3A1D1D", boxShadow: "0 4px 16px rgba(255,200,0,0.4), 0 1px 0 rgba(255,255,255,0.5) inset" }}
+                            style={{ background: "rgba(239,222,92,0.95)", color: "#3A1D1D", boxShadow: "0 4px 16px rgba(255,200,0,0.4), 0 1px 0 rgba(255,255,255,0.5) inset" }}
                         >
                             무료로 시작하기 →
                         </button>
