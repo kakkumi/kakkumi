@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 const PRICE_OPTIONS = ["무료", "500원", "1,000원", "1,500원", "2,000원"];
 
-export default function RegisterForm({ authorName }: { authorName: string }) {
+export default function RegisterForm({ authorName, headerSlot }: { authorName: string; headerSlot?: React.ReactNode }) {
     const router = useRouter();
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
@@ -54,10 +54,11 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
     }
 
     return (
-        <form onSubmit={handleSubmit} noValidate className="w-full grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-10 items-start">
+        <form onSubmit={handleSubmit} noValidate className="w-full grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-10 items-start" style={{ alignItems: "start" }}>
 
             {/* ── 좌측: 폼 ── */}
             <div className="flex flex-col gap-3">
+                {headerSlot && <div className="mb-2">{headerSlot}</div>}
 
                 {/* 테마 이름 */}
                 <Row label="테마 이름" required>
@@ -129,8 +130,8 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
                                     setCategoryInput("");
                                 }}
                                 disabled={categories.length >= 10}
-                                className="px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all hover:brightness-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-                                style={{ background: "#1c1c1e", color: "#fff" }}
+                                className="px-3 py-1.5 rounded-lg text-[12px] font-bold transition-all hover:brightness-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                                style={{ background: "rgba(28,28,30,0.75)", color: "#fff" }}
                             >
                                 추가
                             </button>
@@ -172,10 +173,10 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
                                 key={p}
                                 type="button"
                                 onClick={() => setPrice(p)}
-                                className="px-4 py-2 rounded-full text-[13px] font-medium transition-all"
+                                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-medium transition-all"
                                 style={{
-                                    background: price === p ? "#1c1c1e" : "rgba(0,0,0,0.05)",
-                                    color: price === p ? "#fff" : "#3a3a3c",
+                                    background: price === p ? "rgba(28,28,30,0.75)" : "rgba(0,0,0,0.12)",
+                                    color: price === p ? "#fff" : "#1c1c1e",
                                 }}
                             >
                                 {p}
@@ -298,7 +299,7 @@ export default function RegisterForm({ authorName }: { authorName: string }) {
             </div>
 
             {/* ── 우측 ── */}
-            <aside className="lg:sticky lg:top-20 flex flex-col gap-3">
+            <aside className="lg:sticky lg:top-[48px] flex flex-col gap-3">
                 {/* 등록 완성도 */}
                 <div className="rounded-[18px] p-5 flex flex-col gap-3" style={{ background: "rgba(255,255,255,0.8)", border: "1px solid rgba(0,0,0,0.07)", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}>
                     <p className="text-[12px] font-bold flex items-center gap-1.5" style={{ color: "#1c1c1e" }}>

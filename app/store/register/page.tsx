@@ -78,18 +78,17 @@ export default async function RegisterPage() {
             {/* ── 본문 ── */}
             <div className="flex-1 max-w-[1200px] mx-auto w-full px-6 pt-10 pb-20 flex flex-col gap-6">
 
-                {/* 헤더 */}
-                <div className="flex flex-col items-start gap-2">
-                    <h1 className="text-[32px] font-extrabold leading-tight text-[#1c1c1e]" style={{ fontFamily: "'ChosunIlboMyungjo', serif" }}>
-                        테마 등록하기
-                    </h1>
-                    <p className="text-[14px] text-[#8e8e93]">
-                        직접 만든 테마를 스토어에 등록하고 다른 사용자와 공유해보세요.
-                    </p>
-                </div>
-
                 {session ? (
-                    <RegisterForm authorName={session.name ?? "사용자"} />
+                    <RegisterForm authorName={session.name ?? "사용자"} headerSlot={
+                        <div className="flex flex-col items-start gap-2">
+                            <h1 className="text-[32px] font-extrabold leading-tight text-[#1c1c1e]" style={{ fontFamily: "'ChosunIlboMyungjo', serif" }}>
+                                테마 등록하기
+                            </h1>
+                            <p className="text-[14px] text-[#8e8e93]">
+                                직접 만든 테마를 스토어에 등록하고 다른 사용자와 공유해보세요.
+                            </p>
+                        </div>
+                    } />
                 ) : (
                     /* 비로그인 상태 */
                     <div
