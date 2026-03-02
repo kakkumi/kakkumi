@@ -89,10 +89,10 @@ export default function StoreContent() {
     });
 
     return (
-        <div className="flex flex-1 w-full px-6 pt-12 pb-20 gap-8" style={{ maxWidth: 1400, margin: "0 auto" }}>
+        <div className="flex w-full" style={{ maxWidth: 1400, margin: "0 auto" }}>
 
             {/* ── 사이드바 ── */}
-            <aside className="w-[180px] shrink-0 flex flex-col gap-1">
+            <aside className="fixed w-[180px] flex flex-col gap-1 px-6 pt-12">
                 {SIDEBAR_MENUS.map((group, index) => (
                     <div key={group.category} className="flex flex-col gap-0.5">
                         <span
@@ -130,7 +130,7 @@ export default function StoreContent() {
             </aside>
 
             {/* ── 메인 콘텐츠 ── */}
-            <main className="flex-1 flex flex-col gap-5">
+            <main className="flex-1 flex flex-col gap-5 px-6 pt-12 pb-20" style={{ marginLeft: 180 }}>
                 {/* 헤더 텍스트 */}
                 <div className="flex items-end justify-between">
                     <div className="flex flex-col gap-1">
@@ -246,6 +246,17 @@ export default function StoreContent() {
                     ))}
                 </div>
             </main>
+
+            {/* ── 페이지업 버튼 ── */}
+            <button
+                onClick={() => document.getElementById("store-scroll")?.scrollTo({ top: 0, behavior: "smooth" })}
+                    className="fixed bottom-8 right-8 w-11 h-11 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+                    style={{ background: "rgba(28,28,30,0.3)", backdropFilter: "blur(10px)", boxShadow: "0 4px 16px rgba(0,0,0,0.18)" }}
+                >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 15l-6-6-6 6"/>
+                    </svg>
+            </button>
         </div>
     );
 }

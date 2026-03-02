@@ -41,7 +41,7 @@ export default async function StorePage() {
 
     return (
         <div
-            className="min-h-screen flex flex-col"
+            className="h-screen flex flex-col overflow-hidden"
             style={{
                 backgroundColor: "#fdfcfc",
                 backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23noise)' opacity='0.45'/%3E%3C/svg%3E")`,
@@ -50,7 +50,7 @@ export default async function StorePage() {
         >
             {/* ── 네비게이션 바 ── */}
             <header
-                className="sticky top-0 z-50 flex items-center justify-between px-6 py-0"
+                className="sticky top-0 z-50 flex items-center justify-between px-6 py-0 shrink-0"
                 style={{
                     background: "rgba(236, 236, 240, 0.72)",
                     backdropFilter: "blur(40px) saturate(200%)",
@@ -82,29 +82,10 @@ export default async function StorePage() {
                 </nav>
             </header>
 
-            {/* ── 본문 ── */}
-            <StoreContent />
-
-            {/* ── 푸터 ── */}
-            <footer
-                className="mt-auto px-8 py-5 flex flex-col gap-2"
-                style={{ background: "rgba(236,236,240,0.6)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(0,0,0,0.07)" }}
-            >
-                <div className="flex items-center justify-between flex-wrap gap-4">
-                    <div className="flex flex-col gap-1">
-                        <p className="text-[12px]" style={{ color: "#3a3a3c" }}>
-                            주식회사 카꾸미 · 대표자 장환희 · 이메일{" "}
-                            <a href="mailto:aaa@kakkumi.com" className="hover:underline" style={{ color: "#3a3a3c" }}>aaa@kakkumi.com</a>
-                        </p>
-                        <p className="text-[11px]" style={{ color: "#8e8e93" }}>© 2026 카꾸미. 카카오톡과 무관한 개인 제작 툴입니다.</p>
-                    </div>
-                    <div className="flex items-center gap-5">
-                        <a href="#" className="text-[12px] hover:underline" style={{ color: "#6b6b6b" }}>이용약관</a>
-                        <a href="#" className="text-[12px] hover:underline" style={{ color: "#6b6b6b" }}>개인정보처리방침</a>
-                        <a href="mailto:aaa@kakkumi.com" className="text-[12px] hover:underline" style={{ color: "#6b6b6b" }}>문의</a>
-                    </div>
-                </div>
-            </footer>
+            {/* ── 본문 (스크롤 영역) ── */}
+            <div id="store-scroll" className="flex-1 overflow-y-auto">
+                <StoreContent />
+            </div>
         </div>
     );
 }
