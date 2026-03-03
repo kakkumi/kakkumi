@@ -3,17 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-const THEMES = [
-    { id: 1, name: "봄 벚꽃", author: "카꾸미", price: "1,200원", priceNum: 1200, tag: "", sales: 842, createdAt: 3, likes: 312, reviews: 98, rating: 4.8 },
-    { id: 2, name: "다크 미니멀", author: "카꾸미", price: "1,500원", priceNum: 1500, tag: "신규", sales: 231, createdAt: 1, likes: 87, reviews: 34, rating: 4.2 },
-    { id: 3, name: "오션 블루", author: "카꾸미", price: "1,000원", priceNum: 1000, tag: "", sales: 654, createdAt: 5, likes: 245, reviews: 76, rating: 4.6 },
-    { id: 4, name: "선셋 오렌지", author: "카꾸미", price: "1,200원", priceNum: 1200, tag: "", sales: 318, createdAt: 7, likes: 103, reviews: 41, rating: 4.3 },
-    { id: 5, name: "민트 그린", author: "카꾸미", price: "무료", priceNum: 0, tag: "무료", sales: 1204, createdAt: 10, likes: 521, reviews: 203, rating: 4.9 },
-    { id: 6, name: "라벤더 드림", author: "카꾸미", price: "1,000원", priceNum: 1000, tag: "", sales: 402, createdAt: 8, likes: 178, reviews: 55, rating: 4.5 },
-    { id: 7, name: "로즈 골드", author: "카꾸미", price: "1,500원", priceNum: 1500, tag: "", sales: 573, createdAt: 6, likes: 299, reviews: 88, rating: 4.7 },
-    { id: 8, name: "네온 퍼플", author: "카꾸미", price: "1,200원", priceNum: 1200, tag: "신규", sales: 89, createdAt: 2, likes: 44, reviews: 12, rating: 4.1 },
-    { id: 9, name: "파스텔 옐로우", author: "카꾸미", price: "무료", priceNum: 0, tag: "무료", sales: 987, createdAt: 9, likes: 410, reviews: 167, rating: 4.7 },
-];
+import { THEMES } from "./data";
 
 const SIDEBAR_MENUS = [
     {
@@ -218,6 +208,7 @@ export default function StoreContent() {
                     {sorted.map((theme) => (
                         <div
                             key={theme.id}
+                            onClick={() => router.push(`/store/${theme.id}`)}
                             className="flex flex-col rounded-[20px] overflow-hidden transition-all hover:-translate-y-1 hover:shadow-xl cursor-pointer"
                             style={{
                                 background: "rgba(255,255,255,0.5)",
