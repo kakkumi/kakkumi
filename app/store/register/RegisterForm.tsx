@@ -130,10 +130,13 @@ export default function RegisterForm({ authorName, headerSlot }: { authorName: s
                                     setCategoryInput("");
                                 }}
                                 disabled={categories.length >= 10}
-                                className="px-3 py-1.5 rounded-lg text-[12px] font-bold transition-all hover:brightness-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-                                style={{ background: "rgba(28,28,30,0.75)", color: "#fff" }}
+                                className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                style={{ background: "#b1b1b1", boxShadow: "0 2px 8px" }}
+                                title="추가"
                             >
-                                추가
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3A1D1D" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M12 5v14M5 12h14"/>
+                                </svg>
                             </button>
                         </div>
                         {categories.length > 0 && (
