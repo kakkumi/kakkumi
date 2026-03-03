@@ -18,7 +18,7 @@ const THEMES = [
 const SIDEBAR_MENUS = [
     {
         category: "카테고리",
-        items: ["전체", "인기", "신규", "무료", "다크", "밝은 계열"],
+        items: ["전체", "인기", "파스텔", "귀여운", "다크", "밝은", "감성"],
     },
     {
         category: "가격",
