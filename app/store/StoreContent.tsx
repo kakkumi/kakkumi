@@ -44,6 +44,7 @@ export default function StoreContent() {
     const [activePrice, setActivePrice] = useState("전체");
     const [activeSort, setActiveSort] = useState<SortKey>("newest");
     const [likedIds, setLikedIds] = useState<Set<number>>(new Set());
+    const [searchQuery, setSearchQuery] = useState("");
 
     const toggleLike = (id: number) => {
         setLikedIds((prev) => {
@@ -74,7 +75,9 @@ export default function StoreContent() {
             activePrice === "1,500원" && t.priceNum <= 1500 ||
             activePrice === "2,000원" && t.priceNum <= 2000;
 
-        return catMatch && priceMatch;
+        const searchMatch = searchQuery.trim() === "" || t.name.includes(searchQuery.trim());
+
+        return catMatch && priceMatch && searchMatch;
     });
 
     const sorted = [...filtered].sort((a, b) => {
@@ -150,6 +153,44 @@ export default function StoreContent() {
                         </svg>
                         테마 등록하기
                     </button>
+                </div>
+
+                {/* 검색바 */}
+                <div
+                    className="flex items-center p-1.5"
+                    style={{
+                        background: "#dde4ee",
+                        borderRadius: 999,
+                        maxWidth: 480,
+                    }}
+                >
+                    <div
+                        className="flex-1 flex items-center px-4"
+                        style={{
+                            background: "#fff",
+                            borderRadius: 999,
+                            height: 40,
+                        }}
+                    >
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            placeholder="테마 이름 또는 카테고리를 검색하세요"
+                            className="flex-1 text-[13px] outline-none bg-transparent"
+                            style={{ color: "#1c1c1e" }}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => {}}
+                            className="ml-2 shrink-0 flex items-center justify-center w-7 h-7 rounded-full transition-all hover:brightness-95 active:scale-95"
+                            style={{ background: "#4A7BF7" }}
+                        >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 {/* 정렬 옵션 */}
