@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
@@ -203,6 +203,32 @@ const howToSteps = [
 
 type Tab = "faq" | "howto" | "contact";
 
+type InquiryReply = {
+    id: string;
+    content: string;
+    isAdmin: boolean;
+    createdAt: string;
+    author: { name: string; image: string | null; role: string };
+};
+
+type Inquiry = {
+    id: string;
+    title: string;
+    content: string;
+    category: string;
+    status: "OPEN" | "ANSWERED" | "CLOSED";
+    createdAt: string;
+    replies: InquiryReply[];
+};
+
+const INQUIRY_CATEGORIES = ["주문/결제", "취소/환불", "테마 등록", "저작권/신고", "회원", "기타"] as const;
+
+const STATUS_LABEL: Record<string, { label: string; bg: string; color: string }> = {
+    OPEN:     { label: "답변 대기", bg: "rgba(255,149,0,0.12)", color: "#c97000" },
+    ANSWERED: { label: "답변 완료", bg: "rgba(52,199,89,0.12)", color: "#1a7a3a" },
+    CLOSED:   { label: "처리 완료", bg: "rgba(0,0,0,0.07)", color: "#8e8e93" },
+};
+
 export default function SupportPage() {
     const [activeTab, setActiveTab] = useState<Tab>("faq");
     const [faqCategory, setFaqCategory] = useState<FaqCategory>("전체");
@@ -216,8 +242,84 @@ export default function SupportPage() {
             return next;
         });
     };
-    const [contactForm, setContactForm] = useState({ title: "", content: "", email: "" });
-    const [submitted, setSubmitted] = useState(false);
+
+    // 1:1 문의 상태
+    const [inquiries, setInquiries] = useState<Inquiry[]>([]);
+    const [inquiryLoading, setInquiryLoading] = useState(false);
+    const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
+    const [showForm, setShowForm] = useState(false);
+    const [contactForm, setContactForm] = useState({ title: "", content: "", category: "기타" });
+    const [replyText, setReplyText] = useState("");
+    const [submitting, setSubmitting] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+    useEffect(() => {
+        fetch("/api/auth/session")
+            .then((r) => r.json())
+            .then((d) => setIsLoggedIn(!!d?.session))
+            .catch(() => {});
+    }, []);
+
+    const loadInquiries = () => {
+        setInquiryLoading(true);
+        fetch("/api/inquiry")
+            .then((r) => r.json())
+            .then((d) => setInquiries(d.inquiries ?? []))
+            .catch(() => {})
+            .finally(() => setInquiryLoading(false));
+    };
+
+    useEffect(() => {
+        if (activeTab === "contact" && isLoggedIn) loadInquiries();
+    }, [activeTab, isLoggedIn]);
+
+    const handleSubmitInquiry = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSubmitting(true);
+        try {
+            const res = await fetch("/api/inquiry", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(contactForm),
+            });
+            if (res.ok) {
+                setContactForm({ title: "", content: "", category: "기타" });
+                setShowForm(false);
+                loadInquiries();
+            }
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleSubmitReply = async () => {
+        if (!selectedInquiry || !replyText.trim()) return;
+        setSubmitting(true);
+        try {
+            const res = await fetch(`/api/inquiry/${selectedInquiry.id}/reply`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ content: replyText }),
+            });
+            if (res.ok) {
+                const data = await res.json() as { reply: InquiryReply };
+                setSelectedInquiry((prev) => prev ? { ...prev, replies: [...prev.replies, data.reply] } : null);
+                setInquiries((prev) => prev.map((q) =>
+                    q.id === selectedInquiry.id
+                        ? { ...q, replies: [...q.replies, data.reply] }
+                        : q
+                ));
+                setReplyText("");
+            }
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    function formatDate(iso: string) {
+        const d = new Date(iso);
+        return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    }
 
     const tabs: { key: Tab; label: string }[] = [
         { key: "faq", label: "자주 묻는 질문" },
@@ -246,7 +348,7 @@ export default function SupportPage() {
                     {tabs.map((tab) => (
                         <button
                             key={tab.key}
-                            onClick={() => { setActiveTab(tab.key); setSubmitted(false); }}
+                            onClick={() => { setActiveTab(tab.key); }}
                             className="text-left px-3 py-2 rounded-xl text-[13px] font-medium transition-all"
                             style={{
                                 color: activeTab === tab.key ? "#FF9500" : "#3a3a3c",
@@ -380,61 +482,157 @@ export default function SupportPage() {
                     {/* ── 1:1 문의 ── */}
                     {activeTab === "contact" && (
                         <div className="flex flex-col gap-4">
-                            <div className="flex flex-col gap-1 mb-2">
-                                <h1 className="text-[28px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>1:1 문의</h1>
-                                <p className="text-[14px]" style={{ color: "#8e8e93" }}>궁금한 점이나 불편한 사항을 남겨주시면 빠르게 답변드릴게요.</p>
+                            <div className="flex items-end justify-between mb-2">
+                                <div className="flex flex-col gap-1">
+                                    <h1 className="text-[28px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>1:1 문의</h1>
+                                    <p className="text-[14px]" style={{ color: "#8e8e93" }}>문의를 남기시면 페이지에서 바로 답변을 확인하실 수 있어요.</p>
+                                </div>
+                                {isLoggedIn && !showForm && !selectedInquiry && (
+                                    <button
+                                        onClick={() => setShowForm(true)}
+                                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-[13px] font-bold transition-all hover:brightness-105 active:scale-95"
+                                        style={{ background: "rgba(255,231,58,0.95)", color: "#3A1D1D" }}
+                                    >
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M12 5v14M5 12h14" />
+                                        </svg>
+                                        문의 작성
+                                    </button>
+                                )}
                             </div>
 
-                            {submitted ? (
+                            {!isLoggedIn ? (
+                                /* 비로그인 */
                                 <div
-                                    className="rounded-[24px] p-12 flex flex-col items-center gap-5"
-                                    style={{
-                                        boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
-                                    }}
+                                    className="flex flex-col items-center gap-5 p-12 rounded-[24px]"
+                                    style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(0,0,0,0.06)" }}
                                 >
-                                    <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: "rgba(255,149,0,0.1)" }}>
-                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FF9500" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <polyline points="20 6 9 17 4 12" />
-                                        </svg>
+                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                    </svg>
+                                    <div className="text-center flex flex-col gap-1">
+                                        <p className="text-[15px] font-bold" style={{ color: "#1c1c1e" }}>로그인 후 문의하실 수 있어요</p>
+                                        <p className="text-[13px]" style={{ color: "#8e8e93" }}>카카오 로그인 후 문의를 남겨주세요.</p>
                                     </div>
-                                    <div className="flex flex-col gap-1.5 text-center">
-                                        <h2 className="text-[20px] font-bold" style={{ color: "#1c1c1e" }}>문의가 접수되었어요</h2>
-                                        <p className="text-[13px]" style={{ color: "#8e8e93" }}>평일 10:00–18:00 내 순차적으로 답변드릴게요.</p>
-                                    </div>
-                                    <button
-                                        onClick={() => { setSubmitted(false); setContactForm({ title: "", content: "", email: "" }); }}
-                                        className="px-6 py-2.5 rounded-xl text-[13px] font-semibold transition-all hover:brightness-105 active:scale-95"
-                                        style={{ background: "rgba(255,231,58,0.95)", color: "#3A1D1D", boxShadow: "0 2px 8px rgba(255,200,0,0.3)" }}
-                                    >
-                                        새 문의 작성
-                                    </button>
+                                    <a href="/api/auth/kakao">
+                                        <button className="px-6 py-2.5 rounded-xl text-[13px] font-bold transition-all hover:brightness-105 active:scale-95"
+                                            style={{ background: "rgba(255,231,58,0.95)", color: "#3A1D1D" }}>
+                                            카카오 로그인
+                                        </button>
+                                    </a>
                                 </div>
-                            ) : (
-                                <form
-                                    className="rounded-[24px] p-8 flex flex-col gap-5"
-                                    style={{
-                                        boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
-                                    }}
-                                    onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }}
-                                >
-                                    {/* 이메일 */}
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-[12px] font-semibold" style={{ color: "#3a3a3c" }}>답변 받을 이메일 <span style={{ color: "#FF3B30" }}>*</span></label>
-                                        <input
-                                            type="email"
-                                            required
-                                            placeholder="example@email.com"
-                                            value={contactForm.email}
-                                            onChange={(e) => setContactForm((f) => ({ ...f, email: e.target.value }))}
-                                            className="px-4 py-3 rounded-xl text-[13px] outline-none transition-all"
-                                            style={{
-                                                background: "rgba(255,255,255,0.8)",
-                                                border: "1px solid rgba(0,0,0,0.1)",
-                                                color: "#1c1c1e",
-                                            }}
-                                        />
+                            ) : selectedInquiry ? (
+                                /* 문의 상세 + 스레드 */
+                                <div className="flex flex-col gap-4">
+                                    <button
+                                        onClick={() => setSelectedInquiry(null)}
+                                        className="flex items-center gap-1.5 text-[13px] font-medium self-start transition-all hover:opacity-70"
+                                        style={{ color: "#8e8e93" }}
+                                    >
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
+                                        </svg>
+                                        목록으로
+                                    </button>
+
+                                    {/* 원문 */}
+                                    <div className="rounded-[20px] p-6 flex flex-col gap-3" style={{ background: "rgba(255,255,255,0.85)", border: "1px solid rgba(0,0,0,0.07)" }}>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full" style={{ background: STATUS_LABEL[selectedInquiry.status]?.bg, color: STATUS_LABEL[selectedInquiry.status]?.color }}>
+                                                    {STATUS_LABEL[selectedInquiry.status]?.label}
+                                                </span>
+                                                <span className="text-[11px] px-2.5 py-1 rounded-full" style={{ background: "rgba(0,0,0,0.05)", color: "#8e8e93" }}>{selectedInquiry.category}</span>
+                                            </div>
+                                            <span className="text-[12px]" style={{ color: "#8e8e93" }}>{formatDate(selectedInquiry.createdAt)}</span>
+                                        </div>
+                                        <h2 className="text-[17px] font-bold" style={{ color: "#1c1c1e" }}>{selectedInquiry.title}</h2>
+                                        <p className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: "#3a3a3c" }}>{selectedInquiry.content}</p>
                                     </div>
-                                    {/* 제목 */}
+
+                                    {/* 답변 스레드 */}
+                                    {selectedInquiry.replies.length > 0 && (
+                                        <div className="flex flex-col gap-3">
+                                            {selectedInquiry.replies.map((reply) => (
+                                                <div
+                                                    key={reply.id}
+                                                    className={`rounded-[16px] px-5 py-4 flex flex-col gap-2 ${reply.isAdmin ? "ml-0" : "ml-6"}`}
+                                                    style={{
+                                                        background: reply.isAdmin ? "rgba(255,149,0,0.07)" : "rgba(74,123,247,0.07)",
+                                                        border: `1px solid ${reply.isAdmin ? "rgba(255,149,0,0.2)" : "rgba(74,123,247,0.15)"}`,
+                                                    }}
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <div
+                                                                className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold"
+                                                                style={{ background: reply.isAdmin ? "rgba(255,149,0,0.2)" : "rgba(74,123,247,0.15)", color: reply.isAdmin ? "#c97000" : "#4A7BF7" }}
+                                                            >
+                                                                {reply.isAdmin ? "관" : "나"}
+                                                            </div>
+                                                            <span className="text-[12px] font-semibold" style={{ color: reply.isAdmin ? "#c97000" : "#4A7BF7" }}>
+                                                                {reply.isAdmin ? "카꾸미 고객센터" : reply.author.name}
+                                                            </span>
+                                                        </div>
+                                                        <span className="text-[11px]" style={{ color: "#8e8e93" }}>{formatDate(reply.createdAt)}</span>
+                                                    </div>
+                                                    <p className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: "#3a3a3c" }}>{reply.content}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* 추가 답글 입력 */}
+                                    {selectedInquiry.status !== "CLOSED" && (
+                                        <div className="flex flex-col gap-2 rounded-[16px] p-5" style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(0,0,0,0.07)" }}>
+                                            <label className="text-[12px] font-semibold" style={{ color: "#3a3a3c" }}>추가 문의</label>
+                                            <textarea
+                                                rows={4}
+                                                value={replyText}
+                                                onChange={(e) => setReplyText(e.target.value)}
+                                                placeholder="추가로 문의하실 내용을 입력해주세요."
+                                                className="px-4 py-3 rounded-xl text-[13px] outline-none resize-none"
+                                                style={{ background: "rgba(255,255,255,0.9)", border: "1px solid rgba(0,0,0,0.1)", color: "#1c1c1e" }}
+                                            />
+                                            <button
+                                                onClick={handleSubmitReply}
+                                                disabled={submitting || !replyText.trim()}
+                                                className="self-end px-6 py-2.5 rounded-xl text-[13px] font-bold transition-all hover:brightness-105 active:scale-95 disabled:opacity-40"
+                                                style={{ background: "rgba(255,231,58,0.95)", color: "#3A1D1D" }}
+                                            >
+                                                {submitting ? "전송 중..." : "전송"}
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : showForm ? (
+                                /* 문의 작성 폼 */
+                                <form onSubmit={handleSubmitInquiry} className="flex flex-col gap-5 rounded-[24px] p-8" style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(0,0,0,0.06)" }}>
+                                    <div className="flex items-center justify-between">
+                                        <h2 className="text-[16px] font-bold" style={{ color: "#1c1c1e" }}>새 문의 작성</h2>
+                                        <button type="button" onClick={() => setShowForm(false)} className="text-[13px]" style={{ color: "#8e8e93" }}>취소</button>
+                                    </div>
+
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[12px] font-semibold" style={{ color: "#3a3a3c" }}>카테고리 <span style={{ color: "#FF3B30" }}>*</span></label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {INQUIRY_CATEGORIES.map((cat) => (
+                                                <button
+                                                    key={cat}
+                                                    type="button"
+                                                    onClick={() => setContactForm((f) => ({ ...f, category: cat }))}
+                                                    className="px-3 py-1.5 rounded-full text-[12px] font-semibold transition-all"
+                                                    style={{
+                                                        background: contactForm.category === cat ? "#3a3a3c" : "rgba(0,0,0,0.06)",
+                                                        color: contactForm.category === cat ? "#fff" : "#3a3a3c",
+                                                    }}
+                                                >
+                                                    {cat}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
                                     <div className="flex flex-col gap-1.5">
                                         <label className="text-[12px] font-semibold" style={{ color: "#3a3a3c" }}>제목 <span style={{ color: "#FF3B30" }}>*</span></label>
                                         <input
@@ -443,15 +641,11 @@ export default function SupportPage() {
                                             placeholder="문의 제목을 입력해주세요"
                                             value={contactForm.title}
                                             onChange={(e) => setContactForm((f) => ({ ...f, title: e.target.value }))}
-                                            className="px-4 py-3 rounded-xl text-[13px] outline-none transition-all"
-                                            style={{
-                                                background: "rgba(255,255,255,0.8)",
-                                                border: "1px solid rgba(0,0,0,0.1)",
-                                                color: "#1c1c1e",
-                                            }}
+                                            className="px-4 py-3 rounded-xl text-[13px] outline-none"
+                                            style={{ background: "rgba(255,255,255,0.9)", border: "1px solid rgba(0,0,0,0.1)", color: "#1c1c1e" }}
                                         />
                                     </div>
-                                    {/* 내용 */}
+
                                     <div className="flex flex-col gap-1.5">
                                         <label className="text-[12px] font-semibold" style={{ color: "#3a3a3c" }}>문의 내용 <span style={{ color: "#FF3B30" }}>*</span></label>
                                         <textarea
@@ -460,22 +654,63 @@ export default function SupportPage() {
                                             placeholder="문의하실 내용을 자세히 적어주세요"
                                             value={contactForm.content}
                                             onChange={(e) => setContactForm((f) => ({ ...f, content: e.target.value }))}
-                                            className="px-4 py-3 rounded-xl text-[13px] outline-none resize-none transition-all"
-                                            style={{
-                                                background: "rgba(255,255,255,0.8)",
-                                                border: "1px solid rgba(0,0,0,0.1)",
-                                                color: "#1c1c1e",
-                                            }}
+                                            className="px-4 py-3 rounded-xl text-[13px] outline-none resize-none"
+                                            style={{ background: "rgba(255,255,255,0.9)", border: "1px solid rgba(0,0,0,0.1)", color: "#1c1c1e" }}
                                         />
                                     </div>
+
                                     <button
                                         type="submit"
-                                        className="self-start px-8 py-3 rounded-xl text-[14px] font-bold transition-all hover:brightness-105 active:scale-95"
+                                        disabled={submitting}
+                                        className="self-start px-8 py-3 rounded-xl text-[14px] font-bold transition-all hover:brightness-105 active:scale-95 disabled:opacity-50"
                                         style={{ background: "rgba(255,231,58,0.95)", color: "#3A1D1D", boxShadow: "0 4px 16px rgba(255,200,0,0.3)" }}
                                     >
-                                        문의 접수하기
+                                        {submitting ? "접수 중..." : "문의 접수하기"}
                                     </button>
                                 </form>
+                            ) : (
+                                /* 문의 목록 */
+                                inquiryLoading ? (
+                                    <div className="flex items-center gap-2 py-8" style={{ color: "#8e8e93" }}>
+                                        <div className="w-4 h-4 rounded-full border-2 border-black/20 border-t-black/60 animate-spin" />
+                                        <span className="text-[13px]">불러오는 중...</span>
+                                    </div>
+                                ) : inquiries.length === 0 ? (
+                                    <div className="flex flex-col items-center gap-4 py-16" style={{ color: "#8e8e93" }}>
+                                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                        </svg>
+                                        <p className="text-[14px]">아직 문의 내역이 없어요.</p>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col gap-2">
+                                        {inquiries.map((inq) => (
+                                            <button
+                                                key={inq.id}
+                                                onClick={() => { setSelectedInquiry(inq); setReplyText(""); }}
+                                                className="flex items-center justify-between px-5 py-4 rounded-[16px] text-left transition-all hover:brightness-95"
+                                                style={{ background: "rgba(255,255,255,0.85)", border: "1px solid rgba(0,0,0,0.06)" }}
+                                            >
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full shrink-0" style={{ background: STATUS_LABEL[inq.status]?.bg, color: STATUS_LABEL[inq.status]?.color }}>
+                                                        {STATUS_LABEL[inq.status]?.label}
+                                                    </span>
+                                                    <span className="text-[11px] px-2 py-0.5 rounded-full shrink-0" style={{ background: "rgba(0,0,0,0.05)", color: "#8e8e93" }}>{inq.category}</span>
+                                                    <span className="text-[14px] font-semibold truncate" style={{ color: "#1c1c1e" }}>{inq.title}</span>
+                                                </div>
+                                                <div className="flex items-center gap-3 shrink-0 ml-4">
+                                                    {inq.replies.length > 0 && (
+                                                        <span className="text-[11px]" style={{ color: "#8e8e93" }}>답변 {inq.replies.length}개</span>
+                                                    )}
+                                                    <span className="text-[12px]" style={{ color: "#c7c7cc" }}>{formatDate(inq.createdAt)}</span>
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M9 18l6-6-6-6" />
+                                                    </svg>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )
                             )}
                         </div>
                     )}
