@@ -78,7 +78,6 @@ export async function GET(req: NextRequest) {
             FROM "Inquiry" i
             JOIN "User" u ON i."userId" = u.id
             LEFT JOIN "InquiryReply" r ON r."inquiryId" = i.id
-            WHERE i.status = 'OPEN'
             GROUP BY i.id, i.title, i.content, i.category, i.status, i."createdAt", u.nickname, u.name
             ORDER BY i."createdAt" DESC
         `;

@@ -146,6 +146,8 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
     const [inquiryDetailLoading, setInquiryDetailLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
     const [toast, setToast] = useState("");
+    const [inquirySearch, setInquirySearch] = useState("");
+    const [inquirySearchType, setInquirySearchType] = useState<"전체" | "제목" | "작성자">("전체");
 
     const showToast = (msg: string) => {
         setToast(msg);
@@ -686,32 +688,122 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
                             </div>
                         ) : (
                             /* ── 목록 뷰 ── */
-                            <div className="rounded-[20px] overflow-hidden" style={CARD_BG}>
-                                <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
-                                    <h3 className="text-[14px] font-bold" style={{ color: "#1c1c1e" }}>1:1 문의 ({inquiries.length}건)</h3>
-                                </div>
-                                <div className="divide-y" style={{ borderColor: "rgba(0,0,0,0.05)" }}>
-                                    {inquiries.map((inq) => (
-                                        <button
-                                            key={inq.id}
-                                            onClick={() => fetchInquiryDetail(inq)}
-                                            className="w-full px-6 py-4 flex items-center gap-4 text-left transition-all hover:bg-black/[0.02]"
+                            <div className="flex flex-col gap-4">
+                                {/* 검색바 */}
+                                <div
+                                    className="flex items-center p-1 gap-1.5"
+                                    style={{ background: "#dde4ee", borderRadius: 999, maxWidth: 480 }}
+                                >
+                                    {/* 드롭다운 */}
+                                    <div className="relative shrink-0">
+                                        <select
+                                            value={inquirySearchType}
+                                            onChange={(e) => setInquirySearchType(e.target.value as "전체" | "제목" | "작성자")}
+                                            className="appearance-none pl-3 pr-7 text-[12px] font-bold outline-none cursor-pointer"
+                                            style={{ background: "transparent", color: "#1c1c1e", border: "none", height: 34 }}
                                         >
-                                            <div className="flex-1 flex flex-col gap-0.5 min-w-0">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-[13px] font-semibold truncate" style={{ color: "#1c1c1e" }}>{inq.title}</span>
-                                                    <Badge style={INQUIRY_STATUS_STYLE[inq.status] ?? { label: inq.status, bg: "rgba(0,0,0,0.07)", color: "#8e8e93" }} />
+                                            {(["전체", "제목", "작성자"] as const).map((t) => (
+                                                <option key={t} value={t}>{t}</option>
+                                            ))}
+                                        </select>
+                                        <svg className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M6 9l6 6 6-6" />
+                                        </svg>
+                                    </div>
+
+                                    {/* 구분선 */}
+                                    <div className="w-[1px] h-4 shrink-0" style={{ background: "rgba(0,0,0,0.15)" }} />
+
+                                    {/* 입력창 */}
+                                    <div className="flex-1 flex items-center px-3" style={{ background: "#fff", borderRadius: 999, height: 34 }}>
+                                        <input
+                                            type="text"
+                                            value={inquirySearch}
+                                            onChange={(e) => setInquirySearch(e.target.value)}
+                                            placeholder={
+                                                inquirySearchType === "작성자" ? "작성자 이름을 검색하세요" :
+                                                inquirySearchType === "제목" ? "제목을 검색하세요" :
+                                                "제목, 작성자 검색"
+                                            }
+                                            className="flex-1 text-[13px] outline-none bg-transparent"
+                                            style={{ color: "#1c1c1e" }}
+                                        />
+                                        {inquirySearch && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setInquirySearch("")}
+                                                className="ml-1 shrink-0 flex items-center justify-center w-5 h-5 rounded-full transition-all hover:opacity-70"
+                                                style={{ background: "rgba(0,0,0,0.1)" }}
+                                            >
+                                                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* 목록 */}
+                                <div className="rounded-[20px] overflow-hidden" style={CARD_BG}>
+                                    <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
+                                        <h3 className="text-[14px] font-bold" style={{ color: "#1c1c1e" }}>
+                                            1:1 문의 ({inquiries.filter((inq) => {
+                                                const q = inquirySearch.trim().toLowerCase();
+                                                if (!q) return true;
+                                                const author = (inq.userNickname ?? inq.userName).toLowerCase();
+                                                const title = inq.title.toLowerCase();
+                                                if (inquirySearchType === "작성자") return author.includes(q);
+                                                if (inquirySearchType === "제목") return title.includes(q);
+                                                return author.includes(q) || title.includes(q);
+                                            }).length}건)
+                                        </h3>
+                                    </div>
+                                    <div className="divide-y" style={{ borderColor: "rgba(0,0,0,0.05)" }}>
+                                        {(() => {
+                                            const q = inquirySearch.trim().toLowerCase();
+                                            const filtered = inquiries.filter((inq) => {
+                                                if (!q) return true;
+                                                const author = (inq.userNickname ?? inq.userName).toLowerCase();
+                                                const title = inq.title.toLowerCase();
+                                                if (inquirySearchType === "작성자") return author.includes(q);
+                                                if (inquirySearchType === "제목") return title.includes(q);
+                                                return author.includes(q) || title.includes(q);
+                                            });
+                                            if (filtered.length === 0) return (
+                                                <div className="px-6 py-10 text-center text-[13px]" style={{ color: "#8e8e93" }}>
+                                                    {q ? `'${inquirySearch}'에 대한 검색 결과가 없습니다.` : "문의가 없습니다."}
                                                 </div>
-                                                <span className="text-[11px]" style={{ color: "#8e8e93" }}>
-                                                    {inq.userNickname ?? inq.userName} · {inq.category} · 답변 {inq.replyCount}개 · {formatKST(inq.createdAt, false)}
-                                                </span>
-                                            </div>
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-                                                <path d="M9 18l6-6-6-6" />
-                                            </svg>
-                                        </button>
-                                    ))}
-                                    {!loading && inquiries.length === 0 && <div className="px-6 py-10 text-center text-[13px]" style={{ color: "#8e8e93" }}>문의가 없습니다.</div>}
+                                            );
+                                            return filtered.map((inq) => (
+                                                <button
+                                                    key={inq.id}
+                                                    onClick={() => fetchInquiryDetail(inq)}
+                                                    className="w-full px-6 py-4 flex items-center gap-4 text-left transition-all hover:bg-black/[0.02]"
+                                                >
+                                                    <div className="flex-1 flex flex-col gap-1 min-w-0">
+                                                        <div className="flex items-center gap-2">
+                                                            <Badge style={INQUIRY_STATUS_STYLE[inq.status] ?? { label: inq.status, bg: "rgba(0,0,0,0.07)", color: "#8e8e93" }} />
+                                                            <span className="text-[13px] font-semibold truncate" style={{ color: "#1c1c1e" }}>{inq.title}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="text-[11px] font-medium" style={{ color: "#3a3a3c" }}>
+                                                                {inq.userNickname ?? inq.userName}
+                                                            </span>
+                                                            <span className="text-[11px]" style={{ color: "#c7c7cc" }}>·</span>
+                                                            <span className="text-[11px]" style={{ color: "#8e8e93" }}>{inq.category}</span>
+                                                            <span className="text-[11px]" style={{ color: "#c7c7cc" }}>·</span>
+                                                            <span className="text-[11px]" style={{ color: "#8e8e93" }}>답변 {inq.replyCount}개</span>
+                                                            <span className="text-[11px]" style={{ color: "#c7c7cc" }}>·</span>
+                                                            <span className="text-[11px]" style={{ color: "#8e8e93" }}>{formatKST(inq.createdAt, false)}</span>
+                                                        </div>
+                                                    </div>
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                                                        <path d="M9 18l6-6-6-6" />
+                                                    </svg>
+                                                </button>
+                                            ));
+                                        })()}
+                                    </div>
                                 </div>
                             </div>
                         )}
