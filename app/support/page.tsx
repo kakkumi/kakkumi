@@ -233,6 +233,7 @@ export default function SupportPage() {
     const [activeTab, setActiveTab] = useState<Tab>("faq");
     const [faqCategory, setFaqCategory] = useState<FaqCategory>("전체");
     const [openFaqs, setOpenFaqs] = useState<Set<number>>(new Set());
+    const [faqSearch, setFaqSearch] = useState("");
 
     const toggleFaq = (i: number) => {
         setOpenFaqs((prev) => {
@@ -383,9 +384,50 @@ export default function SupportPage() {
                     {/* ── 자주 묻는 질문 ── */}
                     {activeTab === "faq" && (
                         <div className="flex flex-col gap-3">
-                            <div className="flex flex-col gap-1 mb-2">
-                                <h1 className="text-[28px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>자주 묻는 질문</h1>
-                                <p className="text-[14px]" style={{ color: "#8e8e93" }}>궁금한 점을 빠르게 확인해보세요.</p>
+                            <div className="flex items-end justify-between gap-4 mb-2">
+                                <div className="flex flex-col gap-1">
+                                    <h1 className="text-[28px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>자주 묻는 질문</h1>
+                                    <p className="text-[14px]" style={{ color: "#8e8e93" }}>궁금한 점을 빠르게 확인해보세요.</p>
+                                </div>
+
+                                {/* ── 검색바 ── */}
+                                <div
+                                    className="flex items-center p-1 gap-1.5 shrink-0"
+                                    style={{
+                                        background: "#dde4ee",
+                                        borderRadius: 999,
+                                        width: 400,
+                                    }}
+                                >
+                                    <div
+                                        className="flex-1 flex items-center px-4"
+                                        style={{ background: "#fff", borderRadius: 999, height: 34 }}
+                                    >
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mr-2">
+                                            <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
+                                        </svg>
+                                        <input
+                                            type="text"
+                                            value={faqSearch}
+                                            onChange={(e) => { setFaqSearch(e.target.value); setOpenFaqs(new Set()); }}
+                                            placeholder="질문을 검색하세요"
+                                            className="flex-1 text-[13px] outline-none bg-transparent"
+                                            style={{ color: "#1c1c1e" }}
+                                        />
+                                        {faqSearch && (
+                                            <button
+                                                type="button"
+                                                onClick={() => { setFaqSearch(""); setOpenFaqs(new Set()); }}
+                                                className="ml-1 shrink-0 flex items-center justify-center w-5 h-5 rounded-full transition-all hover:opacity-70"
+                                                style={{ background: "rgba(0,0,0,0.1)" }}
+                                            >
+                                                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
 
                             {/* ── 카테고리 필터 ── */}
@@ -405,52 +447,72 @@ export default function SupportPage() {
                                 ))}
                             </div>
 
-                            {[...faqs]
-                                .filter((faq) => faqCategory === "전체" || faq.category === faqCategory)
-                                .sort((a, b) =>
-                                    faqCategory === "전체"
-                                        ? FAQ_CATEGORIES.indexOf(a.category) - FAQ_CATEGORIES.indexOf(b.category)
-                                        : 0
-                                )
-                                .map((faq, i) => (
-                                <div
-                                    key={i}
-                                    className="rounded-[20px] overflow-hidden transition-all"
-                                >
-                                    <button
-                                        className="w-full text-left px-6 py-4 flex items-center justify-between gap-4"
-                                        onClick={() => toggleFaq(i)}
-                                    >
-                                        <span className="flex items-center gap-2 text-[14px] font-semibold" style={{ color: "#1c1c1e" }}>
-                                            <span
-                                                className="shrink-0 px-2 py-0.5 rounded-full text-[11px] font-bold"
-                                                style={{
-                                                    background: TAG_STYLE[faq.category]?.bg,
-                                                    color: TAG_STYLE[faq.category]?.color,
-                                                }}
-                                            >
-                                                {faq.category}
-                                            </span>
-                                            {faq.q}
-                                        </span>
-                                        <svg
-                                            width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                            stroke="#8e8e93" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                                            style={{ transform: openFaqs.has(i) ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", flexShrink: 0 }}
+                            {(() => {
+                                const q = faqSearch.trim().toLowerCase();
+                                const filtered = [...faqs]
+                                    .filter((faq) =>
+                                        (faqCategory === "전체" || faq.category === faqCategory) &&
+                                        (q === "" || faq.q.toLowerCase().includes(q) || faq.a.toLowerCase().includes(q))
+                                    )
+                                    .sort((a, b) =>
+                                        faqCategory === "전체" && !q
+                                            ? FAQ_CATEGORIES.indexOf(a.category) - FAQ_CATEGORIES.indexOf(b.category)
+                                            : 0
+                                    );
+
+                                if (filtered.length === 0) {
+                                    return (
+                                        <div
+                                            className="flex flex-col items-center gap-3 py-14 rounded-[20px]"
+                                            style={{ background: "rgba(0,0,0,0.03)" }}
                                         >
-                                            <polyline points="6 9 12 15 18 9" />
-                                        </svg>
-                                    </button>
-                                    {openFaqs.has(i) && (
-                                        <div className="px-6 pb-3">
-                                            <div className="h-[1px] mb-4" style={{ background: "rgba(0,0,0,0.06)" }} />
-                                            <p className="text-[13px] leading-relaxed" style={{ color: "#48484a" }}>
-                                                <span style={{ color: "#aabde8", marginRight: 8, fontWeight: 700 }}>A.</span>{faq.a}
+                                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                                <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
+                                            </svg>
+                                            <p className="text-[13px]" style={{ color: "#8e8e93" }}>
+                                                {q ? `'${faqSearch}'에 대한 검색 결과가 없습니다.` : "해당 카테고리의 질문이 없습니다."}
                                             </p>
                                         </div>
-                                    )}
-                                </div>
-                            ))}
+                                    );
+                                }
+
+                                return filtered.map((faq, i) => (
+                                    <div key={i} className="rounded-[20px] overflow-hidden transition-all">
+                                        <button
+                                            className="w-full text-left px-6 py-4 flex items-center justify-between gap-4"
+                                            onClick={() => toggleFaq(i)}
+                                        >
+                                            <span className="flex items-center gap-2 text-[14px] font-semibold" style={{ color: "#1c1c1e" }}>
+                                                <span
+                                                    className="shrink-0 px-2 py-0.5 rounded-full text-[11px] font-bold"
+                                                    style={{
+                                                        background: TAG_STYLE[faq.category]?.bg,
+                                                        color: TAG_STYLE[faq.category]?.color,
+                                                    }}
+                                                >
+                                                    {faq.category}
+                                                </span>
+                                                {faq.q}
+                                            </span>
+                                            <svg
+                                                width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                stroke="#8e8e93" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                                                style={{ transform: openFaqs.has(i) ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", flexShrink: 0 }}
+                                            >
+                                                <polyline points="6 9 12 15 18 9" />
+                                            </svg>
+                                        </button>
+                                        {openFaqs.has(i) && (
+                                            <div className="px-6 pb-3">
+                                                <div className="h-[1px] mb-4" style={{ background: "rgba(0,0,0,0.06)" }} />
+                                                <p className="text-[13px] leading-relaxed" style={{ color: "#48484a" }}>
+                                                    <span style={{ color: "#aabde8", marginRight: 8, fontWeight: 700 }}>A.</span>{faq.a}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                ));
+                            })()}
                         </div>
                     )}
 

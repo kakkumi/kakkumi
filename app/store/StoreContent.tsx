@@ -171,7 +171,7 @@ export default function StoreContent() {
                     style={{
                         background: "#dde4ee",
                         borderRadius: 999,
-                        maxWidth: 620,
+                        maxWidth: 480,
                     }}
                 >
                     {/* 검색 타입 선택 */}
@@ -236,15 +236,6 @@ export default function StoreContent() {
                                 </svg>
                             </button>
                         )}
-                        <button
-                            type="button"
-                            className="ml-1 shrink-0 flex items-center justify-center w-7 h-7 rounded-full transition-all hover:brightness-95 active:scale-95"
-                            style={{ background: "#4A7BF7" }}
-                        >
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
-                            </svg>
-                        </button>
                     </div>
                 </div>
 
