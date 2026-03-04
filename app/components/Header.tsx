@@ -1,8 +1,27 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import AuthStatus from "./AuthStatus";
+import { usePathname } from "next/navigation";
+
+const NAV_ITEMS = [
+    { href: "/store", label: "테마 스토어" },
+    { href: "/create", label: "테마 만들기" },
+    { href: "/store/register", label: "테마 등록" },
+    { href: "/support", label: "고객센터" },
+];
 
 export default function Header() {
+    const pathname = usePathname();
+
+    const isActive = (href: string) => {
+        if (href === "/store") {
+            return pathname === "/store" || (pathname.startsWith("/store") && pathname !== "/store/register");
+        }
+        return pathname === href || pathname.startsWith(href + "/");
+    };
+
     return (
         <header
             className="sticky top-0 z-50 flex items-center justify-between px-6 py-0 shrink-0"
@@ -19,10 +38,19 @@ export default function Header() {
                 <Image src="/카꾸미.png" alt="카꾸미" width={110} height={44} quality={100} unoptimized style={{ objectFit: "contain" }} />
             </Link>
             <nav className="flex items-center gap-6">
-                <Link href="/store" className="text-[13px] font-medium transition-opacity hover:opacity-60" style={{ color: "#3a3a3c" }}>테마 스토어</Link>
-                <Link href="/create" className="text-[13px] font-medium transition-opacity hover:opacity-60" style={{ color: "#3a3a3c" }}>테마 만들기</Link>
-                <Link href="/store/register" className="text-[13px] font-medium transition-opacity hover:opacity-60" style={{ color: "#3a3a3c" }}>테마 등록</Link>
-                <Link href="/support" className="text-[13px] font-medium transition-opacity hover:opacity-60" style={{ color: "#3a3a3c" }}>고객센터</Link>
+                {NAV_ITEMS.map(({ href, label }) => {
+                    const active = isActive(href);
+                    return (
+                        <Link
+                            key={href}
+                            href={href}
+                            className="text-[13px] font-medium transition-opacity hover:opacity-60"
+                            style={{ color: active ? "rgb(255, 149, 0)" : "#3a3a3c", fontWeight: active ? 700 : 500 }}
+                        >
+                            {label}
+                        </Link>
+                    );
+                })}
                 <div className="w-[1px] h-5 bg-[rgba(0,0,0,0.25)]" aria-hidden="true" />
                 <AuthStatus />
             </nav>
