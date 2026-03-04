@@ -24,11 +24,16 @@ export default async function AdminPage() {
         nickname: string | null;
         email: string | null;
         role: string;
+        isSuspended: boolean;
         createdAt: Date;
+        purchaseCount: bigint;
     }[]>`
-        SELECT id, name, nickname, email, role, "createdAt"
-        FROM "User"
-        ORDER BY "createdAt" DESC
+        SELECT u.id, u.name, u.nickname, u.email, u.role, u."isSuspended", u."createdAt",
+               COUNT(p.id) AS "purchaseCount"
+        FROM "User" u
+        LEFT JOIN "Purchase" p ON p."buyerId" = u.id AND p.status = 'COMPLETED'
+        GROUP BY u.id
+        ORDER BY u."createdAt" DESC
         LIMIT 10
     `.catch(() => []);
 
@@ -38,15 +43,21 @@ export default async function AdminPage() {
         amount: number;
         status: string;
         createdAt: Date;
+        pgTransactionId: string | null;
+        buyerNickname: string | null;
         buyerName: string;
         themeTitle: string;
+        creatorNickname: string | null;
+        creatorName: string;
     }[]>`
-        SELECT p.id, p.amount, p.status, p."createdAt",
-               u.nickname AS "buyerName",
-               t.title AS "themeTitle"
+        SELECT p.id, p.amount, p.status, p."createdAt", p."pgTransactionId",
+               buyer.nickname AS "buyerNickname", buyer.name AS "buyerName",
+               t.title AS "themeTitle",
+               creator.nickname AS "creatorNickname", creator.name AS "creatorName"
         FROM "Purchase" p
-        JOIN "User" u ON p."buyerId" = u.id
+        JOIN "User" buyer ON p."buyerId" = buyer.id
         JOIN "Theme" t ON p."themeId" = t.id
+        JOIN "User" creator ON t."creatorId" = creator.id
         ORDER BY p."createdAt" DESC
         LIMIT 10
     `.catch(() => []);
@@ -70,8 +81,16 @@ export default async function AdminPage() {
             <Header />
             <AdminClient
                 stats={stats}
-                recentUsers={recentUsers.map((u) => ({ ...u, createdAt: u.createdAt.toISOString() }))}
-                recentPurchases={recentPurchases.map((p) => ({ ...p, createdAt: p.createdAt.toISOString() }))}
+                recentUsers={recentUsers.map((u) => ({
+                    ...u,
+                    isSuspended: u.isSuspended ?? false,
+                    purchaseCount: Number(u.purchaseCount ?? 0),
+                    createdAt: u.createdAt instanceof Date ? u.createdAt.toISOString() : String(u.createdAt),
+                }))}
+                recentPurchases={recentPurchases.map((p) => ({
+                    ...p,
+                    createdAt: p.createdAt instanceof Date ? p.createdAt.toISOString() : String(p.createdAt),
+                }))}
             />
             <Footer />
         </div>
