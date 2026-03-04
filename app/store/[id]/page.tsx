@@ -1,4 +1,3 @@
-import { THEMES } from "../data";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { notFound } from "next/navigation";
@@ -7,31 +6,60 @@ import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import ThemeDetailLayout from "./ThemeDetailLayout";
 
-export function generateStaticParams() {
-    return THEMES.map((theme) => ({
-        id: theme.id.toString(),
-    }));
-}
-
 export default async function ThemeDetailPage(props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
-    const theme = THEMES.find((t) => t.id === Number(params.id));
+    const id = params.id;
 
-    if (!theme) {
-        return notFound();
+    type DbThemeRow = {
+        id: string;
+        title: string;
+        description: string | null;
+        price: number;
+        thumbnailUrl: string | null;
+        images: string[];
+        tags: string[];
+        createdAt: Date;
+        creatorNickname: string | null;
+        creatorName: string;
+        salesCount: number;
+    };
+
+    let dbTheme: DbThemeRow | null = null;
+
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
+    if (isUuid) {
+        const rows = await prisma.$queryRaw<DbThemeRow[]>`
+            SELECT
+                t.id, t.title, t.description, t.price,
+                t."thumbnailUrl", t.images, t.tags, t."createdAt",
+                u.nickname AS "creatorNickname", u.name AS "creatorName",
+                COUNT(DISTINCT p.id)::int AS "salesCount"
+            FROM "Theme" t
+            JOIN "User" u ON t."creatorId" = u.id
+            LEFT JOIN "Purchase" p ON p."themeId" = t.id AND p.status = 'COMPLETED'
+            WHERE t.id = ${id} AND t.status = 'PUBLISHED'
+            GROUP BY t.id, u.nickname, u.name
+            LIMIT 1
+        `;
+        dbTheme = rows[0] ?? null;
     }
+
+    if (!dbTheme) return notFound();
 
     const session = await getServerSession();
     const isLoggedIn = !!session?.dbId;
 
     // 보유 여부 확인
     let isOwned = false;
-    if (session?.dbId && theme.dbId) {
+    if (session?.dbId) {
         const purchase = await prisma.purchase.findFirst({
-            where: { buyerId: session.dbId, themeId: theme.dbId, status: "COMPLETED" },
+            where: { buyerId: session.dbId, themeId: id, status: "COMPLETED" },
         });
         isOwned = !!purchase;
     }
+
+    const daysSince = Math.floor((Date.now() - new Date(dbTheme.createdAt).getTime()) / 86400000);
 
     return (
         <div
@@ -58,18 +86,23 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
                 </Link>
 
                 <ThemeDetailLayout
-                    images={theme.images ?? []}
-                    previews={theme.previews ?? []}
-                    name={theme.name}
-                    tag={theme.tag}
-                    themeId={theme.id}
-                    price={theme.price}
-                    priceNum={theme.priceNum}
-                    author={theme.author}
-                    description={theme.description ?? ""}
-                    category={theme.category ?? []}
-                    stats={{ sales: theme.sales, createdAt: theme.createdAt, likes: theme.likes, rating: theme.rating, reviews: theme.reviews }}
-                    dbId={theme.dbId}
+                    images={dbTheme.thumbnailUrl ? [dbTheme.thumbnailUrl] : []}
+                    previews={dbTheme.images ?? []}
+                    name={dbTheme.title}
+                    tag={dbTheme.price === 0 ? "무료" : undefined}
+                    price={dbTheme.price === 0 ? "무료" : `${dbTheme.price.toLocaleString()}원`}
+                    priceNum={dbTheme.price}
+                    author={dbTheme.creatorNickname ?? dbTheme.creatorName}
+                    description={dbTheme.description ?? ""}
+                    category={dbTheme.tags ?? []}
+                    stats={{
+                        sales: dbTheme.salesCount,
+                        createdAt: daysSince,
+                        likes: 0,
+                        rating: 0,
+                        reviews: 0,
+                    }}
+                    dbId={dbTheme.id}
                     isLoggedIn={isLoggedIn}
                     userId={session?.dbId ?? undefined}
                     isOwned={isOwned}
@@ -79,7 +112,7 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
                 <div className="mt-20 border-t border-gray-100 pt-10">
                     <div className="flex items-center gap-6 mb-8">
                         <button className="pb-3 border-b-2 border-gray-900 font-bold text-[15px] text-gray-900">상세 이미지</button>
-                        <button className="pb-3 border-b-2 border-transparent text-gray-400 font-medium text-[15px] hover:text-gray-700 transition-colors">리뷰 ({theme.reviews})</button>
+                        <button className="pb-3 border-b-2 border-transparent text-gray-400 font-medium text-[15px] hover:text-gray-700 transition-colors">리뷰 (0)</button>
                         <button className="pb-3 border-b-2 border-transparent text-gray-400 font-medium text-[15px] hover:text-gray-700 transition-colors">제작자 다른 테마</button>
                     </div>
 

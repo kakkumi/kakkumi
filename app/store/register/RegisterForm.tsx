@@ -5,6 +5,17 @@ import { useRouter } from "next/navigation";
 
 const PRICE_OPTIONS = ["무료", "500원", "1,000원", "1,500원", "2,000원"];
 const MAX_MINI_PREVIEWS = 5;
+const MAX_FILES = 5;
+
+type FileOption = {
+    id: string;
+    name: string;   // 옵션 이름 (예: "핑크 ver.")
+    file: File | null;
+};
+
+function newFileOption(): FileOption {
+    return { id: crypto.randomUUID(), name: "", file: null };
+}
 
 export default function RegisterForm({ authorName, headerSlot }: { authorName: string; headerSlot?: React.ReactNode }) {
     const router = useRouter();
@@ -22,8 +33,8 @@ export default function RegisterForm({ authorName, headerSlot }: { authorName: s
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [miniPreviewFiles, setMiniPreviewFiles] = useState<File[]>([]);
     const [miniPreviewUrls, setMiniPreviewUrls] = useState<string[]>([]);
-    const [themeFile, setThemeFile] = useState<File | null>(null);
-    const [androidFile, setAndroidFile] = useState<File | null>(null);
+    const [iosOptions, setIosOptions] = useState<FileOption[]>([]);
+    const [androidOptions, setAndroidOptions] = useState<FileOption[]>([]);
     const [submitted, setSubmitted] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
@@ -87,9 +98,22 @@ export default function RegisterForm({ authorName, headerSlot }: { authorName: s
         setMiniPreviewUrls(prev => prev.filter((_, i) => i !== idx));
     };
 
+    // iOS 옵션 조작
+    const addIosOption = () => { if (iosOptions.length < MAX_FILES) setIosOptions(prev => [...prev, newFileOption()]); };
+    const removeIosOption = (id: string) => { setIosOptions(prev => prev.filter(o => o.id !== id)); };
+    const updateIosName = (id: string, name: string) => setIosOptions(prev => prev.map(o => o.id === id ? { ...o, name } : o));
+    const updateIosFile = (id: string, file: File | null) => setIosOptions(prev => prev.map(o => o.id === id ? { ...o, file } : o));
+
+    // Android 옵션 조작
+    const addAndroidOption = () => { if (androidOptions.length < MAX_FILES) setAndroidOptions(prev => [...prev, newFileOption()]); };
+    const removeAndroidOption = (id: string) => { setAndroidOptions(prev => prev.filter(o => o.id !== id)); };
+    const updateAndroidName = (id: string, name: string) => setAndroidOptions(prev => prev.map(o => o.id === id ? { ...o, name } : o));
+    const updateAndroidFile = (id: string, file: File | null) => setAndroidOptions(prev => prev.map(o => o.id === id ? { ...o, file } : o));
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!name || !price || !categories.length || !description || !previewFile || (!themeFile && !androidFile)) return;
+        const hasAnyFile = iosOptions.some(o => o.file) || androidOptions.some(o => o.file);
+        if (!name || !price || !categories.length || !description || !previewFile || !hasAnyFile) return;
         if (nameError || nameChecking || !nameChecked) return;
 
         setSubmitting(true);
@@ -103,8 +127,20 @@ export default function RegisterForm({ authorName, headerSlot }: { authorName: s
             categories.forEach((cat) => formData.append("categories", cat));
             formData.append("thumbnail", previewFile);
             miniPreviewFiles.forEach((f) => formData.append("miniPreviews", f));
-            if (themeFile) formData.append("themeFile", themeFile);
-            if (androidFile) formData.append("androidFile", androidFile);
+
+            // iOS 옵션별 파일 전송
+            iosOptions.forEach((opt, idx) => {
+                formData.append(`iosName_${idx}`, opt.name.trim() || `iOS 옵션 ${idx + 1}`);
+                if (opt.file) formData.append(`iosFile_${idx}`, opt.file);
+            });
+            formData.append("iosCount", String(iosOptions.length));
+
+            // Android 옵션별 파일 전송
+            androidOptions.forEach((opt, idx) => {
+                formData.append(`androidName_${idx}`, opt.name.trim() || `Android 옵션 ${idx + 1}`);
+                if (opt.file) formData.append(`androidFile_${idx}`, opt.file);
+            });
+            formData.append("androidCount", String(androidOptions.length));
 
             const res = await fetch("/api/themes/register", {
                 method: "POST",
@@ -360,76 +396,126 @@ export default function RegisterForm({ authorName, headerSlot }: { authorName: s
                     </div>
                 </Row>
 
-                {/* 테마 파일 */}
+                {/* 테마 파일 옵션 */}
                 <Row label="테마 파일" required>
-                    <div className="flex flex-col gap-2">
-                        {/* .ktheme */}
-                        <label
-                            className="flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all hover:opacity-80"
-                            style={{
-                                background: themeFile ? "rgba(255,229,0,0.12)" : "rgba(0,0,0,0.03)",
-                                border: `1.5px dashed ${themeFile ? "#FFE500" : "rgba(0,0,0,0.12)"}`,
-                            }}
-                        >
-                            <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: themeFile ? "#FFE500" : "rgba(0,0,0,0.06)" }}>
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={themeFile ? "#3A1D1D" : "#8e8e93"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M12 3v13M7 11l5 5 5-5"/><path d="M5 20h14"/>
-                                </svg>
-                            </div>
-                            <div className="flex-1">
-                                <p className="text-[13px] font-medium" style={{ color: "#1c1c1e" }}>
-                                    {themeFile ? themeFile.name : ".ktheme 파일 업로드"}
-                                </p>
-                                <p className="text-[11px] mt-0.5" style={{ color: "#8e8e93" }}>
-                                    {themeFile ? "파일이 선택되었습니다" : "iOS · PC용 테마 파일 (.ktheme)"}
-                                </p>
-                            </div>
-                            {themeFile && (
-                                <button
-                                    type="button"
-                                    onClick={e => { e.preventDefault(); setThemeFile(null); }}
-                                    className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all hover:opacity-70"
-                                    style={{ background: "rgba(0,0,0,0.08)" }}
-                                >
-                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#3a3a3c" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                                </button>
-                            )}
-                            <input type="file" accept=".ktheme" onChange={e => setThemeFile(e.target.files?.[0] ?? null)} className="hidden" />
-                        </label>
+                    <div className="flex flex-col gap-5">
+                        <p className="text-[11px]" style={{ color: "#8e8e93" }}>
+                            iOS · PC와 Android 각각 최대 {MAX_FILES}개 옵션을 등록할 수 있어요. 옵션 이름으로 색상·스타일을 구분하세요.
+                        </p>
 
-                        {/* 안드로이드 */}
-                        <label
-                            className="flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all hover:opacity-80"
-                            style={{
-                                background: androidFile ? "rgba(255,229,0,0.12)" : "rgba(0,0,0,0.03)",
-                                border: `1.5px dashed ${androidFile ? "#FFE500" : "rgba(0,0,0,0.12)"}`,
-                            }}
-                        >
-                            <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: androidFile ? "#FFE500" : "rgba(0,0,0,0.06)" }}>
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={androidFile ? "#3A1D1D" : "#8e8e93"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M12 3v13M7 11l5 5 5-5"/><path d="M5 20h14"/>
-                                </svg>
+                        {/* iOS 섹션 */}
+                        <div className="flex flex-col gap-2">
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="text-[12px] font-bold px-2.5 py-1 rounded-full" style={{ background: "rgba(255,149,0,0.12)", color: "#c97000" }}>iOS · PC</span>
+                                <span className="text-[11px]" style={{ color: "#8e8e93" }}>.ktheme · {iosOptions.length}/{MAX_FILES}</span>
                             </div>
-                            <div className="flex-1">
-                                <p className="text-[13px] font-medium" style={{ color: "#1c1c1e" }}>
-                                    {androidFile ? androidFile.name : "안드로이드 파일 업로드"}
-                                </p>
-                                <p className="text-[11px] mt-0.5" style={{ color: "#8e8e93" }}>
-                                    {androidFile ? "파일이 선택되었습니다" : "안드로이드용 테마 파일 (.apk, .zip)"}
-                                </p>
-                            </div>
-                            {androidFile && (
-                                <button
-                                    type="button"
-                                    onClick={e => { e.preventDefault(); setAndroidFile(null); }}
-                                    className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all hover:opacity-70"
-                                    style={{ background: "rgba(0,0,0,0.08)" }}
-                                >
-                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#3a3a3c" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                            {iosOptions.length === 0 && (
+                                <p className="text-[11px] py-1" style={{ color: "#b0b0b5" }}>아직 추가된 iOS 옵션이 없어요.</p>
+                            )}
+                            {iosOptions.map((opt, idx) => (
+                                <div key={opt.id} className="flex items-center gap-2 p-3 rounded-[14px]" style={{ background: "rgba(0,0,0,0.025)", border: "1px solid rgba(0,0,0,0.07)" }}>
+                                    <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0" style={{ background: "#1c1c1e", color: "#fff" }}>{idx + 1}</span>
+                                    <input
+                                        type="text"
+                                        value={opt.name}
+                                        onChange={e => updateIosName(opt.id, e.target.value)}
+                                        placeholder="옵션 이름 (예: 핑크 ver.)"
+                                        maxLength={20}
+                                        className="w-[140px] shrink-0 px-2 py-1 text-[12px] outline-none rounded-lg transition-all"
+                                        style={{ background: "rgba(255,255,255,0.8)", border: "1.5px solid rgba(0,0,0,0.10)", color: "#1c1c1e" }}
+                                        onFocus={e => e.currentTarget.style.borderColor = "#1c1c1e"}
+                                        onBlur={e => e.currentTarget.style.borderColor = "rgba(0,0,0,0.10)"}
+                                    />
+                                    <label className="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition-all hover:opacity-80"
+                                        style={{ background: opt.file ? "rgba(255,229,0,0.10)" : "rgba(255,255,255,0.6)", border: `1.5px dashed ${opt.file ? "#FFE500" : "rgba(0,0,0,0.10)"}` }}>
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={opt.file ? "#c97000" : "#8e8e93"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M12 3v13M7 11l5 5 5-5"/><path d="M5 20h14"/>
+                                        </svg>
+                                        <span className="text-[12px] truncate" style={{ color: opt.file ? "#1c1c1e" : "#8e8e93" }}>
+                                            {opt.file ? opt.file.name : "파일 선택"}
+                                        </span>
+                                        <input type="file" accept=".ktheme" className="hidden" onChange={e => updateIosFile(opt.id, e.target.files?.[0] ?? null)} />
+                                    </label>
+                                    {opt.file && (
+                                        <button type="button" onClick={() => updateIosFile(opt.id, null)}
+                                            className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center hover:opacity-70"
+                                            style={{ background: "rgba(0,0,0,0.08)" }}>
+                                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#3a3a3c" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                                        </button>
+                                    )}
+                                    <button type="button" onClick={() => removeIosOption(opt.id)}
+                                        className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center hover:opacity-70"
+                                        style={{ background: "rgba(255,59,48,0.10)" }}>
+                                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                                    </button>
+                                </div>
+                            ))}
+                            {iosOptions.length < MAX_FILES && (
+                                <button type="button" onClick={addIosOption}
+                                    className="flex items-center gap-1.5 py-2 px-3 rounded-xl text-[12px] font-medium transition-all hover:opacity-70 self-start"
+                                    style={{ background: "rgba(255,149,0,0.08)", color: "#c97000", border: "1px dashed rgba(255,149,0,0.3)" }}>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c97000" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                                    iOS 옵션 추가
                                 </button>
                             )}
-                            <input type="file" accept=".apk,.zip" onChange={e => setAndroidFile(e.target.files?.[0] ?? null)} className="hidden" />
-                        </label>
+                        </div>
+
+                        {/* Android 섹션 */}
+                        <div className="flex flex-col gap-2">
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="text-[12px] font-bold px-2.5 py-1 rounded-full" style={{ background: "rgba(52,199,89,0.12)", color: "#1a7a3a" }}>Android</span>
+                                <span className="text-[11px]" style={{ color: "#8e8e93" }}>.apk, .zip · {androidOptions.length}/{MAX_FILES}</span>
+                            </div>
+                            {androidOptions.length === 0 && (
+                                <p className="text-[11px] py-1" style={{ color: "#b0b0b5" }}>아직 추가된 Android 옵션이 없어요.</p>
+                            )}
+                            {androidOptions.map((opt, idx) => (
+                                <div key={opt.id} className="flex items-center gap-2 p-3 rounded-[14px]" style={{ background: "rgba(0,0,0,0.025)", border: "1px solid rgba(0,0,0,0.07)" }}>
+                                    <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0" style={{ background: "#1c1c1e", color: "#fff" }}>{idx + 1}</span>
+                                    <input
+                                        type="text"
+                                        value={opt.name}
+                                        onChange={e => updateAndroidName(opt.id, e.target.value)}
+                                        placeholder="옵션 이름 (예: 핑크 ver.)"
+                                        maxLength={20}
+                                        className="w-[140px] shrink-0 px-2 py-1 text-[12px] outline-none rounded-lg transition-all"
+                                        style={{ background: "rgba(255,255,255,0.8)", border: "1.5px solid rgba(0,0,0,0.10)", color: "#1c1c1e" }}
+                                        onFocus={e => e.currentTarget.style.borderColor = "#1c1c1e"}
+                                        onBlur={e => e.currentTarget.style.borderColor = "rgba(0,0,0,0.10)"}
+                                    />
+                                    <label className="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition-all hover:opacity-80"
+                                        style={{ background: opt.file ? "rgba(255,229,0,0.10)" : "rgba(255,255,255,0.6)", border: `1.5px dashed ${opt.file ? "#FFE500" : "rgba(0,0,0,0.10)"}` }}>
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={opt.file ? "#1a7a3a" : "#8e8e93"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M12 3v13M7 11l5 5 5-5"/><path d="M5 20h14"/>
+                                        </svg>
+                                        <span className="text-[12px] truncate" style={{ color: opt.file ? "#1c1c1e" : "#8e8e93" }}>
+                                            {opt.file ? opt.file.name : "파일 선택"}
+                                        </span>
+                                        <input type="file" accept=".apk,.zip" className="hidden" onChange={e => updateAndroidFile(opt.id, e.target.files?.[0] ?? null)} />
+                                    </label>
+                                    {opt.file && (
+                                        <button type="button" onClick={() => updateAndroidFile(opt.id, null)}
+                                            className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center hover:opacity-70"
+                                            style={{ background: "rgba(0,0,0,0.08)" }}>
+                                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#3a3a3c" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                                        </button>
+                                    )}
+                                    <button type="button" onClick={() => removeAndroidOption(opt.id)}
+                                        className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center hover:opacity-70"
+                                        style={{ background: "rgba(255,59,48,0.10)" }}>
+                                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                                    </button>
+                                </div>
+                            ))}
+                            {androidOptions.length < MAX_FILES && (
+                                <button type="button" onClick={addAndroidOption}
+                                    className="flex items-center gap-1.5 py-2 px-3 rounded-xl text-[12px] font-medium transition-all hover:opacity-70 self-start"
+                                    style={{ background: "rgba(52,199,89,0.08)", color: "#1a7a3a", border: "1px dashed rgba(52,199,89,0.3)" }}>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1a7a3a" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                                    Android 옵션 추가
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </Row>
 
@@ -474,7 +560,7 @@ export default function RegisterForm({ authorName, headerSlot }: { authorName: s
                             { label: "카테고리", done: categories.length > 0 },
                             { label: "가격 설정", done: !!price },
                             { label: "미리보기 이미지", done: !!previewFile },
-                            { label: "테마 파일", done: !!(themeFile || androidFile) },
+                            { label: "테마 파일", done: iosOptions.some(o => o.file) || androidOptions.some(o => o.file) },
                         ].map(item => (
                             <div key={item.label} className="flex items-center gap-2.5">
                                 <div
@@ -497,14 +583,14 @@ export default function RegisterForm({ authorName, headerSlot }: { authorName: s
                         <div className="flex justify-between mb-1">
                             <span className="text-[10px] font-bold" style={{ color: "#8e8e93" }}>완성도</span>
                             <span className="text-[12px] font-bold" style={{ color: "#e11d48" }}>
-                                {Math.round(([!!name, !!description, categories.length > 0, !!price, !!previewFile, !!(themeFile || androidFile)].filter(Boolean).length / 6) * 100)}%
+                                {Math.round(([!!name, !!description, categories.length > 0, !!price, !!previewFile, iosOptions.some(o => o.file) || androidOptions.some(o => o.file)].filter(Boolean).length / 6) * 100)}%
                             </span>
                         </div>
                         <div className="w-full h-1.5 rounded-full" style={{ background: "rgba(0,0,0,0.06)" }}>
                             <div
                                 className="h-full rounded-full transition-all duration-500"
                                 style={{
-                                    width: `${Math.round(([!!name, !!description, categories.length > 0, !!price, !!previewFile, !!(themeFile || androidFile)].filter(Boolean).length / 6) * 100)}%`,
+                                    width: `${Math.round(([!!name, !!description, categories.length > 0, !!price, !!previewFile, iosOptions.some(o => o.file) || androidOptions.some(o => o.file)].filter(Boolean).length / 6) * 100)}%`,
                                     background: "#e11d48",
                                 }}
                             />

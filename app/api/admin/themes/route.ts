@@ -13,21 +13,22 @@ export async function GET() {
             price: number; status: string; adminNote: string | null;
             createdAt: Date; creatorNickname: string | null; creatorName: string;
             thumbnailUrl: string | null; images: string[]; tags: string[];
-            kthemeFileUrl: string | null; apkFileUrl: string | null;
+            versions: { version: string; kthemeFileUrl: string | null; apkFileUrl: string | null }[];
         }[]>`
             SELECT t.id, t.title, t.description, t.price, t.status, t."adminNote", t."createdAt",
                    t."thumbnailUrl", t.images, t.tags,
                    u.nickname AS "creatorNickname", u.name AS "creatorName",
-                   v."kthemeFileUrl", v."apkFileUrl"
+                   COALESCE(
+                       (SELECT json_agg(json_build_object(
+                           'version', v.version,
+                           'kthemeFileUrl', v."kthemeFileUrl",
+                           'apkFileUrl', v."apkFileUrl"
+                       ) ORDER BY v."createdAt" ASC)
+                        FROM "ThemeVersion" v WHERE v."themeId" = t.id),
+                       '[]'::json
+                   ) AS versions
             FROM "Theme" t
             JOIN "User" u ON t."creatorId" = u.id
-            LEFT JOIN LATERAL (
-                SELECT "kthemeFileUrl", "apkFileUrl"
-                FROM "ThemeVersion"
-                WHERE "themeId" = t.id
-                ORDER BY "createdAt" DESC
-                LIMIT 1
-            ) v ON true
             ORDER BY t."createdAt" DESC
         `;
         return NextResponse.json({ themes });

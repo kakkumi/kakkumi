@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-import { THEMES, THEME_COLORS } from "./data";
+// data.ts의 THEME_COLORS는 시드 데이터용 색상이므로 DB 테마엔 플레이스홀더 사용
+import { THEME_COLORS } from "./data";
 
 const SIDEBAR_MENUS = [
     {
@@ -17,62 +18,143 @@ const SIDEBAR_MENUS = [
 ];
 
 const SORT_OPTIONS = [
-    { key: "newest", label: "최신순" },
-    { key: "priceAsc", label: "낮은 가격순" },
-    { key: "priceDesc", label: "높은 가격순" },
-    { key: "sales", label: "판매량순" },
-    { key: "likes", label: "찜 많은 순" },
-    { key: "rating", label: "평점 높은 순" },
-    { key: "reviewCount", label: "리뷰 많은 순" },
+    { key: "newest",      label: "최신순" },
+    { key: "priceAsc",    label: "낮은 가격순" },
+    { key: "priceDesc",   label: "높은 가격순" },
+    { key: "sales",       label: "판매량순" },
 ];
 
-type SortKey = "priceAsc" | "priceDesc" | "sales" | "newest" | "likes" | "rating" | "reviewCount";
+type SortKey = "priceAsc" | "priceDesc" | "sales" | "newest";
+
+type DbTheme = {
+    id: string;
+    title: string;
+    description: string | null;
+    price: number;
+    thumbnailUrl: string | null;
+    images: string[];
+    tags: string[];
+    createdAt: string;
+    creatorNickname: string | null;
+    creatorName: string;
+    salesCount: number;
+};
+
+// 시드 데이터용 숫자 id 테마 타입
+type LegacyTheme = {
+    id: number;
+    dbId: string;
+    name: string;
+    author: string;
+    price: string;
+    priceNum: number;
+    tag: string;
+    category: string[];
+    sales: number;
+    createdAt: number;
+    likes: number;
+    reviews: number;
+    rating: number;
+    description: string;
+};
+
+// DB 테마를 통합 타입으로 변환
+type UnifiedTheme = {
+    key: string;          // 라우팅용 id
+    name: string;
+    author: string;
+    price: string;
+    priceNum: number;
+    tag: string;
+    category: string[];
+    sales: number;
+    createdAt: number;    // 상대 일수 (정렬용)
+    thumbnailUrl: string | null;
+    description: string;
+    isLegacy: boolean;
+    legacyId?: number;    // THEME_COLORS 조회용
+};
+
+function dbThemeToUnified(t: DbTheme): UnifiedTheme {
+    const daysSince = Math.floor((Date.now() - new Date(t.createdAt).getTime()) / 86400000);
+    return {
+        key: t.id,
+        name: t.title,
+        author: t.creatorNickname ?? t.creatorName,
+        price: t.price === 0 ? "무료" : `${t.price.toLocaleString()}원`,
+        priceNum: t.price,
+        tag: t.price === 0 ? "무료" : "",
+        category: t.tags,
+        sales: t.salesCount,
+        createdAt: daysSince,
+        thumbnailUrl: t.thumbnailUrl,
+        description: t.description ?? "",
+        isLegacy: false,
+    };
+}
+
+const PLACEHOLDER_GRADIENTS = [
+    "linear-gradient(135deg,#e0c3fc,#9d4edd)",
+    "linear-gradient(135deg,#90e0ef,#0077b6)",
+    "linear-gradient(135deg,#ffcb77,#f83600)",
+    "linear-gradient(135deg,#b7e4c7,#1b4332)",
+    "linear-gradient(135deg,#ffd6e7,#ff8fab)",
+];
 
 export default function StoreContent() {
     const router = useRouter();
     const [activeCategory, setActiveCategory] = useState("전체");
-    const [activePrice, setActivePrice] = useState("전체");
-    const [activeSort, setActiveSort] = useState<SortKey>("newest");
-    const [likedIds, setLikedIds] = useState<Set<number>>(new Set());
-    const [searchQuery, setSearchQuery] = useState("");
-    const [searchType, setSearchType] = useState<"전체" | "테마명" | "제작자" | "카테고리">("전체");
-    const [ownedDbIds, setOwnedDbIds] = useState<Set<string>>(new Set());
+    const [activePrice, setActivePrice]       = useState("전체");
+    const [activeSort, setActiveSort]         = useState<SortKey>("newest");
+    const [likedIds, setLikedIds]             = useState<Set<string>>(new Set());
+    const [searchQuery, setSearchQuery]       = useState("");
+    const [searchType, setSearchType]         = useState<"전체" | "테마명" | "제작자" | "카테고리">("전체");
+    const [ownedIds, setOwnedIds]             = useState<Set<string>>(new Set());
+    const [dbThemes, setDbThemes]             = useState<UnifiedTheme[]>([]);
+    const [loading, setLoading]               = useState(true);
 
+    // DB에서 PUBLISHED 테마 불러오기
+    useEffect(() => {
+        fetch("/api/themes")
+            .then(r => r.json())
+            .then((d: { themes: DbTheme[] }) => {
+                setDbThemes((d.themes ?? []).map(dbThemeToUnified));
+            })
+            .catch(() => {})
+            .finally(() => setLoading(false));
+    }, []);
+
+    // 보유 테마 불러오기
     useEffect(() => {
         fetch("/api/mypage/owned")
-            .then((r) => r.json())
-            .then((d: { ownedIds: string[] }) => setOwnedDbIds(new Set(d.ownedIds)))
+            .then(r => r.json())
+            .then((d: { ownedIds: string[] }) => setOwnedIds(new Set(d.ownedIds)))
             .catch(() => {});
     }, []);
 
-    const toggleLike = (id: number) => {
-        setLikedIds((prev) => {
+    const toggleLike = (key: string) => {
+        setLikedIds(prev => {
             const next = new Set(prev);
-            if (next.has(id)) {
-                next.delete(id);
-            } else {
-                next.add(id);
-            }
+            next.has(key) ? next.delete(key) : next.add(key);
             return next;
         });
     };
 
-    const filtered = THEMES.filter((t) => {
+    const themes = dbThemes;
+
+    const filtered = themes.filter(t => {
         const catMatch =
             activeCategory === "전체" ||
-            activeCategory === "인기" && t.tag === "인기" ||
-            activeCategory === "신규" && t.tag === "신규" ||
-            activeCategory === "무료" && t.tag === "무료" ||
-            activeCategory === "다크" && t.name.includes("다크") ||
-            activeCategory === "밝은 계열" && t.priceNum < 1500;
+            (activeCategory === "인기" && t.sales > 100) ||
+            t.category.some(c => c.includes(activeCategory));
 
         const priceMatch =
             activePrice === "전체" ||
-            activePrice === "무료" && t.priceNum === 0 ||
-            activePrice === "500원" && t.priceNum <= 500 ||
-            activePrice === "1,000원" && t.priceNum <= 1000 ||
-            activePrice === "1,500원" && t.priceNum <= 1500 ||
-            activePrice === "2,000원" && t.priceNum <= 2000;
+            (activePrice === "무료"    && t.priceNum === 0) ||
+            (activePrice === "500원"   && t.priceNum <= 500) ||
+            (activePrice === "1,000원" && t.priceNum <= 1000) ||
+            (activePrice === "1,500원" && t.priceNum <= 1500) ||
+            (activePrice === "2,000원" && t.priceNum <= 2000);
 
         const q = searchQuery.trim().toLowerCase();
         const searchMatch =
@@ -80,24 +162,21 @@ export default function StoreContent() {
             (searchType === "전체" && (
                 t.name.toLowerCase().includes(q) ||
                 t.author.toLowerCase().includes(q) ||
-                (t.category ?? []).some((c) => c.toLowerCase().includes(q)) ||
-                (t.description ?? "").toLowerCase().includes(q)
+                t.category.some(c => c.toLowerCase().includes(q)) ||
+                t.description.toLowerCase().includes(q)
             )) ||
-            (searchType === "테마명" && t.name.toLowerCase().includes(q)) ||
-            (searchType === "제작자" && t.author.toLowerCase().includes(q)) ||
-            (searchType === "카테고리" && (t.category ?? []).some((c) => c.toLowerCase().includes(q)));
+            (searchType === "테마명"   && t.name.toLowerCase().includes(q)) ||
+            (searchType === "제작자"   && t.author.toLowerCase().includes(q)) ||
+            (searchType === "카테고리" && t.category.some(c => c.toLowerCase().includes(q)));
 
         return catMatch && priceMatch && searchMatch;
     });
 
     const sorted = [...filtered].sort((a, b) => {
-        if (activeSort === "priceAsc") return a.priceNum - b.priceNum;
+        if (activeSort === "priceAsc")  return a.priceNum - b.priceNum;
         if (activeSort === "priceDesc") return b.priceNum - a.priceNum;
-        if (activeSort === "sales") return b.sales - a.sales;
-        if (activeSort === "newest") return a.createdAt - b.createdAt;
-        if (activeSort === "likes") return b.likes - a.likes;
-        if (activeSort === "rating") return b.rating - a.rating;
-        if (activeSort === "reviewCount") return b.reviews - a.reviews;
+        if (activeSort === "sales")     return b.sales - a.sales;
+        if (activeSort === "newest")    return a.createdAt - b.createdAt;
         return 0;
     });
 
@@ -108,28 +187,17 @@ export default function StoreContent() {
             <aside className="fixed w-[180px] flex flex-col gap-1 px-6 pt-12">
                 {SIDEBAR_MENUS.map((group, index) => (
                     <div key={group.category} className="flex flex-col gap-0.5">
-                        <span
-                            className="text-[11px] font-bold tracking-[0.15em] uppercase px-3 mb-1"
-                            style={{ color: "#8e8e93" }}
-                        >
+                        <span className="text-[11px] font-bold tracking-[0.15em] uppercase px-3 mb-1" style={{ color: "#8e8e93" }}>
                             {group.category}
                         </span>
-                        {group.items.map((item) => {
-                            const isActive =
-                                group.category === "카테고리" ? activeCategory === item : activePrice === item;
+                        {group.items.map(item => {
+                            const isActive = group.category === "카테고리" ? activeCategory === item : activePrice === item;
                             return (
                                 <button
                                     key={item}
-                                    onClick={() =>
-                                        group.category === "카테고리"
-                                            ? setActiveCategory(item)
-                                            : setActivePrice(item)
-                                    }
+                                    onClick={() => group.category === "카테고리" ? setActiveCategory(item) : setActivePrice(item)}
                                     className="text-left px-3 py-2 rounded-xl text-[13px] font-medium transition-all"
-                                    style={{
-                                        color: isActive ? "#FF9500" : "#3a3a3c",
-                                        fontWeight: isActive ? 700 : 500,
-                                    }}
+                                    style={{ color: isActive ? "#FF9500" : "#3a3a3c", fontWeight: isActive ? 700 : 500 }}
                                 >
                                     {item}
                                 </button>
@@ -144,7 +212,7 @@ export default function StoreContent() {
 
             {/* ── 메인 콘텐츠 ── */}
             <main className="flex-1 flex flex-col gap-5 px-6 pt-12 pb-20" style={{ marginLeft: 180 }}>
-                {/* 헤더 텍스트 */}
+                {/* 헤더 */}
                 <div className="flex items-end justify-between">
                     <div className="flex flex-col gap-1">
                         <span className="text-[12px] font-bold tracking-[0.2em] text-black/40 uppercase">테마 스토어</span>
@@ -166,51 +234,24 @@ export default function StoreContent() {
                 </div>
 
                 {/* 검색바 */}
-                <div
-                    className="flex items-center p-1 gap-1.5"
-                    style={{
-                        background: "#dde4ee",
-                        borderRadius: 999,
-                        maxWidth: 480,
-                    }}
-                >
-                    {/* 검색 타입 선택 */}
+                <div className="flex items-center p-1 gap-1.5" style={{ background: "#dde4ee", borderRadius: 999, maxWidth: 480 }}>
                     <div className="relative shrink-0">
                         <select
                             value={searchType}
-                            onChange={(e) => setSearchType(e.target.value as typeof searchType)}
+                            onChange={e => setSearchType(e.target.value as typeof searchType)}
                             className="appearance-none pl-3 pr-7 text-[12px] font-bold outline-none cursor-pointer"
-                            style={{
-                                background: "transparent",
-                                color: "#1c1c1e",
-                                border: "none",
-                                height: 34,
-                            }}
+                            style={{ background: "transparent", color: "#1c1c1e", border: "none", height: 34 }}
                         >
-                            {(["전체", "테마명", "제작자", "카테고리"] as const).map((t) => (
+                            {(["전체", "테마명", "제작자", "카테고리"] as const).map(t => (
                                 <option key={t} value={t}>{t}</option>
                             ))}
                         </select>
-                        <svg
-                            className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none"
-                            width="10" height="10" viewBox="0 0 24 24" fill="none"
-                            stroke="#1c1c1e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
-                        >
+                        <svg className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M6 9l6 6 6-6" />
                         </svg>
                     </div>
-
-                    {/* 구분선 */}
                     <div className="w-[1px] h-4 shrink-0" style={{ background: "rgba(0,0,0,0.15)" }} />
-
-                    <div
-                        className="flex-1 flex items-center px-3"
-                        style={{
-                            background: "#fff",
-                            borderRadius: 999,
-                            height: 34,
-                        }}
-                    >
+                    <div className="flex-1 flex items-center px-3" style={{ background: "#fff", borderRadius: 999, height: 34 }}>
                         <input
                             type="text"
                             value={searchQuery}
@@ -225,12 +266,9 @@ export default function StoreContent() {
                             style={{ color: "#1c1c1e" }}
                         />
                         {searchQuery && (
-                            <button
-                                type="button"
-                                onClick={() => setSearchQuery("")}
+                            <button type="button" onClick={() => setSearchQuery("")}
                                 className="mr-1 shrink-0 flex items-center justify-center w-5 h-5 rounded-full transition-all hover:opacity-70"
-                                style={{ background: "rgba(0,0,0,0.1)" }}
-                            >
+                                style={{ background: "rgba(0,0,0,0.1)" }}>
                                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                                     <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                                 </svg>
@@ -239,123 +277,118 @@ export default function StoreContent() {
                     </div>
                 </div>
 
-                {/* 정렬 옵션 */}
+                {/* 정렬 */}
                 <div className="flex gap-2 flex-wrap">
-                    {SORT_OPTIONS.map((opt) => (
+                    {SORT_OPTIONS.map(opt => (
                         <button
                             key={opt.key}
                             onClick={() => setActiveSort(opt.key as SortKey)}
                             className="px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all"
-                            style={{
-                                background: activeSort === opt.key ? "#1c1c1e" : "rgba(0,0,0,0.05)",
-                                color: activeSort === opt.key ? "#fff" : "#3a3a3c",
-                            }}
+                            style={{ background: activeSort === opt.key ? "#1c1c1e" : "rgba(0,0,0,0.05)", color: activeSort === opt.key ? "#fff" : "#3a3a3c" }}
                         >
                             {opt.label}
                         </button>
                     ))}
                     <span className="ml-auto text-[12px] self-center" style={{ color: "#8e8e93" }}>
-                        {sorted.length}개
+                        {loading ? "로딩 중..." : `${sorted.length}개`}
                     </span>
                 </div>
 
-                {/* 테마 그리드 — 4열 */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {sorted.map((theme) => (
-                        <div
-                            key={theme.id}
-                            onClick={() => router.push(`/store/${theme.id}`)}
-                            className="flex flex-col rounded-[20px] overflow-hidden transition-all hover:-translate-y-1 hover:shadow-xl cursor-pointer"
-                            style={{
-                                background: "rgba(255,255,255,0.5)",
-                                border: "1px solid rgba(255,255,255,0.8)",
-                                boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
-                                backdropFilter: "blur(20px)",
-                            }}
-                        >
-                            {/* 미리보기 */}
-                            <div
-                                className="relative aspect-square flex items-center justify-center"
-                                style={{ background: THEME_COLORS[theme.id]?.main ?? "rgba(0,0,0,0.06)" }}
-                            >
-                                {theme.tag && (
-                                    <span
-                                        className="absolute top-2.5 left-3 text-[10px] font-bold px-2 py-0.5 rounded-full"
-                                        style={{
-                                            background: theme.tag === "무료" ? "#FFEF9A" : "#aabde8",
-                                            color: "#1c1c1e",
-                                        }}
-                                    >
-                                        {theme.tag}
-                                    </span>
-                                )}
-                                {ownedDbIds.has(theme.dbId) && (
-                                    <span
-                                        className="absolute top-2.5 text-[10px] font-bold px-2 py-0.5 rounded-full"
-                                        style={{
-                                            background: "rgba(52,199,89,0.9)",
-                                            color: "#fff",
-                                            left: theme.tag ? "calc(0.75rem + 3rem)" : "0.75rem",
-                                        }}
-                                    >
-                                        보유중
-                                    </span>
-                                )}
-                                {/* 하트 버튼 */}
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); toggleLike(theme.id); }}
-                                    className="absolute top-2.5 right-3 w-7 h-7 rounded-full flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
-                                    style={{ background: "rgba(0,0,0,0.2)", backdropFilter: "blur(4px)" }}
+                {/* 테마 그리드 */}
+                {loading ? (
+                    <div className="flex items-center justify-center py-24">
+                        <span className="text-[14px]" style={{ color: "#8e8e93" }}>테마를 불러오는 중...</span>
+                    </div>
+                ) : sorted.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-24 gap-3">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#c8c8cd" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/>
+                        </svg>
+                        <p className="text-[14px]" style={{ color: "#8e8e93" }}>조건에 맞는 테마가 없어요.</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {sorted.map((theme, idx) => {
+                            const legacyColor = theme.legacyId ? THEME_COLORS[theme.legacyId]?.main : null;
+                            const bg = legacyColor ?? PLACEHOLDER_GRADIENTS[idx % PLACEHOLDER_GRADIENTS.length];
+                            return (
+                                <div
+                                    key={theme.key}
+                                    onClick={() => router.push(`/store/${theme.key}`)}
+                                    className="flex flex-col rounded-[20px] overflow-hidden transition-all hover:-translate-y-1 hover:shadow-xl cursor-pointer"
+                                    style={{ background: "rgba(255,255,255,0.5)", border: "1px solid rgba(255,255,255,0.8)", boxShadow: "0 4px 20px rgba(0,0,0,0.06)", backdropFilter: "blur(20px)" }}
                                 >
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill={likedIds.has(theme.id) ? "#ff3b30" : "none"} stroke={likedIds.has(theme.id) ? "#ff3b30" : "rgba(255,255,255,0.95)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                                    </svg>
-                                </button>
-                            </div>
+                                    {/* 미리보기 */}
+                                    <div className="relative aspect-square flex items-center justify-center overflow-hidden">
+                                        {theme.thumbnailUrl ? (
+                                            <img src={theme.thumbnailUrl} alt={theme.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full" style={{ background: bg }} />
+                                        )}
+                                        {theme.tag && (
+                                            <span className="absolute top-2.5 left-3 text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                                style={{ background: theme.tag === "무료" ? "#FFEF9A" : "#aabde8", color: "#1c1c1e" }}>
+                                                {theme.tag}
+                                            </span>
+                                        )}
+                                        {ownedIds.has(theme.key) && (
+                                            <span className="absolute top-2.5 text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                                style={{ background: "rgba(52,199,89,0.9)", color: "#fff", left: theme.tag ? "calc(0.75rem + 3rem)" : "0.75rem" }}>
+                                                보유중
+                                            </span>
+                                        )}
+                                        <button
+                                            onClick={e => { e.stopPropagation(); toggleLike(theme.key); }}
+                                            className="absolute top-2.5 right-3 w-7 h-7 rounded-full flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
+                                            style={{ background: "rgba(0,0,0,0.2)", backdropFilter: "blur(4px)" }}
+                                        >
+                                            <svg width="14" height="14" viewBox="0 0 24 24"
+                                                fill={likedIds.has(theme.key) ? "#ff3b30" : "none"}
+                                                stroke={likedIds.has(theme.key) ? "#ff3b30" : "rgba(255,255,255,0.95)"}
+                                                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                                            </svg>
+                                        </button>
+                                    </div>
 
-                            {/* 정보 */}
-                            <div className="flex flex-col gap-2.5 p-4">
-                                <div className="flex items-start justify-between">
-                                    <div className="flex flex-col gap-0.5">
-                                        <h3 className="text-[13px] font-bold" style={{ color: "#1c1c1e" }}>{theme.name}</h3>
-                                        <span className="text-[12px]" style={{ color: "#3f3f45" }}>by {theme.author}</span>
-                                    </div>
-                                    <span className="text-[14px] font-medium" style={{ color: "#1c1c1e" }}>
-                                        {theme.price}
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-2.5">
-                                    <div className="flex items-center gap-1">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFB800" stroke="#FFB800" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                                        </svg>
-                                        <span className="text-[12px] font-semibold" style={{ color: "#1c1c1e" }}>{theme.rating.toFixed(1)}</span>
-                                    </div>
-                                    <span className="text-[12px]" style={{ color: "#b0b0b5" }}>·</span>
-                                    <span className="text-[12px]" style={{ color: "#3a3a3c" }}>리뷰 {theme.reviews.toLocaleString()}개</span>
-                                    <span className="text-[12px]" style={{ color: "#b0b0b5" }}>·</span>
-                                    <div className="flex items-center gap-1">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3a3a3c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d="M12 3v13M7 11l5 5 5-5"/><path d="M5 20h14"/>
-                                        </svg>
-                                        <span className="text-[12px]" style={{ color: "#3a3a3c" }}>{theme.sales.toLocaleString()}</span>
+                                    {/* 정보 */}
+                                    <div className="flex flex-col gap-2 p-4">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex flex-col gap-0.5">
+                                                <h3 className="text-[13px] font-bold" style={{ color: "#1c1c1e" }}>{theme.name}</h3>
+                                                <span className="text-[12px]" style={{ color: "#3f3f45" }}>by {theme.author}</span>
+                                            </div>
+                                            <span className="text-[14px] font-medium shrink-0 ml-2" style={{ color: "#1c1c1e" }}>{theme.price}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 text-[11px]" style={{ color: "#8e8e93" }}>
+                                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M12 3v13M7 11l5 5 5-5"/><path d="M5 20h14"/>
+                                            </svg>
+                                            {theme.sales.toLocaleString()}
+                                            {theme.category.length > 0 && (
+                                                <>
+                                                    <span style={{ color: "#c8c8cd" }}>·</span>
+                                                    <span className="truncate">{theme.category.slice(0, 2).join(", ")}</span>
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                            );
+                        })}
+                    </div>
+                )}
             </main>
 
-            {/* ── 페이지업 버튼 ── */}
+            {/* 페이지업 버튼 */}
             <button
-                onClick={() => document.getElementById("store-scroll")?.scrollTo({ top: 0, behavior: "smooth" })}
-                    className="fixed bottom-8 right-8 w-11 h-11 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
-                    style={{ background: "rgba(28,28,30,0.3)", backdropFilter: "blur(10px)", boxShadow: "0 4px 16px rgba(0,0,0,0.18)" }}
-                >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M18 15l-6-6-6 6"/>
-                    </svg>
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                className="fixed bottom-8 right-8 w-11 h-11 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+                style={{ background: "rgba(28,28,30,0.3)", backdropFilter: "blur(10px)", boxShadow: "0 4px 16px rgba(0,0,0,0.18)" }}
+            >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 15l-6-6-6 6"/>
+                </svg>
             </button>
         </div>
     );

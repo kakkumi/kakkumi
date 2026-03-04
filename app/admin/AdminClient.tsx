@@ -10,7 +10,7 @@ type AdminTheme = {
     status: string; adminNote: string | null; createdAt: string;
     creatorNickname: string | null; creatorName: string;
     thumbnailUrl: string | null; images: string[]; tags: string[];
-    kthemeFileUrl: string | null; apkFileUrl: string | null;
+    versions: { version: string; kthemeFileUrl: string | null; apkFileUrl: string | null }[];
 };
 type AdminUser = {
     id: string; name: string; nickname: string | null; email: string | null;
@@ -1055,41 +1055,38 @@ function ThemeManageTab({
                                                 <span className="text-[12px] font-semibold" style={{ color: "#1c1c1e" }}>{formatKST(t.createdAt, true)}</span>
                                             </div>
 
-                                            {/* 테마 파일 */}
-                                            {(t.kthemeFileUrl || t.apkFileUrl) && (
+                                            {/* 테마 파일 옵션 */}
+                                            {t.versions && t.versions.length > 0 && (
                                                 <div className="rounded-xl p-3 flex flex-col gap-2" style={{ background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.06)" }}>
-                                                    <span className="text-[11px]" style={{ color: "#8e8e93" }}>첨부 파일</span>
-                                                    <div className="flex flex-col gap-1.5">
-                                                        {t.kthemeFileUrl && (
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0" style={{ background: "rgba(255,149,0,0.12)", color: "#c97000" }}>iOS · PC</span>
-                                                                <a
-                                                                    href={t.kthemeFileUrl}
-                                                                    download
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="text-[12px] font-medium truncate underline transition-all hover:opacity-70"
-                                                                    style={{ color: "#007aff" }}
-                                                                >
-                                                                    {t.kthemeFileUrl.split("/").pop()}
-                                                                </a>
+                                                    <span className="text-[11px]" style={{ color: "#8e8e93" }}>첨부 파일 ({t.versions.length}개 옵션)</span>
+                                                    <div className="flex flex-col gap-3">
+                                                        {t.versions.map((v, vi) => (
+                                                            <div key={vi} className="flex flex-col gap-1.5">
+                                                                <span className="text-[11px] font-bold" style={{ color: "#1c1c1e" }}>
+                                                                    옵션 {vi + 1}: {v.version}
+                                                                </span>
+                                                                {v.kthemeFileUrl && (
+                                                                    <div className="flex items-center gap-2 pl-2">
+                                                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0" style={{ background: "rgba(255,149,0,0.12)", color: "#c97000" }}>iOS · PC</span>
+                                                                        <a href={v.kthemeFileUrl} download target="_blank" rel="noopener noreferrer"
+                                                                            className="text-[12px] font-medium truncate underline hover:opacity-70 transition-all"
+                                                                            style={{ color: "#007aff" }}>
+                                                                            {v.kthemeFileUrl.split("/").pop()}
+                                                                        </a>
+                                                                    </div>
+                                                                )}
+                                                                {v.apkFileUrl && (
+                                                                    <div className="flex items-center gap-2 pl-2">
+                                                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0" style={{ background: "rgba(52,199,89,0.12)", color: "#1a7a3a" }}>Android</span>
+                                                                        <a href={v.apkFileUrl} download target="_blank" rel="noopener noreferrer"
+                                                                            className="text-[12px] font-medium truncate underline hover:opacity-70 transition-all"
+                                                                            style={{ color: "#007aff" }}>
+                                                                            {v.apkFileUrl.split("/").pop()}
+                                                                        </a>
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                        )}
-                                                        {t.apkFileUrl && (
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0" style={{ background: "rgba(52,199,89,0.12)", color: "#1a7a3a" }}>Android</span>
-                                                                <a
-                                                                    href={t.apkFileUrl}
-                                                                    download
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="text-[12px] font-medium truncate underline transition-all hover:opacity-70"
-                                                                    style={{ color: "#007aff" }}
-                                                                >
-                                                                    {t.apkFileUrl.split("/").pop()}
-                                                                </a>
-                                                            </div>
-                                                        )}
+                                                        ))}
                                                     </div>
                                                 </div>
                                             )}
@@ -1132,6 +1129,8 @@ function ThemeManageTab({
         </div>
     );
 }
+
+
 
 
 
