@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffd6e7"/>
+      <stop offset="100%" stop-color="#ffb3c6"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="600" fill="url(#g)"/>
+  <circle cx="300" cy="220" r="120" fill="rgba(255,255,255,0.25)"/>
+  <circle cx="160" cy="400" r="70" fill="rgba(255,182,193,0.4)"/>
+  <circle cx="460" cy="380" r="90" fill="rgba(255,192,203,0.35)"/>
+  <rect x="80" y="500" width="440" height="60" rx="16" fill="rgba(255,255,255,0.3)"/>
+  <rect x="120" y="515" width="200" height="14" rx="7" fill="rgba(200,80,100,0.3)"/>
+  <rect x="120" y="537" width="140" height="10" rx="5" fill="rgba(200,80,100,0.2)"/>
+  <text x="300" y="235" text-anchor="middle" font-size="18" fill="rgba(180,60,80,0.7)" font-family="sans-serif" font-weight="bold">봄 벚꽃</text>
+</svg>

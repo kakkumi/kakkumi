@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-import { THEMES } from "./data";
+import { THEMES, THEME_COLORS } from "./data";
 
 const SIDEBAR_MENUS = [
     {
@@ -73,7 +73,12 @@ export default function StoreContent() {
             activePrice === "1,500원" && t.priceNum <= 1500 ||
             activePrice === "2,000원" && t.priceNum <= 2000;
 
-        const searchMatch = searchQuery.trim() === "" || t.name.includes(searchQuery.trim());
+        const searchMatch =
+            searchQuery.trim() === "" ||
+            t.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+            t.author.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+            (t.category ?? []).some((c) => c.toLowerCase().includes(searchQuery.trim().toLowerCase())) ||
+            (t.description ?? "").toLowerCase().includes(searchQuery.trim().toLowerCase());
 
         return catMatch && priceMatch && searchMatch;
     });
@@ -228,7 +233,7 @@ export default function StoreContent() {
                             {/* 미리보기 */}
                             <div
                                 className="relative aspect-square flex items-center justify-center"
-                                style={{ background: "rgba(0,0,0,0.06)" }}
+                                style={{ background: THEME_COLORS[theme.id]?.main ?? "rgba(0,0,0,0.06)" }}
                             >
                                 {theme.tag && (
                                     <span

@@ -3,10 +3,9 @@ import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import ThemeActionButtons from "./ThemeActionButtons";
+import ThemeDetailLayout from "./ThemeDetailLayout";
 
 export function generateStaticParams() {
     return THEMES.map((theme) => ({
@@ -58,128 +57,23 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
                     스토어로 돌아가기
                 </Link>
 
-                <div className="grid grid-cols-1 lg:grid-cols-[580px_1fr] gap-16">
-                    {/* 왼쪽: 메인 이미지 */}
-                    <div
-                        className="rounded-[28px] overflow-hidden relative bg-gray-100"
-                        style={{ width: "580px", height: "580px", boxShadow: "0 8px 40px rgba(0,0,0,0.10)", border: "1px solid rgba(0,0,0,0.06)" }}
-                    >
-                        <Image
-                            src={theme.images && theme.images.length > 0 ? theme.images[0] : "/back.jpg"}
-                            alt={theme.name}
-                            fill
-                            className="object-cover"
-                        />
-                        {theme.tag && (
-                            <span
-                                className="absolute top-5 left-5 text-[12px] font-bold px-3 py-1 rounded-full backdrop-blur-md"
-                                style={{
-                                    background: theme.tag === "무료" ? "rgba(255, 239, 154, 0.92)" : "rgba(170, 189, 232, 0.92)",
-                                    color: "#1c1c1e",
-                                }}
-                            >
-                                {theme.tag}
-                            </span>
-                        )}
-                    </div>
-
-                    {/* 오른쪽: 상세 정보 */}
-                    <div className="flex flex-col justify-between py-2">
-                        {/* 상단 고정 영역 */}
-                        <div>
-                            {/* 제목 영역 */}
-                            <div className="mb-6">
-                                <div className="flex items-start justify-between gap-4 mt-1">
-                                    <h1 className="text-[28px] font-extrabold leading-tight text-gray-900" style={{ fontFamily: "'ChosunIlboMyungjo', serif" }}>
-                                        {theme.name}
-                                    </h1>
-                                    <div className="flex flex-col items-end shrink-0 pt-1">
-                                        <span className="text-[28px] font-bold text-gray-900">{theme.price}</span>
-                                        {theme.priceNum > 0 && theme.priceNum < 2000 && (
-                                            <p className="text-[12px] text-red-400 font-medium mt-0.5">✨ 출시 기념 할인 중</p>
-                                        )}
-                                    </div>
-                                </div>
-                                <p className="text-[14px] text-gray-400 mt-2">
-                                    by <span className="text-gray-600 font-semibold">{theme.author}</span>
-                                </p>
-                            </div>
-
-                            {/* 카테고리 태그 */}
-                            <div className="flex flex-wrap gap-2 mb-6">
-                                {theme.category && theme.category.map((cat) => (
-                                    <span
-                                        key={cat}
-                                        className="text-[12px] font-medium px-3 py-1 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors cursor-default"
-                                    >
-                                        # {cat}
-                                    </span>
-                                ))}
-                            </div>
-
-                            {/* 미니 미리보기 이미지 5개 */}
-                            <div className="grid grid-cols-5 gap-2">
-                                {(theme.previews ?? ["/back.jpg", "/back.jpg", "/back.jpg", "/back.jpg", "/back.jpg"]).map((src, i) => (
-                                    <div
-                                        key={i}
-                                        className="aspect-square rounded-[10px] overflow-hidden relative bg-gray-100 cursor-pointer hover:opacity-90 hover:ring-2 hover:ring-blue-400 transition-all"
-                                        style={{ border: "1px solid rgba(0,0,0,0.06)" }}
-                                    >
-                                        <Image src={src} alt={`preview-${i + 1}`} fill className="object-cover" />
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* 하단 올라오는 영역 */}
-                        <div className="flex flex-col gap-6">
-                            {/* 설명 */}
-                            <p className="text-[15px] leading-relaxed text-gray-500">
-                                {theme.description || "이 테마는 작가가 정성스럽게 제작한 카카오톡 테마입니다.\n당신의 일상 대화를 더욱 특별하게 만들어보세요."}
-                            </p>
-
-                            {/* 통계 + 평점 */}
-                            <div className="flex items-center gap-12">
-                                <div className="flex flex-col gap-0.5">
-                                    <span className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Sales</span>
-                                    <span className="text-[16px] font-bold text-gray-800">{theme.sales.toLocaleString()}</span>
-                                </div>
-                                <div className="flex flex-col gap-0.5">
-                                    <span className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Published</span>
-                                    <span className="text-[16px] font-bold text-gray-800">{theme.createdAt}일 전</span>
-                                </div>
-                                <div className="flex flex-col gap-0.5">
-                                    <span className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Likes</span>
-                                    <span className="text-[16px] font-bold text-gray-800">{theme.likes}</span>
-                                </div>
-                                <div className="flex flex-col gap-0.5">
-                                    <span className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Rating</span>
-                                    <div className="flex items-center gap-1">
-                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="#FFB800" stroke="#FFB800" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                                        </svg>
-                                        <span className="text-[16px] font-bold text-gray-800">{theme.rating}</span>
-                                    </div>
-                                </div>
-                                <div className="flex flex-col gap-0.5">
-                                    <span className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Reviews</span>
-                                    <span className="text-[16px] font-bold text-gray-800 underline cursor-pointer hover:text-blue-500">{theme.reviews.toLocaleString()}개</span>
-                                </div>
-                            </div>
-
-                            {/* 액션 버튼 */}
-                            <ThemeActionButtons
-                                themeId={theme.dbId}
-                                themeMockId={theme.id}
-                                priceNum={theme.priceNum}
-                                priceName={theme.price}
-                                isLoggedIn={isLoggedIn}
-                                userId={session?.dbId ?? undefined}
-                                isOwned={isOwned}
-                            />
-                        </div>
-                    </div>
-                </div>
+                <ThemeDetailLayout
+                    images={theme.images ?? []}
+                    previews={theme.previews ?? []}
+                    name={theme.name}
+                    tag={theme.tag}
+                    themeId={theme.id}
+                    price={theme.price}
+                    priceNum={theme.priceNum}
+                    author={theme.author}
+                    description={theme.description ?? ""}
+                    category={theme.category ?? []}
+                    stats={{ sales: theme.sales, createdAt: theme.createdAt, likes: theme.likes, rating: theme.rating, reviews: theme.reviews }}
+                    dbId={theme.dbId}
+                    isLoggedIn={isLoggedIn}
+                    userId={session?.dbId ?? undefined}
+                    isOwned={isOwned}
+                />
 
                 {/* 하단 탭 영역 */}
                 <div className="mt-20 border-t border-gray-100 pt-10">
