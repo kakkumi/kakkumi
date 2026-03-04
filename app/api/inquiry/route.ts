@@ -23,10 +23,10 @@ export async function GET() {
             {
                 id: string; inquiryId: string; authorId: string; content: string;
                 isAdmin: boolean; createdAt: Date;
-                authorName: string; authorImage: string | null; authorRole: string;
+                authorName: string; authorNickname: string | null; authorImage: string | null; authorRole: string;
             }[]
         >`
-            SELECT r.*, u.name AS "authorName", u.image AS "authorImage", u.role AS "authorRole"
+            SELECT r.*, u.name AS "authorName", u.nickname AS "authorNickname", u.image AS "authorImage", u.role AS "authorRole"
             FROM "InquiryReply" r
             JOIN "User" u ON u.id = r."authorId"
             WHERE r."inquiryId" = ANY(${inquiries.map((i) => i.id)}::text[])
@@ -44,7 +44,7 @@ export async function GET() {
                 content: r.content,
                 isAdmin: r.isAdmin,
                 createdAt: r.createdAt,
-                author: { name: r.authorName, image: r.authorImage, role: r.authorRole },
+                author: { name: r.authorNickname ?? r.authorName, image: r.authorImage, role: r.authorRole },
             })),
     }));
 

@@ -58,13 +58,9 @@ export default async function MyPage() {
         {
             category: "쇼핑",
             items: [
-                { label: "적립금" }, { label: "작성 가능한 후기" }, { label: "쿠폰" },
+                { label: "리뷰" }, { label: "적립금" }, { label: "작성 가능한 후기" }, { label: "쿠폰" },
                 { label: "주문 내역" }, { label: "취소/환불 내역" }, { label: "최근 본 상품" }, { label: "좋아요" },
             ],
-        },
-        {
-            category: "활동",
-            items: [{ label: "1:1문의 내역" }, { label: "리뷰" }],
         },
         {
             category: "수익",

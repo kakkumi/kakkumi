@@ -128,7 +128,7 @@ export default function ThemeActionButtons(props: Props) {
                 body: JSON.stringify({
                     themeId: props.themeId,
                     reason: reportReason,
-                    detail: reportDetail.trim() || undefined,
+                    detail: reportDetail.trim(),
                 }),
             });
             const data = await res.json() as { ok?: boolean; error?: string };
@@ -161,7 +161,7 @@ export default function ThemeActionButtons(props: Props) {
                 >
                     <div
                         className="flex flex-col w-full max-w-[460px] rounded-[24px] overflow-hidden"
-                        style={{ background: "#fff", boxShadow: "0 24px 60px rgba(0,0,0,0.18)", maxHeight: "90vh", overflowY: "auto" }}
+                        style={{ background: "#fff", boxShadow: "0 24px 60px rgba(0,0,0,0.18)" }}
                     >
                         {reportSubmitted ? (
                             <div className="flex flex-col items-center gap-4 py-12 px-8">
@@ -235,13 +235,13 @@ export default function ThemeActionButtons(props: Props) {
                                     </div>
                                     <div className="flex flex-col gap-1.5">
                                         <label className="text-[13px] font-semibold text-gray-700">
-                                            상세 내용 <span className="text-gray-400 font-normal">(선택)</span>
+                                            상세 내용 <span className="text-red-500">*</span>
                                         </label>
                                         <textarea
                                             rows={3}
                                             value={reportDetail}
                                             onChange={(e) => setReportDetail(e.target.value)}
-                                            placeholder="신고 사유를 구체적으로 적어주시면 빠른 처리에 도움이 됩니다."
+                                            placeholder="신고 사유를 구체적으로 적어주세요."
                                             maxLength={300}
                                             className="px-4 py-3 rounded-[10px] text-[13px] outline-none resize-none"
                                             style={{ background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.08)", color: "#1c1c1e" }}
@@ -274,7 +274,7 @@ export default function ThemeActionButtons(props: Props) {
                                     )}
                                     <button
                                         onClick={handleReportSubmit}
-                                        disabled={!reportReason || !reportAgreed || reportLoading}
+                                        disabled={!reportReason || !reportAgreed || !reportDetail.trim() || reportLoading}
                                         className="w-full py-3.5 rounded-[12px] text-[14px] font-bold text-white transition-all active:scale-[0.98] disabled:opacity-40"
                                         style={{ background: "#ef4444" }}
                                     >

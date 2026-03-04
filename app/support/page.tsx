@@ -619,7 +619,7 @@ export default function SupportPage() {
                                             {selectedInquiry.replies.map((reply) => (
                                                 <div
                                                     key={reply.id}
-                                                    className={`rounded-[16px] px-5 py-4 flex flex-col gap-2 ${reply.isAdmin ? "ml-0" : "ml-6"}`}
+                                                    className={`rounded-[16px] px-4 py-2.5 flex flex-col gap-1.5 ${reply.isAdmin ? "ml-0" : "ml-6"}`}
                                                     style={{
                                                         background: reply.isAdmin ? "rgba(255,149,0,0.07)" : "rgba(74,123,247,0.07)",
                                                         border: `1px solid ${reply.isAdmin ? "rgba(255,149,0,0.2)" : "rgba(74,123,247,0.15)"}`,

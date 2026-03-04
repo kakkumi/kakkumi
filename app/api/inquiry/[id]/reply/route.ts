@@ -19,7 +19,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     `;
     if (!inquiry) return NextResponse.json({ error: "문의를 찾을 수 없습니다." }, { status: 404 });
 
-    const user = await prisma.user.findUnique({ where: { id: session.dbId }, select: { role: true, name: true, image: true } });
+    const user = await prisma.user.findUnique({ where: { id: session.dbId }, select: { role: true, name: true, nickname: true, image: true } });
     const isAdmin = user?.role === "ADMIN";
 
     if (inquiry.userId !== session.dbId && !isAdmin) {
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         content: content.trim(),
         isAdmin,
         createdAt: now,
-        author: { name: user?.name ?? "", image: user?.image ?? null, role: user?.role ?? "USER" },
+        author: { name: user?.nickname ?? user?.name ?? "", image: user?.image ?? null, role: user?.role ?? "USER" },
     };
 
     return NextResponse.json({ reply });
