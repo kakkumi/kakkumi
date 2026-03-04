@@ -198,22 +198,21 @@ export default function SettingsClient({ session }: Props) {
                 </a>
                 <div className="h-[1px] mb-3" style={{ background: "rgba(0,0,0,0.08)" }} />
                 {[
-                    { label: "기본 정보", icon: "user", active: true },
-                    { label: "비밀번호", icon: "lock", active: false },
-                    { label: "알림 설정", icon: "bell", active: false },
-                    { label: "연결된 계정", icon: "link", active: false },
+                    { label: "기본 정보", href: "/mypage/settings", active: true },
+                    { label: "알림 설정", href: "/mypage/settings/notifications", active: false },
                 ].map((item) => (
-                    <button
-                        key={item.label}
-                        className="text-left px-3 py-2 rounded-xl text-[13px] font-medium transition-all"
-                        style={{
-                            color: item.active ? "#FF9500" : "#3a3a3c",
-                            background: "transparent",
-                            fontWeight: item.active ? 700 : 500,
-                        }}
-                    >
-                        {item.label}
-                    </button>
+                    <a key={item.label} href={item.href}>
+                        <button
+                            className="w-full text-left px-3 py-2 rounded-xl text-[13px] font-medium transition-all"
+                            style={{
+                                color: item.active ? "#FF9500" : "#3a3a3c",
+                                background: "transparent",
+                                fontWeight: item.active ? 700 : 500,
+                            }}
+                        >
+                            {item.label}
+                        </button>
+                    </a>
                 ))}
                 <div className="my-3 h-[1px]" style={{ background: "rgba(0,0,0,0.08)" }} />
                 <button
