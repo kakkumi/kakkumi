@@ -7,9 +7,7 @@ const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 
 function signSession(payload: Record<string, unknown>, secret: string) {
     const json = JSON.stringify(payload);
-    const signature = createHmac("sha256", secret)
-        .update(json)
-        .digest("base64url");
+    const signature = createHmac("sha256", secret).update(json).digest("base64url");
     const body = Buffer.from(json).toString("base64url");
     return `${body}.${signature}`;
 }
@@ -35,99 +33,133 @@ export async function GET(request: Request) {
         );
     }
 
-    const tokenResponse = await fetch("https://kauth.kakao.com/oauth/token", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
-        },
-        body: new URLSearchParams({
-            grant_type: "authorization_code",
-            client_id: clientId,
-            redirect_uri: redirectUri,
-            code,
-            ...(clientSecret ? { client_secret: clientSecret } : {}),
-        }),
-    });
+    try {
+        // 1) 토큰 발급
+        const tokenResponse = await fetch("https://kauth.kakao.com/oauth/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
+            body: new URLSearchParams({
+                grant_type: "authorization_code",
+                client_id: clientId,
+                redirect_uri: redirectUri,
+                code,
+                ...(clientSecret ? { client_secret: clientSecret } : {}),
+            }),
+        });
 
-    if (!tokenResponse.ok) {
-        return NextResponse.redirect(new URL("/?login=failed", url.origin));
-    }
+        if (!tokenResponse.ok) {
+            return NextResponse.redirect(new URL("/?login=failed", url.origin));
+        }
 
-    const tokenJson = (await tokenResponse.json()) as {
-        access_token?: string;
-    };
+        const tokenJson = (await tokenResponse.json()) as { access_token?: string };
+        if (!tokenJson.access_token) {
+            return NextResponse.redirect(new URL("/?login=failed", url.origin));
+        }
 
-    if (!tokenJson.access_token) {
-        return NextResponse.redirect(new URL("/?login=failed", url.origin));
-    }
+        // 2) 프로필 조회
+        const profileResponse = await fetch("https://kapi.kakao.com/v2/user/me", {
+            headers: {
+                Authorization: `Bearer ${tokenJson.access_token}`,
+                "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
+            },
+        });
 
-    const profileResponse = await fetch("https://kapi.kakao.com/v2/user/me", {
-        headers: {
-            Authorization: `Bearer ${tokenJson.access_token}`,
-            "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
-        },
-    });
+        if (!profileResponse.ok) {
+            return NextResponse.redirect(new URL("/?login=failed", url.origin));
+        }
 
-    if (!profileResponse.ok) {
-        return NextResponse.redirect(new URL("/?login=failed", url.origin));
-    }
-
-    const profileJson = (await profileResponse.json()) as {
-        id?: number;
-        kakao_account?: {
-            email?: string;
-            profile?: {
-                nickname?: string;
-                profile_image_url?: string;
+        const profileJson = (await profileResponse.json()) as {
+            id?: number;
+            kakao_account?: {
+                email?: string;
+                profile?: { nickname?: string; profile_image_url?: string };
             };
         };
-    };
 
-    const kakaoId = String(profileJson.id);
-    const email = profileJson.kakao_account?.email ?? null;
-    const name = profileJson.kakao_account?.profile?.nickname ?? "카카오 사용자";
-    const image = profileJson.kakao_account?.profile?.profile_image_url ?? null;
+        const kakaoId = String(profileJson.id);
+        const email = profileJson.kakao_account?.email ?? null;
+        const name = profileJson.kakao_account?.profile?.nickname ?? "카카오 사용자";
+        const image = profileJson.kakao_account?.profile?.profile_image_url ?? null;
 
-    // DB upsert — kakaoId 기준으로 없으면 생성, 있으면 이름/이미지/이메일 업데이트 (nickname은 건드리지 않음)
-    const dbUser = await prisma.user.upsert({
-        where: { kakaoId },
-        create: { kakaoId, email, name, image },
-        update: { name, image, ...(email ? { email } : {}) },
-    });
+        // 3) DB upsert
+        let dbUser: { id: string; email: string | null; name: string; image: string | null; role: string };
+        try {
+            const upserted = await prisma.user.upsert({
+                where: { kakaoId },
+                create: { kakaoId, email, name, image },
+                update: { name, image, ...(email ? { email } : {}) },
+            });
+            dbUser = upserted;
+        } catch (upsertErr) {
+            console.error("[kakao callback upsert error]", upsertErr);
+            return NextResponse.redirect(new URL("/?login=failed", url.origin));
+        }
 
-    // nickname, avatarUrl은 raw로 조회
-    const [nickRow] = await prisma.$queryRaw<{ nickname: string | null; avatarUrl: string | null }[]>`
-        SELECT nickname, "avatarUrl" FROM "User" WHERE id = ${dbUser.id}
-    `;
+        // 4) nickname 조회 — 컬럼이 아직 없으면 기존 유저로 간주
+        let nickname: string | null = null;
+        let avatarUrl: string | null = null;
+        let nicknameColumnExists = true;
 
-    const sessionPayload = {
-        provider: "kakao",
-        dbId: dbUser.id,
-        id: kakaoId,
-        email: dbUser.email,
-        name: dbUser.name,
-        nickname: nickRow?.nickname ?? null,
-        image: dbUser.image,
-        avatarUrl: nickRow?.avatarUrl ?? null,
-        role: dbUser.role,
-        issuedAt: Date.now(),
-    };
+        try {
+            const rows = await prisma.$queryRaw<{ nickname: string | null }[]>`
+                SELECT nickname FROM "User" WHERE id = ${dbUser.id} LIMIT 1
+            `;
+            nickname = rows[0]?.nickname ?? null;
+        } catch (e) {
+            console.error("[nickname query error]", e);
+            // 컬럼이 없으면 DB push 필요 — 기존 유저로 간주해 홈으로
+            nicknameColumnExists = false;
+            nickname = "pending";
+        }
 
-    const sessionToken = signSession(sessionPayload, sessionSecret);
+        // avatarUrl은 별도로 시도 (db push 전이면 없을 수 있음)
+        try {
+            const rows = await prisma.$queryRaw<{ avatarUrl: string | null }[]>`
+                SELECT "avatarUrl" FROM "User" WHERE id = ${dbUser.id} LIMIT 1
+            `;
+            avatarUrl = rows[0]?.avatarUrl ?? null;
+        } catch {
+            avatarUrl = null;
+        }
 
-    // 닉네임 없는 신규/미설정 유저는 온보딩으로
-    const redirectTo = nickRow?.nickname ? "/" : "/onboarding";
-    const response = NextResponse.redirect(new URL(redirectTo, url.origin));
+        // nickname 컬럼 자체가 없으면 -> npx prisma db push 필요
+        // 일단 홈으로 보내되 세션에는 name을 nickname으로 사용
+        if (!nicknameColumnExists) {
+            nickname = dbUser.name;
+        }
 
-    response.cookies.set({
-        name: SESSION_COOKIE_NAME,
-        value: sessionToken,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
-        maxAge: SESSION_MAX_AGE_SECONDS,
-    });
+        // 5) 세션 생성
+        const sessionPayload = {
+            provider: "kakao",
+            dbId: dbUser.id,
+            id: kakaoId,
+            email: dbUser.email,
+            name: dbUser.name,
+            nickname,
+            image: dbUser.image,
+            avatarUrl,
+            role: dbUser.role,
+            issuedAt: Date.now(),
+        };
 
-    return response;
+        const sessionToken = signSession(sessionPayload, sessionSecret);
+        const redirectTo = nickname ? "/" : "/onboarding";
+        const response = NextResponse.redirect(new URL(redirectTo, url.origin));
+
+        response.cookies.set({
+            name: SESSION_COOKIE_NAME,
+            value: sessionToken,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            path: "/",
+            maxAge: SESSION_MAX_AGE_SECONDS,
+        });
+
+        return response;
+
+    } catch (err) {
+        console.error("[kakao callback error]", err);
+        return NextResponse.redirect(new URL("/?login=failed", url.origin));
+    }
 }

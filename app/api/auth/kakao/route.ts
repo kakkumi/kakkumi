@@ -15,10 +15,8 @@ export async function GET() {
     kakaoAuthUrl.searchParams.set("client_id", clientId);
     kakaoAuthUrl.searchParams.set("redirect_uri", redirectUri);
     kakaoAuthUrl.searchParams.set("response_type", "code");
-    kakaoAuthUrl.searchParams.set(
-        "scope",
-        "profile_nickname profile_image account_email"
-    );
+    kakaoAuthUrl.searchParams.set("scope", "profile_nickname profile_image account_email");
+    kakaoAuthUrl.searchParams.set("prompt", "login");
 
     return NextResponse.redirect(kakaoAuthUrl);
 }
