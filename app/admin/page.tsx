@@ -14,7 +14,7 @@ export default async function AdminPage() {
         prisma.$queryRaw<{ count: bigint }[]>`SELECT COUNT(*) as count FROM "User"`,
         prisma.$queryRaw<{ count: bigint }[]>`SELECT COUNT(*) as count FROM "Theme"`,
         prisma.$queryRaw<{ count: bigint }[]>`SELECT COUNT(*) as count FROM "Purchase" WHERE status = 'COMPLETED'`,
-        prisma.$queryRaw<{ count: bigint }[]>`SELECT COUNT(*) as count FROM "Inquiry"`,
+        prisma.$queryRaw<{ count: bigint }[]>`SELECT COUNT(*) as count FROM "Inquiry" WHERE status = 'OPEN'`,
     ]).catch(() => [[{ count: BigInt(0) }], [{ count: BigInt(0) }], [{ count: BigInt(0) }], [{ count: BigInt(0) }]]);
 
     // 최근 유저 목록

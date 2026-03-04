@@ -28,10 +28,15 @@ type AdminSettlement = {
     creatorId: string; creatorNickname: string | null; creatorName: string;
     totalSales: number; totalAmount: number; settlementAmount: number;
 };
+type AdminInquiryReply = {
+    id: string; inquiryId: string; content: string; isAdmin: boolean; createdAt: string;
+    author: { name: string; image: string | null; role: string };
+};
 type AdminInquiry = {
     id: string; title: string; content: string; category: string;
     status: string; createdAt: string; replyCount: number;
     userNickname: string | null; userName: string;
+    replies?: AdminInquiryReply[];
 };
 
 type Tab = "overview" | "themes" | "users" | "reports" | "sales" | "inquiries";
@@ -136,8 +141,9 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
     const [rejectModal, setRejectModal] = useState<{ themeId: string; title: string } | null>(null);
     const [rejectNote, setRejectNote] = useState("");
     const [deleteUserModal, setDeleteUserModal] = useState<{ userId: string; name: string } | null>(null);
-    const [replyModal, setReplyModal] = useState<AdminInquiry | null>(null);
     const [replyText, setReplyText] = useState("");
+    const [selectedInquiry, setSelectedInquiry] = useState<AdminInquiry | null>(null);
+    const [inquiryDetailLoading, setInquiryDetailLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
     const [toast, setToast] = useState("");
 
@@ -214,14 +220,35 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
         fetchTab("sales");
     };
 
+    const fetchInquiryDetail = async (inq: AdminInquiry) => {
+        setInquiryDetailLoading(true);
+        setSelectedInquiry(inq);
+        setReplyText("");
+        try {
+            const r = await fetch(`/api/admin/inquiries?id=${inq.id}`);
+            const d = await r.json() as { inquiry: AdminInquiry };
+            if (d.inquiry) setSelectedInquiry(d.inquiry);
+        } finally {
+            setInquiryDetailLoading(false);
+        }
+    };
+
     const sendReply = async () => {
-        if (!replyModal || !replyText.trim()) return;
+        if (!selectedInquiry || !replyText.trim()) return;
         setActionLoading(true);
-        await fetch("/api/admin/inquiries", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ inquiryId: replyModal.id, content: replyText.trim() }) });
+        await fetch("/api/admin/inquiries", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ inquiryId: selectedInquiry.id, content: replyText.trim() }),
+        });
         setActionLoading(false);
         showToast("답변 전송 완료");
-        setReplyModal(null);
         setReplyText("");
+        // 상세 새로고침
+        const r = await fetch(`/api/admin/inquiries?id=${selectedInquiry.id}`);
+        const d = await r.json() as { inquiry: AdminInquiry };
+        if (d.inquiry) setSelectedInquiry(d.inquiry);
+        // 목록도 갱신
         fetchTab("inquiries");
     };
 
@@ -229,7 +256,7 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
         { label: "전체 회원", value: stats.userCount, color: "#007aff", icon: (c: string) => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg> },
         { label: "등록 테마", value: stats.themeCount, color: "#FF9500", icon: (c: string) => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></svg> },
         { label: "완료 구매", value: stats.purchaseCount, color: "#34c759", icon: (c: string) => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg> },
-        { label: "전체 문의", value: stats.inquiryCount, color: "#af52de", icon: (c: string) => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> },
+        { label: "문의 요청", value: stats.inquiryCount, color: "#af52de", icon: (c: string) => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> },
     ];
 
     return (
@@ -552,36 +579,142 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
                 {/* ── 1:1 문의 ─────────────────────── */}
                 {activeTab === "inquiries" && (
                     <div className="flex flex-col gap-5">
-                        <div>
-                            <h2 className="text-[20px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>1:1 문의</h2>
-                            <p className="text-[12px] mt-0.5" style={{ color: "#8e8e93" }}>접수된 문의에 답변을 작성합니다.</p>
-                        </div>
-                        <div className="rounded-[20px] overflow-hidden" style={CARD_BG}>
-                            <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
-                                <h3 className="text-[14px] font-bold" style={{ color: "#1c1c1e" }}>1:1 문의 ({inquiries.length}건)</h3>
+                        <div className="flex items-end justify-between">
+                            <div>
+                                <h2 className="text-[20px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>1:1 문의</h2>
+                                <p className="text-[12px] mt-0.5" style={{ color: "#8e8e93" }}>접수된 문의에 답변을 작성합니다.</p>
                             </div>
-                            <div className="divide-y" style={{ borderColor: "rgba(0,0,0,0.05)" }}>
-                                {inquiries.map((inq) => (
-                                    <div key={inq.id} className="px-6 py-4 flex items-center gap-4">
-                                        <div className="flex-1 flex flex-col gap-0.5 min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-[13px] font-semibold truncate" style={{ color: "#1c1c1e" }}>{inq.title}</span>
-                                                <Badge style={INQUIRY_STATUS_STYLE[inq.status] ?? { label: inq.status, bg: "rgba(0,0,0,0.07)", color: "#8e8e93" }} />
-                                            </div>
-                                            <span className="text-[11px]" style={{ color: "#8e8e93" }}>
-                                                {inq.userNickname ?? inq.userName} · {inq.category} · 답변 {inq.replyCount}개 · {formatKST(inq.createdAt, false)}
+                            {selectedInquiry && (
+                                <button
+                                    onClick={() => { setSelectedInquiry(null); setReplyText(""); }}
+                                    className="flex items-center gap-1.5 text-[13px] font-medium transition-all hover:opacity-70"
+                                    style={{ color: "#8e8e93" }}
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
+                                    </svg>
+                                    목록으로
+                                </button>
+                            )}
+                        </div>
+
+                        {selectedInquiry ? (
+                            /* ── 상세 뷰 ── */
+                            <div className="flex flex-col gap-4">
+                                {/* 원문 */}
+                                <div className="rounded-[20px] p-6 flex flex-col gap-3" style={CARD_BG}>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full"
+                                                style={{ background: INQUIRY_STATUS_STYLE[selectedInquiry.status]?.bg, color: INQUIRY_STATUS_STYLE[selectedInquiry.status]?.color }}>
+                                                {INQUIRY_STATUS_STYLE[selectedInquiry.status]?.label ?? selectedInquiry.status}
+                                            </span>
+                                            <span className="text-[11px] px-2.5 py-1 rounded-full" style={{ background: "rgba(0,0,0,0.05)", color: "#8e8e93" }}>
+                                                {selectedInquiry.category}
                                             </span>
                                         </div>
-                                        <button onClick={() => { setReplyModal(inq); setReplyText(""); }}
-                                            className="shrink-0 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all hover:brightness-105"
-                                            style={{ background: "rgba(0,122,255,0.10)", color: "#007aff" }}>
-                                            {inq.status === "OPEN" ? "답변하기" : "내용 보기"}
+                                        <span className="text-[12px]" style={{ color: "#8e8e93" }}>{formatKST(selectedInquiry.createdAt)}</span>
+                                    </div>
+                                    <h2 className="text-[17px] font-bold" style={{ color: "#1c1c1e" }}>{selectedInquiry.title}</h2>
+                                    <p className="text-[12px] font-medium" style={{ color: "#8e8e93" }}>
+                                        작성자: {selectedInquiry.userNickname ?? selectedInquiry.userName}
+                                    </p>
+                                    <div className="h-[1px]" style={{ background: "rgba(0,0,0,0.06)" }} />
+                                    <p className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: "#3a3a3c" }}>{selectedInquiry.content}</p>
+                                </div>
+
+                                {/* 답변 스레드 */}
+                                {inquiryDetailLoading ? (
+                                    <div className="flex items-center gap-2 py-4" style={{ color: "#8e8e93" }}>
+                                        <div className="w-4 h-4 rounded-full border-2 border-black/20 border-t-black/60 animate-spin" />
+                                        <span className="text-[13px]">불러오는 중...</span>
+                                    </div>
+                                ) : (selectedInquiry.replies && selectedInquiry.replies.length > 0) && (
+                                    <div className="flex flex-col gap-3">
+                                        <h3 className="text-[13px] font-bold" style={{ color: "#8e8e93" }}>답변 스레드</h3>
+                                        {selectedInquiry.replies.map((reply) => (
+                                            <div
+                                                key={reply.id}
+                                                className={`rounded-[16px] px-5 py-4 flex flex-col gap-2 ${reply.isAdmin ? "" : "ml-6"}`}
+                                                style={{
+                                                    background: reply.isAdmin ? "rgba(255,149,0,0.07)" : "rgba(74,123,247,0.07)",
+                                                    border: `1px solid ${reply.isAdmin ? "rgba(255,149,0,0.2)" : "rgba(74,123,247,0.15)"}`,
+                                                }}
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <div
+                                                            className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold"
+                                                            style={{ background: reply.isAdmin ? "rgba(255,149,0,0.2)" : "rgba(74,123,247,0.15)", color: reply.isAdmin ? "#c97000" : "#4A7BF7" }}
+                                                        >
+                                                            {reply.isAdmin ? "관" : "유"}
+                                                        </div>
+                                                        <span className="text-[12px] font-semibold" style={{ color: reply.isAdmin ? "#c97000" : "#4A7BF7" }}>
+                                                            {reply.isAdmin ? "카꾸미 고객센터" : reply.author.name}
+                                                        </span>
+                                                    </div>
+                                                    <span className="text-[11px]" style={{ color: "#8e8e93" }}>{formatKST(reply.createdAt)}</span>
+                                                </div>
+                                                <p className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: "#3a3a3c" }}>{reply.content}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* 답변 작성 */}
+                                <div className="rounded-[20px] p-6 flex flex-col gap-3" style={CARD_BG}>
+                                    <h3 className="text-[13px] font-bold" style={{ color: "#1c1c1e" }}>답변 작성</h3>
+                                    <textarea
+                                        value={replyText}
+                                        onChange={(e) => setReplyText(e.target.value)}
+                                        placeholder="사용자에게 보낼 답변을 입력하세요..."
+                                        rows={5}
+                                        className="w-full px-4 py-3 rounded-xl text-[13px] outline-none resize-none"
+                                        style={{ border: "1.5px solid rgba(0,0,0,0.12)", color: "#1c1c1e" }}
+                                    />
+                                    <div className="flex gap-3 justify-end">
+                                        <button
+                                            onClick={sendReply}
+                                            disabled={!replyText.trim() || actionLoading}
+                                            className="px-6 py-2.5 rounded-xl text-[13px] font-bold disabled:opacity-40 transition-all hover:brightness-105"
+                                            style={{ background: "#FF9500", color: "#fff" }}
+                                        >
+                                            {actionLoading ? "전송 중..." : "답변 전송"}
                                         </button>
                                     </div>
-                                ))}
-                                {!loading && inquiries.length === 0 && <div className="px-6 py-10 text-center text-[13px]" style={{ color: "#8e8e93" }}>문의가 없습니다.</div>}
+                                </div>
                             </div>
-                        </div>
+                        ) : (
+                            /* ── 목록 뷰 ── */
+                            <div className="rounded-[20px] overflow-hidden" style={CARD_BG}>
+                                <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
+                                    <h3 className="text-[14px] font-bold" style={{ color: "#1c1c1e" }}>1:1 문의 ({inquiries.length}건)</h3>
+                                </div>
+                                <div className="divide-y" style={{ borderColor: "rgba(0,0,0,0.05)" }}>
+                                    {inquiries.map((inq) => (
+                                        <button
+                                            key={inq.id}
+                                            onClick={() => fetchInquiryDetail(inq)}
+                                            className="w-full px-6 py-4 flex items-center gap-4 text-left transition-all hover:bg-black/[0.02]"
+                                        >
+                                            <div className="flex-1 flex flex-col gap-0.5 min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[13px] font-semibold truncate" style={{ color: "#1c1c1e" }}>{inq.title}</span>
+                                                    <Badge style={INQUIRY_STATUS_STYLE[inq.status] ?? { label: inq.status, bg: "rgba(0,0,0,0.07)", color: "#8e8e93" }} />
+                                                </div>
+                                                <span className="text-[11px]" style={{ color: "#8e8e93" }}>
+                                                    {inq.userNickname ?? inq.userName} · {inq.category} · 답변 {inq.replyCount}개 · {formatKST(inq.createdAt, false)}
+                                                </span>
+                                            </div>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                                                <path d="M9 18l6-6-6-6" />
+                                            </svg>
+                                        </button>
+                                    ))}
+                                    {!loading && inquiries.length === 0 && <div className="px-6 py-10 text-center text-[13px]" style={{ color: "#8e8e93" }}>문의가 없습니다.</div>}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -639,37 +772,6 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
                 </ModalOverlay>
             )}
 
-            {/* ── 모달: 문의 답변 ──────────────── */}
-            {replyModal && (
-                <ModalOverlay onClose={() => setReplyModal(null)}>
-                    <div className="w-[540px] rounded-[24px] p-7 flex flex-col gap-5" style={{ background: "#fff", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}>
-                        <div className="flex items-start justify-between gap-4">
-                            <div>
-                                <h3 className="text-[16px] font-bold" style={{ color: "#1c1c1e" }}>{replyModal.title}</h3>
-                                <p className="text-[12px] mt-0.5" style={{ color: "#8e8e93" }}>{replyModal.userNickname ?? replyModal.userName} · {replyModal.category}</p>
-                            </div>
-                            <Badge style={INQUIRY_STATUS_STYLE[replyModal.status] ?? { label: replyModal.status, bg: "rgba(0,0,0,0.07)", color: "#8e8e93" }} />
-                        </div>
-                        <div className="p-4 rounded-xl text-[13px] leading-relaxed" style={{ background: "rgba(0,0,0,0.03)", color: "#3a3a3c" }}>
-                            {replyModal.content}
-                        </div>
-                        <textarea
-                            value={replyText}
-                            onChange={(e) => setReplyText(e.target.value)}
-                            placeholder="답변을 입력하세요..."
-                            rows={4}
-                            className="w-full px-4 py-3 rounded-xl text-[13px] outline-none resize-none"
-                            style={{ border: "1.5px solid rgba(0,0,0,0.12)", color: "#1c1c1e" }}
-                        />
-                        <div className="flex gap-3">
-                            <button onClick={() => setReplyModal(null)} className="flex-1 py-2.5 rounded-xl text-[13px] font-semibold" style={{ background: "rgba(0,0,0,0.06)", color: "#3a3a3c" }}>닫기</button>
-                            <button onClick={sendReply} disabled={!replyText.trim() || actionLoading}
-                                className="flex-1 py-2.5 rounded-xl text-[13px] font-bold disabled:opacity-40"
-                                style={{ background: "#FF9500", color: "#fff" }}>답변 전송</button>
-                        </div>
-                    </div>
-                </ModalOverlay>
-            )}
         </div>
     );
 }

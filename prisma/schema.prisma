@@ -11,91 +11,144 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// 사용자 권한 설정
 enum Role {
   USER
   CREATOR
   ADMIN
 }
 
-// 테마 상태 (마켓플레이스 노출 여부)
 enum ThemeStatus {
-  DRAFT      // 작성 중 (미공개)
-  PUBLISHED  // 마켓에 공개됨
-  HIDDEN     // 숨김 처리됨
+  DRAFT
+  PUBLISHED
+  HIDDEN
 }
 
-// 빌드 진행 상태
 enum BuildStatus {
-  PENDING    // 큐 대기 중
-  PROCESSING // 빌드 워커가 작업 중
-  SUCCESS    // 빌드 성공 및 S3 업로드 완료
-  FAILED     // 빌드 실패
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
 }
 
-// 결제 상태
 enum PurchaseStatus {
   PENDING
   COMPLETED
   REFUNDED
 }
 
-model User {
-  id        String     @id @default(uuid())
-  kakaoId   String     @unique  // 카카오 고유 식별자 (숫자 ID → String 저장)
-  email     String?    @unique  // 이메일 (동의 안 할 수도 있어 nullable)
-  name      String
-  image     String?             // 프로필 이미지 URL
-  role      Role       @default(USER)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+enum InquiryStatus {
+  OPEN
+  ANSWERED
+  CLOSED
+}
 
-  // Relations
-  themes    Theme[]    @relation("UserThemes")
-  purchases Purchase[] @relation("UserPurchases")
+enum ReportStatus {
+  PENDING
+  RESOLVED
+  DISMISSED
+}
+
+model User {
+  id          String   @id @default(uuid())
+  kakaoId     String   @unique
+  email       String?  @unique
+  name        String
+  nickname    String?  @unique
+  avatarUrl   String?
+  image       String?
+  role        Role     @default(USER)
+  isSuspended Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  themes         Theme[]        @relation("UserThemes")
+  purchases      Purchase[]     @relation("UserPurchases")
+  inquiries      Inquiry[]      @relation("UserInquiries")
+  inquiryReplies InquiryReply[] @relation("UserInquiryReplies")
+  reports        Report[]       @relation("UserReports")
 }
 
 model Theme {
-  id           String        @id @default(uuid())
+  id           String      @id @default(uuid())
   creatorId    String
   title        String
   description  String?
-  price        Int           @default(0) // 0이면 무료
-  status       ThemeStatus   @default(DRAFT)
+  price        Int         @default(0)
+  status       ThemeStatus @default(DRAFT)
   thumbnailUrl String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  adminNote    String?
+  images       String[]    @default([])
+  tags         String[]    @default([])
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
-  // Relations
-  creator      User          @relation("UserThemes", fields: [creatorId], references: [id])
-  versions     ThemeVersion[]
-  purchases    Purchase[]
+  creator   User           @relation("UserThemes", fields: [creatorId], references: [id])
+  versions  ThemeVersion[]
+  purchases Purchase[]
+  reports   Report[]       @relation("ThemeReports")
 }
 
 model ThemeVersion {
-  id             String      @id @default(uuid())
-  themeId        String
-  version        String      // ex) "1.0.0"
-  configJson     Json        // 프론트엔드 에디터의 상태값 (색상, 이미지 URL 등)
-  kthemeFileUrl  String?     // iOS 빌드 결과물 S3 링크
-  apkFileUrl     String?     // Android 빌드 결과물 S3 링크
-  buildStatus    BuildStatus @default(PENDING)
-  createdAt      DateTime    @default(now())
+  id            String      @id @default(uuid())
+  themeId       String
+  version       String
+  configJson    Json
+  kthemeFileUrl String?
+  apkFileUrl    String?
+  buildStatus   BuildStatus @default(PENDING)
+  createdAt     DateTime    @default(now())
 
-  // Relations
-  theme          Theme       @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  theme Theme @relation(fields: [themeId], references: [id], onDelete: Cascade)
 }
 
 model Purchase {
   id              String         @id @default(uuid())
   buyerId         String
   themeId         String
-  amount          Int            // 실제 결제 금액 (검증용 SSOT)
-  pgTransactionId String?        @unique // 토스/포트원 결제 고유키
+  amount          Int
+  pgTransactionId String?        @unique
   status          PurchaseStatus @default(PENDING)
   createdAt       DateTime       @default(now())
 
-  // Relations
-  buyer           User           @relation("UserPurchases", fields: [buyerId], references: [id])
-  theme           Theme          @relation(fields: [themeId], references: [id])
+  buyer User  @relation("UserPurchases", fields: [buyerId], references: [id])
+  theme Theme @relation(fields: [themeId], references: [id])
+}
+
+model Inquiry {
+  id        String        @id @default(uuid())
+  userId    String
+  category  String        @default("기타")
+  title     String
+  content   String
+  status    InquiryStatus @default(OPEN)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  user    User           @relation("UserInquiries", fields: [userId], references: [id])
+  replies InquiryReply[]
+}
+
+model InquiryReply {
+  id        String   @id @default(uuid())
+  inquiryId String
+  authorId  String
+  content   String
+  isAdmin   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  inquiry Inquiry @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  author  User    @relation("UserInquiryReplies", fields: [authorId], references: [id])
+}
+
+model Report {
+  id         String       @id @default(uuid())
+  reporterId String
+  themeId    String
+  reason     String
+  detail     String?
+  status     ReportStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+
+  reporter User  @relation("UserReports", fields: [reporterId], references: [id])
+  theme    Theme @relation("ThemeReports", fields: [themeId], references: [id])
 }

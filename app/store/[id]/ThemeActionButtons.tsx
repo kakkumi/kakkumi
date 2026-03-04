@@ -114,10 +114,35 @@ export default function ThemeActionButtons(props: Props) {
         setReportAgreed(false);
     };
 
-    const handleReportSubmit = () => {
+    const [reportLoading, setReportLoading] = useState(false);
+    const [reportError, setReportError] = useState("");
+
+    const handleReportSubmit = async () => {
         if (!reportReason || !reportAgreed) return;
-        setReportSubmitted(true);
-        setTimeout(() => setReportModal(false), 2000);
+        setReportLoading(true);
+        setReportError("");
+        try {
+            const res = await fetch("/api/report", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    themeId: props.themeId,
+                    reason: reportReason,
+                    detail: reportDetail.trim() || undefined,
+                }),
+            });
+            const data = await res.json() as { ok?: boolean; error?: string };
+            if (!res.ok) {
+                setReportError(data.error ?? "신고 접수에 실패했습니다.");
+                return;
+            }
+            setReportSubmitted(true);
+            setTimeout(() => setReportModal(false), 2000);
+        } catch {
+            setReportError("오류가 발생했습니다. 다시 시도해주세요.");
+        } finally {
+            setReportLoading(false);
+        }
     };
 
     const handleInquiry = () => {
@@ -242,13 +267,18 @@ export default function ThemeActionButtons(props: Props) {
                                             허위 신고 시 서비스 이용이 제한될 수 있음을 확인했으며, 위 내용이 사실임을 동의합니다.
                                         </span>
                                     </button>
+                                    {reportError && (
+                                        <p className="text-[12px] font-medium px-3 py-2 rounded-lg" style={{ background: "rgba(255,59,48,0.08)", color: "#ff3b30" }}>
+                                            {reportError}
+                                        </p>
+                                    )}
                                     <button
                                         onClick={handleReportSubmit}
-                                        disabled={!reportReason || !reportAgreed}
+                                        disabled={!reportReason || !reportAgreed || reportLoading}
                                         className="w-full py-3.5 rounded-[12px] text-[14px] font-bold text-white transition-all active:scale-[0.98] disabled:opacity-40"
                                         style={{ background: "#ef4444" }}
                                     >
-                                        신고 접수하기
+                                        {reportLoading ? "접수 중..." : "신고 접수하기"}
                                     </button>
                                 </div>
                             </>

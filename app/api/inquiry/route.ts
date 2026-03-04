@@ -66,10 +66,14 @@ export async function POST(req: NextRequest) {
     const now = new Date();
     const cat = category ?? "기타";
 
-    await prisma.$executeRaw`
-        INSERT INTO "Inquiry" (id, "userId", category, title, content, status, "createdAt", "updatedAt")
-        VALUES (${id}, ${session.dbId}, ${cat}, ${title.trim()}, ${content.trim()}, 'OPEN', ${now}, ${now})
-    `;
-
-    return NextResponse.json({ inquiry: { id, userId: session.dbId, category: cat, title, content, status: "OPEN", createdAt: now, updatedAt: now, replies: [] } });
+    try {
+        await prisma.$executeRaw`
+            INSERT INTO "Inquiry" (id, "userId", category, title, content, status, "createdAt", "updatedAt")
+            VALUES (${id}, ${session.dbId}, ${cat}, ${title.trim()}, ${content.trim()}, 'OPEN'::"InquiryStatus", ${now}, ${now})
+        `;
+        return NextResponse.json({ inquiry: { id, userId: session.dbId, category: cat, title, content, status: "OPEN", createdAt: now, updatedAt: now, replies: [] } });
+    } catch (e) {
+        console.error("[inquiry POST]", e);
+        return NextResponse.json({ error: "문의 접수에 실패했습니다." }, { status: 500 });
+    }
 }

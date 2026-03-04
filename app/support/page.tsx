@@ -250,7 +250,7 @@ export default function SupportPage() {
     const [inquiryLoading, setInquiryLoading] = useState(false);
     const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
     const [showForm, setShowForm] = useState(false);
-    const [contactForm, setContactForm] = useState({ title: "", content: "", category: "기타" });
+    const [contactForm, setContactForm] = useState({ title: "", content: "", category: "" });
     const [replyText, setReplyText] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -277,15 +277,16 @@ export default function SupportPage() {
 
     const handleSubmitInquiry = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!contactForm.category) return;
         setSubmitting(true);
         try {
             const res = await fetch("/api/inquiry", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(contactForm),
+                body: JSON.stringify({ ...contactForm, category: contactForm.category || "기타" }),
             });
             if (res.ok) {
-                setContactForm({ title: "", content: "", category: "기타" });
+                setContactForm({ title: "", content: "", category: "" });
                 setShowForm(false);
                 loadInquiries();
             }
@@ -672,11 +673,14 @@ export default function SupportPage() {
                                 <form onSubmit={handleSubmitInquiry} className="flex flex-col gap-5 rounded-[24px] p-8" style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(0,0,0,0.06)" }}>
                                     <div className="flex items-center justify-between">
                                         <h2 className="text-[16px] font-bold" style={{ color: "#1c1c1e" }}>새 문의 작성</h2>
-                                        <button type="button" onClick={() => setShowForm(false)} className="text-[13px]" style={{ color: "#8e8e93" }}>취소</button>
+                                        <button type="button" onClick={() => { setShowForm(false); setContactForm({ title: "", content: "", category: "" }); }} className="text-[13px]" style={{ color: "#8e8e93" }}>취소</button>
                                     </div>
 
                                     <div className="flex flex-col gap-1.5">
-                                        <label className="text-[12px] font-semibold" style={{ color: "#3a3a3c" }}>카테고리 <span style={{ color: "#FF3B30" }}>*</span></label>
+                                        <label className="text-[12px] font-semibold" style={{ color: "#3a3a3c" }}>
+                                            카테고리 <span style={{ color: "#FF3B30" }}>*</span>
+                                            {!contactForm.category && <span className="ml-2 font-normal" style={{ color: "#8e8e93" }}>카테고리를 선택해주세요</span>}
+                                        </label>
                                         <div className="flex flex-wrap gap-2">
                                             {INQUIRY_CATEGORIES.map((cat) => (
                                                 <button
@@ -723,7 +727,7 @@ export default function SupportPage() {
 
                                     <button
                                         type="submit"
-                                        disabled={submitting}
+                                        disabled={submitting || !contactForm.category}
                                         className="self-start px-8 py-3 rounded-xl text-[14px] font-bold transition-all hover:brightness-105 active:scale-95 disabled:opacity-50"
                                         style={{ background: "rgba(255,231,58,0.95)", color: "#3A1D1D", boxShadow: "0 4px 16px rgba(255,200,0,0.3)" }}
                                     >
