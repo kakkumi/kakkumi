@@ -42,10 +42,13 @@ enum PurchaseStatus {
 
 model User {
   id        String     @id @default(uuid())
-  email     String     @unique
+  kakaoId   String     @unique  // 카카오 고유 식별자 (숫자 ID → String 저장)
+  email     String?    @unique  // 이메일 (동의 안 할 수도 있어 nullable)
   name      String
+  image     String?             // 프로필 이미지 URL
   role      Role       @default(USER)
   createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   // Relations
   themes    Theme[]    @relation("UserThemes")

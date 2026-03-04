@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createHmac } from "crypto";
+import { prisma } from "@/lib/prisma";
 
 const SESSION_COOKIE_NAME = "kakkumi_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
@@ -82,12 +83,26 @@ export async function GET(request: Request) {
         };
     };
 
+    const kakaoId = String(profileJson.id);
+    const email = profileJson.kakao_account?.email ?? null;
+    const name = profileJson.kakao_account?.profile?.nickname ?? "카카오 사용자";
+    const image = profileJson.kakao_account?.profile?.profile_image_url ?? null;
+
+    // DB upsert — kakaoId 기준으로 없으면 생성, 있으면 이름/이미지/이메일 업데이트
+    const dbUser = await prisma.user.upsert({
+        where: { kakaoId },
+        create: { kakaoId, email, name, image },
+        update: { name, image, ...(email ? { email } : {}) },
+    });
+
     const sessionPayload = {
         provider: "kakao",
-        id: profileJson.id ?? null,
-        email: profileJson.kakao_account?.email ?? null,
-        name: profileJson.kakao_account?.profile?.nickname ?? null,
-        image: profileJson.kakao_account?.profile?.profile_image_url ?? null,
+        dbId: dbUser.id,       // DB의 UUID — 찜, 구매, 리뷰 등에 사용
+        id: kakaoId,
+        email: dbUser.email,
+        name: dbUser.name,
+        image: dbUser.image,
+        role: dbUser.role,
         issuedAt: Date.now(),
     };
 
