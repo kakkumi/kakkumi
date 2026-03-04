@@ -35,6 +35,7 @@ export default function StoreContent() {
     const [activeSort, setActiveSort] = useState<SortKey>("newest");
     const [likedIds, setLikedIds] = useState<Set<number>>(new Set());
     const [searchQuery, setSearchQuery] = useState("");
+    const [searchType, setSearchType] = useState<"전체" | "테마명" | "제작자" | "카테고리">("전체");
     const [ownedDbIds, setOwnedDbIds] = useState<Set<string>>(new Set());
 
     useEffect(() => {
@@ -73,12 +74,18 @@ export default function StoreContent() {
             activePrice === "1,500원" && t.priceNum <= 1500 ||
             activePrice === "2,000원" && t.priceNum <= 2000;
 
+        const q = searchQuery.trim().toLowerCase();
         const searchMatch =
-            searchQuery.trim() === "" ||
-            t.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
-            t.author.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
-            (t.category ?? []).some((c) => c.toLowerCase().includes(searchQuery.trim().toLowerCase())) ||
-            (t.description ?? "").toLowerCase().includes(searchQuery.trim().toLowerCase());
+            q === "" ||
+            (searchType === "전체" && (
+                t.name.toLowerCase().includes(q) ||
+                t.author.toLowerCase().includes(q) ||
+                (t.category ?? []).some((c) => c.toLowerCase().includes(q)) ||
+                (t.description ?? "").toLowerCase().includes(q)
+            )) ||
+            (searchType === "테마명" && t.name.toLowerCase().includes(q)) ||
+            (searchType === "제작자" && t.author.toLowerCase().includes(q)) ||
+            (searchType === "카테고리" && (t.category ?? []).some((c) => c.toLowerCase().includes(q)));
 
         return catMatch && priceMatch && searchMatch;
     });
@@ -160,33 +167,78 @@ export default function StoreContent() {
 
                 {/* 검색바 */}
                 <div
-                    className="flex items-center p-1.5"
+                    className="flex items-center p-1 gap-1.5"
                     style={{
                         background: "#dde4ee",
                         borderRadius: 999,
-                        maxWidth: 480,
+                        maxWidth: 620,
                     }}
                 >
+                    {/* 검색 타입 선택 */}
+                    <div className="relative shrink-0">
+                        <select
+                            value={searchType}
+                            onChange={(e) => setSearchType(e.target.value as typeof searchType)}
+                            className="appearance-none pl-3 pr-7 text-[12px] font-bold outline-none cursor-pointer"
+                            style={{
+                                background: "transparent",
+                                color: "#1c1c1e",
+                                border: "none",
+                                height: 34,
+                            }}
+                        >
+                            {(["전체", "테마명", "제작자", "카테고리"] as const).map((t) => (
+                                <option key={t} value={t}>{t}</option>
+                            ))}
+                        </select>
+                        <svg
+                            className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                            width="10" height="10" viewBox="0 0 24 24" fill="none"
+                            stroke="#1c1c1e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+                        >
+                            <path d="M6 9l6 6 6-6" />
+                        </svg>
+                    </div>
+
+                    {/* 구분선 */}
+                    <div className="w-[1px] h-4 shrink-0" style={{ background: "rgba(0,0,0,0.15)" }} />
+
                     <div
-                        className="flex-1 flex items-center px-4"
+                        className="flex-1 flex items-center px-3"
                         style={{
                             background: "#fff",
                             borderRadius: 999,
-                            height: 40,
+                            height: 34,
                         }}
                     >
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
-                            placeholder="테마 이름 또는 카테고리를 검색하세요"
+                            placeholder={
+                                searchType === "테마명" ? "테마 이름을 검색하세요" :
+                                searchType === "제작자" ? "제작자 이름을 검색하세요" :
+                                searchType === "카테고리" ? "카테고리를 검색하세요" :
+                                "테마명, 제작자, 카테고리 검색"
+                            }
                             className="flex-1 text-[13px] outline-none bg-transparent"
                             style={{ color: "#1c1c1e" }}
                         />
+                        {searchQuery && (
+                            <button
+                                type="button"
+                                onClick={() => setSearchQuery("")}
+                                className="mr-1 shrink-0 flex items-center justify-center w-5 h-5 rounded-full transition-all hover:opacity-70"
+                                style={{ background: "rgba(0,0,0,0.1)" }}
+                            >
+                                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
+                        )}
                         <button
                             type="button"
-                            onClick={() => {}}
-                            className="ml-2 shrink-0 flex items-center justify-center w-7 h-7 rounded-full transition-all hover:brightness-95 active:scale-95"
+                            className="ml-1 shrink-0 flex items-center justify-center w-7 h-7 rounded-full transition-all hover:brightness-95 active:scale-95"
                             style={{ background: "#4A7BF7" }}
                         >
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

@@ -108,7 +108,6 @@ export default function WithdrawClient({ session }: Props) {
                 {[
                     { label: "기본 정보", href: "/mypage/settings" },
                     { label: "알림 설정", href: "/mypage/settings/notifications" },
-                    { label: "연결된 계정", href: "/mypage/settings/connected" },
                 ].map((item) => (
                     <a key={item.label} href={item.href}>
                         <button
