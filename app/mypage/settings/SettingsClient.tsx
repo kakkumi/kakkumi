@@ -182,49 +182,7 @@ export default function SettingsClient({ session }: Props) {
     const displayName = session.nickname ?? session.name ?? "사용자";
 
     return (
-        <div className="flex flex-1 max-w-[1200px] mx-auto w-full px-6 pt-12 pb-20 gap-8">
-            {/* 사이드바 */}
-            <aside className="w-[220px] shrink-0 flex flex-col gap-1">
-                <a href="/mypage">
-                    <button
-                        className="flex items-center gap-2 text-[13px] font-medium px-3 py-2 rounded-xl transition-all hover:opacity-70 mb-2"
-                        style={{ color: "#8e8e93" }}
-                    >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M15 18l-6-6 6-6" />
-                        </svg>
-                        마이페이지로
-                    </button>
-                </a>
-                <div className="h-[1px] mb-3" style={{ background: "rgba(0,0,0,0.08)" }} />
-                {[
-                    { label: "기본 정보", href: "/mypage/settings", active: true },
-                    { label: "알림 설정", href: "/mypage/settings/notifications", active: false },
-                ].map((item) => (
-                    <a key={item.label} href={item.href}>
-                        <button
-                            className="w-full text-left px-3 py-2 rounded-xl text-[13px] font-medium transition-all"
-                            style={{
-                                color: item.active ? "#FF9500" : "#3a3a3c",
-                                background: "transparent",
-                                fontWeight: item.active ? 700 : 500,
-                            }}
-                        >
-                            {item.label}
-                        </button>
-                    </a>
-                ))}
-                <div className="my-3 h-[1px]" style={{ background: "rgba(0,0,0,0.08)" }} />
-                <a href="/mypage/settings/withdraw">
-                    <button
-                        className="w-full text-left px-3 py-2 rounded-xl text-[13px] font-medium transition-all hover:opacity-70"
-                        style={{ color: "#ff3b30" }}
-                    >
-                        회원 탈퇴
-                    </button>
-                </a>
-            </aside>
-
+        <div className="flex flex-1 max-w-[1200px] mx-auto w-full px-6 pt-12 pb-20">
             {/* 메인 */}
             <main className="flex-1 flex flex-col gap-6">
                 {/* 페이지 제목 */}

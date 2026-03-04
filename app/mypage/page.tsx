@@ -24,7 +24,7 @@ async function getSession() {
         const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
         if (!sessionCookie) return null;
         const session = verifySession(sessionCookie.value, sessionSecret);
-        return session as { name?: string | null; nickname?: string | null; image?: string | null; id?: string | null; dbId?: string | null } | null;
+        return session as { name?: string | null; nickname?: string | null; image?: string | null; avatarUrl?: string | null; id?: string | null; dbId?: string | null; email?: string | null; role?: string | null } | null;
     } catch {
         return null;
     }
@@ -54,6 +54,10 @@ export default async function MyPage() {
 
     const sidebarMenus = [
         {
+            category: "정보",
+            items: [{ label: "회원정보 수정" }, { label: "알림 설정" }],
+        },
+        {
             category: "테마",
             items: [{ label: "내 테마" }, { label: "구매 테마" }, { label: "전체 테마" }],
         },
@@ -69,8 +73,8 @@ export default async function MyPage() {
             items: [{ label: "정산 내역" }, { label: "판매 통계" }],
         },
         {
-            category: "정보",
-            items: [{ label: "회원정보 수정", href: "/mypage/settings" }],
+            category: "계정",
+            items: [{ label: "회원 탈퇴" }],
         },
     ];
 
