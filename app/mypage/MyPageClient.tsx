@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import ThemeVaultTabs from "./ThemeVaultTabs";
+import { formatKST } from "@/lib/date";
 
 type SidebarMenu = {
     category: string;
@@ -21,6 +22,7 @@ type Props = {
     session: { name?: string | null; nickname?: string | null; image?: string | null } | null;
     purchasedCount: number;
     sidebarMenus: SidebarMenu[];
+    createdAt?: string | null;
 };
 
 const ORDERS = [
@@ -36,7 +38,7 @@ const RECENT_THEMES = [
     { name: "민트 그린", bg: "#d4f5e8" },
 ];
 
-export default function MyPageClient({ session, purchasedCount, sidebarMenus }: Props) {
+export default function MyPageClient({ session, purchasedCount, sidebarMenus, createdAt }: Props) {
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
     const [themeTab, setThemeTab] = useState<Tab>("purchased");
 
@@ -132,7 +134,9 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus }: 
                                 <h2 className="text-[20px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>
                                     {displayNickname}
                                 </h2>
-                                <p className="text-[12px]" style={{ color: "#8e8e93" }}>가입일 · 2026년 3월</p>
+                                <p className="text-[12px]" style={{ color: "#8e8e93" }}>
+                                    가입일 · {createdAt ? formatKST(createdAt, false) : "-"}
+                                </p>
                             </div>
                         </div>
 

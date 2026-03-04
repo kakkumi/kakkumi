@@ -34,10 +34,20 @@ export default async function MyPage() {
     const session = await getSession();
 
     let purchasedCount = 0;
+    let createdAt: string | null = null;
+
     if (session?.dbId) {
         purchasedCount = await prisma.purchase.count({
             where: { buyerId: session.dbId, status: "COMPLETED" },
         });
+        try {
+            const rows = await prisma.$queryRaw<{ createdAt: Date }[]>`
+                SELECT "createdAt" FROM "User" WHERE id = ${session.dbId} LIMIT 1
+            `;
+            createdAt = rows[0]?.createdAt?.toISOString() ?? null;
+        } catch {
+            createdAt = null;
+        }
     }
 
     const sidebarMenus = [
@@ -80,6 +90,7 @@ export default async function MyPage() {
                 session={session}
                 purchasedCount={purchasedCount}
                 sidebarMenus={sidebarMenus}
+                createdAt={createdAt}
             />
             <Footer />
         </div>
