@@ -14,31 +14,40 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         return NextResponse.json({ error: "내용을 입력해주세요." }, { status: 400 });
     }
 
-    // 본인 문의 또는 관리자만 답글 가능
-    const inquiry = await prisma.inquiry.findUnique({ where: { id } });
+    const [inquiry] = await prisma.$queryRaw<{ id: string; userId: string }[]>`
+        SELECT id, "userId" FROM "Inquiry" WHERE id = ${id}
+    `;
     if (!inquiry) return NextResponse.json({ error: "문의를 찾을 수 없습니다." }, { status: 404 });
 
-    const user = await prisma.user.findUnique({ where: { id: session.dbId }, select: { role: true } });
+    const user = await prisma.user.findUnique({ where: { id: session.dbId }, select: { role: true, name: true, image: true } });
     const isAdmin = user?.role === "ADMIN";
 
     if (inquiry.userId !== session.dbId && !isAdmin) {
         return NextResponse.json({ error: "권한이 없습니다." }, { status: 403 });
     }
 
-    const reply = await prisma.inquiryReply.create({
-        data: {
-            inquiryId: id,
-            authorId: session.dbId,
-            content: content.trim(),
-            isAdmin,
-        },
-        include: { author: { select: { name: true, image: true, role: true } } },
-    });
+    const replyId = crypto.randomUUID();
+    const now = new Date();
 
-    // 관리자 답글이면 문의 상태를 ANSWERED로 변경
+    await prisma.$executeRaw`
+        INSERT INTO "InquiryReply" (id, "inquiryId", "authorId", content, "isAdmin", "createdAt")
+        VALUES (${replyId}, ${id}, ${session.dbId}, ${content.trim()}, ${isAdmin}, ${now})
+    `;
+
     if (isAdmin) {
-        await prisma.inquiry.update({ where: { id }, data: { status: "ANSWERED" } });
+        await prisma.$executeRaw`
+            UPDATE "Inquiry" SET status = 'ANSWERED', "updatedAt" = ${now} WHERE id = ${id}
+        `;
     }
+
+    const reply = {
+        id: replyId,
+        inquiryId: id,
+        content: content.trim(),
+        isAdmin,
+        createdAt: now,
+        author: { name: user?.name ?? "", image: user?.image ?? null, role: user?.role ?? "USER" },
+    };
 
     return NextResponse.json({ reply });
 }

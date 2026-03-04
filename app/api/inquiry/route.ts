@@ -7,18 +7,48 @@ export async function GET() {
     const session = await getServerSession();
     if (!session?.dbId) return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
 
-    const inquiries = await prisma.inquiry.findMany({
-        where: { userId: session.dbId },
-        include: {
-            replies: {
-                include: { author: { select: { name: true, image: true, role: true } } },
-                orderBy: { createdAt: "asc" },
-            },
-        },
-        orderBy: { createdAt: "desc" },
-    });
+    const inquiries = await prisma.$queryRaw<
+        {
+            id: string; userId: string; category: string; title: string;
+            content: string; status: string; createdAt: Date; updatedAt: Date;
+        }[]
+    >`
+        SELECT * FROM "Inquiry"
+        WHERE "userId" = ${session.dbId}
+        ORDER BY "createdAt" DESC
+    `;
 
-    return NextResponse.json({ inquiries });
+    const replies = inquiries.length > 0
+        ? await prisma.$queryRaw<
+            {
+                id: string; inquiryId: string; authorId: string; content: string;
+                isAdmin: boolean; createdAt: Date;
+                authorName: string; authorImage: string | null; authorRole: string;
+            }[]
+        >`
+            SELECT r.*, u.name AS "authorName", u.image AS "authorImage", u.role AS "authorRole"
+            FROM "InquiryReply" r
+            JOIN "User" u ON u.id = r."authorId"
+            WHERE r."inquiryId" = ANY(${inquiries.map((i) => i.id)}::text[])
+            ORDER BY r."createdAt" ASC
+        `
+        : [];
+
+    const result = inquiries.map((inq) => ({
+        ...inq,
+        replies: replies
+            .filter((r) => r.inquiryId === inq.id)
+            .map((r) => ({
+                id: r.id,
+                inquiryId: r.inquiryId,
+                content: r.content,
+                isAdmin: r.isAdmin,
+                createdAt: r.createdAt,
+                author: { name: r.authorName, image: r.authorImage, role: r.authorRole },
+            })),
+    }));
+
+    return NextResponse.json({ inquiries: result });
 }
 
 // 문의 작성
@@ -32,15 +62,14 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "제목과 내용을 입력해주세요." }, { status: 400 });
     }
 
-    const inquiry = await prisma.inquiry.create({
-        data: {
-            userId: session.dbId,
-            title: title.trim(),
-            content: content.trim(),
-            category: category ?? "기타",
-        },
-        include: { replies: true },
-    });
+    const id = crypto.randomUUID();
+    const now = new Date();
+    const cat = category ?? "기타";
 
-    return NextResponse.json({ inquiry });
+    await prisma.$executeRaw`
+        INSERT INTO "Inquiry" (id, "userId", category, title, content, status, "createdAt", "updatedAt")
+        VALUES (${id}, ${session.dbId}, ${cat}, ${title.trim()}, ${content.trim()}, 'OPEN', ${now}, ${now})
+    `;
+
+    return NextResponse.json({ inquiry: { id, userId: session.dbId, category: cat, title, content, status: "OPEN", createdAt: now, updatedAt: now, replies: [] } });
 }
