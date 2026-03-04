@@ -4,8 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 type SessionData = {
+    dbId?: string | null;   // DB UUID — 찜, 구매, 리뷰 등에 사용
+    id?: string | null;     // 카카오 ID
     name?: string | null;
     image?: string | null;
+    email?: string | null;
+    role?: "USER" | "CREATOR" | "ADMIN" | null;
 };
 
 type SessionResponse = {
