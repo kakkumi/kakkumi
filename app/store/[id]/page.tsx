@@ -159,11 +159,12 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
 
                             {/* 액션 버튼 */}
                             <ThemeActionButtons
-                                themeId={String(theme.id)}
+                                themeId={theme.dbId}
                                 themeMockId={theme.id}
                                 priceNum={theme.priceNum}
                                 priceName={theme.price}
                                 isLoggedIn={isLoggedIn}
+                                userId={session?.dbId ?? undefined}
                             />
                         </div>
                     </div>

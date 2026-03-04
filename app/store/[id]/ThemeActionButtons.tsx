@@ -1,8 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Siren } from "lucide-react";
+
+// 토스페이먼츠 SDK 타입 선언
+declare global {
+    interface Window {
+        TossPayments: (clientKey: string) => {
+            requestPayment: (method: string, options: Record<string, unknown>) => Promise<void>;
+        };
+    }
+}
 
 type Props = {
     themeId: string;
@@ -10,46 +19,97 @@ type Props = {
     priceNum: number;
     priceName: string;
     isLoggedIn: boolean;
+    userId?: string;  // session.dbId — orderId 생성에 사용
 };
 
 export default function ThemeActionButtons(props: Props) {
-    const { themeMockId, priceNum, priceName, isLoggedIn } = props;
-    // props.themeId — DB 연동 시 /api/download/free 호출에 사용
+    const { themeMockId, priceNum, priceName, isLoggedIn, userId } = props;
+    // props.themeId — DB 연동 시 /api/download/free 및 결제에 사용
     const router = useRouter();
     const [liked, setLiked] = useState(false);
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<{ success?: boolean; message?: string } | null>(null);
+    const [sdkLoaded, setSdkLoaded] = useState(false);
 
     const isFree = priceNum === 0;
+
+    // 토스페이먼츠 SDK 동적 로드
+    useEffect(() => {
+        if (isFree) return;
+        if (window.TossPayments) { setSdkLoaded(true); return; }
+
+        const script = document.createElement("script");
+        script.src = "https://js.tosspayments.com/v1/payment";
+        script.async = true;
+        script.onload = () => setSdkLoaded(true);
+        document.head.appendChild(script);
+    }, [isFree]);
 
     const handleMainAction = async () => {
         if (!isLoggedIn) {
             router.push("/api/auth/kakao");
             return;
         }
+
         if (isFree) {
             setLoading(true);
             setResult(null);
             try {
-                // DB 연동 후 실제 themeId 사용 (현재는 목업)
-                // const res = await fetch("/api/download/free", {
-                //     method: "POST",
-                //     headers: { "Content-Type": "application/json" },
-                //     body: JSON.stringify({ themeId }),
-                // });
-                // const data = await res.json();
-                // if (!res.ok) { setResult({ success: false, message: data.error }); return; }
-                // if (data.downloadUrl) window.open(data.downloadUrl, "_blank");
-                // setResult({ success: true, message: data.alreadyOwned ? "이미 보유한 테마입니다." : "다운로드가 시작됩니다!" });
-                await new Promise((r) => setTimeout(r, 800));
-                setResult({ success: true, message: "다운로드가 완료되었습니다!" });
+                const res = await fetch("/api/download/free", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ themeId: props.themeId }),
+                });
+                const data = (await res.json()) as { success?: boolean; error?: string; alreadyOwned?: boolean; downloadUrl?: string };
+                if (!res.ok) {
+                    setResult({ success: false, message: data.error ?? "다운로드 실패" });
+                    return;
+                }
+                if (data.downloadUrl) {
+                    window.open(data.downloadUrl, "_blank");
+                }
+                setResult({ success: true, message: data.alreadyOwned ? "이미 보유한 테마입니다." : "다운로드가 완료되었습니다!" });
             } catch {
                 setResult({ success: false, message: "오류가 발생했습니다. 다시 시도해주세요." });
             } finally {
                 setLoading(false);
             }
         } else {
-            setResult({ success: false, message: "결제 기능은 곧 지원될 예정입니다." });
+            // 토스페이먼츠 결제 요청
+            const clientKey = process.env.NEXT_PUBLIC_TOSSPAYMENTS_CLIENT_KEY;
+            if (!clientKey || clientKey.includes("여기에")) {
+                setResult({ success: false, message: "결제 설정이 아직 완료되지 않았습니다." });
+                return;
+            }
+            if (!sdkLoaded || !window.TossPayments) {
+                setResult({ success: false, message: "결제 모듈을 불러오는 중입니다. 잠시 후 다시 시도해주세요." });
+                return;
+            }
+
+            // orderId: 영문/숫자/- 만 허용, 6~64자
+            const shortThemeId = props.themeId.replace(/-/g, "").slice(0, 16);
+            const shortUserId = (userId ?? "guest").replace(/-/g, "").slice(0, 16);
+            const ts = Date.now().toString(36);
+            const orderId = `${shortThemeId}-${shortUserId}-${ts}`;
+
+            try {
+                const toss = window.TossPayments(clientKey);
+                await toss.requestPayment("카드", {
+                    amount: priceNum,
+                    orderId,
+                    orderName: priceName,
+                    customerName: "카꾸미 고객",
+                    successUrl: `${window.location.origin}/payment/success?themeId=${encodeURIComponent(props.themeId)}`,
+                    failUrl: `${window.location.origin}/payment/fail`,
+                });
+            } catch (err: unknown) {
+                const error = err as { code?: string; message?: string };
+                if (error?.code === "USER_CANCEL") {
+                    setResult({ success: false, message: "결제가 취소되었습니다." });
+                } else {
+                    setResult({ success: false, message: error?.message ?? "결제 중 오류가 발생했습니다." });
+                }
+            }
         }
     };
 
