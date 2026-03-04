@@ -4,7 +4,8 @@ import Footer from "../../components/Footer";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Siren } from "lucide-react";
+import { getServerSession } from "@/lib/session";
+import ThemeActionButtons from "./ThemeActionButtons";
 
 export function generateStaticParams() {
     return THEMES.map((theme) => ({
@@ -19,6 +20,9 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
     if (!theme) {
         return notFound();
     }
+
+    const session = await getServerSession();
+    const isLoggedIn = !!session?.dbId;
 
     return (
         <div
@@ -154,37 +158,13 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
                             </div>
 
                             {/* 액션 버튼 */}
-                            <div className="flex flex-col gap-3">
-                                <div className="flex gap-3">
-                                    <button
-                                        className="flex-[3] py-[14px] rounded-[14px] text-[15px] font-bold text-white transition-all active:scale-[0.98]"
-                                        style={{ background: "#4A7BF7", boxShadow: "0 4px 20px rgba(74,123,247,0.3)" }}
-                                    >
-                                        {theme.priceNum === 0 ? "무료 다운로드" : "구매하기"}
-                                    </button>
-                                    <button
-                                        className="w-[52px] flex items-center justify-center rounded-[14px] hover:bg-gray-100 transition-all active:scale-[0.98]"
-                                    >
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                                        </svg>
-                                    </button>
-                                    <button
-                                        className="w-[52px] flex items-center justify-center rounded-[14px] hover:bg-gray-100 transition-all active:scale-[0.98]"
-                                        title="신고하기"
-                                    >
-                                        <Siren size={20} color="#ef4444" />
-                                    </button>
-                                </div>
-                                <button
-                                    className="w-full py-[13px] rounded-[14px] text-[14px] font-semibold text-gray-600 bg-white border border-gray-200 hover:border-gray-400 hover:text-gray-900 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-                                >
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                                    </svg>
-                                    제작자에게 문의하기
-                                </button>
-                            </div>
+                            <ThemeActionButtons
+                                themeId={String(theme.id)}
+                                themeMockId={theme.id}
+                                priceNum={theme.priceNum}
+                                priceName={theme.price}
+                                isLoggedIn={isLoggedIn}
+                            />
                         </div>
                     </div>
                 </div>
