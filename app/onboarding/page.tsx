@@ -11,6 +11,8 @@ export default function OnboardingPage() {
     const [error, setError] = useState("");
     const [checkStatus, setCheckStatus] = useState<"idle" | "checking" | "available" | "taken">("idle");
     const [saving, setSaving] = useState(false);
+    const [referralCode, setReferralCode] = useState("");
+    const [referralMsg, setReferralMsg] = useState<{ ok: boolean; text: string } | null>(null);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // 프로필 이미지 상태
@@ -73,11 +75,11 @@ export default function OnboardingPage() {
 
         setSaving(true);
 
-        // 1) 닉네임 저장
+        // 1) 닉네임 + 추천인 코드 저장
         const res = await fetch("/api/user/nickname", {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ nickname }),
+            body: JSON.stringify({ nickname, referralCode: referralCode.trim() || null }),
         });
         const data = await res.json() as { nickname?: string; error?: string };
 
@@ -253,6 +255,31 @@ export default function OnboardingPage() {
                                 <p className="text-[11px]" style={{ color: "#8e8e93" }}>{nickname.length} / 10</p>
                             </div>
                         </div>
+                    </div>
+
+                    {/* 추천인 닉네임 (선택) */}
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-[12px] font-semibold flex items-center gap-1" style={{ color: "#3a3a3c" }}>
+                            추천인 닉네임
+                            <span className="text-[11px] font-normal" style={{ color: "#8e8e93" }}>(선택 · 입력 시 500원 적립)</span>
+                        </label>
+                        <input
+                            type="text"
+                            value={referralCode}
+                            onChange={e => { setReferralCode(e.target.value); setReferralMsg(null); }}
+                            placeholder="추천인의 카꾸미 닉네임을 입력해주세요"
+                            maxLength={10}
+                            className="w-full px-4 py-3 rounded-xl text-[14px] outline-none"
+                            style={{
+                                background: "rgba(255,255,255,0.9)",
+                                border: `1.5px solid ${referralMsg?.ok === false ? "#ff3b30" : referralMsg?.ok === true ? "#34c759" : "rgba(0,0,0,0.12)"}`,
+                                color: "#1c1c1e",
+                                transition: "border-color 0.15s",
+                            }}
+                        />
+                        {referralMsg && (
+                            <p className="text-[11px]" style={{ color: referralMsg.ok ? "#34c759" : "#ff3b30" }}>{referralMsg.text}</p>
+                        )}
                     </div>
 
                     <button

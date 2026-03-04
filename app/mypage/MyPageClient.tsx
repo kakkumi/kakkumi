@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import ThemeVaultTabs from "./ThemeVaultTabs";
+import CreditPage from "./CreditPage";
 import { formatKST } from "@/lib/date";
 
 type SidebarMenu = {
@@ -23,6 +24,7 @@ type Props = {
     purchasedCount: number;
     sidebarMenus: SidebarMenu[];
     createdAt?: string | null;
+    credit?: number;
 };
 
 const ORDERS = [
@@ -38,12 +40,13 @@ const RECENT_THEMES = [
     { name: "민트 그린", bg: "#d4f5e8" },
 ];
 
-export default function MyPageClient({ session, purchasedCount, sidebarMenus, createdAt }: Props) {
+export default function MyPageClient({ session, purchasedCount, sidebarMenus, createdAt, credit = 0 }: Props) {
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
     const [themeTab, setThemeTab] = useState<Tab>("purchased");
 
     const displayNickname = session?.nickname ?? session?.name ?? "사용자";
     const isThemeMenu = activeMenu !== null && THEME_TAB_MAP[activeMenu] !== undefined;
+    const isCreditMenu = activeMenu === "적립금";
 
     const handleMenuClick = (label: string) => {
         if (THEME_TAB_MAP[label] !== undefined) {
@@ -115,7 +118,7 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
                             {[
                                 { label: "제작한 테마", value: "0개", color: "rgba(255,239,154,0.7)" },
                                 { label: "구매한 테마", value: `${purchasedCount}개`, color: "rgba(170,189,232,0.6)" },
-                                { label: "적립금", value: "0원", color: "rgba(212,245,212,0.8)" },
+                                { label: "적립금", value: `${credit.toLocaleString()}원`, color: "rgba(212,245,212,0.8)" },
                                 { label: "쿠폰", value: "0장", color: "rgba(253,216,229,0.7)" },
                             ].map((card) => (
                                 <div key={card.label} className="flex flex-col gap-2 p-5 rounded-[20px] cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md" style={{ background: card.color, boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}>
@@ -127,6 +130,8 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
 
                         {isThemeMenu ? (
                             <ThemeVaultTabs initialTab={themeTab} />
+                        ) : isCreditMenu ? (
+                            <CreditPage />
                         ) : (
                             // ...existing code...
                             <div className="flex flex-col gap-5 p-7 rounded-[24px]" style={{ background: "rgba(255,255,255,0.7)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.8)", boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>

@@ -17,22 +17,41 @@ export async function DELETE(req: NextRequest) {
     }
 
     try {
-        // Purchase, Theme(관계) → User 순서로 삭제
-        // Purchase는 onDelete가 없으므로 직접 삭제
-        await prisma.$executeRaw`DELETE FROM "Purchase" WHERE "buyerId" = ${session.dbId}`;
+        const now = new Date();
 
-        // 내가 만든 테마의 구매 기록도 삭제 (테마 삭제 전)
+        // soft delete: deletedAt 설정 + 적립금 전액 소멸 + 닉네임/개인정보 익명화
         await prisma.$executeRaw`
-            DELETE FROM "Purchase" WHERE "themeId" IN (
-                SELECT id FROM "Theme" WHERE "creatorId" = ${session.dbId}
-            )
+            UPDATE "User"
+            SET
+                "deletedAt"   = ${now},
+                credit        = 0,
+                nickname      = NULL,
+                email         = NULL,
+                name          = '탈퇴한 사용자',
+                image         = NULL,
+                "avatarUrl"   = NULL,
+                "referralCode" = NULL,
+                "updatedAt"   = ${now}
+            WHERE id = ${session.dbId}
         `;
 
-        // 내 테마 삭제 (ThemeVersion은 Cascade)
-        await prisma.$executeRaw`DELETE FROM "Theme" WHERE "creatorId" = ${session.dbId}`;
-
-        // 유저 삭제
-        await prisma.$executeRaw`DELETE FROM "User" WHERE id = ${session.dbId}`;
+        // 적립금 소멸 내역 기록
+        const hadCredit = await prisma.$queryRaw<{ credit: number }[]>`
+            SELECT credit FROM "User" WHERE id = ${session.dbId} LIMIT 1
+        `;
+        if ((hadCredit[0]?.credit ?? 0) > 0) {
+            await prisma.$executeRaw`
+                INSERT INTO "PointHistory" (id, "userId", amount, type, memo, "createdAt")
+                VALUES (
+                    ${crypto.randomUUID()},
+                    ${session.dbId},
+                    ${-(hadCredit[0].credit)},
+                    'REFUND'::"PointType",
+                    ${'회원 탈퇴로 인한 적립금 소멸'},
+                    ${now}
+                )
+            `;
+        }
 
         // 세션 쿠키 삭제
         const res = NextResponse.json({ ok: true });
@@ -46,7 +65,8 @@ export async function DELETE(req: NextRequest) {
             maxAge: 0,
         });
         return res;
-    } catch {
+    } catch (e) {
+        console.error("[withdraw DELETE]", e);
         return NextResponse.json({ error: "탈퇴 처리 중 오류가 발생했습니다." }, { status: 500 });
     }
 }

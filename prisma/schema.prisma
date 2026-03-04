@@ -49,23 +49,46 @@ enum ReportStatus {
 }
 
 model User {
-  id          String   @id @default(uuid())
-  kakaoId     String   @unique
-  email       String?  @unique
-  name        String
-  nickname    String?  @unique
-  avatarUrl   String?
-  image       String?
-  role        Role     @default(USER)
-  isSuspended Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                String    @id @default(uuid())
+  kakaoId           String    @unique
+  email             String?   @unique
+  name              String
+  nickname          String?   @unique
+  avatarUrl         String?
+  image             String?
+  role              Role      @default(USER)
+  isSuspended       Boolean   @default(false)
+  credit            Int       @default(0)
+  referralCode      String?   @unique
+  referralRewarded  Boolean   @default(false)  // 추천 적립을 이미 받았는지 (평생 1회)
+  deletedAt         DateTime?                   // soft delete
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   themes         Theme[]        @relation("UserThemes")
   purchases      Purchase[]     @relation("UserPurchases")
   inquiries      Inquiry[]      @relation("UserInquiries")
   inquiryReplies InquiryReply[] @relation("UserInquiryReplies")
   reports        Report[]       @relation("UserReports")
+  pointHistories PointHistory[] @relation("UserPointHistories")
+}
+
+enum PointType {
+  REFERRAL_REWARD
+  PURCHASE_USE
+  ADMIN_GRANT
+  REFUND
+}
+
+model PointHistory {
+  id        String    @id @default(uuid())
+  userId    String
+  amount    Int
+  type      PointType
+  memo      String?
+  createdAt DateTime  @default(now())
+
+  user User @relation("UserPointHistories", fields: [userId], references: [id])
 }
 
 model Theme {

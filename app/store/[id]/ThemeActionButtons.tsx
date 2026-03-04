@@ -32,6 +32,11 @@ export default function ThemeActionButtons(props: Props) {
     const [reportAgreed, setReportAgreed] = useState(false);
     const [reportSubmitted, setReportSubmitted] = useState(false);
 
+    // 적립금 결제
+    const [creditModal, setCreditModal] = useState(false);
+    const [myCredit, setMyCredit] = useState<number | null>(null);
+    const [creditLoading, setCreditLoading] = useState(false);
+
     const isFree = priceNum === 0;
 
     // 토스페이먼츠 SDK 동적 로드
@@ -103,6 +108,40 @@ export default function ThemeActionButtons(props: Props) {
     const handleLike = () => {
         if (!isLoggedIn) { router.push("/api/auth/kakao"); return; }
         setLiked((prev) => !prev);
+    };
+
+    const openCreditModal = async () => {
+        if (!isLoggedIn) { router.push("/api/auth/kakao"); return; }
+        setResult(null);
+        const res = await fetch("/api/mypage/credit");
+        const d = await res.json() as { credit: number };
+        setMyCredit(d.credit ?? 0);
+        setCreditModal(true);
+    };
+
+    const handleCreditPay = async () => {
+        setCreditLoading(true);
+        setResult(null);
+        try {
+            const res = await fetch("/api/payment/credit", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ themeId: props.themeId }),
+            });
+            const data = await res.json() as { success?: boolean; error?: string };
+            if (!res.ok || !data.success) {
+                setResult({ success: false, message: data.error ?? "결제에 실패했습니다." });
+            } else {
+                setOwnedState(true);
+                setResult({ success: true, message: "적립금으로 구매 완료!" });
+                setTimeout(() => setResult(null), 2000);
+            }
+        } catch {
+            setResult({ success: false, message: "오류가 발생했습니다." });
+        } finally {
+            setCreditLoading(false);
+            setCreditModal(false);
+        }
     };
 
     const handleReport = () => {
@@ -287,52 +326,114 @@ export default function ThemeActionButtons(props: Props) {
                 </div>
             )}
 
+            {/* 적립금 결제 모달 */}
+            {creditModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
+                    style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(5px)" }}
+                    onClick={e => { if (e.target === e.currentTarget) setCreditModal(false); }}>
+                    <div className="flex flex-col w-full max-w-[380px] rounded-[24px] overflow-hidden"
+                        style={{ background: "#fff", boxShadow: "0 24px 60px rgba(0,0,0,0.18)" }}>
+                        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+                            <h3 className="text-[16px] font-bold text-gray-900">적립금으로 구매하기</h3>
+                            <button onClick={() => setCreditModal(false)} className="text-gray-400 hover:text-gray-700 p-1">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="flex flex-col gap-4 px-6 py-6">
+                            <div className="flex justify-between items-center px-4 py-3 rounded-[12px]"
+                                style={{ background: "rgba(0,0,0,0.03)" }}>
+                                <span className="text-[13px] text-gray-500">보유 적립금</span>
+                                <span className="text-[16px] font-bold" style={{ color: (myCredit ?? 0) >= priceNum ? "#34c759" : "#ff3b30" }}>
+                                    {(myCredit ?? 0).toLocaleString()}원
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center px-4 py-3 rounded-[12px]"
+                                style={{ background: "rgba(0,0,0,0.03)" }}>
+                                <span className="text-[13px] text-gray-500">결제 금액</span>
+                                <span className="text-[16px] font-bold text-gray-900">{priceNum.toLocaleString()}원</span>
+                            </div>
+                            <div className="flex justify-between items-center px-4 py-3 rounded-[12px]"
+                                style={{ background: "rgba(212,245,212,0.5)", border: "1px solid rgba(52,199,89,0.2)" }}>
+                                <span className="text-[13px] font-semibold" style={{ color: "#1a7a3a" }}>결제 후 잔여 적립금</span>
+                                <span className="text-[16px] font-bold" style={{ color: "#1a7a3a" }}>
+                                    {Math.max(0, (myCredit ?? 0) - priceNum).toLocaleString()}원
+                                </span>
+                            </div>
+                            {(myCredit ?? 0) < priceNum && (
+                                <p className="text-[12px] text-center" style={{ color: "#ff3b30" }}>
+                                    적립금이 {(priceNum - (myCredit ?? 0)).toLocaleString()}원 부족합니다.
+                                </p>
+                            )}
+                            <button
+                                onClick={handleCreditPay}
+                                disabled={creditLoading || (myCredit ?? 0) < priceNum}
+                                className="w-full py-3.5 rounded-[12px] text-[14px] font-bold text-white transition-all active:scale-[0.98] disabled:opacity-40"
+                                style={{ background: "#34c759" }}
+                            >
+                                {creditLoading ? "처리 중..." : "적립금으로 결제하기"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {result && (
-                <div
-                    className="text-[13px] font-medium px-4 py-2.5 rounded-[10px]"
-                    style={{
-                        background: result.success ? "rgba(52,199,89,0.1)" : "rgba(255,59,48,0.1)",
-                        color: result.success ? "#34c759" : "#ff3b30",
-                    }}
-                >
+                <div className="text-[13px] font-medium px-4 py-2.5 rounded-[10px]"
+                    style={{ background: result.success ? "rgba(52,199,89,0.1)" : "rgba(255,59,48,0.1)", color: result.success ? "#34c759" : "#ff3b30" }}>
                     {result.message}
                 </div>
             )}
 
-            <div className="flex gap-3">
-                <button
-                    onClick={handleMainAction}
-                    disabled={loading || ownedState}
-                    className="flex-[3] py-[14px] rounded-[14px] text-[15px] font-bold text-white transition-all active:scale-[0.98] disabled:opacity-60"
-                    style={{
-                        background: ownedState ? "#34c759" : "#4A7BF7",
-                        boxShadow: ownedState ? "0 4px 20px rgba(52,199,89,0.3)" : "0 4px 20px rgba(74,123,247,0.3)",
-                    }}
-                >
-                    {loading ? "처리 중..."
-                        : ownedState ? "보유중"
-                        : isLoggedIn
-                            ? isFree ? "무료 다운로드" : `${priceName} 구매하기`
-                            : isFree ? "로그인 후 무료 다운로드" : "로그인 후 구매하기"}
-                </button>
-                <button
-                    onClick={handleLike}
-                    className="w-[52px] flex items-center justify-center rounded-[14px] transition-all active:scale-[0.98] hover:bg-red-50"
-                    title={liked ? "찜 해제" : "찜하기"}
-                >
-                    <svg width="22" height="22" viewBox="0 0 24 24"
-                        fill={liked ? "#ff3b30" : "none"}
-                        stroke="#ff3b30" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                    </svg>
-                </button>
-                <button
-                    onClick={handleReport}
-                    className="w-[52px] flex items-center justify-center rounded-[14px] transition-all active:scale-[0.98] hover:bg-red-50"
-                    title="신고하기"
-                >
-                    <Siren size={20} color="#ef4444" />
-                </button>
+            <div className="flex flex-col gap-2">
+                {/* 구매하기 / 적립금 버튼 행 */}
+                <div className="flex gap-3">
+                    <button
+                        onClick={handleMainAction}
+                        disabled={loading || ownedState}
+                        className="flex-[3] py-[14px] rounded-[14px] text-[15px] font-bold text-white transition-all active:scale-[0.98] disabled:opacity-60"
+                        style={{
+                            background: ownedState ? "#34c759" : "#4A7BF7",
+                            boxShadow: ownedState ? "0 4px 20px rgba(52,199,89,0.3)" : "0 4px 20px rgba(74,123,247,0.3)",
+                        }}
+                    >
+                        {loading ? "처리 중..."
+                            : ownedState ? "보유중"
+                            : isLoggedIn
+                                ? isFree ? "무료 다운로드" : `${priceName} 구매하기`
+                                : isFree ? "로그인 후 무료 다운로드" : "로그인 후 구매하기"}
+                    </button>
+                    <button
+                        onClick={handleLike}
+                        className="w-[52px] flex items-center justify-center rounded-[14px] transition-all active:scale-[0.98] hover:bg-red-50"
+                        title={liked ? "찜 해제" : "찜하기"}
+                    >
+                        <svg width="22" height="22" viewBox="0 0 24 24"
+                            fill={liked ? "#ff3b30" : "none"}
+                            stroke="#ff3b30" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                        </svg>
+                    </button>
+                    <button
+                        onClick={handleReport}
+                        className="w-[52px] flex items-center justify-center rounded-[14px] transition-all active:scale-[0.98] hover:bg-red-50"
+                        title="신고하기"
+                    >
+                        <Siren size={20} color="#ef4444" />
+                    </button>
+                </div>
+
+                {/* 적립금으로 결제하기 버튼 (유료 테마 + 미보유 시) */}
+                {!isFree && !ownedState && isLoggedIn && (
+                    <button
+                        onClick={openCreditModal}
+                        className="w-full py-[13px] rounded-[14px] text-[14px] font-semibold transition-all active:scale-[0.98]"
+                        style={{ background: "rgba(52,199,89,0.08)", color: "#1a7a3a", border: "1.5px solid rgba(52,199,89,0.25)" }}
+                    >
+                        💰 적립금으로 결제하기
+                    </button>
+                )}
             </div>
 
             <button

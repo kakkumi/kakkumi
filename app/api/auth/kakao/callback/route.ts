@@ -81,23 +81,62 @@ export async function GET(request: Request) {
         const name = profileJson.kakao_account?.profile?.nickname ?? "카카오 사용자";
         const image = profileJson.kakao_account?.profile?.profile_image_url ?? null;
 
-        // 3) DB upsert
+        // 3) DB upsert — soft delete 유저 포함 처리
         let dbUser: { id: string; email: string | null; name: string; image: string | null; role: string };
         try {
-            const upserted = await prisma.user.upsert({
-                where: { kakaoId },
-                create: { kakaoId, email, name, image },
-                update: { name, image, ...(email ? { email } : {}) },
-            });
-            dbUser = upserted;
+            // kakaoId로 기존 유저 조회 (탈퇴한 유저 포함)
+            const existingRows = await prisma.$queryRaw<{
+                id: string; email: string | null; name: string; image: string | null;
+                role: string; deletedAt: Date | null;
+            }[]>`
+                SELECT id, email, name, image, role::text, "deletedAt"
+                FROM "User" WHERE "kakaoId" = ${kakaoId} LIMIT 1
+            `;
+
+            if (existingRows.length > 0) {
+                const existing = existingRows[0];
+                if (existing.deletedAt !== null) {
+                    // 탈퇴 유저 재가입 → 복원 (referralRewarded는 유지 — 추천 적립 재수령 방지)
+                    if (email) {
+                        await prisma.$executeRaw`
+                            UPDATE "User" SET "deletedAt" = NULL, name = ${name}, image = ${image}, email = ${email}, "updatedAt" = NOW()
+                            WHERE "kakaoId" = ${kakaoId}
+                        `;
+                    } else {
+                        await prisma.$executeRaw`
+                            UPDATE "User" SET "deletedAt" = NULL, name = ${name}, image = ${image}, "updatedAt" = NOW()
+                            WHERE "kakaoId" = ${kakaoId}
+                        `;
+                    }
+                } else {
+                    // 일반 재로그인 → 프로필만 업데이트
+                    if (email) {
+                        await prisma.$executeRaw`
+                            UPDATE "User" SET name = ${name}, image = ${image}, email = ${email}, "updatedAt" = NOW()
+                            WHERE "kakaoId" = ${kakaoId}
+                        `;
+                    } else {
+                        await prisma.$executeRaw`
+                            UPDATE "User" SET name = ${name}, image = ${image}, "updatedAt" = NOW()
+                            WHERE "kakaoId" = ${kakaoId}
+                        `;
+                    }
+                }
+                dbUser = { ...existing, name, image };
+            } else {
+                // 신규 가입
+                dbUser = await prisma.user.create({
+                    data: { kakaoId, email, name, image },
+                });
+            }
         } catch (upsertErr) {
             console.error("[kakao callback upsert error]", upsertErr);
             return NextResponse.redirect(new URL("/?login=failed", url.origin));
         }
 
         // 4) nickname 조회 — 컬럼이 아직 없으면 기존 유저로 간주
-        let nickname: string | null = null;
-        let avatarUrl: string | null = null;
+        let nickname: string | null;
+        let avatarUrl: string | null;
         let nicknameColumnExists = true;
 
         try {

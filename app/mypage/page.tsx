@@ -35,16 +35,18 @@ export default async function MyPage() {
 
     let purchasedCount = 0;
     let createdAt: string | null = null;
+    let credit = 0;
 
     if (session?.dbId) {
         purchasedCount = await prisma.purchase.count({
             where: { buyerId: session.dbId, status: "COMPLETED" },
         });
         try {
-            const rows = await prisma.$queryRaw<{ createdAt: Date }[]>`
-                SELECT "createdAt" FROM "User" WHERE id = ${session.dbId} LIMIT 1
+            const rows = await prisma.$queryRaw<{ createdAt: Date; credit: number }[]>`
+                SELECT "createdAt", credit FROM "User" WHERE id = ${session.dbId} LIMIT 1
             `;
             createdAt = rows[0]?.createdAt?.toISOString() ?? null;
+            credit = rows[0]?.credit ?? 0;
         } catch {
             createdAt = null;
         }
@@ -87,6 +89,7 @@ export default async function MyPage() {
                 purchasedCount={purchasedCount}
                 sidebarMenus={sidebarMenus}
                 createdAt={createdAt}
+                credit={credit}
             />
             <Footer />
         </div>
