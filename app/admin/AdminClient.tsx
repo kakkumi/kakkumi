@@ -40,8 +40,13 @@ type AdminInquiry = {
     userNickname: string | null; userName: string;
     replies?: AdminInquiryReply[];
 };
+type AdminApplication = {
+    id: string; status: string; reason: string; portfolio: string | null;
+    adminNote: string | null; createdAt: string;
+    userId: string; userNickname: string | null; userName: string; userEmail: string | null;
+};
 
-type Tab = "overview" | "themes" | "users" | "reports" | "sales" | "inquiries";
+type Tab = "overview" | "themes" | "users" | "reports" | "sales" | "inquiries" | "applications";
 type Props = {
     stats: Stats;
     recentUsers: AdminUser[];
@@ -86,8 +91,9 @@ const SIDEBAR_GROUPS: { category: string; items: { key: Tab; label: string }[] }
     {
         category: "콘텐츠",
         items: [
-            { key: "themes",    label: "테마 관리" },
-            { key: "reports",   label: "신고 관리" },
+            { key: "themes",       label: "테마 관리" },
+            { key: "applications", label: "입점 신청" },
+            { key: "reports",      label: "신고 관리" },
         ],
     },
     {
@@ -138,6 +144,7 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
     const [purchases, setPurchases] = useState<AdminPurchase[]>(recentPurchases);
     const [settlements, setSettlements] = useState<AdminSettlement[]>([]);
     const [inquiries, setInquiries] = useState<AdminInquiry[]>([]);
+    const [applications, setApplications] = useState<AdminApplication[]>([]);
     const [loading, setLoading] = useState(false);
 
     const [rejectModal, setRejectModal] = useState<{ themeId: string; title: string } | null>(null);
@@ -183,6 +190,10 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
                 const r = await fetch("/api/admin/inquiries");
                 const d = await r.json() as { inquiries: AdminInquiry[] };
                 setInquiries(d.inquiries ?? []);
+            } else if (tab === "applications") {
+                const r = await fetch("/api/admin/applications");
+                const d = await r.json() as { applications: AdminApplication[] };
+                setApplications(d.applications ?? []);
             }
         } finally {
             setLoading(false);
@@ -219,10 +230,21 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
         fetchTab("reports");
     };
 
+    const applicationAction = async (applicationId: string, action: "APPROVED" | "REJECTED", adminNote?: string) => {
+        setActionLoading(true);
+        await fetch("/api/admin/applications", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ applicationId, action, adminNote }),
+        });
+        setActionLoading(false);
+        showToast(action === "APPROVED" ? "승인 완료" : "반려 완료");
+        fetchTab("applications");
+    };
+
     const purchaseAction = async (purchaseId: string, action: string) => {
         setActionLoading(true);
-        await fetch("/api/admin/sales", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ purchaseId, action }) });
-        setActionLoading(false);
+        await fetch("/api/admin/sales", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ purchaseId, action }) });        setActionLoading(false);
         showToast("처리 완료");
         fetchTab("sales");
     };
@@ -856,6 +878,43 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
                     </div>
                 )}
 
+                {/* ── 입점 신청 ─────────────────────── */}
+                {activeTab === "applications" && (
+                    <div className="flex flex-col gap-5">
+                        <div>
+                            <h2 className="text-[20px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>입점 신청</h2>
+                            <p className="text-[12px] mt-0.5" style={{ color: "#8e8e93" }}>크리에이터 입점 신청을 검토하고 승인 또는 반려합니다.</p>
+                        </div>
+                        <div className="rounded-[20px] overflow-hidden" style={CARD_BG}>
+                            <div className="px-6 py-4 border-b flex items-center justify-between" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
+                                <h3 className="text-[14px] font-bold" style={{ color: "#1c1c1e" }}>
+                                    입점 신청 목록
+                                    {applications.filter(a => a.status === "PENDING").length > 0 && (
+                                        <span className="ml-2 text-[12px] font-semibold px-2 py-0.5 rounded-full" style={{ background: "rgba(255,149,0,0.12)", color: "#c97000" }}>
+                                            대기 {applications.filter(a => a.status === "PENDING").length}건
+                                        </span>
+                                    )}
+                                </h3>
+                                {loading && <span className="text-[12px]" style={{ color: "#8e8e93" }}>로딩 중...</span>}
+                            </div>
+                            {!loading && applications.length === 0 ? (
+                                <div className="flex flex-col items-center gap-2 py-14">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c8c8cd" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                                    </svg>
+                                    <p className="text-[13px]" style={{ color: "#8e8e93" }}>입점 신청 내역이 없습니다.</p>
+                                </div>
+                            ) : (
+                                <div className="divide-y" style={{ borderColor: "rgba(0,0,0,0.05)" }}>
+                                    {applications.map(app => (
+                                        <ApplicationRow key={app.id} app={app} onAction={applicationAction} actionLoading={actionLoading} />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
             </div>
 
             {/* ── 모달: 테마 반려 ──────────────── */}
@@ -1126,6 +1185,96 @@ function ThemeManageTab({
                     )}
                 </div>
             </div>
+        </div>
+    );
+}
+
+// ── 입점 신청 행 컴포넌트 ──────────────────────────
+const APP_STATUS_STYLE: Record<string, { label: string; bg: string; color: string }> = {
+    PENDING:  { label: "검토 중",   bg: "rgba(255,149,0,0.10)",  color: "#c97000" },
+    APPROVED: { label: "승인 완료", bg: "rgba(52,199,89,0.10)",  color: "#1a7a3a" },
+    REJECTED: { label: "반려",      bg: "rgba(255,59,48,0.08)",  color: "#c0392b" },
+};
+
+function ApplicationRow({ app, onAction, actionLoading }: {
+    app: AdminApplication;
+    onAction: (id: string, action: "APPROVED" | "REJECTED", note?: string) => void;
+    actionLoading: boolean;
+}) {
+    const [expanded, setExpanded] = useState(false);
+    const [rejectNote, setRejectNote] = useState("");
+    const [showReject, setShowReject] = useState(false);
+    const statusStyle = APP_STATUS_STYLE[app.status] ?? APP_STATUS_STYLE.PENDING;
+
+    return (
+        <div className="flex flex-col px-6 py-4 gap-3">
+            <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-col gap-0.5">
+                    <div className="flex items-center gap-2">
+                        <span className="text-[14px] font-semibold" style={{ color: "#1c1c1e" }}>
+                            {app.userNickname ?? app.userName}
+                        </span>
+                        {app.userEmail && <span className="text-[11px]" style={{ color: "#8e8e93" }}>{app.userEmail}</span>}
+                        <Badge style={statusStyle} />
+                    </div>
+                    <span className="text-[11px]" style={{ color: "#8e8e93" }}>
+                        신청일 {new Date(app.createdAt).toLocaleDateString("ko-KR")}
+                    </span>
+                </div>
+                {app.status === "PENDING" && (
+                    <div className="flex gap-2 shrink-0">
+                        <button onClick={() => onAction(app.id, "APPROVED")} disabled={actionLoading}
+                            className="px-3 py-1.5 rounded-lg text-[12px] font-bold disabled:opacity-40"
+                            style={{ background: "rgba(52,199,89,0.12)", color: "#1a7a3a" }}>승인</button>
+                        <button onClick={() => setShowReject(v => !v)} disabled={actionLoading}
+                            className="px-3 py-1.5 rounded-lg text-[12px] font-bold disabled:opacity-40"
+                            style={{ background: "rgba(255,59,48,0.10)", color: "#ff3b30" }}>반려</button>
+                    </div>
+                )}
+            </div>
+
+            {/* 신청 사유 펼치기 */}
+            <button onClick={() => setExpanded(v => !v)} className="flex items-center gap-1.5 text-left">
+                <span className="text-[12px] font-medium" style={{ color: "#4A7BF7" }}>{expanded ? "▲ 접기" : "▼ 신청 사유 보기"}</span>
+            </button>
+            {expanded && (
+                <div className="flex flex-col gap-2 p-4 rounded-[12px]" style={{ background: "rgba(0,0,0,0.025)" }}>
+                    <p className="text-[13px] leading-relaxed" style={{ color: "#3a3a3c", whiteSpace: "pre-wrap" }}>{app.reason}</p>
+                    {app.portfolio && (
+                        <a href={app.portfolio} target="_blank" rel="noopener noreferrer"
+                            className="text-[12px] underline" style={{ color: "#4A7BF7" }}>
+                            포트폴리오 보기 →
+                        </a>
+                    )}
+                    {app.adminNote && (
+                        <div className="mt-1 px-3 py-2 rounded-[10px]" style={{ background: "rgba(255,59,48,0.06)" }}>
+                            <p className="text-[11px] font-semibold" style={{ color: "#c0392b" }}>반려 사유</p>
+                            <p className="text-[12px]" style={{ color: "#3a3a3c" }}>{app.adminNote}</p>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* 반려 사유 입력 */}
+            {showReject && (
+                <div className="flex flex-col gap-2 p-4 rounded-[12px]" style={{ background: "rgba(255,59,48,0.04)", border: "1px solid rgba(255,59,48,0.15)" }}>
+                    <label className="text-[12px] font-semibold" style={{ color: "#c0392b" }}>반려 사유 입력</label>
+                    <textarea rows={3} value={rejectNote} onChange={e => setRejectNote(e.target.value)}
+                        placeholder="반려 사유를 입력하면 신청자에게 표시됩니다. (선택)"
+                        className="px-3 py-2 rounded-[10px] text-[13px] outline-none resize-none"
+                        style={{ background: "#fff", border: "1px solid rgba(0,0,0,0.08)", color: "#1c1c1e" }}
+                    />
+                    <div className="flex gap-2">
+                        <button onClick={() => { onAction(app.id, "REJECTED", rejectNote || undefined); setShowReject(false); }}
+                            disabled={actionLoading}
+                            className="px-4 py-2 rounded-[10px] text-[12px] font-bold text-white disabled:opacity-40"
+                            style={{ background: "#ff3b30" }}>반려 확정</button>
+                        <button onClick={() => setShowReject(false)}
+                            className="px-4 py-2 rounded-[10px] text-[12px] font-semibold"
+                            style={{ background: "rgba(0,0,0,0.06)", color: "#3a3a3c" }}>취소</button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

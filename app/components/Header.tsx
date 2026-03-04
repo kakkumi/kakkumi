@@ -6,29 +6,41 @@ import AuthStatus from "./AuthStatus";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-const NAV_ITEMS = [
+const BASE_NAV_ITEMS = [
     { href: "/store", label: "테마 스토어" },
     { href: "/create", label: "테마 만들기" },
-    { href: "/store/register", label: "테마 등록" },
     { href: "/support", label: "고객센터" },
 ];
 
 export default function Header() {
     const pathname = usePathname();
-    const [isAdmin, setIsAdmin] = useState(false);
+    const [role, setRole] = useState<string | null>(null);
 
     useEffect(() => {
         fetch("/api/auth/session", { cache: "no-store" })
             .then((r) => r.json())
             .then((d: { session?: { role?: string } | null }) => {
-                setIsAdmin(d?.session?.role === "ADMIN");
+                setRole(d?.session?.role ?? null);
             })
             .catch(() => {});
     }, []);
 
+    const isAdmin = role === "ADMIN";
+    // CREATOR 또는 ADMIN: 테마 등록, USER 또는 비로그인: 입점 신청
+    const registerItem = (role === "CREATOR" || role === "ADMIN")
+        ? { href: "/store/register", label: "테마 등록" }
+        : { href: "/mypage/creator-apply", label: "입점 신청" };
+
+    const NAV_ITEMS = [
+        BASE_NAV_ITEMS[0],
+        BASE_NAV_ITEMS[1],
+        registerItem,
+        BASE_NAV_ITEMS[2],
+    ];
+
     const isActive = (href: string) => {
         if (href === "/store") {
-            return pathname === "/store" || (pathname.startsWith("/store") && pathname !== "/store/register");
+            return pathname === "/store" || (pathname.startsWith("/store") && pathname !== "/store/register" && !pathname.startsWith("/store/register"));
         }
         return pathname === href || pathname.startsWith(href + "/");
     };

@@ -48,6 +48,25 @@ enum ReportStatus {
   DISMISSED
 }
 
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model CreatorApplication {
+  id          String            @id @default(uuid())
+  userId      String
+  reason      String            // 신청 사유
+  portfolio   String?           // 포트폴리오 URL 등 (선택)
+  status      ApplicationStatus @default(PENDING)
+  adminNote   String?           // 반려 사유 등 관리자 메모
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  user User @relation("UserApplications", fields: [userId], references: [id])
+}
+
 model User {
   id                String    @id @default(uuid())
   kakaoId           String    @unique
@@ -65,12 +84,13 @@ model User {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
-  themes         Theme[]        @relation("UserThemes")
-  purchases      Purchase[]     @relation("UserPurchases")
-  inquiries      Inquiry[]      @relation("UserInquiries")
-  inquiryReplies InquiryReply[] @relation("UserInquiryReplies")
-  reports        Report[]       @relation("UserReports")
-  pointHistories PointHistory[] @relation("UserPointHistories")
+  themes         Theme[]               @relation("UserThemes")
+  purchases      Purchase[]            @relation("UserPurchases")
+  inquiries      Inquiry[]             @relation("UserInquiries")
+  inquiryReplies InquiryReply[]        @relation("UserInquiryReplies")
+  reports        Report[]              @relation("UserReports")
+  pointHistories PointHistory[]        @relation("UserPointHistories")
+  applications   CreatorApplication[]  @relation("UserApplications")
 }
 
 enum PointType {
