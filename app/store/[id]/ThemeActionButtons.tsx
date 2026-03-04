@@ -4,14 +4,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Siren } from "lucide-react";
 
-// 토스페이먼츠 SDK 타입 선언
-declare global {
-    interface Window {
-        TossPayments: (clientKey: string) => {
-            requestPayment: (method: string, options: Record<string, unknown>) => Promise<void>;
-        };
-    }
-}
+type TossPaymentsFn = (clientKey: string) => {
+    requestPayment: (method: string, options: Record<string, unknown>) => Promise<void>;
+};
 
 type Props = {
     themeId: string;
@@ -42,7 +37,8 @@ export default function ThemeActionButtons(props: Props) {
     // 토스페이먼츠 SDK 동적 로드
     useEffect(() => {
         if (isFree) return;
-        if (window.TossPayments) { setSdkLoaded(true); return; }
+        const win = window as unknown as Record<string, unknown>;
+        if (typeof win["TossPayments"] !== "undefined") { setSdkLoaded(true); return; }
 
         const script = document.createElement("script");
         script.src = "https://js.tosspayments.com/v1/payment";
@@ -52,11 +48,7 @@ export default function ThemeActionButtons(props: Props) {
     }, [isFree]);
 
     const handleMainAction = async () => {
-        if (!isLoggedIn) {
-            router.push("/api/auth/kakao");
-            return;
-        }
-
+        if (!isLoggedIn) { router.push("/api/auth/kakao"); return; }
         if (isFree) {
             setLoading(true);
             setResult(null);
@@ -66,20 +58,13 @@ export default function ThemeActionButtons(props: Props) {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ themeId: props.themeId }),
                 });
-                const data = (await res.json()) as { success?: boolean; error?: string; alreadyOwned?: boolean; downloadUrl?: string };
-                if (!res.ok) {
-                    setResult({ success: false, message: data.error ?? "다운로드 실패" });
-                    return;
-                }
-                if (data.downloadUrl) {
-                    window.open(data.downloadUrl, "_blank");
-                }
+                const data = await res.json() as { success?: boolean; error?: string; alreadyOwned?: boolean; downloadUrl?: string };
+                if (!res.ok) { setResult({ success: false, message: data.error ?? "다운로드 실패" }); return; }
+                if (data.downloadUrl) window.open(data.downloadUrl, "_blank");
+                setOwnedState(true);
                 if (!data.alreadyOwned) {
-                    setOwnedState(true);
                     setResult({ success: true, message: "다운로드가 완료되었습니다!" });
                     setTimeout(() => setResult(null), 2000);
-                } else {
-                    setOwnedState(true);
                 }
             } catch {
                 setResult({ success: false, message: "오류가 발생했습니다. 다시 시도해주세요." });
@@ -87,25 +72,19 @@ export default function ThemeActionButtons(props: Props) {
                 setLoading(false);
             }
         } else {
-            // 토스페이먼츠 결제 요청
             const clientKey = process.env.NEXT_PUBLIC_TOSSPAYMENTS_CLIENT_KEY;
             if (!clientKey || clientKey.includes("여기에")) {
-                setResult({ success: false, message: "결제 설정이 아직 완료되지 않았습니다." });
-                return;
+                setResult({ success: false, message: "결제 설정이 아직 완료되지 않았습니다." }); return;
             }
-            if (!sdkLoaded || !window.TossPayments) {
-                setResult({ success: false, message: "결제 모듈을 불러오는 중입니다. 잠시 후 다시 시도해주세요." });
-                return;
+            const win = window as unknown as Record<string, unknown>;
+            if (!sdkLoaded || typeof win["TossPayments"] === "undefined") {
+                setResult({ success: false, message: "결제 모듈을 불러오는 중입니다. 잠시 후 다시 시도해주세요." }); return;
             }
-
-            // orderId: 영문/숫자/- 만 허용, 6~64자
             const shortThemeId = props.themeId.replace(/-/g, "").slice(0, 16);
             const shortUserId = (userId ?? "guest").replace(/-/g, "").slice(0, 16);
-            const ts = Date.now().toString(36);
-            const orderId = `${shortThemeId}-${shortUserId}-${ts}`;
-
+            const orderId = `${shortThemeId}-${shortUserId}-${Date.now().toString(36)}`;
             try {
-                const toss = window.TossPayments(clientKey);
+                const toss = (win["TossPayments"] as TossPaymentsFn)(clientKey);
                 await toss.requestPayment("카드", {
                     amount: priceNum,
                     orderId,
@@ -116,11 +95,7 @@ export default function ThemeActionButtons(props: Props) {
                 });
             } catch (err: unknown) {
                 const error = err as { code?: string; message?: string };
-                if (error?.code === "USER_CANCEL") {
-                    setResult({ success: false, message: "결제가 취소되었습니다." });
-                } else {
-                    setResult({ success: false, message: error?.message ?? "결제 중 오류가 발생했습니다." });
-                }
+                setResult({ success: false, message: error?.code === "USER_CANCEL" ? "결제가 취소되었습니다." : (error?.message ?? "결제 중 오류가 발생했습니다.") });
             }
         }
     };
@@ -152,7 +127,7 @@ export default function ThemeActionButtons(props: Props) {
 
     return (
         <div className="flex flex-col gap-3">
-            {/* ── 신고 모달 ── */}
+            {/* 신고 모달 */}
             {reportModal && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center px-4"
@@ -164,7 +139,6 @@ export default function ThemeActionButtons(props: Props) {
                         style={{ background: "#fff", boxShadow: "0 24px 60px rgba(0,0,0,0.18)", maxHeight: "90vh", overflowY: "auto" }}
                     >
                         {reportSubmitted ? (
-                            /* 접수 완료 */
                             <div className="flex flex-col items-center gap-4 py-12 px-8">
                                 <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: "rgba(52,199,89,0.12)" }}>
                                     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#34c759" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -179,7 +153,6 @@ export default function ThemeActionButtons(props: Props) {
                             </div>
                         ) : (
                             <>
-                                {/* 헤더 */}
                                 <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
                                     <div className="flex items-center gap-2">
                                         <Siren size={17} color="#ef4444" />
@@ -191,20 +164,16 @@ export default function ThemeActionButtons(props: Props) {
                                         </svg>
                                     </button>
                                 </div>
-
                                 <div className="flex flex-col gap-5 px-6 py-6">
-                                    {/* 허위 신고 경고 */}
                                     <div className="flex gap-3 px-4 py-3 rounded-[12px]" style={{ background: "rgba(255,59,48,0.06)", border: "1px solid rgba(255,59,48,0.15)" }}>
                                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
-                                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
                                         </svg>
                                         <p className="text-[12px] leading-relaxed" style={{ color: "#c0392b" }}>
                                             <strong>허위 신고 주의</strong><br />
                                             사실과 다른 신고를 반복할 경우 서비스 이용이 <strong>영구 제한</strong>될 수 있습니다. 신중하게 신고해 주세요.
                                         </p>
                                     </div>
-
-                                    {/* 신고 사유 */}
                                     <div className="flex flex-col gap-2">
                                         <label className="text-[13px] font-semibold text-gray-700">신고 사유 <span className="text-red-500">*</span></label>
                                         <div className="flex flex-col gap-1.5">
@@ -239,8 +208,6 @@ export default function ThemeActionButtons(props: Props) {
                                             ))}
                                         </div>
                                     </div>
-
-                                    {/* 상세 내용 */}
                                     <div className="flex flex-col gap-1.5">
                                         <label className="text-[13px] font-semibold text-gray-700">
                                             상세 내용 <span className="text-gray-400 font-normal">(선택)</span>
@@ -256,8 +223,6 @@ export default function ThemeActionButtons(props: Props) {
                                         />
                                         <p className="text-[11px] text-right" style={{ color: "#8e8e93" }}>{reportDetail.length} / 300</p>
                                     </div>
-
-                                    {/* 동의 체크박스 */}
                                     <button
                                         type="button"
                                         className="flex items-start gap-2.5 text-left"
@@ -277,8 +242,6 @@ export default function ThemeActionButtons(props: Props) {
                                             허위 신고 시 서비스 이용이 제한될 수 있음을 확인했으며, 위 내용이 사실임을 동의합니다.
                                         </span>
                                     </button>
-
-                                    {/* 접수 버튼 */}
                                     <button
                                         onClick={handleReportSubmit}
                                         disabled={!reportReason || !reportAgreed}
@@ -305,6 +268,7 @@ export default function ThemeActionButtons(props: Props) {
                     {result.message}
                 </div>
             )}
+
             <div className="flex gap-3">
                 <button
                     onClick={handleMainAction}
@@ -315,13 +279,11 @@ export default function ThemeActionButtons(props: Props) {
                         boxShadow: ownedState ? "0 4px 20px rgba(52,199,89,0.3)" : "0 4px 20px rgba(74,123,247,0.3)",
                     }}
                 >
-                    {loading
-                        ? "처리 중..."
-                        : ownedState
-                            ? "보유중"
-                            : isLoggedIn
-                                ? isFree ? "무료 다운로드" : `${priceName} 구매하기`
-                                : isFree ? "로그인 후 무료 다운로드" : "로그인 후 구매하기"}
+                    {loading ? "처리 중..."
+                        : ownedState ? "보유중"
+                        : isLoggedIn
+                            ? isFree ? "무료 다운로드" : `${priceName} 구매하기`
+                            : isFree ? "로그인 후 무료 다운로드" : "로그인 후 구매하기"}
                 </button>
                 <button
                     onClick={handleLike}
@@ -342,6 +304,7 @@ export default function ThemeActionButtons(props: Props) {
                     <Siren size={20} color="#ef4444" />
                 </button>
             </div>
+
             <button
                 onClick={handleInquiry}
                 className="w-full py-[13px] rounded-[14px] text-[14px] font-semibold text-gray-600 bg-white border border-gray-200 hover:border-gray-400 hover:text-gray-900 transition-all active:scale-[0.98] flex items-center justify-center gap-2"

@@ -24,7 +24,7 @@ async function getSession() {
         const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
         if (!sessionCookie) return null;
         const session = verifySession(sessionCookie.value, sessionSecret);
-        return session as { name?: string | null; image?: string | null; id?: string | null; dbId?: string | null } | null;
+        return session as { name?: string | null; nickname?: string | null; image?: string | null; id?: string | null; dbId?: string | null } | null;
     } catch {
         return null;
     }

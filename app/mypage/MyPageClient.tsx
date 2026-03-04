@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import ThemeVaultTabs from "./ThemeVaultTabs";
+import { validateNickname } from "@/lib/nickname";
 
 type SidebarMenu = {
     category: string;
@@ -17,7 +18,7 @@ const THEME_TAB_MAP: Record<string, Tab> = {
 };
 
 type Props = {
-    session: { name?: string | null; image?: string | null } | null;
+    session: { name?: string | null; nickname?: string | null; image?: string | null } | null;
     purchasedCount: number;
     sidebarMenus: SidebarMenu[];
 };
@@ -38,6 +39,74 @@ const RECENT_THEMES = [
 export default function MyPageClient({ session, purchasedCount, sidebarMenus }: Props) {
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
     const [themeTab, setThemeTab] = useState<Tab>("purchased");
+
+    // 닉네임 수정 상태
+    const [displayNickname, setDisplayNickname] = useState<string>(
+        session?.nickname ?? session?.name ?? "사용자"
+    );
+    const [editingNick, setEditingNick] = useState(false);
+    const [nickInput, setNickInput] = useState(displayNickname);
+    const [nickError, setNickError] = useState("");
+    const [nickCheckStatus, setNickCheckStatus] = useState<"idle" | "checking" | "available" | "taken">("idle");
+    const [nickSaving, setNickSaving] = useState(false);
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        if (!editingNick) return;
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+
+        const validationError = validateNickname(nickInput);
+        if (validationError) {
+            setNickError(validationError);
+            setNickCheckStatus("idle");
+            return;
+        }
+        // 현재 닉네임과 동일하면 체크 불필요
+        if (nickInput.trim() === displayNickname) {
+            setNickError("");
+            setNickCheckStatus("available");
+            return;
+        }
+
+        setNickError("");
+        setNickCheckStatus("checking");
+
+        debounceRef.current = setTimeout(async () => {
+            try {
+                const res = await fetch(`/api/user/nickname/check?nickname=${encodeURIComponent(nickInput.trim())}`);
+                const data = await res.json() as { available: boolean; error?: string };
+                if (data.error) {
+                    setNickError(data.error);
+                    setNickCheckStatus("idle");
+                } else {
+                    setNickCheckStatus(data.available ? "available" : "taken");
+                    if (!data.available) setNickError("이미 사용 중인 닉네임입니다.");
+                }
+            } catch {
+                setNickCheckStatus("idle");
+            }
+        }, 500);
+    }, [nickInput, editingNick, displayNickname]);
+
+    const handleNickSave = async () => {
+        if (nickCheckStatus !== "available" || nickSaving) return;
+        setNickSaving(true);
+        setNickError("");
+        const res = await fetch("/api/user/nickname", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nickname: nickInput.trim() }),
+        });
+        const data = await res.json() as { nickname?: string; error?: string };
+        setNickSaving(false);
+        if (!res.ok) {
+            setNickError(data.error ?? "저장 실패");
+        } else {
+            setDisplayNickname(data.nickname ?? nickInput.trim());
+            setEditingNick(false);
+            setNickCheckStatus("idle");
+        }
+    };
 
     const isThemeMenu = activeMenu !== null && THEME_TAB_MAP[activeMenu] !== undefined;
 
@@ -110,10 +179,70 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus }: 
                                     </svg>
                                 )}
                             </div>
-                            <div className="flex flex-col gap-1">
-                                <h2 className="text-[20px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>
-                                    {session.name ?? "사용자"}
-                                </h2>
+                            <div className="flex flex-col gap-1.5">
+                                {editingNick ? (
+                                    <div className="flex flex-col gap-1.5">
+                                        <div className="flex items-center gap-2">
+                                            <div className="relative">
+                                                <input
+                                                    value={nickInput}
+                                                    onChange={(e) => setNickInput(e.target.value)}
+                                                    onKeyDown={(e) => { if (e.key === "Enter") handleNickSave(); if (e.key === "Escape") setEditingNick(false); }}
+                                                    maxLength={10}
+                                                    autoFocus
+                                                    className="text-[18px] font-extrabold px-3 py-1.5 rounded-xl outline-none pr-8"
+                                                    style={{
+                                                        border: `1.5px solid ${nickCheckStatus === "available" ? "#34c759" : nickCheckStatus === "taken" || nickError ? "#ff3b30" : "#FF9500"}`,
+                                                        color: "#1c1c1e",
+                                                        width: 200,
+                                                        fontFamily: "'ChosunIlboMyungjo', serif",
+                                                    }}
+                                                />
+                                                <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
+                                                    {nickCheckStatus === "checking" && <div className="w-3.5 h-3.5 rounded-full border-2 border-black/20 border-t-black/60 animate-spin" />}
+                                                    {nickCheckStatus === "available" && <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#34c759" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>}
+                                                    {nickCheckStatus === "taken" && <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>}
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={handleNickSave}
+                                                disabled={nickSaving || nickCheckStatus !== "available"}
+                                                className="px-3 py-1.5 rounded-xl text-[12px] font-bold transition-all hover:brightness-105 active:scale-95 disabled:opacity-40"
+                                                style={{ background: "#FF9500", color: "#fff" }}
+                                            >
+                                                {nickSaving ? "저장 중..." : "저장"}
+                                            </button>
+                                            <button
+                                                onClick={() => { setEditingNick(false); setNickInput(displayNickname); setNickError(""); setNickCheckStatus("idle"); }}
+                                                className="px-3 py-1.5 rounded-xl text-[12px] font-medium text-gray-400 hover:text-gray-700 transition-all"
+                                            >
+                                                취소
+                                            </button>
+                                        </div>
+                                        <p className="text-[11px]" style={{ color: nickCheckStatus === "available" ? "#34c759" : "#ff3b30", minHeight: 16 }}>
+                                            {nickCheckStatus === "available" && !nickError ? "사용 가능한 닉네임입니다." : nickError}
+                                        </p>
+                                        <p className="text-[11px]" style={{ color: "#8e8e93" }}>{nickInput.trim().length} / 10자</p>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2">
+                                        <h2 className="text-[20px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>
+                                            {displayNickname}
+                                        </h2>
+                                        <button
+                                            onClick={() => { setEditingNick(true); setNickInput(displayNickname); }}
+                                            className="flex items-center gap-1 text-[11px] font-medium transition-all hover:opacity-70"
+                                            style={{ color: "#8e8e93" }}
+                                            title="닉네임 변경"
+                                        >
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                            </svg>
+                                            닉네임 변경
+                                        </button>
+                                    </div>
+                                )}
                                 <p className="text-[12px]" style={{ color: "#8e8e93" }}>가입일 · 2026년 3월</p>
                             </div>
                         </div>

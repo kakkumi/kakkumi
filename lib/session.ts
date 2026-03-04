@@ -4,15 +4,21 @@ import { cookies } from "next/headers";
 const SESSION_COOKIE_NAME = "kakkumi_session";
 
 export type SessionUser = {
-    dbId: string;       // DB User.id (UUID) — 찜, 구매, 리뷰 등에 사용
-    id: string;         // 카카오 고유 ID
+    dbId: string;
+    id: string;
     email: string | null;
     name: string | null;
+    nickname: string | null;   // 사용자 설정 닉네임
     image: string | null;
     role: "USER" | "CREATOR" | "ADMIN";
     provider: string;
     issuedAt: number;
 };
+
+/** 화면에 표시할 이름: 닉네임 > 카카오 이름 > "사용자" */
+export function getDisplayName(session: SessionUser | null): string {
+    return session?.nickname ?? session?.name ?? "사용자";
+}
 
 function verifySession(token: string, secret: string): SessionUser | null {
     const [payloadB64, signature] = token.split(".");
