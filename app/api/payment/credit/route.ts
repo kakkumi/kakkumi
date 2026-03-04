@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     const purchaseId = crypto.randomUUID();
     const historyId = crypto.randomUUID();
 
-    // 적립금 차감 + 구매 기록 + 포인트 내역 저장
+    // 적립금 차감 + 구매 기록 + 포인트 차감 내역
     await prisma.$executeRaw`
         UPDATE "User" SET credit = credit - ${theme.price}, "updatedAt" = NOW() WHERE id = ${session.dbId}
     `;
@@ -57,6 +57,25 @@ export async function POST(req: NextRequest) {
         INSERT INTO "PointHistory" (id, "userId", amount, type, memo, "createdAt")
         VALUES (${historyId}, ${session.dbId}, ${-theme.price}, 'PURCHASE_USE'::"PointType", ${`${theme.title} 구매 (-${theme.price}원)`}, ${now})
     `;
+
+    // 구매 적립금 지급
+    function getPurchaseCredit(price: number): number {
+        if (price === 0) return 0;
+        if (price <= 500) return 10;
+        if (price <= 1000) return 20;
+        if (price <= 1500) return 30;
+        return 50;
+    }
+    const reward = getPurchaseCredit(theme.price);
+    if (reward > 0) {
+        await prisma.$executeRaw`
+            UPDATE "User" SET credit = credit + ${reward}, "updatedAt" = NOW() WHERE id = ${session.dbId}
+        `;
+        await prisma.$executeRaw`
+            INSERT INTO "PointHistory" (id, "userId", amount, type, memo, "createdAt")
+            VALUES (${crypto.randomUUID()}, ${session.dbId}, ${reward}, 'ADMIN_GRANT'::"PointType", ${`구매 적립 (+${reward}원)`}, ${now})
+        `;
+    }
 
     return NextResponse.json({ success: true });
 }

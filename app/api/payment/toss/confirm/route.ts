@@ -85,5 +85,25 @@ export async function POST(request: Request) {
         },
     });
 
+    // 구매 적립금 지급
+    function getPurchaseCredit(price: number): number {
+        if (price === 0) return 0;
+        if (price <= 500) return 10;
+        if (price <= 1000) return 20;
+        if (price <= 1500) return 30;
+        return 50;
+    }
+    const reward = getPurchaseCredit(theme.price);
+    if (reward > 0) {
+        const now = new Date();
+        await prisma.$executeRaw`
+            UPDATE "User" SET credit = credit + ${reward}, "updatedAt" = NOW() WHERE id = ${session.dbId}
+        `;
+        await prisma.$executeRaw`
+            INSERT INTO "PointHistory" (id, "userId", amount, type, memo, "createdAt")
+            VALUES (${crypto.randomUUID()}, ${session.dbId}, ${reward}, 'ADMIN_GRANT'::"PointType", ${`구매 적립 (+${reward}원)`}, ${now})
+        `;
+    }
+
     return NextResponse.json({ success: true, paymentKey: tossData.paymentKey });
 }
