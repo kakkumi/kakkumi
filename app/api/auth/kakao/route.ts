@@ -17,7 +17,7 @@ export async function GET() {
     kakaoAuthUrl.searchParams.set("response_type", "code");
     kakaoAuthUrl.searchParams.set(
         "scope",
-        "profile_nickname profile_image"
+        "profile_nickname profile_image account_email"
     );
 
     return NextResponse.redirect(kakaoAuthUrl);
