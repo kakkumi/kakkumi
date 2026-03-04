@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 import { THEMES } from "./data";
@@ -35,6 +35,14 @@ export default function StoreContent() {
     const [activeSort, setActiveSort] = useState<SortKey>("newest");
     const [likedIds, setLikedIds] = useState<Set<number>>(new Set());
     const [searchQuery, setSearchQuery] = useState("");
+    const [ownedDbIds, setOwnedDbIds] = useState<Set<string>>(new Set());
+
+    useEffect(() => {
+        fetch("/api/mypage/owned")
+            .then((r) => r.json())
+            .then((d: { ownedIds: string[] }) => setOwnedDbIds(new Set(d.ownedIds)))
+            .catch(() => {});
+    }, []);
 
     const toggleLike = (id: number) => {
         setLikedIds((prev) => {
@@ -231,6 +239,18 @@ export default function StoreContent() {
                                         }}
                                     >
                                         {theme.tag}
+                                    </span>
+                                )}
+                                {ownedDbIds.has(theme.dbId) && (
+                                    <span
+                                        className="absolute top-2.5 text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                        style={{
+                                            background: "rgba(52,199,89,0.9)",
+                                            color: "#fff",
+                                            left: theme.tag ? "calc(0.75rem + 3rem)" : "0.75rem",
+                                        }}
+                                    >
+                                        보유중
                                     </span>
                                 )}
                                 {/* 하트 버튼 */}

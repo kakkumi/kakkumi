@@ -16,26 +16,39 @@ export async function GET() {
         orderBy: { createdAt: "desc" },
     });
 
-    // 전체 테마 목록
-    const allThemes = await prisma.theme.findMany({
+    // 내가 만든 테마 목록
+    const myThemes = await prisma.theme.findMany({
+        where: { creatorId: session.dbId },
         orderBy: { createdAt: "desc" },
     });
 
-    const purchasedThemeIds = new Set(purchases.map((p) => p.themeId));
+    const purchasedList = purchases.map((p) => ({
+        id: p.theme.id,
+        name: p.theme.title,
+        price: p.theme.price,
+        purchasedAt: p.createdAt,
+    }));
+
+    const mineList = myThemes.map((t) => ({
+        id: t.id,
+        name: t.title,
+        price: t.price,
+    }));
+
+    // 전체 = 내 테마 + 구매한 테마 (중복 제거)
+    const purchasedIds = new Set(purchasedList.map((p) => p.id));
+    const allList = [
+        ...mineList.map((t) => ({ ...t, tag: "내 테마" as const })),
+        ...purchasedList
+            .filter((p) => !mineList.some((m) => m.id === p.id))
+            .map((p) => ({ ...p, tag: "구매" as const })),
+    ];
 
     return NextResponse.json({
-        purchased: purchases.map((p) => ({
-            id: p.theme.id,
-            name: p.theme.title,
-            price: p.theme.price,
-            purchasedAt: p.createdAt,
-        })),
-        all: allThemes.map((t) => ({
-            id: t.id,
-            name: t.title,
-            price: t.price,
-            isPurchased: purchasedThemeIds.has(t.id),
-        })),
+        mine: mineList,
+        purchased: purchasedList,
+        all: allList,
         purchasedCount: purchases.length,
+        mineCount: myThemes.length,
     });
 }

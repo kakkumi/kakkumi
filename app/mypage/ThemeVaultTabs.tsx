@@ -16,14 +16,16 @@ type ThemeItem = {
     id: string;
     name: string;
     price: number;
-    isPurchased?: boolean;
+    tag?: "내 테마" | "구매";
     purchasedAt?: string;
 };
 
 type ApiResponse = {
+    mine: ThemeItem[];
     purchased: ThemeItem[];
     all: ThemeItem[];
     purchasedCount: number;
+    mineCount: number;
 };
 
 function formatPrice(price: number) {
@@ -36,12 +38,12 @@ function getMockId(dbId: string) {
 
 export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
     const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? "purchased");
+    const [data, setData] = useState<ApiResponse | null>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (initialTab) setActiveTab(initialTab);
     }, [initialTab]);
-    const [data, setData] = useState<ApiResponse | null>(null);
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         fetch("/api/mypage/themes")
@@ -99,10 +101,18 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
                                 </div>
                                 <div>
                                     <p className="text-[13px] font-semibold" style={{ color: "#1c1c1e" }}>{theme.name}</p>
-                                    <p className="text-[11px]" style={{ color: "#8e8e93" }}>
+                                    <p className="text-[11px] flex items-center gap-1.5" style={{ color: "#8e8e93" }}>
                                         {formatPrice(theme.price)}
-                                        {theme.isPurchased && (
-                                            <span className="ml-2 px-1.5 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "#FFEF9A", color: "#3A1D1D" }}>보유중</span>
+                                        {theme.tag && (
+                                            <span
+                                                className="px-1.5 py-0.5 rounded-full text-[10px] font-bold"
+                                                style={{
+                                                    background: theme.tag === "내 테마" ? "rgba(255,149,0,0.15)" : "#FFEF9A",
+                                                    color: "#3A1D1D",
+                                                }}
+                                            >
+                                                {theme.tag}
+                                            </span>
                                         )}
                                     </p>
                                 </div>
@@ -148,12 +158,17 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
                         }}
                     >
                         {tab.label}
+                        {tab.key === "mine" && data && data.mineCount > 0 && (
+                            <span className="ml-1.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(0,0,0,0.1)", color: "#1c1c1e" }}>
+                                {data.mineCount}
+                            </span>
+                        )}
                         {tab.key === "purchased" && data && data.purchasedCount > 0 && (
                             <span className="ml-1.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(0,0,0,0.1)", color: "#1c1c1e" }}>
                                 {data.purchasedCount}
                             </span>
                         )}
-                        {tab.key === "all" && data && (
+                        {tab.key === "all" && data && data.all.length > 0 && (
                             <span className="ml-1.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(0,0,0,0.1)", color: "#1c1c1e" }}>
                                 {data.all.length}
                             </span>
@@ -165,7 +180,7 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
             {/* 탭 콘텐츠 */}
             <div className="px-8 py-6">
                 {activeTab === "mine" && renderThemeList(
-                    [],
+                    data?.mine ?? [],
                     "아직 만든 테마가 없어요. 지금 바로 첫 번째 테마를 만들어보세요!",
                     { href: "/create", label: "첫 테마 만들기" }
                 )}
@@ -176,8 +191,8 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
                 )}
                 {activeTab === "all" && renderThemeList(
                     data?.all ?? [],
-                    "등록된 테마가 없어요.",
-                    { href: "/store", label: "스토어 보기" }
+                    "보유한 테마가 없어요.",
+                    { href: "/store", label: "테마 스토어 구경하기" }
                 )}
             </div>
         </div>

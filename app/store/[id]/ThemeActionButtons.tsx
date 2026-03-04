@@ -19,17 +19,18 @@ type Props = {
     priceNum: number;
     priceName: string;
     isLoggedIn: boolean;
-    userId?: string;  // session.dbId — orderId 생성에 사용
+    userId?: string;
+    isOwned?: boolean;
 };
 
 export default function ThemeActionButtons(props: Props) {
-    const { themeMockId, priceNum, priceName, isLoggedIn, userId } = props;
-    // props.themeId — DB 연동 시 /api/download/free 및 결제에 사용
+    const { themeMockId, priceNum, priceName, isLoggedIn, userId, isOwned = false } = props;
     const router = useRouter();
     const [liked, setLiked] = useState(false);
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<{ success?: boolean; message?: string } | null>(null);
     const [sdkLoaded, setSdkLoaded] = useState(false);
+    const [ownedState, setOwnedState] = useState(isOwned);
 
     const isFree = priceNum === 0;
 
@@ -68,7 +69,13 @@ export default function ThemeActionButtons(props: Props) {
                 if (data.downloadUrl) {
                     window.open(data.downloadUrl, "_blank");
                 }
-                setResult({ success: true, message: data.alreadyOwned ? "이미 보유한 테마입니다." : "다운로드가 완료되었습니다!" });
+                if (!data.alreadyOwned) {
+                    setOwnedState(true);
+                    setResult({ success: true, message: "다운로드가 완료되었습니다!" });
+                    setTimeout(() => setResult(null), 2000);
+                } else {
+                    setOwnedState(true);
+                }
             } catch {
                 setResult({ success: false, message: "오류가 발생했습니다. 다시 시도해주세요." });
             } finally {
@@ -144,15 +151,20 @@ export default function ThemeActionButtons(props: Props) {
             <div className="flex gap-3">
                 <button
                     onClick={handleMainAction}
-                    disabled={loading}
+                    disabled={loading || ownedState}
                     className="flex-[3] py-[14px] rounded-[14px] text-[15px] font-bold text-white transition-all active:scale-[0.98] disabled:opacity-60"
-                    style={{ background: "#4A7BF7", boxShadow: "0 4px 20px rgba(74,123,247,0.3)" }}
+                    style={{
+                        background: ownedState ? "#34c759" : "#4A7BF7",
+                        boxShadow: ownedState ? "0 4px 20px rgba(52,199,89,0.3)" : "0 4px 20px rgba(74,123,247,0.3)",
+                    }}
                 >
                     {loading
                         ? "처리 중..."
-                        : isLoggedIn
-                            ? isFree ? "무료 다운로드" : `${priceName} 구매하기`
-                            : isFree ? "로그인 후 무료 다운로드" : "로그인 후 구매하기"}
+                        : ownedState
+                            ? "보유중"
+                            : isLoggedIn
+                                ? isFree ? "무료 다운로드" : `${priceName} 구매하기`
+                                : isFree ? "로그인 후 무료 다운로드" : "로그인 후 구매하기"}
                 </button>
                 <button
                     onClick={handleLike}

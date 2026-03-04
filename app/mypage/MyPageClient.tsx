@@ -69,7 +69,7 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus }: 
                                 className="text-left px-3 py-2 rounded-xl text-[13px] font-medium transition-all"
                                 style={{
                                     color: activeMenu === item.label ? "#FF9500" : "#3a3a3c",
-                                    background: activeMenu === item.label ? "rgba(255,149,0,0.08)" : "transparent",
+                                    background: "transparent",
                                     fontWeight: activeMenu === item.label ? 700 : 500,
                                 }}
                             >

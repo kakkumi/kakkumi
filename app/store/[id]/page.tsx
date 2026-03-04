@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { getServerSession } from "@/lib/session";
+import { prisma } from "@/lib/prisma";
 import ThemeActionButtons from "./ThemeActionButtons";
 
 export function generateStaticParams() {
@@ -23,6 +24,15 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
 
     const session = await getServerSession();
     const isLoggedIn = !!session?.dbId;
+
+    // 보유 여부 확인
+    let isOwned = false;
+    if (session?.dbId && theme.dbId) {
+        const purchase = await prisma.purchase.findFirst({
+            where: { buyerId: session.dbId, themeId: theme.dbId, status: "COMPLETED" },
+        });
+        isOwned = !!purchase;
+    }
 
     return (
         <div
@@ -165,6 +175,7 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
                                 priceName={theme.price}
                                 isLoggedIn={isLoggedIn}
                                 userId={session?.dbId ?? undefined}
+                                isOwned={isOwned}
                             />
                         </div>
                     </div>
