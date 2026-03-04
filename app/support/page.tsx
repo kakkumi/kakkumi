@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { formatKST } from "@/lib/date";
 
 /* ── 자주 묻는 질문 카테고리 ── */
 const FAQ_CATEGORIES = ["전체", "주문/결제", "취소/환불", "이벤트/적립/혜택", "회원", "테마 등록", "저작권/신고", "기타"] as const;
@@ -318,8 +319,7 @@ export default function SupportPage() {
     };
 
     function formatDate(iso: string) {
-        const d = new Date(iso);
-        return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+        return formatKST(iso);
     }
 
     const tabs: { key: Tab; label: string }[] = [
