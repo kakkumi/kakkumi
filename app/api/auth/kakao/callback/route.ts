@@ -95,9 +95,9 @@ export async function GET(request: Request) {
         update: { name, image, ...(email ? { email } : {}) },
     });
 
-    // nickname은 prisma generate 전까지 raw로 조회
-    const [nickRow] = await prisma.$queryRaw<{ nickname: string | null }[]>`
-        SELECT nickname FROM "User" WHERE id = ${dbUser.id}
+    // nickname, avatarUrl은 raw로 조회
+    const [nickRow] = await prisma.$queryRaw<{ nickname: string | null; avatarUrl: string | null }[]>`
+        SELECT nickname, "avatarUrl" FROM "User" WHERE id = ${dbUser.id}
     `;
 
     const sessionPayload = {
@@ -108,6 +108,7 @@ export async function GET(request: Request) {
         name: dbUser.name,
         nickname: nickRow?.nickname ?? null,
         image: dbUser.image,
+        avatarUrl: nickRow?.avatarUrl ?? null,
         role: dbUser.role,
         issuedAt: Date.now(),
     };

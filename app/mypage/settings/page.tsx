@@ -1,9 +1,8 @@
 import { cookies } from "next/headers";
 import { createHmac } from "crypto";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import { prisma } from "@/lib/prisma";
-import MyPageClient from "./MyPageClient";
+import Header from "@/app/components/Header";
+import Footer from "@/app/components/Footer";
+import SettingsClient from "@/app/mypage/settings/SettingsClient";
 
 const SESSION_COOKIE_NAME = "kakkumi_session";
 
@@ -24,47 +23,22 @@ async function getSession() {
         const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
         if (!sessionCookie) return null;
         const session = verifySession(sessionCookie.value, sessionSecret);
-        return session as { name?: string | null; nickname?: string | null; image?: string | null; id?: string | null; dbId?: string | null } | null;
+        return session as {
+            name?: string | null;
+            nickname?: string | null;
+            image?: string | null;
+            id?: string | null;
+            dbId?: string | null;
+            email?: string | null;
+            role?: string | null;
+        } | null;
     } catch {
         return null;
     }
 }
 
-export default async function MyPage() {
+export default async function SettingsPage() {
     const session = await getSession();
-
-    let purchasedCount = 0;
-    if (session?.dbId) {
-        purchasedCount = await prisma.purchase.count({
-            where: { buyerId: session.dbId, status: "COMPLETED" },
-        });
-    }
-
-    const sidebarMenus = [
-        {
-            category: "테마",
-            items: [{ label: "내 테마" }, { label: "구매 테마" }, { label: "전체 테마" }],
-        },
-        {
-            category: "쇼핑",
-            items: [
-                { label: "적립금" }, { label: "작성 가능한 후기" }, { label: "쿠폰" },
-                { label: "주문 내역" }, { label: "취소/환불 내역" }, { label: "최근 본 상품" }, { label: "좋아요" },
-            ],
-        },
-        {
-            category: "활동",
-            items: [{ label: "1:1문의 내역" }, { label: "리뷰" }],
-        },
-        {
-            category: "수익",
-            items: [{ label: "정산 내역" }, { label: "판매 통계" }],
-        },
-        {
-            category: "정보",
-            items: [{ label: "회원정보 수정", href: "/mypage/settings" }],
-        },
-    ];
 
     return (
         <div
@@ -76,11 +50,7 @@ export default async function MyPage() {
             }}
         >
             <Header />
-            <MyPageClient
-                session={session}
-                purchasedCount={purchasedCount}
-                sidebarMenus={sidebarMenus}
-            />
+            <SettingsClient session={session} />
             <Footer />
         </div>
     );
