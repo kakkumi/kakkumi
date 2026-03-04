@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 type SessionData = {
-    dbId?: string | null;   // DB UUID — 찜, 구매, 리뷰 등에 사용
-    id?: string | null;     // 카카오 ID
+    dbId?: string | null;
+    id?: string | null;
     name?: string | null;
+    nickname?: string | null;
     image?: string | null;
     email?: string | null;
     role?: "USER" | "CREATOR" | "ADMIN" | null;
@@ -66,7 +67,7 @@ export default function AuthStatus() {
     return (
         <div className="flex items-center gap-3">
             <span className="text-[13px] font-semibold" style={{ color: "#3A1D1D" }}>
-                {session.name ?? "로그인됨"}
+                {session.nickname ?? "사용자"}
             </span>
             <Link
                 href="/mypage"
