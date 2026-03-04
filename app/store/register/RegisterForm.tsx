@@ -1,22 +1,71 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 const PRICE_OPTIONS = ["무료", "500원", "1,000원", "1,500원", "2,000원"];
+const MAX_MINI_PREVIEWS = 5;
 
 export default function RegisterForm({ authorName, headerSlot }: { authorName: string; headerSlot?: React.ReactNode }) {
     const router = useRouter();
     const [name, setName] = useState("");
+    const [nameError, setNameError] = useState<string | null>(null);
+    const [nameChecking, setNameChecking] = useState(false);
+    const [nameChecked, setNameChecked] = useState(false);
+    const nameCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     const [description, setDescription] = useState("");
     const [categories, setCategories] = useState<string[]>([]);
     const [categoryInput, setCategoryInput] = useState("");
     const [price, setPrice] = useState("");
     const [previewFile, setPreviewFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [miniPreviewFiles, setMiniPreviewFiles] = useState<File[]>([]);
+    const [miniPreviewUrls, setMiniPreviewUrls] = useState<string[]>([]);
     const [themeFile, setThemeFile] = useState<File | null>(null);
     const [androidFile, setAndroidFile] = useState<File | null>(null);
     const [submitted, setSubmitted] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+
+    const checkNameDuplicate = useCallback(async (value: string) => {
+        if (!value.trim()) {
+            setNameError(null);
+            setNameChecked(false);
+            return;
+        }
+        setNameChecking(true);
+        setNameChecked(false);
+        try {
+            const res = await fetch(`/api/themes/check-name?title=${encodeURIComponent(value.trim())}`);
+            const data = await res.json() as { isDuplicate: boolean };
+            if (data.isDuplicate) {
+                setNameError("이미 사용 중인 테마 이름입니다.");
+                setNameChecked(false);
+            } else {
+                setNameError(null);
+                setNameChecked(true);
+            }
+        } catch {
+            setNameError(null);
+            setNameChecked(false);
+        } finally {
+            setNameChecking(false);
+        }
+    }, []);
+
+    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setName(value);
+        setNameChecked(false);
+        setNameError(null);
+        if (nameCheckTimer.current) clearTimeout(nameCheckTimer.current);
+        if (value.trim().length > 0) {
+            nameCheckTimer.current = setTimeout(() => {
+                checkNameDuplicate(value);
+            }, 600);
+        }
+    };
 
     const handlePreviewFile = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] ?? null;
@@ -24,10 +73,57 @@ export default function RegisterForm({ authorName, headerSlot }: { authorName: s
         if (file) setPreviewUrl(URL.createObjectURL(file));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleMiniPreviewFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files ?? []);
+        const remaining = MAX_MINI_PREVIEWS - miniPreviewFiles.length;
+        const toAdd = files.slice(0, remaining);
+        setMiniPreviewFiles(prev => [...prev, ...toAdd]);
+        setMiniPreviewUrls(prev => [...prev, ...toAdd.map(f => URL.createObjectURL(f))]);
+        e.target.value = "";
+    };
+
+    const removeMiniPreview = (idx: number) => {
+        setMiniPreviewFiles(prev => prev.filter((_, i) => i !== idx));
+        setMiniPreviewUrls(prev => prev.filter((_, i) => i !== idx));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!name || !price || !categories.length || !description || !previewFile || (!themeFile && !androidFile)) return;
-        setSubmitted(true);
+        if (nameError || nameChecking || !nameChecked) return;
+
+        setSubmitting(true);
+        setSubmitError(null);
+
+        try {
+            const formData = new FormData();
+            formData.append("title", name.trim());
+            formData.append("description", description.trim());
+            formData.append("price", price);
+            categories.forEach((cat) => formData.append("categories", cat));
+            formData.append("thumbnail", previewFile);
+            miniPreviewFiles.forEach((f) => formData.append("miniPreviews", f));
+            if (themeFile) formData.append("themeFile", themeFile);
+            if (androidFile) formData.append("androidFile", androidFile);
+
+            const res = await fetch("/api/themes/register", {
+                method: "POST",
+                body: formData,
+            });
+
+            const data = await res.json() as { ok?: boolean; error?: string };
+
+            if (!res.ok || !data.ok) {
+                setSubmitError(data.error ?? "등록 신청 중 오류가 발생했습니다.");
+                return;
+            }
+
+            setSubmitted(true);
+        } catch {
+            setSubmitError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     if (submitted) {
@@ -62,19 +158,44 @@ export default function RegisterForm({ authorName, headerSlot }: { authorName: s
 
                 {/* 테마 이름 */}
                 <Row label="테마 이름" required>
-                    <div className="relative">
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={e => setName(e.target.value)}
-                            placeholder="테마 이름을 입력해주세요"
-                            maxLength={30}
-                            className="w-full px-1 py-2 text-[14px] outline-none transition-all"
-                            style={{ background: "transparent", borderBottom: "1.5px solid rgba(0,0,0,0.15)", color: "#1c1c1e" }}
-                            onFocus={e => e.currentTarget.style.borderBottomColor = "#1c1c1e"}
-                            onBlur={e => e.currentTarget.style.borderBottomColor = "rgba(0,0,0,0.15)"}
-                        />
-                        <span className="self-end text-[11px]" style={{ color: "#b0b0b5" }}>{name.length}/30</span>
+                    <div className="flex flex-col gap-1">
+                        <div className="relative flex items-center gap-2">
+                            <input
+                                type="text"
+                                value={name}
+                                onChange={handleNameChange}
+                                placeholder="테마 이름을 입력해주세요"
+                                maxLength={30}
+                                className="flex-1 px-1 py-2 text-[14px] outline-none transition-all"
+                                style={{
+                                    background: "transparent",
+                                    borderBottom: `1.5px solid ${nameError ? "#e11d48" : nameChecked ? "#34c759" : "rgba(0,0,0,0.15)"}`,
+                                    color: "#1c1c1e",
+                                }}
+                                onFocus={e => {
+                                    if (!nameError && !nameChecked) e.currentTarget.style.borderBottomColor = "#1c1c1e";
+                                }}
+                                onBlur={e => {
+                                    if (!nameError && !nameChecked) e.currentTarget.style.borderBottomColor = "rgba(0,0,0,0.15)";
+                                }}
+                            />
+                            {nameChecking && (
+                                <span className="text-[11px] shrink-0" style={{ color: "#8e8e93" }}>확인 중...</span>
+                            )}
+                            {!nameChecking && nameChecked && (
+                                <span className="text-[11px] shrink-0 flex items-center gap-0.5" style={{ color: "#34c759" }}>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34c759" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                                    사용 가능
+                                </span>
+                            )}
+                            {!nameChecking && nameError && (
+                                <span className="text-[11px] shrink-0 flex items-center gap-0.5" style={{ color: "#e11d48" }}>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                                    이미 사용 중
+                                </span>
+                            )}
+                            <span className="self-end text-[11px] shrink-0" style={{ color: "#b0b0b5" }}>{name.length}/30</span>
+                        </div>
                     </div>
                 </Row>
 
@@ -207,6 +328,38 @@ export default function RegisterForm({ authorName, headerSlot }: { authorName: s
                     </label>
                 </Row>
 
+                {/* 미니 프리뷰 이미지 (선택, 최대 5개) */}
+                <Row label="추가 프리뷰 이미지">
+                    <div className="flex flex-col gap-3">
+                        <p className="text-[11px]" style={{ color: "#8e8e93" }}>상세페이지에 표시되는 미니 프리뷰 이미지입니다. 최대 5개까지 등록할 수 있어요. (선택)</p>
+                        <div className="flex flex-wrap gap-2">
+                            {miniPreviewUrls.map((url, idx) => (
+                                <div key={idx} className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 group" style={{ border: "1px solid rgba(0,0,0,0.08)" }}>
+                                    <img src={url} alt={`미니 프리뷰 ${idx + 1}`} className="w-full h-full object-cover" />
+                                    <button
+                                        type="button"
+                                        onClick={() => removeMiniPreview(idx)}
+                                        className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                                        style={{ background: "rgba(0,0,0,0.45)" }}
+                                    >
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                                    </button>
+                                </div>
+                            ))}
+                            {miniPreviewFiles.length < MAX_MINI_PREVIEWS && (
+                                <label className="w-16 h-16 rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all hover:opacity-70 shrink-0" style={{ background: "rgba(0,0,0,0.03)", border: "1.5px dashed rgba(0,0,0,0.12)" }}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                                    <span className="text-[10px] mt-1" style={{ color: "#8e8e93" }}>추가</span>
+                                    <input type="file" accept="image/*" multiple onChange={handleMiniPreviewFiles} className="hidden" />
+                                </label>
+                            )}
+                        </div>
+                        <p className="text-[11px]" style={{ color: miniPreviewFiles.length >= MAX_MINI_PREVIEWS ? "#e11d48" : "#b0b0b5" }}>
+                            {miniPreviewFiles.length}/{MAX_MINI_PREVIEWS}
+                        </p>
+                    </div>
+                </Row>
+
                 {/* 테마 파일 */}
                 <Row label="테마 파일" required>
                     <div className="flex flex-col gap-2">
@@ -281,23 +434,29 @@ export default function RegisterForm({ authorName, headerSlot }: { authorName: s
                 </Row>
 
                 {/* 버튼 */}
-                <div className="flex gap-3 pt-4">
-                    <button
-                        type="button"
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => { window.location.href = "/store"; }}
-                        className="px-6 py-3 rounded-xl text-[14px] font-medium transition-all hover:opacity-70"
-                        style={{ background: "rgba(0,0,0,0.05)", color: "#3a3a3c" }}
-                    >
-                        취소
-                    </button>
-                    <button
-                        type="submit"
-                        className="flex-1 py-3 rounded-xl text-[14px] font-bold transition-all active:scale-95 hover:brightness-105"
-                        style={{ background: "#efde5c", color: "#3A1D1D" , boxShadow: "0 4px 20px rgba(255,220,0,0.3)"}}
-                    >
-                        등록 신청하기
-                    </button>
+                <div className="flex flex-col gap-2 pt-4">
+                    {submitError && (
+                        <p className="text-[12px] text-center" style={{ color: "#e11d48" }}>{submitError}</p>
+                    )}
+                    <div className="flex gap-3">
+                        <button
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => { window.location.href = "/store"; }}
+                            className="px-6 py-3 rounded-xl text-[14px] font-medium transition-all hover:opacity-70"
+                            style={{ background: "rgba(0,0,0,0.05)", color: "#3a3a3c" }}
+                        >
+                            취소
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={!!nameError || nameChecking || (name.trim().length > 0 && !nameChecked) || submitting}
+                            className="flex-1 py-3 rounded-xl text-[14px] font-bold transition-all active:scale-95 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
+                            style={{ background: "#efde5c", color: "#3A1D1D", boxShadow: "0 4px 20px rgba(255,220,0,0.3)" }}
+                        >
+                            {submitting ? "신청 중..." : "등록 신청하기"}
+                        </button>
+                    </div>
                 </div>
             </div>
 

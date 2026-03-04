@@ -9,6 +9,8 @@ type AdminTheme = {
     id: string; title: string; description: string | null; price: number;
     status: string; adminNote: string | null; createdAt: string;
     creatorNickname: string | null; creatorName: string;
+    thumbnailUrl: string | null; images: string[]; tags: string[];
+    kthemeFileUrl: string | null; apkFileUrl: string | null;
 };
 type AdminUser = {
     id: string; name: string; nickname: string | null; email: string | null;
@@ -408,57 +410,13 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
 
                 {/* ── 테마 관리 ────────────────────── */}
                 {activeTab === "themes" && (
-                    <div className="flex flex-col gap-5">
-                        <div>
-                            <h2 className="text-[20px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>테마 관리</h2>
-                            <p className="text-[12px] mt-0.5" style={{ color: "#8e8e93" }}>등록된 테마를 승인하거나 반려 · 숨김 처리합니다.</p>
-                        </div>
-                        <div className="rounded-[20px] overflow-hidden" style={CARD_BG}>
-                            <div className="px-6 py-4 border-b flex items-center justify-between" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
-                                <h3 className="text-[14px] font-bold" style={{ color: "#1c1c1e" }}>테마 목록 ({themes.length}개)</h3>
-                                {loading && <span className="text-[12px]" style={{ color: "#8e8e93" }}>로딩 중...</span>}
-                            </div>
-                            <div className="divide-y" style={{ borderColor: "rgba(0,0,0,0.05)" }}>
-                                {themes.map((t) => (
-                                    <div key={t.id} className="px-6 py-4 flex items-center gap-4">
-                                        <div className="flex-1 flex flex-col gap-0.5 min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-[13px] font-semibold truncate" style={{ color: "#1c1c1e" }}>{t.title}</span>
-                                                <Badge style={THEME_STATUS_STYLE[t.status] ?? { label: t.status, bg: "rgba(0,0,0,0.07)", color: "#8e8e93" }} />
-                                            </div>
-                                            <span className="text-[11px]" style={{ color: "#8e8e93" }}>
-                                                {t.creatorNickname ?? t.creatorName} · {t.price === 0 ? "무료" : `${t.price.toLocaleString()}원`} · {formatKST(t.createdAt, false)}
-                                            </span>
-                                            {t.adminNote && <span className="text-[11px]" style={{ color: "#ff3b30" }}>반려 사유: {t.adminNote}</span>}
-                                        </div>
-                                        <div className="flex gap-2 shrink-0">
-                                            {t.status === "DRAFT" && (
-                                                <>
-                                                    <button onClick={() => themeAction(t.id, "approve")} disabled={actionLoading}
-                                                        className="px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all hover:brightness-105 disabled:opacity-40"
-                                                        style={{ background: "rgba(52,199,89,0.12)", color: "#34c759" }}>승인</button>
-                                                    <button onClick={() => setRejectModal({ themeId: t.id, title: t.title })}
-                                                        className="px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all hover:brightness-105"
-                                                        style={{ background: "rgba(255,59,48,0.10)", color: "#ff3b30" }}>반려</button>
-                                                </>
-                                            )}
-                                            {t.status === "PUBLISHED" && (
-                                                <button onClick={() => themeAction(t.id, "hide")} disabled={actionLoading}
-                                                    className="px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all hover:brightness-105 disabled:opacity-40"
-                                                    style={{ background: "rgba(0,0,0,0.07)", color: "#3a3a3c" }}>숨김</button>
-                                            )}
-                                            {t.status === "HIDDEN" && (
-                                                <button onClick={() => themeAction(t.id, "unhide")} disabled={actionLoading}
-                                                    className="px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all hover:brightness-105 disabled:opacity-40"
-                                                    style={{ background: "rgba(52,199,89,0.10)", color: "#34c759" }}>공개 복구</button>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                                {!loading && themes.length === 0 && <div className="px-6 py-10 text-center text-[13px]" style={{ color: "#8e8e93" }}>테마가 없습니다.</div>}
-                            </div>
-                        </div>
-                    </div>
+                    <ThemeManageTab
+                        themes={themes}
+                        loading={loading}
+                        actionLoading={actionLoading}
+                        onApprove={(id) => themeAction(id, "approve")}
+                        onReject={(id, title) => setRejectModal({ themeId: id, title })}
+                    />
                 )}
 
                 {/* ── 회원 관리 ────────────────────── */}
@@ -955,3 +913,229 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
         </div>
     );
 }
+
+// ── 테마 관리 탭 ──────────────────────────────────────────────────────────────
+function ThemeManageTab({
+    themes,
+    loading,
+    actionLoading,
+    onApprove,
+    onReject,
+}: {
+    themes: AdminTheme[];
+    loading: boolean;
+    actionLoading: boolean;
+    onApprove: (id: string) => void;
+    onReject: (id: string, title: string) => void;
+}) {
+    const [expandedId, setExpandedId] = useState<string | null>(null);
+
+    // DRAFT(승인 대기) 만 표시
+    const draftThemes = themes.filter((t) => t.status === "DRAFT");
+
+    return (
+        <div className="flex flex-col gap-5">
+            <div>
+                <h2 className="text-[20px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>테마 관리</h2>
+                <p className="text-[12px] mt-0.5" style={{ color: "#8e8e93" }}>등록 신청된 테마를 검토하고 승인 또는 반려합니다.</p>
+            </div>
+            <div className="rounded-[20px] overflow-hidden" style={{ background: "rgba(255,255,255,0.7)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.8)", boxShadow: "0 4px 20px rgba(0,0,0,0.06)" }}>
+                <div className="px-6 py-4 border-b flex items-center justify-between" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
+                    <h3 className="text-[14px] font-bold" style={{ color: "#1c1c1e" }}>
+                        승인 대기 중
+                        <span className="ml-2 text-[12px] font-semibold px-2 py-0.5 rounded-full" style={{ background: "rgba(255,149,0,0.12)", color: "#c97000" }}>
+                            {draftThemes.length}건
+                        </span>
+                    </h3>
+                    {loading && <span className="text-[12px]" style={{ color: "#8e8e93" }}>로딩 중...</span>}
+                </div>
+                <div className="divide-y" style={{ borderColor: "rgba(0,0,0,0.05)" }}>
+                    {draftThemes.map((t) => {
+                        const isOpen = expandedId === t.id;
+                        return (
+                            <div key={t.id}>
+                                {/* 행 헤더 - 클릭으로 펼치기 */}
+                                <button
+                                    type="button"
+                                    onClick={() => setExpandedId(isOpen ? null : t.id)}
+                                    className="w-full text-left px-6 py-4 flex items-center gap-4 transition-all hover:bg-black/[0.02]"
+                                >
+                                    <div className="flex-1 flex flex-col gap-0.5 min-w-0">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[13px] font-semibold truncate" style={{ color: "#1c1c1e" }}>{t.title}</span>
+                                            <span className="shrink-0 text-[11px] font-semibold px-2.5 py-0.5 rounded-full" style={{ background: "rgba(255,149,0,0.12)", color: "#c97000" }}>승인 대기</span>
+                                        </div>
+                                        <span className="text-[11px]" style={{ color: "#8e8e93" }}>
+                                            제작자: {t.creatorNickname ?? t.creatorName} · {t.price === 0 ? "무료" : `${t.price.toLocaleString()}원`} · {formatKST(t.createdAt, false)}
+                                        </span>
+                                        {t.adminNote && (
+                                            <span className="text-[11px]" style={{ color: "#ff3b30" }}>이전 반려 사유: {t.adminNote}</span>
+                                        )}
+                                    </div>
+                                    {/* 화살표 */}
+                                    <svg
+                                        width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                        stroke="#8e8e93" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                                        style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", flexShrink: 0 }}
+                                    >
+                                        <path d="M6 9l6 6 6-6"/>
+                                    </svg>
+                                </button>
+
+                                {/* 펼쳐진 상세 */}
+                                {isOpen && (
+                                    <div className="px-6 pb-5 flex flex-col gap-4" style={{ background: "rgba(0,0,0,0.015)" }}>
+                                        <div className="h-px" style={{ background: "rgba(0,0,0,0.06)" }} />
+
+                                        {/* 이미지 미리보기 */}
+                                        {(t.thumbnailUrl || (t.images && t.images.length > 0)) && (
+                                            <div className="flex gap-3 flex-wrap">
+                                                {t.thumbnailUrl && (
+                                                    <div className="flex flex-col gap-1 items-center">
+                                                        <img
+                                                            src={t.thumbnailUrl}
+                                                            alt="대표 이미지"
+                                                            className="w-[120px] h-[120px] rounded-xl object-cover"
+                                                            style={{ border: "1px solid rgba(0,0,0,0.08)" }}
+                                                        />
+                                                        <span className="text-[10px]" style={{ color: "#8e8e93" }}>대표 이미지</span>
+                                                    </div>
+                                                )}
+                                                {t.images && t.images.length > 0 && t.images.map((img, idx) => (
+                                                    <div key={idx} className="flex flex-col gap-1 items-center">
+                                                        <img
+                                                            src={img}
+                                                            alt={`프리뷰 ${idx + 1}`}
+                                                            className="w-[80px] h-[80px] rounded-xl object-cover"
+                                                            style={{ border: "1px solid rgba(0,0,0,0.08)" }}
+                                                        />
+                                                        <span className="text-[10px]" style={{ color: "#8e8e93" }}>프리뷰 {idx + 1}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* 테마 정보 */}
+                                        <div className="flex flex-col gap-3">
+                                            <div className="grid grid-cols-3 gap-3 text-[12px]">
+                                                <div className="rounded-xl p-3 flex flex-col gap-1" style={{ background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.06)" }}>
+                                                    <span style={{ color: "#8e8e93" }}>테마 이름</span>
+                                                    <span className="font-semibold" style={{ color: "#1c1c1e" }}>{t.title}</span>
+                                                </div>
+                                                <div className="rounded-xl p-3 flex flex-col gap-1" style={{ background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.06)" }}>
+                                                    <span style={{ color: "#8e8e93" }}>가격</span>
+                                                    <span className="font-semibold" style={{ color: "#1c1c1e" }}>{t.price === 0 ? "무료" : `${t.price.toLocaleString()}원`}</span>
+                                                </div>
+                                                <div className="rounded-xl p-3 flex flex-col gap-1" style={{ background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.06)" }}>
+                                                    <span style={{ color: "#8e8e93" }}>제작자</span>
+                                                    <span className="font-semibold" style={{ color: "#1c1c1e" }}>{t.creatorNickname ?? t.creatorName}</span>
+                                                </div>
+                                            </div>
+
+                                            {t.tags && t.tags.length > 0 && (
+                                                <div className="rounded-xl p-3 flex flex-col gap-2" style={{ background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.06)" }}>
+                                                    <span className="text-[11px]" style={{ color: "#8e8e93" }}>카테고리</span>
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        {t.tags.map((tag) => (
+                                                            <span key={tag} className="text-[11px] font-medium px-2.5 py-1 rounded-full" style={{ background: "rgba(0,0,0,0.08)", color: "#1c1c1e" }}>{tag}</span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {t.description && (
+                                                <div className="rounded-xl p-4 flex flex-col gap-1" style={{ background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.06)" }}>
+                                                    <span className="text-[11px]" style={{ color: "#8e8e93" }}>테마 설명</span>
+                                                    <p className="text-[13px] leading-relaxed" style={{ color: "#1c1c1e" }}>{t.description}</p>
+                                                </div>
+                                            )}
+
+                                            <div className="rounded-xl p-3 flex flex-col gap-1" style={{ background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.06)" }}>
+                                                <span className="text-[11px]" style={{ color: "#8e8e93" }}>신청일</span>
+                                                <span className="text-[12px] font-semibold" style={{ color: "#1c1c1e" }}>{formatKST(t.createdAt, true)}</span>
+                                            </div>
+
+                                            {/* 테마 파일 */}
+                                            {(t.kthemeFileUrl || t.apkFileUrl) && (
+                                                <div className="rounded-xl p-3 flex flex-col gap-2" style={{ background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.06)" }}>
+                                                    <span className="text-[11px]" style={{ color: "#8e8e93" }}>첨부 파일</span>
+                                                    <div className="flex flex-col gap-1.5">
+                                                        {t.kthemeFileUrl && (
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0" style={{ background: "rgba(255,149,0,0.12)", color: "#c97000" }}>iOS · PC</span>
+                                                                <a
+                                                                    href={t.kthemeFileUrl}
+                                                                    download
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="text-[12px] font-medium truncate underline transition-all hover:opacity-70"
+                                                                    style={{ color: "#007aff" }}
+                                                                >
+                                                                    {t.kthemeFileUrl.split("/").pop()}
+                                                                </a>
+                                                            </div>
+                                                        )}
+                                                        {t.apkFileUrl && (
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0" style={{ background: "rgba(52,199,89,0.12)", color: "#1a7a3a" }}>Android</span>
+                                                                <a
+                                                                    href={t.apkFileUrl}
+                                                                    download
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="text-[12px] font-medium truncate underline transition-all hover:opacity-70"
+                                                                    style={{ color: "#007aff" }}
+                                                                >
+                                                                    {t.apkFileUrl.split("/").pop()}
+                                                                </a>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* 액션 버튼 */}
+                                        <div className="flex gap-3 pt-1">
+                                            <button
+                                                onClick={() => onApprove(t.id)}
+                                                disabled={actionLoading}
+                                                className="flex-1 py-2.5 rounded-xl text-[13px] font-bold transition-all hover:brightness-105 disabled:opacity-40"
+                                                style={{ background: "rgba(52,199,89,0.15)", color: "#1a7a3a" }}
+                                            >
+                                                ✓ 승인
+                                            </button>
+                                            <button
+                                                onClick={() => onReject(t.id, t.title)}
+                                                disabled={actionLoading}
+                                                className="flex-1 py-2.5 rounded-xl text-[13px] font-bold transition-all hover:brightness-105 disabled:opacity-40"
+                                                style={{ background: "rgba(255,59,48,0.10)", color: "#ff3b30" }}
+                                            >
+                                                ✕ 반려
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                    {!loading && draftThemes.length === 0 && (
+                        <div className="px-6 py-14 flex flex-col items-center gap-2">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c8c8cd" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/>
+                            </svg>
+                            <p className="text-[13px]" style={{ color: "#8e8e93" }}>승인 대기 중인 테마가 없습니다.</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+
+
+
+
+
+
