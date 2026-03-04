@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { THEMES } from "@/app/store/data";
 
 type Tab = "mine" | "purchased" | "all";
 
@@ -11,8 +12,114 @@ const TABS: { key: Tab; label: string }[] = [
     { key: "all", label: "전체 테마" },
 ];
 
-export default function ThemeVaultTabs() {
-    const [activeTab, setActiveTab] = useState<Tab>("mine");
+type ThemeItem = {
+    id: string;
+    name: string;
+    price: number;
+    isPurchased?: boolean;
+    purchasedAt?: string;
+};
+
+type ApiResponse = {
+    purchased: ThemeItem[];
+    all: ThemeItem[];
+    purchasedCount: number;
+};
+
+function formatPrice(price: number) {
+    return price === 0 ? "무료" : `${price.toLocaleString()}원`;
+}
+
+function getMockId(dbId: string) {
+    return THEMES.find((t) => t.dbId === dbId)?.id ?? null;
+}
+
+export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
+    const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? "purchased");
+
+    useEffect(() => {
+        if (initialTab) setActiveTab(initialTab);
+    }, [initialTab]);
+    const [data, setData] = useState<ApiResponse | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetch("/api/mypage/themes")
+            .then((r) => r.json())
+            .then((d: ApiResponse) => setData(d))
+            .catch(() => setData(null))
+            .finally(() => setLoading(false));
+    }, []);
+
+    const renderThemeList = (themes: ThemeItem[], emptyMsg: string, emptyLink?: { href: string; label: string }) => {
+        if (loading) {
+            return (
+                <div className="flex items-center gap-2 py-2">
+                    <div className="w-4 h-4 rounded-full border-2 border-black/20 border-t-black/60 animate-spin" />
+                    <span className="text-[13px]" style={{ color: "#48484a" }}>불러오는 중...</span>
+                </div>
+            );
+        }
+        if (!themes || themes.length === 0) {
+            return (
+                <div className="flex flex-col gap-4">
+                    <p className="text-[14px] leading-relaxed" style={{ color: "#48484a" }}>{emptyMsg}</p>
+                    {emptyLink && (
+                        <Link href={emptyLink.href}>
+                            <button
+                                className="px-7 py-3 rounded-xl text-[14px] font-bold transition-all active:scale-95 hover:opacity-80 w-fit"
+                                style={{ background: "rgba(0,0,0,0.07)", color: "#3a3a3c" }}
+                            >
+                                {emptyLink.label} →
+                            </button>
+                        </Link>
+                    )}
+                </div>
+            );
+        }
+        return (
+            <div className="flex flex-col gap-2">
+                {themes.map((theme) => {
+                    const mockId = getMockId(theme.id);
+                    return (
+                        <div
+                            key={theme.id}
+                            className="flex items-center justify-between px-4 py-3 rounded-[14px] transition-all hover:brightness-95"
+                            style={{ background: "rgba(255,255,255,0.7)" }}
+                        >
+                            <div className="flex items-center gap-3">
+                                <div
+                                    className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
+                                    style={{ background: "rgba(0,0,0,0.07)" }}
+                                >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3a3a3c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <rect x="3" y="3" width="18" height="18" rx="3" />
+                                        <path d="M3 9h18" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p className="text-[13px] font-semibold" style={{ color: "#1c1c1e" }}>{theme.name}</p>
+                                    <p className="text-[11px]" style={{ color: "#8e8e93" }}>
+                                        {formatPrice(theme.price)}
+                                        {theme.isPurchased && (
+                                            <span className="ml-2 px-1.5 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "#FFEF9A", color: "#3A1D1D" }}>보유중</span>
+                                        )}
+                                    </p>
+                                </div>
+                            </div>
+                            {mockId && (
+                                <Link href={`/store/${mockId}`}>
+                                    <button className="text-[12px] font-semibold px-3 py-1.5 rounded-[10px] transition-all hover:brightness-95" style={{ background: "rgba(0,0,0,0.07)", color: "#3a3a3c" }}>
+                                        보기
+                                    </button>
+                                </Link>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
 
     return (
         <div
@@ -41,52 +148,36 @@ export default function ThemeVaultTabs() {
                         }}
                     >
                         {tab.label}
+                        {tab.key === "purchased" && data && data.purchasedCount > 0 && (
+                            <span className="ml-1.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(0,0,0,0.1)", color: "#1c1c1e" }}>
+                                {data.purchasedCount}
+                            </span>
+                        )}
+                        {tab.key === "all" && data && (
+                            <span className="ml-1.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(0,0,0,0.1)", color: "#1c1c1e" }}>
+                                {data.all.length}
+                            </span>
+                        )}
                     </button>
                 ))}
             </div>
 
             {/* 탭 콘텐츠 */}
             <div className="px-8 py-6">
-                {activeTab === "mine" && (
-                    <div className="flex flex-col gap-4">
-                        <p className="text-[14px] leading-relaxed" style={{ color: "#48484a" }}>
-                            아직 만든 테마가 없어요. 지금 바로 첫 번째 테마를 만들어보세요!
-                        </p>
-                        <Link href="/create">
-                            <button
-                                className="px-7 py-3 rounded-xl text-[14px] font-bold transition-all active:scale-95 hover:brightness-105"
-                                style={{ background: "rgba(255,231,58,0.95)", color: "#3A1D1D", boxShadow: "0 4px 16px rgba(255,200,0,0.3)" }}
-                            >
-                                첫 테마 만들기 →
-                            </button>
-                        </Link>
-                    </div>
+                {activeTab === "mine" && renderThemeList(
+                    [],
+                    "아직 만든 테마가 없어요. 지금 바로 첫 번째 테마를 만들어보세요!",
+                    { href: "/create", label: "첫 테마 만들기" }
                 )}
-                {activeTab === "purchased" && (
-                    <div className="flex flex-col gap-4">
-                        <p className="text-[14px] leading-relaxed" style={{ color: "#48484a" }}>
-                            아직 구매한 테마가 없어요. 테마 스토어를 둘러보세요!
-                        </p>
-                        <button
-                            className="px-7 py-3 rounded-xl text-[14px] font-bold transition-all active:scale-95 hover:opacity-80 w-fit"
-                            style={{ background: "rgba(0,0,0,0.07)", color: "#3a3a3c" }}
-                        >
-                            테마 스토어 구경하기 →
-                        </button>
-                    </div>
+                {activeTab === "purchased" && renderThemeList(
+                    data?.purchased ?? [],
+                    "아직 구매한 테마가 없어요. 테마 스토어를 둘러보세요!",
+                    { href: "/store", label: "테마 스토어 구경하기" }
                 )}
-                {activeTab === "all" && (
-                    <div className="flex flex-col gap-4">
-                        <p className="text-[14px] leading-relaxed" style={{ color: "#48484a" }}>
-                            카꾸미에 등록된 모든 테마를 둘러볼 수 있어요.
-                        </p>
-                        <button
-                            className="px-7 py-3 rounded-xl text-[14px] font-bold transition-all active:scale-95 hover:opacity-80 w-fit"
-                            style={{ background: "rgba(0,0,0,0.07)", color: "#3a3a3c" }}
-                        >
-                            전체 테마 보기 →
-                        </button>
-                    </div>
+                {activeTab === "all" && renderThemeList(
+                    data?.all ?? [],
+                    "등록된 테마가 없어요.",
+                    { href: "/store", label: "스토어 보기" }
                 )}
             </div>
         </div>
