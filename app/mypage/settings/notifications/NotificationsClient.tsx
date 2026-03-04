@@ -147,12 +147,14 @@ export default function NotificationsClient({ session }: Props) {
                     </a>
                 ))}
                 <div className="my-3 h-[1px]" style={{ background: "rgba(0,0,0,0.08)" }} />
-                <button
-                    className="text-left px-3 py-2 rounded-xl text-[13px] font-medium transition-all hover:opacity-70"
-                    style={{ color: "#ff3b30" }}
-                >
-                    회원 탈퇴
-                </button>
+                <a href="/mypage/settings/withdraw">
+                    <button
+                        className="w-full text-left px-3 py-2 rounded-xl text-[13px] font-medium transition-all hover:opacity-70"
+                        style={{ color: "#ff3b30" }}
+                    >
+                        회원 탈퇴
+                    </button>
+                </a>
             </aside>
 
             {/* 메인 */}
