@@ -81,8 +81,38 @@ export async function GET(req: NextRequest) {
             GROUP BY i.id, i.title, i.content, i.category, i.status, i."createdAt", u.nickname, u.name
             ORDER BY i."createdAt" DESC
         `;
+
+        // 답변 스레드 내용 검색을 위해 replies도 조회
+        const allReplies = inquiries.length > 0
+            ? await prisma.$queryRaw<{
+                id: string; inquiryId: string; content: string; isAdmin: boolean; createdAt: Date;
+                authorName: string; authorNickname: string | null; authorImage: string | null; authorRole: string;
+            }[]>`
+                SELECT r.id, r."inquiryId", r.content, r."isAdmin", r."createdAt",
+                       u.name AS "authorName", u.nickname AS "authorNickname",
+                       u.image AS "authorImage", u.role AS "authorRole"
+                FROM "InquiryReply" r
+                JOIN "User" u ON u.id = r."authorId"
+                WHERE r."inquiryId" = ANY(${inquiries.map(i => i.id)}::text[])
+                ORDER BY r."createdAt" ASC
+            `.catch(() => [])
+            : [];
+
         return NextResponse.json({
-            inquiries: inquiries.map((i) => ({ ...i, replyCount: Number(i.replyCount) })),
+            inquiries: inquiries.map((i) => ({
+                ...i,
+                replyCount: Number(i.replyCount),
+                replies: allReplies
+                    .filter(r => r.inquiryId === i.id)
+                    .map(r => ({
+                        id: r.id,
+                        inquiryId: r.inquiryId,
+                        content: r.content,
+                        isAdmin: r.isAdmin,
+                        createdAt: r.createdAt,
+                        author: { name: r.authorNickname ?? r.authorName, image: r.authorImage, role: r.authorRole },
+                    })),
+            })),
         });
     } catch (e) {
         console.error("[admin/inquiries GET]", e);

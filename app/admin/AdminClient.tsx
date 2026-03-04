@@ -147,7 +147,10 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
     const [actionLoading, setActionLoading] = useState(false);
     const [toast, setToast] = useState("");
     const [inquirySearch, setInquirySearch] = useState("");
-    const [inquirySearchType, setInquirySearchType] = useState<"전체" | "제목" | "작성자">("전체");
+    const [inquirySearchType, setInquirySearchType] = useState<"전체" | "제목" | "작성자" | "내용">("전체");
+    // 답변 수정 상태
+    const [editingReplyId, setEditingReplyId] = useState<string | null>(null);
+    const [editingReplyText, setEditingReplyText] = useState("");
 
     const showToast = (msg: string) => {
         setToast(msg);
@@ -254,6 +257,36 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
         fetchTab("inquiries");
     };
 
+    const updateReply = async (replyId: string) => {
+        if (!selectedInquiry || !editingReplyText.trim()) return;
+        setActionLoading(true);
+        await fetch(`/api/inquiry/${selectedInquiry.id}/reply/${replyId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content: editingReplyText.trim() }),
+        });
+        setActionLoading(false);
+        setEditingReplyId(null);
+        setEditingReplyText("");
+        showToast("답변 수정 완료");
+        const r = await fetch(`/api/admin/inquiries?id=${selectedInquiry.id}`);
+        const d = await r.json() as { inquiry: AdminInquiry };
+        if (d.inquiry) setSelectedInquiry(d.inquiry);
+    };
+
+    const deleteReply = async (replyId: string) => {
+        if (!selectedInquiry) return;
+        if (!confirm("이 답변을 삭제하시겠습니까?")) return;
+        setActionLoading(true);
+        await fetch(`/api/inquiry/${selectedInquiry.id}/reply/${replyId}`, { method: "DELETE" });
+        setActionLoading(false);
+        showToast("답변 삭제 완료");
+        const r = await fetch(`/api/admin/inquiries?id=${selectedInquiry.id}`);
+        const d = await r.json() as { inquiry: AdminInquiry };
+        if (d.inquiry) setSelectedInquiry(d.inquiry);
+        fetchTab("inquiries");
+    };
+
     const STAT_CARDS = [
         { label: "전체 회원", value: stats.userCount, color: "#007aff", icon: (c: string) => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg> },
         { label: "등록 테마", value: stats.themeCount, color: "#FF9500", icon: (c: string) => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></svg> },
@@ -297,7 +330,13 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
                         {group.items.map((item) => (
                             <button
                                 key={item.key}
-                                onClick={() => setActiveTab(item.key)}
+                                onClick={() => {
+                                    setActiveTab(item.key);
+                                    if (item.key === "inquiries") {
+                                        setSelectedInquiry(null);
+                                        setReplyText("");
+                                    }
+                                }}
                                 className="text-left px-3 py-2 rounded-xl text-[13px] transition-all"
                                 style={{
                                     color: activeTab === item.key ? "#FF9500" : "#3a3a3c",
@@ -655,9 +694,51 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
                                                             {reply.isAdmin ? "카꾸미 고객센터" : reply.author.name}
                                                         </span>
                                                     </div>
-                                                    <span className="text-[11px]" style={{ color: "#8e8e93" }}>{formatKST(reply.createdAt)}</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[11px]" style={{ color: "#8e8e93" }}>{formatKST(reply.createdAt)}</span>
+                                                        {reply.isAdmin && editingReplyId !== reply.id && (
+                                                            <>
+                                                                <button
+                                                                    onClick={() => { setEditingReplyId(reply.id); setEditingReplyText(reply.content); }}
+                                                                    className="text-[11px] font-semibold px-2 py-0.5 rounded-md transition-all hover:opacity-70"
+                                                                    style={{ background: "rgba(0,0,0,0.06)", color: "#3a3a3c" }}
+                                                                >수정</button>
+                                                                <button
+                                                                    onClick={() => deleteReply(reply.id)}
+                                                                    disabled={actionLoading}
+                                                                    className="text-[11px] font-semibold px-2 py-0.5 rounded-md transition-all hover:opacity-70 disabled:opacity-40"
+                                                                    style={{ background: "rgba(255,59,48,0.10)", color: "#ff3b30" }}
+                                                                >삭제</button>
+                                                            </>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <p className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: "#3a3a3c" }}>{reply.content}</p>
+                                                {editingReplyId === reply.id ? (
+                                                    <div className="flex flex-col gap-2 mt-1">
+                                                        <textarea
+                                                            value={editingReplyText}
+                                                            onChange={(e) => setEditingReplyText(e.target.value)}
+                                                            rows={3}
+                                                            className="w-full px-3 py-2 rounded-xl text-[13px] outline-none resize-none"
+                                                            style={{ border: "1.5px solid rgba(255,149,0,0.4)", color: "#1c1c1e", background: "#fff" }}
+                                                        />
+                                                        <div className="flex gap-2 justify-end">
+                                                            <button
+                                                                onClick={() => { setEditingReplyId(null); setEditingReplyText(""); }}
+                                                                className="px-3 py-1.5 rounded-lg text-[12px] font-semibold"
+                                                                style={{ background: "rgba(0,0,0,0.06)", color: "#3a3a3c" }}
+                                                            >취소</button>
+                                                            <button
+                                                                onClick={() => updateReply(reply.id)}
+                                                                disabled={!editingReplyText.trim() || actionLoading}
+                                                                className="px-3 py-1.5 rounded-lg text-[12px] font-bold disabled:opacity-40"
+                                                                style={{ background: "#FF9500", color: "#fff" }}
+                                                            >{actionLoading ? "저장 중..." : "저장"}</button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: "#3a3a3c" }}>{reply.content}</p>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
@@ -698,11 +779,11 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
                                     <div className="relative shrink-0">
                                         <select
                                             value={inquirySearchType}
-                                            onChange={(e) => setInquirySearchType(e.target.value as "전체" | "제목" | "작성자")}
+                                            onChange={(e) => setInquirySearchType(e.target.value as "전체" | "제목" | "작성자" | "내용")}
                                             className="appearance-none pl-3 pr-7 text-[12px] font-bold outline-none cursor-pointer"
                                             style={{ background: "transparent", color: "#1c1c1e", border: "none", height: 34 }}
                                         >
-                                            {(["전체", "제목", "작성자"] as const).map((t) => (
+                                            {(["전체", "제목", "작성자", "내용"] as const).map((t) => (
                                                 <option key={t} value={t}>{t}</option>
                                             ))}
                                         </select>
@@ -723,7 +804,8 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
                                             placeholder={
                                                 inquirySearchType === "작성자" ? "작성자 이름을 검색하세요" :
                                                 inquirySearchType === "제목" ? "제목을 검색하세요" :
-                                                "제목, 작성자 검색"
+                                                inquirySearchType === "내용" ? "문의 내용 또는 답변을 검색하세요" :
+                                                "제목, 작성자, 내용 검색"
                                             }
                                             className="flex-1 text-[13px] outline-none bg-transparent"
                                             style={{ color: "#1c1c1e" }}
@@ -752,9 +834,12 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
                                                 if (!q) return true;
                                                 const author = (inq.userNickname ?? inq.userName).toLowerCase();
                                                 const title = inq.title.toLowerCase();
+                                                const content = (inq.content ?? "").toLowerCase();
+                                                const replyTexts = (inq.replies ?? []).map(r => r.content.toLowerCase()).join(" ");
                                                 if (inquirySearchType === "작성자") return author.includes(q);
                                                 if (inquirySearchType === "제목") return title.includes(q);
-                                                return author.includes(q) || title.includes(q);
+                                                if (inquirySearchType === "내용") return content.includes(q) || replyTexts.includes(q);
+                                                return author.includes(q) || title.includes(q) || content.includes(q) || replyTexts.includes(q);
                                             }).length}건)
                                         </h3>
                                     </div>
@@ -765,9 +850,12 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
                                                 if (!q) return true;
                                                 const author = (inq.userNickname ?? inq.userName).toLowerCase();
                                                 const title = inq.title.toLowerCase();
+                                                const content = (inq.content ?? "").toLowerCase();
+                                                const replyTexts = (inq.replies ?? []).map(r => r.content.toLowerCase()).join(" ");
                                                 if (inquirySearchType === "작성자") return author.includes(q);
                                                 if (inquirySearchType === "제목") return title.includes(q);
-                                                return author.includes(q) || title.includes(q);
+                                                if (inquirySearchType === "내용") return content.includes(q) || replyTexts.includes(q);
+                                                return author.includes(q) || title.includes(q) || content.includes(q) || replyTexts.includes(q);
                                             });
                                             if (filtered.length === 0) return (
                                                 <div className="px-6 py-10 text-center text-[13px]" style={{ color: "#8e8e93" }}>
