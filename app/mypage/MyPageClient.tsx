@@ -211,6 +211,36 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
     const isSettingsMenu = activeMenu === "회원정보 수정";
     const isNotifMenu = activeMenu === "알림 설정";
     const isWithdrawMenu = activeMenu === "회원 탈퇴";
+    const isFollowMenu = activeMenu === "팔로우";
+
+    type FollowingUser = { id: string; nickname: string | null; name: string; avatarUrl: string | null; themeCount: number };
+    const [followingList, setFollowingList] = useState<FollowingUser[]>([]);
+    const [followingLoading, setFollowingLoading] = useState(false);
+    const [unfollowingId, setUnfollowingId] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!isFollowMenu) return;
+        setFollowingLoading(true);
+        fetch("/api/mypage/following")
+            .then(r => r.json())
+            .then((d: { following: FollowingUser[]; error?: string }) => {
+                if (d.error) console.error("[following]", d.error);
+                setFollowingList(d.following ?? []);
+            })
+            .catch(() => {})
+            .finally(() => setFollowingLoading(false));
+    }, [isFollowMenu]);
+
+    const handleUnfollow = async (targetId: string) => {
+        setUnfollowingId(targetId);
+        await fetch("/api/follow", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ creatorId: targetId }),
+        });
+        setFollowingList(prev => prev.filter(u => u.id !== targetId));
+        setUnfollowingId(null);
+    };
 
     const handleMenuClick = (label: string) => {
         if (THEME_TAB_MAP[label] !== undefined) {
@@ -297,6 +327,63 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
                             <CreditPage />
                         ) : isRefundMenu ? (
                             <RefundPage />
+                        ) : isFollowMenu ? (
+                            <>
+                                <div>
+                                    <h1 className="text-[22px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>팔로우</h1>
+                                    <p className="text-[13px] mt-1" style={{ color: "#8e8e93" }}>내가 팔로우한 크리에이터 목록입니다.</p>
+                                </div>
+                                <div className="p-7 rounded-[24px] flex flex-col gap-4" style={{ background: "rgba(255,255,255,0.7)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.8)", boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
+                                    {followingLoading ? (
+                                        <div className="flex items-center justify-center py-16">
+                                            <span className="text-[14px]" style={{ color: "#8e8e93" }}>불러오는 중...</span>
+                                        </div>
+                                    ) : followingList.length === 0 ? (
+                                        <div className="flex flex-col items-center justify-center py-16 gap-3">
+                                            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#c8c8cd" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                            </svg>
+                                            <p className="text-[14px]" style={{ color: "#8e8e93" }}>아직 팔로우한 크리에이터가 없어요.</p>
+                                        </div>
+                                    ) : (
+                                        followingList.map((user, idx) => (
+                                            <div key={user.id}>
+                                                <div className="flex items-center gap-4">
+                                                    {/* 프로필 이미지 */}
+                                                    <button onClick={() => router.push(`/creator/${user.id}`)} className="shrink-0 w-12 h-12 rounded-full overflow-hidden flex items-center justify-center transition-all hover:opacity-80" style={{ background: "rgba(195,195,195,0.5)" }}>
+                                                        {user.avatarUrl ? (
+                                                            <Image src={user.avatarUrl} alt={user.nickname ?? user.name} width={48} height={48} className="w-full h-full object-cover" unoptimized />
+                                                        ) : (
+                                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                                                <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                                                            </svg>
+                                                        )}
+                                                    </button>
+                                                    {/* 이름 + 테마 수 */}
+                                                    <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                                                        <button onClick={() => router.push(`/creator/${user.id}`)} className="text-left text-[14px] font-bold hover:underline truncate" style={{ color: "#1c1c1e" }}>
+                                                            {user.nickname ?? user.name}
+                                                        </button>
+                                                        <span className="text-[12px]" style={{ color: "#8e8e93" }}>테마 {user.themeCount}개</span>
+                                                    </div>
+                                                    {/* 언팔로우 버튼 */}
+                                                    <button
+                                                        onClick={() => handleUnfollow(user.id)}
+                                                        disabled={unfollowingId === user.id}
+                                                        className="px-4 py-1.5 rounded-full text-[12px] font-semibold transition-all hover:opacity-70 active:scale-95 disabled:opacity-40 shrink-0"
+                                                        style={{ border: "1px solid rgba(0,0,0,0.15)", color: "#3a3a3c", background: "transparent" }}
+                                                    >
+                                                        {unfollowingId === user.id ? "처리 중..." : "팔로우 취소"}
+                                                    </button>
+                                                </div>
+                                                {idx < followingList.length - 1 && (
+                                                    <div className="mt-4 h-[1px]" style={{ background: "rgba(0,0,0,0.06)" }} />
+                                                )}
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </>
                         ) : isSettingsMenu ? (
                             /* ── 회원정보 수정 ── */
                             <>
