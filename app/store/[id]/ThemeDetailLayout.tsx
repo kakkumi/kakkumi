@@ -203,7 +203,7 @@ export default function ThemeDetailLayout({
                         isLoggedIn={isLoggedIn}
                         userId={userId}
                         isOwned={isOwned}
-                        onInquiry={() => setShowInquiryModal(true)}
+                        onInquiryAction={() => setShowInquiryModal(true)}
                     />
                 </div>
             </div>
@@ -215,7 +215,7 @@ export default function ThemeDetailLayout({
                     creatorName={author}
                     themeId={dbId}
                     themeName={name}
-                    onClose={() => setShowInquiryModal(false)}
+                    onCloseAction={() => setShowInquiryModal(false)}
                 />
             )}
         </div>

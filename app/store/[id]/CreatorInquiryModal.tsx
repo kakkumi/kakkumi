@@ -7,10 +7,10 @@ type Props = {
     creatorName: string;
     themeId: string;
     themeName: string;
-    onClose: () => void;
+    onCloseAction: () => void;
 };
 
-export default function CreatorInquiryModal({ creatorId, creatorName, themeId, themeName, onClose }: Props) {
+export default function CreatorInquiryModal({ creatorId, creatorName, themeId, themeName, onCloseAction }: Props) {
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [submitting, setSubmitting] = useState(false);
@@ -46,7 +46,7 @@ export default function CreatorInquiryModal({ creatorId, creatorName, themeId, t
         <div
             className="fixed inset-0 z-50 flex items-center justify-center px-4"
             style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)" }}
-            onClick={onClose}
+            onClick={onCloseAction}
         >
             <div
                 className="w-full max-w-[520px] rounded-[28px] p-8 flex flex-col gap-6"
@@ -70,7 +70,7 @@ export default function CreatorInquiryModal({ creatorId, creatorName, themeId, t
                             <p className="text-[13px]" style={{ color: "#8e8e93" }}>마이페이지 &gt; 1:1 문의에서 확인하실 수 있어요.</p>
                         </div>
                         <button
-                            onClick={onClose}
+                            onClick={onCloseAction}
                             className="px-8 py-3 rounded-xl text-[14px] font-bold transition-all hover:brightness-105 active:scale-95"
                             style={{ background: "rgba(255,231,58,0.95)", color: "#3A1D1D" }}
                         >
@@ -89,7 +89,7 @@ export default function CreatorInquiryModal({ creatorId, creatorName, themeId, t
                             </div>
                             <button
                                 type="button"
-                                onClick={onClose}
+                                onClick={onCloseAction}
                                 className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:opacity-70"
                                 style={{ background: "rgba(0,0,0,0.06)" }}
                             >

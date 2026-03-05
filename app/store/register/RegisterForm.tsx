@@ -37,7 +37,6 @@ export default function RegisterForm({ authorName, headerSlot }: { authorName: s
     const [androidOptions, setAndroidOptions] = useState<FileOption[]>([]);
     const [submitted, setSubmitted] = useState(false);
     const [submitting, setSubmitting] = useState(false);
-    const [submitError, setSubmitError] = useState<string | null>(null);
 
     const checkNameDuplicate = useCallback(async (value: string) => {
         if (!value.trim()) {
@@ -117,7 +116,6 @@ export default function RegisterForm({ authorName, headerSlot }: { authorName: s
         if (nameError || nameChecking || !nameChecked) return;
 
         setSubmitting(true);
-        setSubmitError(null);
 
         try {
             const formData = new FormData();
@@ -125,7 +123,7 @@ export default function RegisterForm({ authorName, headerSlot }: { authorName: s
             formData.append("description", description.trim());
             formData.append("price", price);
             categories.forEach((cat) => formData.append("categories", cat));
-            formData.append("thumbnail", previewFile);
+            if (previewFile) formData.append("thumbnail", previewFile);
             miniPreviewFiles.forEach((f) => formData.append("miniPreviews", f));
 
             // iOS 옵션별 파일 전송
@@ -150,13 +148,13 @@ export default function RegisterForm({ authorName, headerSlot }: { authorName: s
             const data = await res.json() as { ok?: boolean; error?: string };
 
             if (!res.ok || !data.ok) {
-                setSubmitError(data.error ?? "등록 신청 중 오류가 발생했습니다.");
+                alert(data.error ?? "등록 신청 중 오류가 발생했습니다.");
                 return;
             }
 
             setSubmitted(true);
         } catch {
-            setSubmitError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+            alert("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
         } finally {
             setSubmitting(false);
         }
@@ -519,11 +517,7 @@ export default function RegisterForm({ authorName, headerSlot }: { authorName: s
                     </div>
                 </Row>
 
-                {/* 버튼 */}
                 <div className="flex flex-col gap-2 pt-4">
-                    {submitError && (
-                        <p className="text-[12px] text-center" style={{ color: "#e11d48" }}>{submitError}</p>
-                    )}
                     <div className="flex gap-3">
                         <button
                             type="button"
@@ -536,7 +530,15 @@ export default function RegisterForm({ authorName, headerSlot }: { authorName: s
                         </button>
                         <button
                             type="submit"
-                            disabled={!!nameError || nameChecking || (name.trim().length > 0 && !nameChecked) || submitting}
+                            disabled={
+                                submitting ||
+                                !nameChecked || !!nameError || nameChecking ||
+                                !price ||
+                                categories.length === 0 ||
+                                !description.trim() ||
+                                !previewFile ||
+                                !(iosOptions.some(o => o.file) || androidOptions.some(o => o.file))
+                            }
                             className="flex-1 py-3 rounded-xl text-[14px] font-bold transition-all active:scale-95 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
                             style={{ background: "#efde5c", color: "#3A1D1D", boxShadow: "0 4px 20px rgba(255,220,0,0.3)" }}
                         >
@@ -555,7 +557,7 @@ export default function RegisterForm({ authorName, headerSlot }: { authorName: s
                     </p>
                     <div className="flex flex-col gap-2">
                         {[
-                            { label: "테마 이름", done: !!name },
+                            { label: "테마 이름", done: nameChecked && !nameError },
                             { label: "테마 설명", done: !!description },
                             { label: "카테고리", done: categories.length > 0 },
                             { label: "가격 설정", done: !!price },
@@ -583,14 +585,14 @@ export default function RegisterForm({ authorName, headerSlot }: { authorName: s
                         <div className="flex justify-between mb-1">
                             <span className="text-[10px] font-bold" style={{ color: "#8e8e93" }}>완성도</span>
                             <span className="text-[12px] font-bold" style={{ color: "#e11d48" }}>
-                                {Math.round(([!!name, !!description, categories.length > 0, !!price, !!previewFile, iosOptions.some(o => o.file) || androidOptions.some(o => o.file)].filter(Boolean).length / 6) * 100)}%
+                                {Math.round(([nameChecked && !nameError, !!description, categories.length > 0, !!price, !!previewFile, iosOptions.some(o => o.file) || androidOptions.some(o => o.file)].filter(Boolean).length / 6) * 100)}%
                             </span>
                         </div>
                         <div className="w-full h-1.5 rounded-full" style={{ background: "rgba(0,0,0,0.06)" }}>
                             <div
                                 className="h-full rounded-full transition-all duration-500"
                                 style={{
-                                    width: `${Math.round(([!!name, !!description, categories.length > 0, !!price, !!previewFile, iosOptions.some(o => o.file) || androidOptions.some(o => o.file)].filter(Boolean).length / 6) * 100)}%`,
+                                    width: `${Math.round(([nameChecked && !nameError, !!description, categories.length > 0, !!price, !!previewFile, iosOptions.some(o => o.file) || androidOptions.some(o => o.file)].filter(Boolean).length / 6) * 100)}%`,
                                     background: "#e11d48",
                                 }}
                             />
