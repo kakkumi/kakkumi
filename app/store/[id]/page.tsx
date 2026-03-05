@@ -61,7 +61,25 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
         isOwned = !!purchase;
     }
 
-    const daysSince = Math.floor((Date.now() - new Date(dbTheme.createdAt).getTime()) / 86400000);
+    const now = new Date();
+    const created = new Date(dbTheme.createdAt);
+
+    // 날짜만 비교 (시간 무시)
+    const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const createdDate = new Date(created.getFullYear(), created.getMonth(), created.getDate());
+    const diffDays = Math.floor((nowDate.getTime() - createdDate.getTime()) / 86400000);
+
+    let publishedLabel: string;
+    if (diffDays <= 0) {
+        publishedLabel = "오늘";
+    } else if (diffDays === 1) {
+        publishedLabel = "어제";
+    } else {
+        const y = created.getFullYear().toString().slice(2);
+        const m = String(created.getMonth() + 1).padStart(2, "0");
+        const d = String(created.getDate()).padStart(2, "0");
+        publishedLabel = `${y}.${m}.${d}`;
+    }
 
     return (
         <div
@@ -100,7 +118,7 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
                     category={dbTheme.tags ?? []}
                     stats={{
                         sales: dbTheme.salesCount,
-                        createdAt: daysSince,
+                        createdAt: publishedLabel,
                         likes: 0,
                         rating: 0,
                         reviews: 0,

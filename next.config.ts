@@ -8,6 +8,14 @@ const nextConfig: NextConfig = {
                 hostname: "rffasesvapdttcuqxeda.supabase.co",
                 pathname: "/storage/v1/object/public/**",
             },
+            {
+                protocol: "https",
+                hostname: "k.kakaocdn.net",
+            },
+            {
+                protocol: "http",
+                hostname: "k.kakaocdn.net",
+            },
         ],
         qualities: [75, 100],
     },

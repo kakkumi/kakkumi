@@ -9,7 +9,7 @@ import ThemeActionButtons from "./ThemeActionButtons";
 
 type Stats = {
     sales: number;
-    createdAt: number;
+    createdAt: string;
     likes: number;
     rating: number;
     reviews: number;
@@ -86,12 +86,12 @@ export default function ThemeDetailLayout({
             </div>
 
             {/* 오른쪽: 상세 정보 */}
-            <div className="flex flex-col justify-between py-2">
+            <div className="flex flex-col justify-between py-2 min-w-0">
                 {/* 상단 */}
                 <div>
                     <div className="mb-6">
                         <div className="flex items-start justify-between gap-4 mt-1">
-                            <h1 className="text-[28px] font-extrabold leading-tight text-gray-900" style={{ fontFamily: "'ChosunIlboMyungjo', serif" }}>
+                            <h1 className="text-[28px] font-extrabold leading-tight text-gray-900 break-words min-w-0" style={{ fontFamily: "'ChosunIlboMyungjo', serif" }}>
                                 {name}
                             </h1>
                             <div className="flex flex-col items-end shrink-0 pt-1">
@@ -150,7 +150,7 @@ export default function ThemeDetailLayout({
                     </div>
 
                     {/* 설명 */}
-                    <p className="text-[15px] leading-relaxed text-gray-500">{description}</p>
+                    <p className="text-[15px] leading-relaxed text-gray-500 break-words overflow-hidden">{description}</p>
 
                     {/* 통계 */}
                     <div className="flex items-center gap-12">
@@ -160,7 +160,7 @@ export default function ThemeDetailLayout({
                         </div>
                         <div className="flex flex-col gap-0.5">
                             <span className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Published</span>
-                            <span className="text-[16px] font-bold text-gray-800">{stats.createdAt}일 전</span>
+                            <span className="text-[16px] font-bold text-gray-800">{stats.createdAt}</span>
                         </div>
                         <div className="flex flex-col gap-0.5">
                             <span className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Likes</span>
