@@ -1,4 +1,4 @@
-import { Globe, Hash, MessageCircle, MoreHorizontal, ShoppingBag, User } from 'lucide-react';
+import { MessageCircle, MoreHorizontal, ShoppingBag, User } from 'lucide-react';
 
 import { ScreenType, useThemeStore } from '../useThemeStore';
 
@@ -15,6 +15,17 @@ const tabElementMap: Record<TabScreenKey, TabElementId> = {
   MORE: 'tabBar-more',
 };
 
+const OpenChatIcon = ({ color }: { color: string }) => (
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    {/* 왼쪽 말풍선 */}
+    <path d="M4 4h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H8l-3 3v-3H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" stroke={color} strokeWidth="1.6" fill="none" strokeLinejoin="round"/>
+    {/* 오른쪽 말풍선 */}
+    <path d="M16 8h2a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-1v2.5l-2.5-2.5H12" stroke={color} strokeWidth="1.6" fill="none" strokeLinejoin="round"/>
+    {/* 왼쪽 말풍선 안 삼각형(재생버튼) */}
+    <polygon points="7,7.5 7,11.5 11,9.5" fill={color}/>
+  </svg>
+);
+
 export const TabBar = ({ disabled = false }: { disabled?: boolean }) => {
   const currentScreen = useThemeStore((state) => state.currentScreen);
   const setCurrentScreen = useThemeStore((state) => state.setCurrentScreen);
@@ -22,21 +33,12 @@ export const TabBar = ({ disabled = false }: { disabled?: boolean }) => {
   const setActiveElementId = useThemeStore((state) => state.setActiveElementId);
   const tabBar = useThemeStore((state) => state.tabBar);
 
-  const tabs: { key: TabScreenKey; label: string; icon: React.ReactNode }[] = [
-    { key: 'FRIENDS', label: '친구', icon: <User size={20} /> },
-    { key: 'CHATS', label: '채팅', icon: <MessageCircle size={20} /> },
-    {
-      key: 'OPENCHATS',
-      label: '오픈채팅',
-      icon: (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-          <Hash size={13} />
-          <Globe size={14} />
-        </span>
-      ),
-    },
-    { key: 'SHOPPING', label: '쇼핑', icon: <ShoppingBag size={20} /> },
-    { key: 'MORE', label: '더보기', icon: <MoreHorizontal size={20} /> },
+  const tabs: { key: TabScreenKey; label: string; icon: (color: string) => React.ReactNode }[] = [
+    { key: 'FRIENDS', label: '친구', icon: (color) => <User size={20} color={color} /> },
+    { key: 'CHATS', label: '채팅', icon: (color) => <MessageCircle size={20} color={color} /> },
+    { key: 'OPENCHATS', label: '오픈채팅', icon: (color) => <OpenChatIcon color={color} /> },
+    { key: 'SHOPPING', label: '쇼핑', icon: (color) => <ShoppingBag size={20} color={color} style={{ marginTop: 3 }} /> },
+    { key: 'MORE', label: '더보기', icon: (color) => <MoreHorizontal size={20} color={color} style={{ marginTop: 3 }} /> },
   ];
 
   return (
@@ -46,12 +48,13 @@ export const TabBar = ({ disabled = false }: { disabled?: boolean }) => {
         backgroundColor: tabBar.backgroundColor,
         display: 'grid',
         gridTemplateColumns: 'repeat(5, 1fr)',
-        padding: '8px 4px 10px',
+        padding: '12px 4px 16px',
       }}
     >
       {tabs.map((tab) => {
         const active = tab.key === currentScreen;
         const focused = activeElementId === tabElementMap[tab.key];
+        const color = active ? tabBar.activeIconColor : tabBar.inactiveIconColor;
 
         return (
           <button
@@ -65,7 +68,7 @@ export const TabBar = ({ disabled = false }: { disabled?: boolean }) => {
             }}
             style={{
               border: 0,
-              color: active ? tabBar.activeIconColor : tabBar.inactiveIconColor,
+              color,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -79,8 +82,7 @@ export const TabBar = ({ disabled = false }: { disabled?: boolean }) => {
               transition: 'box-shadow 0.15s ease, background-color 0.15s ease',
             }}
           >
-            {tab.icon}
-            <span>{tab.label}</span>
+            {tab.icon(color)}
           </button>
         );
       })}

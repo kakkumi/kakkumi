@@ -749,7 +749,6 @@ function IOSMockup({ config, previewTab }: { config: ThemeConfig; previewTab: Pr
                 return (
                   <div key={key} className="flex flex-col items-center gap-0.5 pt-1">
                     <TabIcon tab={key} active={active} color={color} />
-                    <span className="text-[9px]" style={{ color }}>{label}</span>
                   </div>
                 );
               })}
@@ -787,16 +786,13 @@ function IOSFriendsProfileMockup({ config }: { config: ThemeConfig }) {
         <div className="absolute bottom-0 left-0 right-0 h-16 flex items-center justify-around rounded-b-[35px] border-t"
           style={{ backgroundColor: config.tabBarBg, borderColor: `${config.primaryText}12` }}>
           {(["friends","chat","openchat","shopping","more"] as PreviewTab[]).map((key) => {
-            const active = key === "friends";
-            const color = active ? config.tabBarSelectedIcon : config.tabBarIcon;
-            return (
-              <div key={key} className="flex flex-col items-center gap-0.5 pt-1">
-                <TabIcon tab={key} active={active} color={color} />
-                <span className="text-[9px]" style={{ color }}>
-                  {({"friends":"친구","chat":"채팅","openchat":"오픈채팅","shopping":"쇼핑","more":"더보기"} as Record<string,string>)[key]}
-                </span>
-              </div>
-            );
+              const active = key === "friends";
+                const color = active ? config.tabBarSelectedIcon : config.tabBarIcon;
+                return (
+                  <div key={key} className="flex flex-col items-center gap-0.5 pt-1">
+                    <TabIcon tab={key} active={active} color={color} />
+                  </div>
+                );
           })}
         </div>
       </div>
@@ -911,9 +907,6 @@ function IOSChatRoomMockup({ config }: { config: ThemeConfig }) {
             return (
               <div key={key} className="flex flex-col items-center gap-0.5 pt-1">
                 <TabIcon tab={key} active={active} color={color} />
-                <span className="text-[9px]" style={{ color }}>
-                  {({"friends":"친구","chat":"채팅","openchat":"오픈채팅","shopping":"쇼핑","more":"더보기"} as Record<string,string>)[key]}
-                </span>
               </div>
             );
           })}

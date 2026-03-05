@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Bookmark,
   Heart,
   MapPin,
   MessageCircle,
@@ -8,7 +7,6 @@ import {
   Music,
   Search,
   Settings,
-  Upload,
   UserPlus,
 } from 'lucide-react';
 
@@ -160,27 +158,13 @@ export const NewsScreen = () => {
           <article style={{ marginBottom: 18 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
               <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
-                <div style={{ ...avatarStyle, width: 38, height: 38, borderRadius: 13, backgroundColor: '#FEE500', color: '#000' }}>춘</div>
+                <div style={{ ...avatarStyle, width: 38, height: 38, borderRadius: 13, backgroundColor: '#FEE500', color: '#000' }}>서</div>
                 <div>
-                  <p style={{ margin: 0, color: global.textColor, fontSize: 14, fontWeight: 700 }}>춘식이</p>
+                  <p style={{ margin: 0, color: global.textColor, fontSize: 14, fontWeight: 700 }}>서울</p>
                   <p style={{ margin: '2px 0 0', color: global.descriptionColor, fontSize: 11 }}>8분 전</p>
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <button
-                  style={{
-                    backgroundColor: 'transparent',
-                    border: `1px solid ${global.descriptionColor}40`,
-                    borderRadius: 999,
-                    padding: '4px 10px',
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: global.textColor,
-                    cursor: 'pointer',
-                  }}
-                >
-                  친구추가
-                </button>
                 <MoreHorizontal size={18} color={global.descriptionColor} style={{ cursor: 'pointer' }} />
               </div>
             </div>
@@ -217,13 +201,6 @@ export const NewsScreen = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}>
                 <MessageCircle size={20} color={global.textColor} strokeWidth={1.5} />
                 <span style={{ fontSize: 13, color: global.textColor, fontWeight: 500 }}>8</span>
-              </div>
-
-              <div style={{ flex: 1 }} />
-
-              <div style={{ display: 'flex', gap: 14 }}>
-                <Upload size={20} color={global.textColor} strokeWidth={1.5} style={{ cursor: 'pointer', marginTop: -2 }} />
-                <Bookmark size={20} color={global.textColor} strokeWidth={1.5} style={{ cursor: 'pointer' }} />
               </div>
             </div>
           </article>
