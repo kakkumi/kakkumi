@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, startTransition } from "react";
+import Header from "../components/Header";
 
 import { PreviewNewsMockup } from "../../stories/PreviewNewsMockup";
 import { PreviewChatRoomMockup } from "../../stories/PreviewChatRoomMockup";
@@ -267,12 +266,12 @@ function Accordion({ title, badge, children, autoOpenSignal, isSelected = false,
   };
   useEffect(() => {
     const saved = localStorage.getItem(storageKey);
-    if (saved !== null) setOpen(saved === "true");
+    if (saved !== null) startTransition(() => { setOpen(saved === "true"); });
   }, [storageKey]);
 
   useEffect(() => {
     if (!autoOpenSignal) return;
-    setOpen(true);
+    startTransition(() => { setOpen(true); });
     if (typeof window !== "undefined") {
       localStorage.setItem(storageKey, "true");
     }
@@ -1038,7 +1037,7 @@ export default function CreatePage() {
       "tabBar-more": "tab-more",
     };
 
-    setSelectedSettingKey(settingMap[activeElementId] ?? null);
+    startTransition(() => { setSelectedSettingKey(settingMap[activeElementId] ?? null); });
   }, [activeElementId]);
 
   useEffect(() => {
@@ -1156,58 +1155,10 @@ export default function CreatePage() {
       }}
       style={{ backgroundImage: "url('/back.jpg')", backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundAttachment: "fixed" }}
     >
-      {/* ── macOS 타이틀바 ── */}
-      <header
-        className="flex items-center px-5 py-0.2 sticky top-0 z-50 shrink-0"
-        style={{
-          background: "rgba(236, 236, 240, 0.72)",
-          backdropFilter: "blur(40px) saturate(200%)",
-          WebkitBackdropFilter: "blur(40px) saturate(200%)",
-          borderBottom: "1px solid rgba(0,0,0,0.07)",
-          boxShadow: "0 1px 0 rgba(255,255,255,0.6) inset",
-        }}
-      >
-        {/* 타이틀 */}
-        <div className="flex items-center gap-2">
-          <Link
-            href="/"
-            className="transition-opacity hover:opacity-60 select-none"
-          >
-            <Image src="/카꾸미.png" alt="카꾸미" width={120} height={48} quality={100} unoptimized style={{ objectFit: "contain" }} />
-          </Link>
-          <span className="text-[#8e8e93] text-[13px] select-none">—</span>
-          <span className="text-[13px] text-[#3a3a3c] select-none">{config.name}</span>
-        </div>
+      {/* ── 공통 헤더 ── */}
+      <Header />
 
-        <div className="flex-1" />
-
-        {/* 다운로드 버튼 */}
-        <button
-          onClick={handleDownload}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold transition-all active:scale-95"
-          style={{
-            background: "rgba(255,229,0,0.9)",
-            color: "#3A1D1D",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.15), 0 1px 0 rgba(255,255,255,0.5) inset",
-          }}
-        >
-          {os === "ios" ? "⬇ .ktheme" : "⬇ APK 빌드"}
-        </button>
-        {/* 우측 사이드바 토글 버튼 */}
-        <button
-          onClick={() => setRightSidebarOpen((v) => !v)}
-          className="ml-2 flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold transition-all active:scale-95"
-          style={{
-            background: rightSidebarOpen ? "rgba(0,0,0,0.12)" : "rgba(0,0,0,0.06)",
-            color: "#3a3a3c",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-          }}
-        >
-          ⚙ 설정
-        </button>
-      </header>
-
-      <div className="flex flex-1" style={{ height: "calc(100vh - 45px)" }}>
+      <div className="flex flex-1" style={{ height: "calc(100vh - 48px)" }}>
 
         {/* ── 좌측 사이드바 ── */}
         <aside ref={leftAsideRef} className="w-80 overflow-y-auto mac-scroll shrink-0" style={{ background: "rgba(255,255,255,0.25)", backdropFilter: "blur(20px) saturate(180%)", WebkitBackdropFilter: "blur(20px) saturate(180%)", borderRight: "1px solid rgba(255,255,255,0.35)" }}>
@@ -1444,7 +1395,9 @@ export default function CreatePage() {
         </aside>
 
         {/* ── 중앙 프리뷰 ── */}
-          <main className="flex-1 flex flex-col items-center justify-start gap-4 overflow-hidden pt-2 pb-8">
+          <main className="flex-1 flex flex-row items-start justify-center gap-4 overflow-hidden pt-2 pb-8">
+          {/* 프리뷰 콘텐츠 */}
+          <div className="flex flex-col items-center gap-4">
           {/* OS 토글 */}
           <div className="flex items-center border-b border-black/10">
             {(["ios", "android"] as OS[]).map((o) => (
@@ -1547,6 +1500,35 @@ export default function CreatePage() {
               }}
             >
               암호
+            </button>
+          </div>
+          </div>{/* end 프리뷰 콘텐츠 */}
+
+          {/* 오른쪽 버튼 패널 */}
+          <div className="flex flex-row gap-2 pt-10 shrink-0 ml-16">
+            {/* 다운로드 버튼 */}
+            <button
+              onClick={handleDownload}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold transition-all active:scale-95"
+              style={{
+                background: "rgba(255,229,0,0.9)",
+                color: "#3A1D1D",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.15), 0 1px 0 rgba(255,255,255,0.5) inset",
+              }}
+            >
+              {os === "ios" ? "⬇ .ktheme" : "⬇ APK 빌드"}
+            </button>
+            {/* 설정 버튼 */}
+            <button
+              onClick={() => setRightSidebarOpen((v) => !v)}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold transition-all active:scale-95"
+              style={{
+                background: rightSidebarOpen ? "rgba(0,0,0,0.12)" : "rgba(0,0,0,0.06)",
+                color: "#3a3a3c",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+              }}
+            >
+              ⚙ 설정
             </button>
           </div>
         </main>
