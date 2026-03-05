@@ -86,6 +86,7 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
         "등록한 테마, 리뷰, 문의 내역이 모두 삭제됩니다.",
         "삭제된 계정과 데이터는 복구할 수 없습니다.",
         "같은 카카오 계정으로 재가입하면 새 계정으로 처음부터 시작합니다.",
+        "탈퇴 후 3일이 지나야 동일 카카오 계정으로 재가입할 수 있습니다.",
     ];
     const [withdrawChecked, setWithdrawChecked] = useState<boolean[]>(CHECKLIST.map(() => false));
     const [withdrawConfirmInput, setWithdrawConfirmInput] = useState("");

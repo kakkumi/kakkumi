@@ -16,3 +16,13 @@ export function formatKST(iso: string, showTime = true): string {
         .replace(/\.$/, "")
         .trim();
 }
+
+/**
+ * 현재 시각을 KST(UTC+9) 기준으로 반환합니다.
+ * PostgreSQL에 저장 시 한국 시간으로 기록됩니다.
+ */
+export function nowKST(): Date {
+    const now = new Date();
+    // UTC 시각에 9시간을 더해 KST로 변환
+    return new Date(now.getTime() + 9 * 60 * 60 * 1000);
+}

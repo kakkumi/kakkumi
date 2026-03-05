@@ -19,6 +19,7 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
         images: string[];
         tags: string[];
         createdAt: Date;
+        creatorId: string;
         creatorNickname: string | null;
         creatorName: string;
         salesCount: number;
@@ -33,13 +34,14 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
             SELECT
                 t.id, t.title, t.description, t.price,
                 t."thumbnailUrl", t.images, t.tags, t."createdAt",
+                t."creatorId",
                 u.nickname AS "creatorNickname", u.name AS "creatorName",
                 COUNT(DISTINCT p.id)::int AS "salesCount"
             FROM "Theme" t
             JOIN "User" u ON t."creatorId" = u.id
             LEFT JOIN "Purchase" p ON p."themeId" = t.id AND p.status = 'COMPLETED'
             WHERE t.id = ${id} AND t.status = 'PUBLISHED'
-            GROUP BY t.id, u.nickname, u.name
+            GROUP BY t.id, t."creatorId", u.nickname, u.name
             LIMIT 1
         `;
         dbTheme = rows[0] ?? null;
@@ -93,6 +95,7 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
                     price={dbTheme.price === 0 ? "무료" : `${dbTheme.price.toLocaleString()}원`}
                     priceNum={dbTheme.price}
                     author={dbTheme.creatorNickname ?? dbTheme.creatorName}
+                    creatorId={dbTheme.creatorId}
                     description={dbTheme.description ?? ""}
                     category={dbTheme.tags ?? []}
                     stats={{

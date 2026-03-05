@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { nowKST } from "@/lib/date";
 
 const SESSION_COOKIE_NAME = "kakkumi_session";
 
@@ -17,7 +18,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     try {
-        const now = new Date();
+        const now = nowKST();
 
         // soft delete: deletedAt 설정 + 적립금 전액 소멸 + 닉네임/개인정보 익명화
         await prisma.$executeRaw`

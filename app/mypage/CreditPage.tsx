@@ -8,6 +8,7 @@ type HistoryItem = {
     type: string;
     memo: string | null;
     createdAt: string;
+    expiresAt: string | null;
 };
 
 const TYPE_LABEL: Record<string, string> = {
@@ -118,6 +119,11 @@ export default function CreditPage() {
                                         {h.memo ?? TYPE_LABEL[h.type] ?? h.type}
                                     </span>
                                     <span className="text-[11px]" style={{ color: "#8e8e93" }}>{formatDate(h.createdAt)}</span>
+                                    {h.expiresAt && h.amount > 0 && (
+                                        <span className="text-[11px]" style={{ color: "#FF9500" }}>
+                                            만료: {formatDate(h.expiresAt)}
+                                        </span>
+                                    )}
                                 </div>
                                 <span className="text-[15px] font-bold"
                                     style={{ color: h.amount > 0 ? "#34c759" : "#ff3b30" }}>

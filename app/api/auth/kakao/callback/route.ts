@@ -96,6 +96,12 @@ export async function GET(request: Request) {
             if (existingRows.length > 0) {
                 const existing = existingRows[0];
                 if (existing.deletedAt !== null) {
+                    // 탈퇴 후 3일 이내 재가입 차단
+                    const daysSinceDelete = (Date.now() - new Date(existing.deletedAt).getTime()) / 86400000;
+                    if (daysSinceDelete < 3) {
+                        const remainDays = Math.ceil(3 - daysSinceDelete);
+                        return NextResponse.redirect(new URL(`/?login=blocked&days=${remainDays}`, url.origin));
+                    }
                     // 탈퇴 유저 재가입 → 복원 (referralRewarded는 유지 — 추천 적립 재수령 방지)
                     if (email) {
                         await prisma.$executeRaw`

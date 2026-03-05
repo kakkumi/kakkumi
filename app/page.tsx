@@ -1,8 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Suspense } from "react";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import HeroTitle from "./components/HeroTitle";
+import LoginBlockedNotice from "./components/LoginBlockedNotice";
 
 export default function Home() {
     return (
@@ -16,6 +18,7 @@ export default function Home() {
         >
             {/* ── 네비게이션 바 ── */}
             <Header />
+            <Suspense fallback={null}><LoginBlockedNotice /></Suspense>
 
             {/* ── 히어로 섹션 ── */}
             <section className="flex flex-col items-center justify-center text-center px-6 pt-20 pb-24">

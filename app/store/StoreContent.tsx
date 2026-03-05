@@ -35,6 +35,7 @@ type DbTheme = {
     images: string[];
     tags: string[];
     createdAt: string;
+    creatorId: string;
     creatorNickname: string | null;
     creatorName: string;
     salesCount: number;
@@ -63,6 +64,7 @@ type UnifiedTheme = {
     key: string;          // 라우팅용 id
     name: string;
     author: string;
+    creatorId: string;
     price: string;
     priceNum: number;
     tag: string;
@@ -81,6 +83,7 @@ function dbThemeToUnified(t: DbTheme): UnifiedTheme {
         key: t.id,
         name: t.title,
         author: t.creatorNickname ?? t.creatorName,
+        creatorId: t.creatorId,
         price: t.price === 0 ? "무료" : `${t.price.toLocaleString()}원`,
         priceNum: t.price,
         tag: t.price === 0 ? "무료" : "",
@@ -356,7 +359,11 @@ export default function StoreContent() {
                                         <div className="flex items-start justify-between">
                                             <div className="flex flex-col gap-0.5">
                                                 <h3 className="text-[13px] font-bold" style={{ color: "#1c1c1e" }}>{theme.name}</h3>
-                                                <span className="text-[12px]" style={{ color: "#3f3f45" }}>by {theme.author}</span>
+                                                <span
+                                                    className="text-[12px] hover:underline cursor-pointer"
+                                                    style={{ color: "#3f3f45" }}
+                                                    onClick={e => { e.stopPropagation(); router.push(`/creator/${theme.creatorId}`); }}
+                                                >by {theme.author}</span>
                                             </div>
                                             <span className="text-[14px] font-medium shrink-0 ml-2" style={{ color: "#1c1c1e" }}>{theme.price}</span>
                                         </div>

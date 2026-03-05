@@ -18,6 +18,9 @@ type ThemeItem = {
     price: number;
     tag?: "내 테마" | "구매";
     purchasedAt?: string;
+    isPublic?: boolean;
+    isSelling?: boolean;
+    status?: string;
 };
 
 type ApiResponse = {
@@ -40,18 +43,137 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
     const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? "purchased");
     const [data, setData] = useState<ApiResponse | null>(null);
     const [loading, setLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState<string | null>(null);
 
     useEffect(() => {
         if (initialTab) setActiveTab(initialTab);
     }, [initialTab]);
 
-    useEffect(() => {
+    const loadData = () => {
         fetch("/api/mypage/themes")
             .then((r) => r.json())
             .then((d: ApiResponse) => setData(d))
             .catch(() => setData(null))
             .finally(() => setLoading(false));
-    }, []);
+    };
+
+    useEffect(() => { loadData(); }, []);
+
+    const handleThemeAction = async (themeId: string, action: "setPublic" | "setPrivate" | "discontinue" | "resume") => {
+        setActionLoading(themeId + action);
+        try {
+            await fetch("/api/themes/manage", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ themeId, action }),
+            });
+            loadData();
+        } catch { /* ignore */ } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const renderMineList = (themes: ThemeItem[]) => {
+        if (loading) {
+            return (
+                <div className="flex items-center gap-2 py-2">
+                    <div className="w-4 h-4 rounded-full border-2 border-black/20 border-t-black/60 animate-spin" />
+                    <span className="text-[13px]" style={{ color: "#48484a" }}>불러오는 중...</span>
+                </div>
+            );
+        }
+        if (!themes || themes.length === 0) {
+            return (
+                <div className="flex flex-col gap-4">
+                    <p className="text-[14px] leading-relaxed" style={{ color: "#48484a" }}>아직 만든 테마가 없어요. 지금 바로 첫 번째 테마를 만들어보세요!</p>
+                    <Link href="/create">
+                        <button className="px-7 py-3 rounded-xl text-[14px] font-bold transition-all active:scale-95 hover:opacity-80 w-fit" style={{ background: "rgba(0,0,0,0.07)", color: "#3a3a3c" }}>
+                            첫 테마 만들기 →
+                        </button>
+                    </Link>
+                </div>
+            );
+        }
+        return (
+            <div className="flex flex-col gap-2">
+                {themes.map((theme) => {
+                    const isDisabled = actionLoading !== null;
+                    const statusLabel = theme.status === "DRAFT" ? "심사중" : theme.status === "HIDDEN" ? "숨김" : !theme.isSelling ? "판매중단" : !theme.isPublic ? "비공개" : "공개중";
+                    const statusColor = theme.status === "DRAFT" ? "#FF9500" : theme.status === "HIDDEN" ? "#8e8e93" : !theme.isSelling ? "#ff3b30" : !theme.isPublic ? "#8e8e93" : "#34c759";
+                    return (
+                        <div key={theme.id} className="flex flex-col gap-2 px-4 py-3 rounded-[14px]" style={{ background: "rgba(255,255,255,0.7)" }}>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: "rgba(0,0,0,0.07)" }}>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3a3a3c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <rect x="3" y="3" width="18" height="18" rx="3" /><path d="M3 9h18" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p className="text-[13px] font-semibold" style={{ color: "#1c1c1e" }}>{theme.name}</p>
+                                        <p className="text-[11px] flex items-center gap-1.5" style={{ color: "#8e8e93" }}>
+                                            {formatPrice(theme.price)}
+                                            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold" style={{ background: `${statusColor}22`, color: statusColor }}>
+                                                {statusLabel}
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <Link href={`/store/${theme.id}`}>
+                                    <button className="text-[12px] font-semibold px-3 py-1.5 rounded-[10px] transition-all hover:brightness-95" style={{ background: "rgba(0,0,0,0.07)", color: "#3a3a3c" }}>
+                                        보기
+                                    </button>
+                                </Link>
+                            </div>
+                            {/* 공개/비공개/판매중단 컨트롤 (PUBLISHED 상태인 경우만) */}
+                            {theme.status === "PUBLISHED" && (
+                                <div className="flex gap-1.5 flex-wrap">
+                                    {theme.isPublic ? (
+                                        <button
+                                            disabled={isDisabled}
+                                            onClick={() => handleThemeAction(theme.id, "setPrivate")}
+                                            className="text-[11px] font-semibold px-2.5 py-1 rounded-[8px] transition-all hover:brightness-95 disabled:opacity-50"
+                                            style={{ background: "rgba(142,142,147,0.15)", color: "#8e8e93" }}
+                                        >
+                                            비공개로 전환
+                                        </button>
+                                    ) : (
+                                        <button
+                                            disabled={isDisabled}
+                                            onClick={() => handleThemeAction(theme.id, "setPublic")}
+                                            className="text-[11px] font-semibold px-2.5 py-1 rounded-[8px] transition-all hover:brightness-95 disabled:opacity-50"
+                                            style={{ background: "rgba(52,199,89,0.15)", color: "#34c759" }}
+                                        >
+                                            공개로 전환
+                                        </button>
+                                    )}
+                                    {theme.isSelling ? (
+                                        <button
+                                            disabled={isDisabled}
+                                            onClick={() => handleThemeAction(theme.id, "discontinue")}
+                                            className="text-[11px] font-semibold px-2.5 py-1 rounded-[8px] transition-all hover:brightness-95 disabled:opacity-50"
+                                            style={{ background: "rgba(255,59,48,0.12)", color: "#ff3b30" }}
+                                        >
+                                            판매 중단
+                                        </button>
+                                    ) : (
+                                        <button
+                                            disabled={isDisabled}
+                                            onClick={() => handleThemeAction(theme.id, "resume")}
+                                            className="text-[11px] font-semibold px-2.5 py-1 rounded-[8px] transition-all hover:brightness-95 disabled:opacity-50"
+                                            style={{ background: "rgba(0,122,255,0.12)", color: "#007aff" }}
+                                        >
+                                            판매 재개
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
 
     const renderThemeList = (themes: ThemeItem[], emptyMsg: string, emptyLink?: { href: string; label: string }) => {
         if (loading) {
@@ -68,10 +190,7 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
                     <p className="text-[14px] leading-relaxed" style={{ color: "#48484a" }}>{emptyMsg}</p>
                     {emptyLink && (
                         <Link href={emptyLink.href}>
-                            <button
-                                className="px-7 py-3 rounded-xl text-[14px] font-bold transition-all active:scale-95 hover:opacity-80 w-fit"
-                                style={{ background: "rgba(0,0,0,0.07)", color: "#3a3a3c" }}
-                            >
+                            <button className="px-7 py-3 rounded-xl text-[14px] font-bold transition-all active:scale-95 hover:opacity-80 w-fit" style={{ background: "rgba(0,0,0,0.07)", color: "#3a3a3c" }}>
                                 {emptyLink.label} →
                             </button>
                         </Link>
@@ -84,19 +203,11 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
                 {themes.map((theme) => {
                     const mockId = getMockId(theme.id);
                     return (
-                        <div
-                            key={theme.id}
-                            className="flex items-center justify-between px-4 py-3 rounded-[14px] transition-all hover:brightness-95"
-                            style={{ background: "rgba(255,255,255,0.7)" }}
-                        >
+                        <div key={theme.id} className="flex items-center justify-between px-4 py-3 rounded-[14px] transition-all hover:brightness-95" style={{ background: "rgba(255,255,255,0.7)" }}>
                             <div className="flex items-center gap-3">
-                                <div
-                                    className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
-                                    style={{ background: "rgba(0,0,0,0.07)" }}
-                                >
+                                <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: "rgba(0,0,0,0.07)" }}>
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3a3a3c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <rect x="3" y="3" width="18" height="18" rx="3" />
-                                        <path d="M3 9h18" />
+                                        <rect x="3" y="3" width="18" height="18" rx="3" /><path d="M3 9h18" />
                                     </svg>
                                 </div>
                                 <div>
@@ -104,21 +215,21 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
                                     <p className="text-[11px] flex items-center gap-1.5" style={{ color: "#8e8e93" }}>
                                         {formatPrice(theme.price)}
                                         {theme.tag && (
-                                            <span
-                                                className="px-1.5 py-0.5 rounded-full text-[10px] font-bold"
-                                                style={{
-                                                    background: theme.tag === "내 테마" ? "rgba(255,149,0,0.15)" : "#FFEF9A",
-                                                    color: "#3A1D1D",
-                                                }}
-                                            >
+                                            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold" style={{ background: theme.tag === "내 테마" ? "rgba(255,149,0,0.15)" : "#FFEF9A", color: "#3A1D1D" }}>
                                                 {theme.tag}
                                             </span>
                                         )}
                                     </p>
                                 </div>
                             </div>
-                            {mockId && (
+                            {mockId ? (
                                 <Link href={`/store/${mockId}`}>
+                                    <button className="text-[12px] font-semibold px-3 py-1.5 rounded-[10px] transition-all hover:brightness-95" style={{ background: "rgba(0,0,0,0.07)", color: "#3a3a3c" }}>
+                                        보기
+                                    </button>
+                                </Link>
+                            ) : (
+                                <Link href={`/store/${theme.id}`}>
                                     <button className="text-[12px] font-semibold px-3 py-1.5 rounded-[10px] transition-all hover:brightness-95" style={{ background: "rgba(0,0,0,0.07)", color: "#3a3a3c" }}>
                                         보기
                                     </button>
@@ -132,10 +243,7 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
     };
 
     return (
-        <div
-            className="rounded-[28px] flex flex-col overflow-hidden"
-            style={{ backgroundColor: "#FFEF9A", boxShadow: "0 24px 80px rgba(0,0,0,0.03)" }}
-        >
+        <div className="rounded-[28px] flex flex-col overflow-hidden" style={{ backgroundColor: "#FFEF9A", boxShadow: "0 24px 80px rgba(0,0,0,0.03)" }}>
             {/* 헤더 */}
             <div className="px-8 pt-8 pb-0 flex flex-col gap-2">
                 <span className="text-[12px] font-bold tracking-[0.2em] text-black/50 uppercase">테마</span>
@@ -159,19 +267,13 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
                     >
                         {tab.label}
                         {tab.key === "mine" && data && data.mineCount > 0 && (
-                            <span className="ml-1.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(0,0,0,0.1)", color: "#1c1c1e" }}>
-                                {data.mineCount}
-                            </span>
+                            <span className="ml-1.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(0,0,0,0.1)", color: "#1c1c1e" }}>{data.mineCount}</span>
                         )}
                         {tab.key === "purchased" && data && data.purchasedCount > 0 && (
-                            <span className="ml-1.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(0,0,0,0.1)", color: "#1c1c1e" }}>
-                                {data.purchasedCount}
-                            </span>
+                            <span className="ml-1.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(0,0,0,0.1)", color: "#1c1c1e" }}>{data.purchasedCount}</span>
                         )}
                         {tab.key === "all" && data && data.all.length > 0 && (
-                            <span className="ml-1.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(0,0,0,0.1)", color: "#1c1c1e" }}>
-                                {data.all.length}
-                            </span>
+                            <span className="ml-1.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(0,0,0,0.1)", color: "#1c1c1e" }}>{data.all.length}</span>
                         )}
                     </button>
                 ))}
@@ -179,21 +281,9 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
 
             {/* 탭 콘텐츠 */}
             <div className="px-8 py-6">
-                {activeTab === "mine" && renderThemeList(
-                    data?.mine ?? [],
-                    "아직 만든 테마가 없어요. 지금 바로 첫 번째 테마를 만들어보세요!",
-                    { href: "/create", label: "첫 테마 만들기" }
-                )}
-                {activeTab === "purchased" && renderThemeList(
-                    data?.purchased ?? [],
-                    "아직 구매한 테마가 없어요. 테마 스토어를 둘러보세요!",
-                    { href: "/store", label: "테마 스토어 구경하기" }
-                )}
-                {activeTab === "all" && renderThemeList(
-                    data?.all ?? [],
-                    "보유한 테마가 없어요.",
-                    { href: "/store", label: "테마 스토어 구경하기" }
-                )}
+                {activeTab === "mine" && renderMineList(data?.mine ?? [])}
+                {activeTab === "purchased" && renderThemeList(data?.purchased ?? [], "아직 구매한 테마가 없어요. 테마 스토어를 둘러보세요!", { href: "/store", label: "테마 스토어 구경하기" })}
+                {activeTab === "all" && renderThemeList(data?.all ?? [], "보유한 테마가 없어요.", { href: "/store", label: "테마 스토어 구경하기" })}
             </div>
         </div>
     );

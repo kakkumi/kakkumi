@@ -54,6 +54,25 @@ enum ApplicationStatus {
   REJECTED
 }
 
+enum PointType {
+  REFERRAL_REWARD
+  PURCHASE_USE
+  ADMIN_GRANT
+  REFUND
+  EXPIRY
+}
+
+enum NotificationType {
+  FOLLOW
+  NEW_THEME
+  CREDIT_EXPIRY
+  PURCHASE_COMPLETE
+  REFUND_COMPLETE
+  THEME_APPROVED
+  THEME_REJECTED
+  SYSTEM
+}
+
 model CreatorApplication {
   id          String            @id @default(uuid())
   userId      String
@@ -91,13 +110,34 @@ model User {
   reports        Report[]              @relation("UserReports")
   pointHistories PointHistory[]        @relation("UserPointHistories")
   applications   CreatorApplication[]  @relation("UserApplications")
+  followers      Follow[]              @relation("UserFollowers")
+  followings     Follow[]              @relation("UserFollowings")
+  notifications  Notification[]        @relation("UserNotifications")
 }
 
-enum PointType {
-  REFERRAL_REWARD
-  PURCHASE_USE
-  ADMIN_GRANT
-  REFUND
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("UserFollowings", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  linkUrl   String?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user User @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model PointHistory {
@@ -106,6 +146,7 @@ model PointHistory {
   amount    Int
   type      PointType
   memo      String?
+  expiresAt DateTime?
   createdAt DateTime  @default(now())
 
   user User @relation("UserPointHistories", fields: [userId], references: [id])
@@ -118,6 +159,8 @@ model Theme {
   description  String?
   price        Int         @default(0)
   status       ThemeStatus @default(DRAFT)
+  isPublic     Boolean     @default(true)   // 공개/비공개 전환
+  isSelling    Boolean     @default(true)   // 판매중단 여부
   thumbnailUrl String?
   adminNote    String?
   images       String[]    @default([])
@@ -151,6 +194,8 @@ model Purchase {
   amount          Int
   pgTransactionId String?        @unique
   status          PurchaseStatus @default(PENDING)
+  refundReason    String?
+  refundedAt      DateTime?
   createdAt       DateTime       @default(now())
 
   buyer User  @relation("UserPurchases", fields: [buyerId], references: [id])

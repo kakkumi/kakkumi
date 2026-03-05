@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { sendPurchaseReceipt } from "@/lib/email";
+import { nowKST } from "@/lib/date";
 
 // 적립금으로 테마 구매
 export async function POST(req: NextRequest) {
@@ -41,7 +43,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: `적립금이 부족합니다. (보유: ${credit}원, 필요: ${theme.price}원)` }, { status: 400 });
     }
 
-    const now = new Date();
+    const now = nowKST();
     const purchaseId = crypto.randomUUID();
     const historyId = crypto.randomUUID();
 
@@ -68,13 +70,41 @@ export async function POST(req: NextRequest) {
     }
     const reward = getPurchaseCredit(theme.price);
     if (reward > 0) {
+        const expiresAt = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
         await prisma.$executeRaw`
             UPDATE "User" SET credit = credit + ${reward}, "updatedAt" = NOW() WHERE id = ${session.dbId}
         `;
         await prisma.$executeRaw`
-            INSERT INTO "PointHistory" (id, "userId", amount, type, memo, "createdAt")
-            VALUES (${crypto.randomUUID()}, ${session.dbId}, ${reward}, 'ADMIN_GRANT'::"PointType", ${`구매 적립 (+${reward}원)`}, ${now})
+            INSERT INTO "PointHistory" (id, "userId", amount, type, memo, "expiresAt", "createdAt")
+            VALUES (${crypto.randomUUID()}, ${session.dbId}, ${reward}, 'ADMIN_GRANT'::"PointType", ${`구매 적립 (+${reward}원)`}, ${expiresAt}, ${now})
         `;
+    }
+
+    // 구매 완료 알림
+    await prisma.$executeRaw`
+        INSERT INTO "Notification" (id, "userId", type, title, body, "linkUrl", "createdAt")
+        VALUES (
+            ${crypto.randomUUID()}, ${session.dbId},
+            'PURCHASE_COMPLETE'::"NotificationType",
+            ${'구매 완료'},
+            ${`"${theme.title}" 구매가 완료되었습니다.`},
+            ${'/mypage'}, ${now}
+        )
+    `;
+
+    // 영수증 이메일 발송
+    const userRows = await prisma.$queryRaw<{ email: string | null; name: string; nickname: string | null }[]>`
+        SELECT email, name, nickname FROM "User" WHERE id = ${session.dbId} LIMIT 1
+    `;
+    const user = userRows[0];
+    if (user?.email && theme.price > 0) {
+        await sendPurchaseReceipt({
+            to: user.email,
+            name: user.nickname ?? user.name,
+            themeTitle: theme.title,
+            amount: theme.price,
+            purchaseDate: now,
+        }).catch(e => console.error("[receipt email credit]", e));
     }
 
     return NextResponse.json({ success: true });

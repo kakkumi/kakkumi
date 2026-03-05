@@ -17,10 +17,27 @@ export async function GET() {
     });
 
     // 내가 만든 테마 목록
-    const myThemes = await prisma.theme.findMany({
-        where: { creatorId: session.dbId },
-        orderBy: { createdAt: "desc" },
-    });
+    let myThemes: { id: string; title: string; price: number; status: string; isPublic: boolean; isSelling: boolean; }[];
+    try {
+        myThemes = await prisma.$queryRaw<{
+            id: string; title: string; price: number;
+            status: string; isPublic: boolean; isSelling: boolean;
+        }[]>`
+            SELECT id, title, price, status, "isPublic", "isSelling"
+            FROM "Theme"
+            WHERE "creatorId" = ${session.dbId}
+            ORDER BY "createdAt" DESC
+        `;
+    } catch {
+        // isPublic/isSelling 컬럼 없는 경우 (db push 전)
+        const rows = await prisma.$queryRaw<{ id: string; title: string; price: number; status: string; }[]>`
+            SELECT id, title, price, status
+            FROM "Theme"
+            WHERE "creatorId" = ${session.dbId}
+            ORDER BY "createdAt" DESC
+        `;
+        myThemes = rows.map(r => ({ ...r, isPublic: true, isSelling: true }));
+    }
 
     const purchasedList = purchases.map((p) => ({
         id: p.theme.id,
@@ -33,10 +50,12 @@ export async function GET() {
         id: t.id,
         name: t.title,
         price: t.price,
+        status: t.status,
+        isPublic: t.isPublic ?? true,
+        isSelling: t.isSelling ?? true,
     }));
 
     // 전체 = 내 테마 + 구매한 테마 (중복 제거)
-    const purchasedIds = new Set(purchasedList.map((p) => p.id));
     const allList = [
         ...mineList.map((t) => ({ ...t, tag: "내 테마" as const })),
         ...purchasedList

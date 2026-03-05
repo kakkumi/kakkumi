@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { uploadFile } from "@/lib/storage";
+import { nowKST } from "@/lib/date";
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession();
@@ -26,6 +27,14 @@ export async function POST(req: NextRequest) {
         if (!categories.length) return NextResponse.json({ error: "카테고리를 1개 이상 입력해주세요." }, { status: 400 });
         if (!price) return NextResponse.json({ error: "가격을 선택해주세요." }, { status: 400 });
         if (!thumbnailFile) return NextResponse.json({ error: "미리보기 이미지를 업로드해주세요." }, { status: 400 });
+
+        // 세션 유저가 DB에 실제로 존재하는지 확인
+        const userCheck = await prisma.$queryRaw<{ id: string }[]>`
+            SELECT id FROM "User" WHERE id = ${session.dbId} AND "deletedAt" IS NULL LIMIT 1
+        `;
+        if (userCheck.length === 0) {
+            return NextResponse.json({ error: "세션이 만료되었습니다. 다시 로그인해주세요." }, { status: 401 });
+        }
 
         // iOS 옵션 파싱
         type FileOpt = { name: string; file: File | null };
@@ -61,7 +70,7 @@ export async function POST(req: NextRequest) {
 
         const priceNum = price === "무료" ? 0 : (parseInt(price.replace(/[^0-9]/g, ""), 10) || 0);
         const id = crypto.randomUUID();
-        const now = new Date();
+        const now = nowKST();
         const ext = (f: File) => f.name.split(".").pop() ?? "bin";
 
         // 대표 이미지 업로드
@@ -88,13 +97,18 @@ export async function POST(req: NextRequest) {
                 ${now}, ${now}
             )
         `;
+        // isPublic, isSelling 컬럼이 있으면 기본값 true로 설정 (db push 이후 적용)
+        try {
+            await prisma.$executeRaw`
+                UPDATE "Theme" SET "isPublic" = true, "isSelling" = true WHERE id = ${id}
+            `;
+        } catch { /* 컬럼 없으면 무시 */ }
 
         // iOS 옵션별 ThemeVersion 저장
         for (const opt of iosOpts) {
             if (!opt.file || opt.file.size === 0) continue;
             const versionId = crypto.randomUUID();
-            const safeName = opt.name.replace(/[^a-zA-Z0-9가-힣_\- ]/g, "").trim() || versionId.slice(0, 8);
-            const kthemeFileUrl = await uploadFile("theme-files", `${id}/ios/${safeName}.${ext(opt.file)}`, opt.file);
+            const kthemeFileUrl = await uploadFile("theme-files", `${id}/ios/${versionId}.${ext(opt.file)}`, opt.file);
             await prisma.$executeRaw`
                 INSERT INTO "ThemeVersion" (id, "themeId", version, "configJson", "kthemeFileUrl", "apkFileUrl", "buildStatus", "createdAt")
                 VALUES (${versionId}, ${id}, ${`iOS · ${opt.name}`}, ${"{}"}::jsonb, ${kthemeFileUrl}, ${null}, 'PENDING'::"BuildStatus", ${now})
@@ -105,8 +119,7 @@ export async function POST(req: NextRequest) {
         for (const opt of androidOpts) {
             if (!opt.file || opt.file.size === 0) continue;
             const versionId = crypto.randomUUID();
-            const safeName = opt.name.replace(/[^a-zA-Z0-9가-힣_\- ]/g, "").trim() || versionId.slice(0, 8);
-            const apkFileUrl = await uploadFile("theme-files", `${id}/android/${safeName}.${ext(opt.file)}`, opt.file);
+            const apkFileUrl = await uploadFile("theme-files", `${id}/android/${versionId}.${ext(opt.file)}`, opt.file);
             await prisma.$executeRaw`
                 INSERT INTO "ThemeVersion" (id, "themeId", version, "configJson", "kthemeFileUrl", "apkFileUrl", "buildStatus", "createdAt")
                 VALUES (${versionId}, ${id}, ${`Android · ${opt.name}`}, ${"{}"}::jsonb, ${null}, ${apkFileUrl}, 'PENDING'::"BuildStatus", ${now})

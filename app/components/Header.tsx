@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import AuthStatus from "./AuthStatus";
+import NotificationBell from "./NotificationBell";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -88,6 +89,7 @@ export default function Header() {
                     );
                 })}
                 <div className="w-[1px] h-5 bg-[rgba(0,0,0,0.25)]" aria-hidden="true" />
+                {role && <NotificationBell />}
                 <AuthStatus />
             </nav>
         </header>

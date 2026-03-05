@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { THEME_COLORS } from "@/app/store/data";
 import { getPreviewSlots } from "./ThemeImageViewer";
 import ThemeActionButtons from "./ThemeActionButtons";
@@ -23,6 +24,7 @@ type Props = {
     price: string;
     priceNum: number;
     author: string;
+    creatorId: string;
     description: string;
     category: string[];
     stats: Stats;
@@ -34,9 +36,10 @@ type Props = {
 
 export default function ThemeDetailLayout({
     images, previews, name, tag, themeId,
-    price, priceNum, author, description, category,
+    price, priceNum, author, creatorId, description, category,
     stats, dbId, isLoggedIn, userId, isOwned,
 }: Props) {
+    const router = useRouter();
     const colors = themeId ? THEME_COLORS[themeId] : undefined;
     const realImages = [...(images ?? []), ...(previews ?? [])].filter((s) => s && s !== "/back.jpg");
     const useColor = realImages.length === 0 && !!colors;
@@ -99,7 +102,13 @@ export default function ThemeDetailLayout({
                             </div>
                         </div>
                         <p className="text-[14px] text-gray-400 mt-2">
-                            by <span className="text-gray-600 font-semibold">{author}</span>
+                            by{" "}
+                            <button
+                                onClick={() => router.push(`/creator/${creatorId}`)}
+                                className="text-gray-600 font-semibold hover:underline transition-all"
+                            >
+                                {author}
+                            </button>
                         </p>
                     </div>
 
