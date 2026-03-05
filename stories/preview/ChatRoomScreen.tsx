@@ -1,12 +1,12 @@
 import React from 'react';
-import { ArrowLeft, Menu, Search, Smile, Plus, ArrowUp, Calendar } from 'lucide-react';
+import { Menu, Search, Smile, Plus, ArrowUp } from 'lucide-react';
 
 // --- 외부 파일 의존성 제거 (미리보기를 위한 통합 모의 데이터 및 스타일) ---
 const headerBaseStyle: React.CSSProperties = {
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  padding: '30px 16px 12px 16px',
+  padding: '42px 14px 8px 14px',
   backgroundColor: 'transparent',
   position: 'relative',
   zIndex: 10,
@@ -14,7 +14,7 @@ const headerBaseStyle: React.CSSProperties = {
 
 const iconRowStyle: React.CSSProperties = {
   display: 'flex',
-  gap: '16px',
+  gap: '14px',
   alignItems: 'center',
 };
 
@@ -64,26 +64,22 @@ export const ChatRoomScreen = () => {
         position: 'relative',
       }}
     >
-      {/* 배경 장식 (스크린샷의 흩날리는 꽃잎과 어피치 모방) */}
-      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', bottom: 80, left: 80, fontSize: 24, opacity: 0.8, color: '#fff' }}>✿</div>
-        <div style={{ position: 'absolute', bottom: 120, right: 40, fontSize: 32, opacity: 0.8, color: '#fff' }}>✿</div>
-        <div style={{ position: 'absolute', top: 150, right: 80, fontSize: 28, opacity: 0.8, color: '#fff' }}>✿</div>
-        <div style={{ position: 'absolute', bottom: 20, right: -20, width: 200, height: 100, backgroundColor: '#FFF4F4', borderRadius: '50% 50% 0 0', filter: 'blur(10px)', opacity: 0.6 }} />
-        <div style={{ position: 'absolute', bottom: 20, left: -20, width: 150, height: 80, backgroundColor: '#FFF4F4', borderRadius: '50% 50% 0 0', filter: 'blur(10px)', opacity: 0.6 }} />
-      </div>
-
       {/* 1. 상단 헤더 */}
       <header style={{ ...headerBaseStyle, color: '#191919' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: 60 }}>
-          <ArrowLeft size={24} strokeWidth={2} color="#191919" style={{ cursor: 'pointer' }} />
+          <span style={{ cursor: 'pointer', color: '#3c2a2a', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <svg width="13" height="18" viewBox="0 0 16 22" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginTop: 3 }}>
+              <path d="M14 1L2 11L14 21" stroke="#3c2a2a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <span style={{ fontSize: 17, fontWeight: 400 }}>40</span>
+          </span>
         </div>
-        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#191919', flex: 1, textAlign: 'center' }}>
-          어피치
+        <h2 style={{ margin: 0, fontSize: 17, fontWeight: 400, color: '#3c2a2a', flex: 1, textAlign: 'center' }}>
+          봄이
         </h2>
-        <div style={{ ...iconRowStyle, width: 60, justifyContent: 'flex-end', gap: 14 }}>
-          <Search size={22} strokeWidth={2} color="#191919" style={{ cursor: 'pointer' }} />
-          <Menu size={24} strokeWidth={2} color="#191919" style={{ cursor: 'pointer' }} />
+        <div style={{ ...iconRowStyle, width: 60, justifyContent: 'flex-end' }}>
+          <Search size={20} strokeWidth={2.3} color="#191919" style={{ cursor: 'pointer' }} />
+          <Menu size={20} strokeWidth={2.3} color="#191919" style={{ cursor: 'pointer' }} />
         </div>
       </header>
 
@@ -94,20 +90,21 @@ export const ChatRoomScreen = () => {
         <div style={{ display: 'flex', justifyContent: 'center', margin: '8px 0 16px 0' }}>
           <div style={{
             display: 'flex', alignItems: 'center', gap: 4,
-            backgroundColor: 'rgba(212, 184, 184, 0.6)', // 스크린샷의 반투명 팥죽색 배경
-            color: '#FFFFFF', fontSize: 11, fontWeight: 500,
+            backgroundColor: 'rgba(214,212,212,0.4)',
+            color: '#191919', fontSize: 11, fontWeight: 500,
             padding: '5px 12px', borderRadius: 999,
           }}>
-            <Calendar size={12} strokeWidth={2.5} />
-            <span>2024년 12월 20일 월요일</span>
-            <span style={{ marginLeft: 2, opacity: 0.8 }}>{'>'}</span>
+            <span>2026년 02월 27일 금요일</span>
+            <svg width="6" height="10" viewBox="0 0 16 22" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginTop: -1 }}>
+              <path d="M2 1L14 11L2 21" stroke="#191919" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </div>
         </div>
 
         {/* 상대방 메시지 블록 */}
         <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
           {/* 상대방 프로필 */}
-          <div style={{ width: 40, height: 40, borderRadius: 16, backgroundColor: '#FFC1C1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
+          <div style={{ width: 34, height: 34, borderRadius: 13, backgroundColor: '#FFC1C1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, flexShrink: 0 }}>
             😌
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxWidth: '75%' }}>
@@ -118,7 +115,7 @@ export const ChatRoomScreen = () => {
               <div style={{
                 backgroundColor: chatRoom.friendBubbleBg,
                 color: chatRoom.friendBubbleText,
-                padding: '8px 14px',
+                padding: '5px 14px',
                 borderRadius: '4px 18px 18px 18px', // 왼쪽 위가 뾰족한 꼬리
                 fontSize: 14,
                 lineHeight: 1.4,
@@ -134,7 +131,7 @@ export const ChatRoomScreen = () => {
               <div style={{
                 backgroundColor: chatRoom.friendBubbleBg,
                 color: chatRoom.friendBubbleText,
-                padding: '8px 14px',
+                padding: '5px 14px',
                 borderRadius: '18px', // 둥근 형태
                 fontSize: 14,
                 lineHeight: 1.4,
@@ -153,7 +150,7 @@ export const ChatRoomScreen = () => {
 
         {/* 상대방 메시지 블록 (selected 구분용 - 프로필 추가) */}
         <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-          <div style={{ width: 40, height: 40, borderRadius: 16, backgroundColor: '#FFB0B0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
+          <div style={{ width: 34, height: 34, borderRadius: 13, backgroundColor: '#FFB0B0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, flexShrink: 0 }}>
             😌
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxWidth: '75%' }}>
@@ -163,7 +160,7 @@ export const ChatRoomScreen = () => {
               <div style={{
                 backgroundColor: chatRoom.friendBubbleBg,
                 color: chatRoom.friendBubbleText,
-                padding: '8px 14px',
+                padding: '5px 14px',
                 borderRadius: '4px 18px 18px 18px',
                 fontSize: 14,
                 lineHeight: 1.4,
@@ -178,7 +175,7 @@ export const ChatRoomScreen = () => {
               <div style={{
                 backgroundColor: chatRoom.friendBubbleBg,
                 color: chatRoom.friendBubbleText,
-                padding: '8px 14px',
+                padding: '5px 14px',
                 borderRadius: '18px',
                 fontSize: 14,
                 lineHeight: 1.4,
@@ -203,7 +200,7 @@ export const ChatRoomScreen = () => {
             <div style={{
               backgroundColor: chatRoom.myBubbleBg,
               color: chatRoom.myBubbleText,
-              padding: '8px 14px',
+              padding: '5px 14px',
               borderRadius: '18px 4px 18px 18px', // 오른쪽 위가 뾰족한 꼬리
               fontSize: 14,
               lineHeight: 1.4,
@@ -218,7 +215,7 @@ export const ChatRoomScreen = () => {
             <div style={{
               backgroundColor: chatRoom.myBubbleBg,
               color: chatRoom.myBubbleText,
-              padding: '8px 14px',
+              padding: '5px 14px',
               borderRadius: '18px', // 둥근 형태
               fontSize: 14,
               lineHeight: 1.4,
@@ -233,7 +230,7 @@ export const ChatRoomScreen = () => {
             <div style={{
               backgroundColor: chatRoom.myBubbleBg,
               color: chatRoom.myBubbleText,
-              padding: '8px 14px',
+              padding: '5px 14px',
               borderRadius: '18px 4px 18px 18px',
               fontSize: 14,
               lineHeight: 1.4,
@@ -252,7 +249,7 @@ export const ChatRoomScreen = () => {
             <div style={{
               backgroundColor: '#F27979',
               color: chatRoom.myBubbleText,
-              padding: '8px 14px',
+              padding: '5px 14px',
               borderRadius: '18px',
               fontSize: 14,
               lineHeight: 1.4,
