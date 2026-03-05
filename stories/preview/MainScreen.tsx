@@ -96,7 +96,33 @@ export const MainScreen = () => {
         <h2 data-active-element-id="header-title-icon" style={{ margin: 0, fontSize: 17, fontWeight: 400, color: '#3c2a2a' }}>채팅</h2>
         <div data-active-element-id="header-title-icon" style={iconRowStyle}>
           <Search size={20} strokeWidth={2.3} />
-          <MessageCircle size={20} strokeWidth={2.3} />
+          <div style={{ position: 'relative', display: 'inline-flex', width: 20, height: 20 }}>
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              overflow: 'hidden',
+              clipPath: 'polygon(0% 0%, 62% 0%, 62% 38%, 100% 38%, 100% 100%, 0% 100%)',
+            }}>
+              <MessageCircle size={19} strokeWidth={2.3} />
+            </div>
+            <span style={{
+              position: 'absolute',
+              top: -3,
+              right: -3,
+              width: 10,
+              height: 10,
+              borderRadius: '50%',
+              backgroundColor: 'transparent',
+              color: 'currentColor',
+              fontSize: 11,
+              fontWeight: 900,
+              WebkitTextStroke: '0.5px currentColor',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              lineHeight: 1,
+            }}>+</span>
+          </div>
           <Settings size={20} strokeWidth={2.3} />
         </div>
       </header>

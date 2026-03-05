@@ -17,8 +17,15 @@ const iconRowStyle: React.CSSProperties = {
 };
 
 // Zustand Store Mock (Apeach 테마 컬러 적용)
-const useThemeStore = (selector: any) => {
-  const state = {
+interface OpenChatsThemeState {
+  themeConfig: {
+    global: { backgroundColor: string; textColor: string; descriptionColor: string };
+    openChatsTab: { headerTitleColor: string; bannerBackgroundColor: string };
+  };
+}
+
+const useThemeStore = (selector: (state: OpenChatsThemeState) => OpenChatsThemeState['themeConfig']) => {
+  const state: OpenChatsThemeState = {
     themeConfig: {
       global: {
         backgroundColor: '#FFFFFF',
@@ -27,7 +34,7 @@ const useThemeStore = (selector: any) => {
       },
       openChatsTab: {
         headerTitleColor: '#664242',
-        bannerBackgroundColor: 'rgba(255, 255, 255, 0.6)', // 반투명 흰색 배너
+        bannerBackgroundColor: 'rgba(255, 255, 255, 0.6)',
       }
     }
   };
@@ -36,7 +43,7 @@ const useThemeStore = (selector: any) => {
 // -------------------------------------------------------------------------
 
 export const OpenChatsScreen = () => {
-  const themeConfig = useThemeStore((state: any) => state.themeConfig);
+  const themeConfig = useThemeStore((state: OpenChatsThemeState) => state.themeConfig);
   const { global, openChatsTab } = themeConfig;
 
   return (
@@ -57,58 +64,95 @@ export const OpenChatsScreen = () => {
         <h2 data-active-element-id="header-title-icon" style={{ margin: 0, fontSize: 17, fontWeight: 400, color: '#3c2a2a' }}>지금</h2>
         <div data-active-element-id="header-title-icon" style={iconRowStyle}>
           <Search size={20} strokeWidth={2.3} />
-          <MessageCircle size={20} strokeWidth={2.3} />
+          <div style={{ position: 'relative', display: 'inline-flex', width: 20, height: 20 }}>
+            {/* 말풍선 아이콘: 우상단 +버튼 영역만큼 잘림 */}
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              overflow: 'hidden',
+              clipPath: 'polygon(0% 0%, 62% 0%, 62% 38%, 100% 38%, 100% 100%, 0% 100%)',
+            }}>
+              <MessageCircle size={19} strokeWidth={2.3} />
+            </div>
+            {/* + 버튼: 배경 없이 텍스트만 */}
+            <span style={{
+              position: 'absolute',
+              top: -3,
+              right: -3,
+              width: 10,
+              height: 10,
+              borderRadius: '50%',
+              backgroundColor: 'transparent',
+              color: 'currentColor',
+              fontSize: 11,
+              fontWeight: 900,
+              WebkitTextStroke: '0.5px currentColor',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              lineHeight: 1,
+            }}>+</span>
+          </div>
           <Settings size={20} strokeWidth={2.3} />
         </div>
       </header>
 
-      {/* 2. 숏폼 / 오픈채팅 토글 */}
-      <div style={{ display: 'flex', gap: 8, padding: '4px 16px 16px 16px' }}>
-        <button style={{ 
-          backgroundColor: 'transparent', 
-          color: global.textColor, 
-          borderRadius: 999, 
-          padding: '7px 16px', 
-          fontSize: 14, 
-          fontWeight: 600, 
-          border: `1px solid ${global.textColor}30`,
-          cursor: 'pointer'
-        }}>
-          숏폼
-        </button>
-        <button style={{ 
-          backgroundColor: global.textColor, 
-          color: global.backgroundColor, 
-          borderRadius: 999, 
-          padding: '7px 16px', 
-          fontSize: 14, 
-          fontWeight: 700, 
-          border: 'none',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          cursor: 'pointer'
-        }}>
-          오픈채팅
-          <span style={{ 
-            backgroundColor: '#E86464', // 주황/빨강 뱃지
-            color: '#FFF', 
-            fontSize: 11, 
-            padding: '2px 6px', 
-            borderRadius: 8,
-            fontWeight: 800
-          }}>
-            137
-          </span>
-        </button>
+      {/* 2. 필터 칩 영역 */}
+      <div style={{ display: 'flex', alignItems: 'center', padding: '2px 14px 12px 14px' }}>
+        <div className="chats-scroll" style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: '4px', alignItems: 'center' }}>
+          {[
+            { label: '숏폼', isActive: false },
+            { label: '오픈채팅', isActive: true },
+          ].map((chip) => (
+            <button
+              key={chip.label}
+              type="button"
+              style={{
+                border: chip.isActive ? 'none' : `1px solid ${global.textColor}30`,
+                flexShrink: 0,
+                borderRadius: 999,
+                backgroundColor: chip.isActive ? '#000000' : 'transparent',
+                color: chip.isActive ? '#FFFFFF' : global.textColor,
+                padding: '5px 12px',
+                fontSize: 12,
+                fontWeight: 400,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              {chip.label}
+              {chip.isActive && (
+                <span style={{
+                  backgroundColor: '#ff6507',
+                  color: '#FFFFFF',
+                  fontSize: 10,
+                  fontWeight: 500,
+                  minWidth: 16,
+                  height: 16,
+                  lineHeight: '16px',
+                  textAlign: 'center',
+                  padding: '0 4px',
+                  borderRadius: 999,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  999+
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="chats-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
-        
+
         {/* 3. 상단 배너 영역 */}
         <div style={{ padding: '0 14px 12px 14px' }}>
           <div style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.6)',
+            backgroundColor: '#F5F0E8',
             borderRadius: 11,
             padding: '13px 15px',
             display: 'flex',
@@ -117,26 +161,53 @@ export const OpenChatsScreen = () => {
           }}>
             <div>
               <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: global.textColor }}>
-                오늘의 카카오가 궁금하다면?
+                테마 만들기는?
               </p>
               <p style={{ margin: '3px 0 0', fontSize: 11, color: global.descriptionColor, opacity: 0.8 }}>
-                카카오소식 보러가기
+                카꾸미
               </p>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 22 }}>
-              <span style={{ transform: 'rotate(-10deg)' }}>🍈</span>
-              <span style={{ transform: 'rotate(10deg)' }}>🧀</span>
-              <div style={{
-                backgroundColor: '#191919', color: '#fff', fontSize: 12, fontWeight: 800,
-                padding: '2px 6px', borderRadius: 4, marginLeft: 4
-              }}>31</div>
             </div>
           </div>
         </div>
 
+        {/* 부산, 속초 채팅방 */}
+        <section style={{ marginBottom: 8 }}>
+          {[
+            { id: 2, room: '부산', message: '오늘 하루도 수고했어 잘 자', time: '오후 11:31', unread: 0, avatars: ['🌊'], color: '#A2C5FF' },
+            { id: 3, room: '속초', message: '새 테마 입혔더니 카톡이 달라보여', time: '오후 6:33', unread: 0, avatars: ['🏔️'], color: '#FFC6FF' },
+          ].map((chat) => (
+            <article key={chat.id} style={{ display: 'flex', justifyContent: 'space-between', cursor: 'pointer', padding: '7px 16px' }}>
+              <div style={{ display: 'flex', gap: 14, alignItems: 'center', minWidth: 0, flex: 1 }}>
+                <div style={{ width: 46, height: 46, position: 'relative', flexShrink: 0 }}>
+                  <div style={{ width: '100%', height: '100%', borderRadius: 17, backgroundColor: chat.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 21 }}>
+                    <svg width="23" height="23" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="12" cy="7" r="5" fill="rgba(120,120,120,0.55)"/>
+                      <path d="M5 21 Q4 21 4 20 Q4 13 12 13 Q20 13 20 20 Q20 21 19 21 Z" fill="rgba(120,120,120,0.55)"/>
+                    </svg>
+                  </div>
+                </div>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <p style={{ margin: 0, color: '#3c2a2a', fontSize: 14, fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {chat.room}
+                    </p>
+                  </div>
+                  <p style={{ margin: '2px 0 0', color: '#3c2a2a', fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: 0.9 }}>
+                    {chat.message}
+                  </p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, marginLeft: 12, flexShrink: 0 }}>
+                <span style={{ color: global.descriptionColor, fontSize: 11, opacity: 0.8 }}>{chat.time}</span>
+                <div style={{ height: 20 }} />
+              </div>
+            </article>
+          ))}
+        </section>
+
         {/* 4. 피드 목록 영역 */}
         <section style={{ padding: '8px 0 40px 0' }}>
-          <p style={{ margin: '0 16px 16px 16px', fontSize: 15, fontWeight: 800, color: global.textColor }}>
+          <p style={{ margin: '0 16px 16px 16px', fontSize: 15, fontWeight: 400, color: global.textColor }}>
             지금 뜨는 커뮤니티
           </p>
 
@@ -166,13 +237,13 @@ export const OpenChatsScreen = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                        <span style={{ fontSize: 15, fontWeight: 700, color: global.textColor }}>해외 여행 사진방</span>
+                        <span style={{ fontSize: 15, fontWeight: 400, color: global.textColor }}>해외 여행 사진방</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: global.descriptionColor, opacity: 0.9 }}>
                         <span>설레이는 어피치</span>
                         <span>·</span>
                         <span>30분 전</span>
-                        <span style={{ backgroundColor: 'rgba(162, 126, 255, 0.15)', color: '#A27EFF', padding: '1px 6px', borderRadius: 4, fontWeight: 600, fontSize: 11, marginLeft: 2 }}>
+                        <span style={{ backgroundColor: 'rgba(162, 126, 255, 0.15)', color: '#A27EFF', padding: '1px 6px', borderRadius: 4, fontWeight: 400, fontSize: 11, marginLeft: 2 }}>
                           여행
                         </span>
                       </div>
@@ -187,12 +258,12 @@ export const OpenChatsScreen = () => {
 
                   {/* 리액션 영역 */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', fontSize: 13, color: global.descriptionColor, fontWeight: 500 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', fontSize: 13, color: global.descriptionColor, fontWeight: 400 }}>
                       <span style={{ fontSize: 16, marginRight: 4 }}>❤️😮</span>
                       12
                     </div>
                     <span style={{ color: global.descriptionColor, opacity: 0.5 }}>·</span>
-                    <div style={{ display: 'flex', alignItems: 'center', fontSize: 13, color: global.descriptionColor, fontWeight: 500, gap: 4 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', fontSize: 13, color: global.descriptionColor, fontWeight: 400, gap: 4 }}>
                       댓글 16
                     </div>
                   </div>
@@ -212,7 +283,7 @@ export const OpenChatsScreen = () => {
                 </div>
                 <div style={{ flex: 1, minWidth: 0, marginTop: 2 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: global.textColor }}>설레이는 라이언</span>
+                    <span style={{ fontSize: 14, fontWeight: 400, color: global.textColor }}>설레이는 라이언</span>
                     <span style={{ fontSize: 12, color: global.descriptionColor, opacity: 0.8 }}>· 30분 전</span>
                   </div>
                   <div style={{ fontSize: 14, color: global.textColor, lineHeight: 1.5, display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
@@ -240,14 +311,14 @@ export const OpenChatsScreen = () => {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: global.textColor, marginBottom: 2 }}>
+                    <div style={{ fontSize: 15, fontWeight: 400, color: global.textColor, marginBottom: 2 }}>
                       수도권 날씨 실시간 대화방
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: global.descriptionColor, opacity: 0.9 }}>
                       <span>파란하늘</span>
                       <span>·</span>
                       <span>30분 전</span>
-                      <span style={{ backgroundColor: 'rgba(76, 175, 80, 0.15)', color: '#4CAF50', padding: '1px 6px', borderRadius: 4, fontWeight: 600, fontSize: 11, marginLeft: 2 }}>
+                      <span style={{ backgroundColor: 'rgba(76, 175, 80, 0.15)', color: '#4CAF50', padding: '1px 6px', borderRadius: 4, fontWeight: 400, fontSize: 11, marginLeft: 2 }}>
                         일상
                       </span>
                     </div>
@@ -261,12 +332,12 @@ export const OpenChatsScreen = () => {
 
                 {/* 리액션 영역 */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', fontSize: 13, color: global.descriptionColor, fontWeight: 500 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', fontSize: 13, color: global.descriptionColor, fontWeight: 400 }}>
                     <span style={{ fontSize: 16, marginRight: 4 }}>👍😮</span>
                     12
                   </div>
                   <span style={{ color: global.descriptionColor, opacity: 0.5 }}>·</span>
-                  <div style={{ display: 'flex', alignItems: 'center', fontSize: 13, color: global.descriptionColor, fontWeight: 500 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', fontSize: 13, color: global.descriptionColor, fontWeight: 400 }}>
                     댓글 16
                   </div>
                 </div>
