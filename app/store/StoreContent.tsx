@@ -8,6 +8,10 @@ import { THEME_COLORS } from "./data";
 
 const SIDEBAR_MENUS = [
     {
+        category: "플랫폼",
+        items: ["전체", "iOS", "Android"],
+    },
+    {
         category: "카테고리",
         items: ["전체", "인기", "파스텔", "귀여운", "다크", "밝은", "감성"],
     },
@@ -110,6 +114,7 @@ const PLACEHOLDER_GRADIENTS = [
 export default function StoreContent() {
     const router = useRouter();
     const [activeCategory, setActiveCategory] = useState("전체");
+    const [activePlatform, setActivePlatform] = useState("전체");
     const [activePrice, setActivePrice]       = useState("전체");
     const [activeSort, setActiveSort]         = useState<SortKey>("newest");
     const [likedIds, setLikedIds]             = useState<Set<string>>(new Set());
@@ -173,6 +178,10 @@ export default function StoreContent() {
     const themes = dbThemes;
 
     const filtered = themes.filter(t => {
+        const platformMatch =
+            activePlatform === "전체" ||
+            t.category.some(c => c.toLowerCase().includes(activePlatform.toLowerCase()));
+
         const catMatch =
             activeCategory === "전체" ||
             (activeCategory === "인기" && t.sales > 100) ||
@@ -199,7 +208,7 @@ export default function StoreContent() {
             (searchType === "제작자"   && t.author.toLowerCase().includes(q)) ||
             (searchType === "카테고리" && t.category.some(c => c.toLowerCase().includes(q)));
 
-        return catMatch && priceMatch && searchMatch;
+        return platformMatch && catMatch && priceMatch && searchMatch;
     });
 
     const sorted = [...filtered].sort((a, b) => {
@@ -214,7 +223,7 @@ export default function StoreContent() {
     const paginated = sorted.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
     // 필터·정렬·검색 바뀌면 1페이지로 리셋
-    useEffect(() => { setCurrentPage(1); }, [activeCategory, activePrice, activeSort, searchQuery, searchType]);
+    useEffect(() => { setCurrentPage(1); }, [activeCategory, activePlatform, activePrice, activeSort, searchQuery, searchType]);
 
     return (
         <div className="flex w-full" style={{ maxWidth: 1400, margin: "0 auto" }}>
@@ -227,11 +236,18 @@ export default function StoreContent() {
                             {group.category}
                         </span>
                         {group.items.map(item => {
-                            const isActive = group.category === "카테고리" ? activeCategory === item : activePrice === item;
+                            const isActive =
+                                group.category === "플랫폼" ? activePlatform === item :
+                                group.category === "카테고리" ? activeCategory === item :
+                                activePrice === item;
                             return (
                                 <button
                                     key={item}
-                                    onClick={() => group.category === "카테고리" ? setActiveCategory(item) : setActivePrice(item)}
+                                    onClick={() =>
+                                        group.category === "플랫폼" ? setActivePlatform(item) :
+                                        group.category === "카테고리" ? setActiveCategory(item) :
+                                        setActivePrice(item)
+                                    }
                                     className="text-left px-3 py-2 rounded-xl text-[13px] font-medium transition-all"
                                     style={{ color: isActive ? "#FF9500" : "#3a3a3c", fontWeight: isActive ? 700 : 500 }}
                                 >
