@@ -127,7 +127,7 @@ export const FriendsScreen = () => {
           >
             🍑
           </div>
-          <h2 style={{ margin: 0, fontSize: 17, fontWeight: 800 }}>카꾸미</h2>
+          <h2 style={{ margin: 0, fontSize: 17, fontWeight: 400, color: '#3c2a2a' }}>카꾸미</h2>
         </div>
         <div data-active-element-id="header-title-icon" style={iconRowStyle}>
           <Search size={20} strokeWidth={2.3} />
@@ -236,7 +236,7 @@ export const FriendsScreen = () => {
                     </div>
                   )}
                 </div>
-                <span style={{ fontSize: 11, color: global.textColor, opacity: 0.9 }}>{friend.name}</span>
+                <span style={{ fontSize: 11, color: '#3c2a2a', fontWeight: 400, opacity: 0.9 }}>{friend.name}</span>
               </div>
             ))}
             
@@ -272,7 +272,7 @@ export const FriendsScreen = () => {
                 </div>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 1, height: 20, overflow: 'visible' }}>
-                    <p style={{ margin: 0, color: global.textColor, fontSize: 14, fontWeight: 600, lineHeight: '20px' }}>{friend.name}</p>
+                    <p style={{ margin: 0, color: '#3c2a2a', fontSize: 14, fontWeight: 400, lineHeight: '20px' }}>{friend.name}</p>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0, marginTop: 0, marginLeft: 3 }}>
                       {/* 초 */}
                       <rect x="11" y="2" width="2" height="4" rx="1" fill="#ff3333"/>
@@ -343,7 +343,7 @@ export const FriendsScreen = () => {
                   <span style={{ fontSize: 18 }}>🐰</span>
                 </div>
                 <div>
-                  <p style={{ margin: 0, color: global.textColor, fontSize: 14, fontWeight: 600 }}>{friend.name}</p>
+                  <p style={{ margin: 0, color: '#3c2a2a', fontSize: 14, fontWeight: 400 }}>{friend.name}</p>
                 </div>
               </div>
             </article>

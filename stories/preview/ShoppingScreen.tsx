@@ -10,13 +10,13 @@ const headerBaseStyle: React.CSSProperties = {
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  padding: '26px 16px 12px 16px',
+  padding: '42px 14px 8px 14px',
   backgroundColor: 'transparent',
 };
 
 const iconRowStyle: React.CSSProperties = {
   display: 'flex',
-  gap: '16px',
+  gap: '14px',
   alignItems: 'center',
 };
 
@@ -54,14 +54,14 @@ export const ShoppingScreen = () => {
     >
       {/* 1. 상단 헤더 */}
       <header style={{ ...headerBaseStyle, color: global.textColor }}>
-        <h2 data-active-element-id="header-title-icon" style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>쇼핑</h2>
+        <h2 data-active-element-id="header-title-icon" style={{ margin: 0, fontSize: 17, fontWeight: 400, color: '#3c2a2a' }}>쇼핑</h2>
         <div data-active-element-id="header-title-icon" style={iconRowStyle}>
-          <Search size={24} strokeWidth={2.5} />
+          <Search size={20} strokeWidth={2.3} />
           <div style={{ position: 'relative' }}>
-            <ShoppingBag size={24} strokeWidth={2.5} />
+            <ShoppingBag size={20} strokeWidth={2.3} />
             <span style={{ position: 'absolute', top: 9, left: '50%', transform: 'translateX(-50%)', fontSize: 8, fontWeight: 800 }}>MY</span>
           </div>
-          <Settings size={24} strokeWidth={2.5} />
+          <Settings size={20} strokeWidth={2.3} />
         </div>
       </header>
 

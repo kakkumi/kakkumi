@@ -6,13 +6,13 @@ const headerBaseStyle: React.CSSProperties = {
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  padding: '26px 16px 12px 16px',
+  padding: '42px 14px 8px 14px',
   backgroundColor: 'transparent',
 };
 
 const iconRowStyle: React.CSSProperties = {
   display: 'flex',
-  gap: '16px',
+  gap: '14px',
   alignItems: 'center',
 };
 
@@ -54,11 +54,11 @@ export const OpenChatsScreen = () => {
     >
       {/* 1. 상단 헤더 */}
       <header style={{ ...headerBaseStyle, color: openChatsTab.headerTitleColor }}>
-        <h2 data-active-element-id="header-title-icon" style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>지금</h2>
+        <h2 data-active-element-id="header-title-icon" style={{ margin: 0, fontSize: 17, fontWeight: 400, color: '#3c2a2a' }}>지금</h2>
         <div data-active-element-id="header-title-icon" style={iconRowStyle}>
-          <Search size={22} strokeWidth={2.5} />
-          <MessageCircle size={22} strokeWidth={2.5} />
-          <Settings size={22} strokeWidth={2.5} />
+          <Search size={20} strokeWidth={2.3} />
+          <MessageCircle size={20} strokeWidth={2.3} />
+          <Settings size={20} strokeWidth={2.3} />
         </div>
       </header>
 
