@@ -56,7 +56,6 @@ const useThemeStore = (selector: (state: ThemeState) => ThemeState['themeConfig'
       },
     },
   };
-
   return selector(state);
 };
 
@@ -93,7 +92,7 @@ export const NewsScreen = () => {
           >
             🍑
           </div>
-          <h2 style={{ margin: 0, fontSize: 17, fontWeight: 800 }}>카꾸미</h2>
+          <h2 style={{ margin: 0, fontSize: 17, fontWeight: 400, color: '#3c2a2a' }}>카꾸미</h2>
         </div>
         <div data-active-element-id="header-title-icon" style={iconRowStyle}>
           <Search size={20} strokeWidth={2.3} />
@@ -111,7 +110,7 @@ export const NewsScreen = () => {
             borderRadius: 999,
             padding: '5px 12px',
             fontSize: 12,
-            fontWeight: 600,
+            fontWeight: 400,
             border: `1px solid ${global.textColor}20`,
             cursor: 'pointer',
           }}
@@ -120,12 +119,12 @@ export const NewsScreen = () => {
         </button>
         <button
           style={{
-            backgroundColor: global.textColor,
+            backgroundColor: '#000000',
             color: global.backgroundColor,
             borderRadius: 999,
             padding: '5px 12px',
             fontSize: 12,
-            fontWeight: 700,
+            fontWeight: 400,
             border: 'none',
             cursor: 'pointer',
           }}
@@ -138,7 +137,7 @@ export const NewsScreen = () => {
         <div style={{ padding: '0 14px 12px 14px' }}>
           <div
             style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.6)',
+              backgroundColor: '#F5F0E8',
               borderRadius: 11,
               padding: '13px 15px',
               display: 'flex',
@@ -149,7 +148,7 @@ export const NewsScreen = () => {
           >
             <div>
               <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: global.textColor }}>크리에이터가 되어 수익을 만들어보세요</p>
-              <p style={{ margin: '3px 0 0', fontSize: 11, color: global.descriptionColor }}>입점 신청하기</p>
+              <p style={{ margin: '3px 0 0', fontSize: 11, color: global.descriptionColor }}>카꾸미 입점 신청하기</p>
             </div>
           </div>
         </div>
@@ -158,9 +157,14 @@ export const NewsScreen = () => {
           <article style={{ marginBottom: 18 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
               <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
-                <div style={{ ...avatarStyle, width: 38, height: 38, borderRadius: 13, backgroundColor: '#FEE500', color: '#000' }}>서</div>
+                <div style={{ ...avatarStyle, width: 38, height: 38, borderRadius: 13, backgroundColor: '#FEE500' }}>
+                  <svg width="23" height="23" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="7" r="5" fill="rgba(120,120,120,0.55)"/>
+                    <path d="M5 21 Q4 21 4 20 Q4 13 12 13 Q20 13 20 20 Q20 21 19 21 Z" fill="rgba(120,120,120,0.55)"/>
+                  </svg>
+                </div>
                 <div>
-                  <p style={{ margin: 0, color: global.textColor, fontSize: 14, fontWeight: 700 }}>서울</p>
+                  <p style={{ margin: 0, color: '#3c2a2a', fontSize: 14, fontWeight: 400 }}>서울</p>
                   <p style={{ margin: '2px 0 0', color: global.descriptionColor, fontSize: 11 }}>8분 전</p>
                 </div>
               </div>

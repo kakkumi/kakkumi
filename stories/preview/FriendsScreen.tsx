@@ -4,6 +4,13 @@ import { Search, UserPlus, Music, Settings, ChevronDown, ArrowRight } from 'luci
 // --- 외부 파일 의존성 제거 (미리보기를 위한 통합 모의 데이터 및 스타일) ---
 const myProfile = { name: '카꾸미', message: '테마 수정 중입니다 ✨' };
 
+const personSVG = (
+  <svg width="23" height="23" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="7" r="5" fill="rgba(120,120,120,0.55)"/>
+    <path d="M5 21 Q4 21 4 20 Q4 13 12 13 Q20 13 20 20 Q20 21 19 21 Z" fill="rgba(120,120,120,0.55)"/>
+  </svg>
+);
+
 const updatedFriends = [
   { id: 1, name: '서울', color: '#FEE500', isAd: false, hasNew: true },
   { id: 2, name: '부산', color: '#A2C5FF', isAd: false, hasNew: true },
@@ -12,23 +19,29 @@ const updatedFriends = [
 ];
 
 const birthdayFriends = [
-  { id: 1, name: '경주', message: '오늘 · 내게 생일 선물 준 친구' },
-  { id: 2, name: '강릉', message: '오늘' },
-  { id: 3, name: '전주', message: '오늘 · 내게 생일 선물 준 친구' },
+  { id: 1, name: '경주', message: '오늘 · 내게 생일 선물 준 친구', color: '#B5EAD7' },
+  { id: 2, name: '강릉', message: '오늘', color: '#D4E09B' },
+  { id: 3, name: '전주', message: '오늘 · 내게 생일 선물 준 친구', color: '#C7CEEA' },
 ];
 
 const newFriends = [
-  { id: 1, name: '거제', message: '친구 1' },
-  { id: 2, name: '광주', message: '친구 2' },
-  { id: 3, name: '대전', message: '친구 3' },
-  { id: 4, name: '목포', message: '친구 4' },
-  { id: 5, name: '속초', message: '친구 5' },
-  { id: 6, name: '안동', message: '친구 6' },
-  { id: 7, name: '울산', message: '친구 7' },
-  { id: 8, name: '인천', message: '친구 8' },
-  { id: 9, name: '전주', message: '친구 9' },
-  { id: 10, name: '춘천', message: '친구 10' },
-  { id: 11, name: '통영', message: '친구 11' },
+  { id: 1,  name: '강릉', color: '#D4E09B' },
+  { id: 2,  name: '거제', color: '#FFD6A5' },
+  { id: 3,  name: '경주', color: '#B5EAD7' },
+  { id: 4,  name: '광주', color: '#CAFFBF' },
+  { id: 5,  name: '대전', color: '#9BF6FF' },
+  { id: 6,  name: '목포', color: '#BDB2FF' },
+  { id: 7,  name: '부산', color: '#A2C5FF' },
+  { id: 8,  name: '서울', color: '#FEE500' },
+  { id: 9,  name: '속초', color: '#FFC6FF' },
+  { id: 10, name: '안동', color: '#FDFFB6' },
+  { id: 11, name: '여수', color: '#FFDEDE' },
+  { id: 12, name: '울산', color: '#A0C4FF' },
+  { id: 13, name: '인천', color: '#FFB5A7' },
+  { id: 14, name: '전주', color: '#C7CEEA' },
+  { id: 15, name: '제주', color: '#FFB836' },
+  { id: 16, name: '춘천', color: '#F6C3E5' },
+  { id: 17, name: '통영', color: '#C9E4DE' },
 ];
 
 const headerBaseStyle: React.CSSProperties = {
@@ -140,18 +153,15 @@ export const FriendsScreen = () => {
       {/* 2. 친구 / 소식 토글 */}
       <div style={{ display: 'flex', gap: 7, padding: '2px 14px 12px 14px' }}>
         <button style={{ 
-          backgroundColor: global.textColor, 
-          color: global.backgroundColor, 
+          backgroundColor: '#000000',
+          color: global.backgroundColor,
           borderRadius: 999, 
           padding: '5px 12px',
           fontSize: 12,
-          fontWeight: 700,
+          fontWeight: 400,
           border: 'none',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 2
         }}>
-          친구 <span style={{ opacity: 0.9, fontSize: 11, fontWeight: 500 }}></span>
+          친구
         </button>
         <button style={{ 
           backgroundColor: 'transparent', 
@@ -159,7 +169,7 @@ export const FriendsScreen = () => {
           borderRadius: 999, 
           padding: '5px 12px',
           fontSize: 12,
-          fontWeight: 600,
+          fontWeight: 400,
           border: `1px solid ${global.textColor}30`
         }}>
           소식
@@ -172,7 +182,7 @@ export const FriendsScreen = () => {
         {/* 3. 상단 배너 영역 */}
         <div style={{ padding: '0 14px 12px 14px' }}>
           <div style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.6)', // 사진과 동일한 부드러운 반투명 흰색 배경
+            backgroundColor: '#F5F0E8',
             borderRadius: 11,
             padding: '13px 15px',
             display: 'flex',
@@ -184,7 +194,7 @@ export const FriendsScreen = () => {
                 크리에이터가 되어 수익을 만들어보세요
               </p>
               <p style={{ margin: '3px 0 0', fontSize: 11, color: global.descriptionColor, opacity: 0.8 }}>
-                입점 신청하기
+                카꾸미 입점 신청하기
               </p>
             </div>
           </div>
@@ -192,7 +202,7 @@ export const FriendsScreen = () => {
 
         {/* 4. 업데이트한 친구 영역 (가로 스크롤) */}
         <section style={{ padding: '6px 0 8px 0' }}>
-          <p style={{ margin: '0 14px 10px 14px', fontSize: 11, fontWeight: 600, color: friendsTab.updateSectionBg }}>
+          <p style={{ margin: '0 14px 10px 14px', fontSize: 11, fontWeight: 600, color: '#999999' }}>
             업데이트한 친구 4
           </p>
           <div
@@ -213,7 +223,9 @@ export const FriendsScreen = () => {
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     border: `2px solid ${global.backgroundColor}`
                   }}>
-                    <span style={{ fontSize: 18 }}>👤</span>
+                    <span style={{ fontSize: 18 }}>
+                      {personSVG}
+                    </span>
                   </div>
                   
                   {/* 빨간색 업데이트 점 (좌측 상단) */}
@@ -225,16 +237,7 @@ export const FriendsScreen = () => {
                     }} />
                   )}
                   
-                  {/* AD 배지 (우측 상단) */}
-                  {friend.isAd && (
-                    <div style={{ 
-                      position: 'absolute', top: -4, right: -6, backgroundColor: '#FFFFFF', 
-                      color: global.descriptionColor, fontSize: 7, fontWeight: 800, 
-                      padding: '1px 2px', borderRadius: 4, border: `1px solid ${global.descriptionColor}40`
-                    }}>
-                      AD
-                    </div>
-                  )}
+                  {/* AD 배지 제거 */}
                 </div>
                 <span style={{ fontSize: 11, color: '#3c2a2a', fontWeight: 400, opacity: 0.9 }}>{friend.name}</span>
               </div>
@@ -260,15 +263,15 @@ export const FriendsScreen = () => {
 
         {/* 5. 생일인 친구 영역 */}
         <section style={{ padding: '8px 0' }}>
-          <p style={{ margin: '0 14px 10px 14px', fontSize: 11, fontWeight: 600, color: friendsTab.updateSectionBg }}>
+          <p style={{ margin: '0 14px 10px 14px', fontSize: 11, fontWeight: 600, color: '#999999' }}>
             생일인 친구 5
           </p>
           
           {birthdayFriends.map((friend) => (
             <article key={friend.id} style={listItemBaseStyle}>
               <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                <div style={{ ...avatarStyle, width: 40, height: 40, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.6)', color: global.textColor }}>
-                  <span style={{ fontSize: 18 }}>👤</span>
+                <div style={{ ...avatarStyle, width: 38, height: 38, borderRadius: 14, backgroundColor: friend.color, color: global.textColor }}>
+                  {personSVG}
                 </div>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 1, height: 20, overflow: 'visible' }}>
@@ -333,14 +336,14 @@ export const FriendsScreen = () => {
 
         {/* 6. 새로운 친구 영역 */}
         <section style={{ padding: '12px 0 28px 0' }}>
-          <p style={{ margin: '0 14px 10px 14px', fontSize: 11, fontWeight: 600, color: friendsTab.updateSectionBg }}>
-            친구 11
+          <p style={{ margin: '0 14px 10px 14px', fontSize: 11, fontWeight: 600, color: '#999999' }}>
+            친구 18
           </p>
           {newFriends.map((friend) => (
             <article key={friend.id} style={listItemBaseStyle}>
               <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                <div style={{ ...avatarStyle, width: 40, height: 40, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.6)', color: global.textColor }}>
-                  <span style={{ fontSize: 18 }}>🐰</span>
+                <div style={{ ...avatarStyle, width: 38, height: 38, borderRadius: 14, backgroundColor: friend.color, color: global.textColor }}>
+                  {personSVG}
                 </div>
                 <div>
                   <p style={{ margin: 0, color: '#3c2a2a', fontSize: 14, fontWeight: 400 }}>{friend.name}</p>

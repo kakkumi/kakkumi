@@ -44,7 +44,7 @@ export const PreviewMockup = ({ disableTabNavigation = false }: { disableTabNavi
           borderRadius: 40,
           border: '5px solid #27272a',
           backgroundColor: '#fff',
-          boxShadow: '0 24px 60px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,255,255,0.2) inset',
+          boxShadow: '0 32px 80px rgba(0,0,0,0.45), 0 8px 24px rgba(0,0,0,0.22), 0 0 0 1px rgba(255,255,255,0.2) inset',
           overflow: 'hidden',
         }}
       >

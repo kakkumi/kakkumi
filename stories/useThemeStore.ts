@@ -58,7 +58,7 @@ export const useThemeStore = create<ThemeState>((set) => ({
   tabBar: {
     activeIconColor: '#664242',
     inactiveIconColor: '#B39898',
-    backgroundColor: '#FFF6F6',
+    backgroundColor: '#f6f6f6',
   },
   friendsTab: {
     updateSectionBg: '#FFE7E7',

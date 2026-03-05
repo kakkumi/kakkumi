@@ -1,15 +1,15 @@
 import React from 'react';
-import { MessageCircle, Search, Settings, Plus, Pin, BellOff, Flag } from 'lucide-react';
+import { MessageCircle, Search, Settings, Plus, BellOff, Pin } from 'lucide-react';
 
 // --- 외부 파일 의존성 제거 (미리보기를 위한 통합 모의 데이터 및 스타일) ---
 const chats = [
-  { id: 1, type: 'single', room: '어피치', message: '오늘의 장보기 목록', time: '오후 12:30', unread: 0, isPinned: true, isMuted: false, avatars: ['🍑'] },
-  { id: 2, type: 'single', room: '춘식이', message: '좋은 하루 보내~', time: '오후 12:30', unread: 2, isPinned: false, isMuted: true, avatars: ['🍠'] },
-  { id: 3, type: 'single', room: '탄천런닝할게요', message: '러닝이 최고죠', time: '오후 12:30', unread: 10, isPinned: true, isMuted: false, avatars: ['🏃‍♀️'] },
-  { id: 4, type: 'single', room: '라이언', message: '오늘 점심 뭐 먹었어?', time: '오후 1:15', unread: 1, isPinned: false, isMuted: false, avatars: ['🦁'] },
-  { id: 5, type: 'single', room: '무지', message: '주말에 시간 돼?', time: '오후 2:00', unread: 0, isPinned: false, isMuted: false, avatars: ['🐰'] },
-  { id: 6, type: 'single', room: '콘', message: '사진 보내줄게!', time: '어제', unread: 3, isPinned: false, isMuted: false, avatars: ['🐻'] },
-  { id: 7, type: 'single', room: '네오', message: '다음에 또 보자~', time: '어제', unread: 0, isPinned: false, isMuted: true, avatars: ['🐱'] },
+  { id: 1, type: 'single', room: '카꾸미', message: '오늘의 장보기 목록', time: '오후 9:42', unread: 0, isPinned: true, isMuted: false, avatars: ['🍑'], color: '#FEE500' },
+  { id: 2, type: 'single', room: '부산', message: '오늘 하루도 수고했어 잘 자', time: '오후 11:31', unread: 0, isPinned: false, isMuted: false, avatars: ['🌊'], color: '#A2C5FF' },
+  { id: 3, type: 'single', room: '속초', message: '새 테마 입혔더니 카톡이 달라보여', time: '오후 6:33', unread: 0, isPinned: false, isMuted: false, avatars: ['🏔️'], color: '#FFC6FF' },
+  { id: 4, type: 'single', room: '여수', message: '다이어트는 내일부터', time: '오후 1:19', unread: 0, isPinned: false, isMuted: false, avatars: ['🌅'], color: '#FFDEDE' },
+  { id: 5, type: 'single', room: '전주', message: '뭐 해 잘 지내...?', time: '오전 4:41', unread: 1, isPinned: false, isMuted: true, avatars: ['🏯'], color: '#C7CEEA' },
+  { id: 6, type: 'single', room: '인천', message: '오늘 즐거웠어~ 다음에 또 보자!', time: '어제', unread: 0, isPinned: false, isMuted: false, avatars: ['✈️'], color: '#FFB5A7' },
+  { id: 7, type: 'single', room: '제주', message: '배고파', time: '어제', unread: 0, isPinned: false, isMuted: false, avatars: ['🍊'], color: '#FFB836' },
 ];
 
 const headerBaseStyle: React.CSSProperties = {
@@ -74,7 +74,7 @@ export const MainScreen = () => {
 
   // 상단 필터 칩 더미 데이터 (스크린샷 100% 고증)
   const filterChips = [
-    { label: '전체', count: null, isActive: false },
+    { label: '전체', count: null, isActive: true },
     { label: '안읽음', count: 40, isActive: false },
   ];
 
@@ -115,25 +115,20 @@ export const MainScreen = () => {
               key={chip.label}
               type="button"
               style={{
-                border: chip.isActive ? 0 : '1px solid rgba(150, 150, 150, 0.4)',
+                border: chip.isActive ? 'none' : `1px solid ${global.textColor}30`,
                 flexShrink: 0,
                 borderRadius: 999,
-                backgroundColor: chip.isActive ? chatsTab.filterChipActiveBg : 'transparent',
-                color: chip.isActive ? chatsTab.filterChipTextColor : global.textColor,
-                height: 32,
-                padding: '0 14px',
-                fontSize: 14,
-                fontWeight: chip.isActive ? 700 : 600,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
+                backgroundColor: chip.isActive ? '#000000' : 'transparent',
+                color: chip.isActive ? '#FFFFFF' : global.textColor,
+                padding: '5px 12px',
+                fontSize: 12,
+                fontWeight: 400,
                 cursor: 'pointer',
               }}
             >
-              <span>{chip.label}</span>
-              {/* 카운트 배지 (ex: 안읽음 40, 친구 12) */}
+              {chip.label}
               {chip.count && (
-                <span style={{ 
+                <span style={{
                   backgroundColor: chatsTab.unreadBadgeBg,
                   color: '#FFFFFF',
                   fontSize: 10,
@@ -144,7 +139,10 @@ export const MainScreen = () => {
                   textAlign: 'center',
                   padding: '0 4px',
                   borderRadius: 999,
-                  marginLeft: -2
+                  marginLeft: 2,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}>
                   {chip.count}
                 </span>
@@ -171,7 +169,7 @@ export const MainScreen = () => {
         {/* 3. 상단 배너 영역 */}
         <div style={{ padding: '0 14px 12px 14px' }}>
         <div style={{
-          backgroundColor: 'rgba(255, 255, 255, 0.6)',
+          backgroundColor: '#F5F0E8',
           borderRadius: 11,
           padding: '13px 15px',
           display: 'flex',
@@ -197,8 +195,13 @@ export const MainScreen = () => {
               
               {/* 프사 영역 */}
               <div style={{ width: 46, height: 46, position: 'relative', flexShrink: 0 }}>
-                <div style={{ width: '100%', height: '100%', borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 21 }}>
-                  {chat.avatars[0]}
+                <div style={{ width: '100%', height: '100%', borderRadius: 17, backgroundColor: chat.id === 1 ? 'transparent' : chat.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 21 }}>
+                  {chat.id === 1 ? chat.avatars[0] : (
+                    <svg width="23" height="23" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="12" cy="7" r="5" fill="rgba(120,120,120,0.55)"/>
+                      <path d="M5 21 Q4 21 4 20 Q4 13 12 13 Q20 13 20 20 Q20 21 19 21 Z" fill="rgba(120,120,120,0.55)"/>
+                    </svg>
+                  )}
                 </div>
               </div>
               
@@ -224,27 +227,9 @@ export const MainScreen = () => {
                       나
                     </span>
                   )}
-                  {chat.id === 3 && (
-                    <span
-                      style={{
-                        width: 14,
-                        height: 14,
-                        borderRadius: '50%',
-                        backgroundColor: chatsTab.filterChipActiveBg,
-                        color: '#FFFFFF',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Flag size={8} strokeWidth={2.2} color="#FFFFFF" />
-                    </span>
-                  )}
                   <p style={{ margin: 0, color: '#3c2a2a', fontSize: 14, fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {chat.room}
                   </p>
-                  {/* 핀 고정 아이콘 */}
                   {chat.isPinned && <Pin size={12} color={global.descriptionColor} fill={global.descriptionColor} style={{ opacity: 0.6, flexShrink: 0 }} />}
                   {/* 알림 음소거 아이콘 */}
                   {chat.isMuted && <BellOff size={13} color={global.descriptionColor} style={{ opacity: 0.6, flexShrink: 0 }} />}
