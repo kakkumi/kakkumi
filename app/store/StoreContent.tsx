@@ -26,9 +26,12 @@ const SORT_OPTIONS = [
     { key: "priceAsc",    label: "낮은 가격순" },
     { key: "priceDesc",   label: "높은 가격순" },
     { key: "sales",       label: "판매량순" },
+    { key: "likes",       label: "찜 많은 순" },
+    { key: "rating",      label: "평점 높은 순" },
+    { key: "reviews",     label: "리뷰 많은 순" },
 ];
 
-type SortKey = "priceAsc" | "priceDesc" | "sales" | "newest";
+type SortKey = "priceAsc" | "priceDesc" | "sales" | "newest" | "likes" | "rating" | "reviews";
 
 type DbTheme = {
     id: string;
@@ -77,6 +80,8 @@ type UnifiedTheme = {
     sales: number;
     createdAt: number;
     likes: number;
+    rating: number;
+    reviews: number;
     thumbnailUrl: string | null;
     description: string;
     isLegacy: boolean;
@@ -97,6 +102,8 @@ function dbThemeToUnified(t: DbTheme): UnifiedTheme {
         sales: t.salesCount,
         createdAt: daysSince,
         likes: t.likeCount ?? 0,
+        rating: 0,
+        reviews: 0,
         thumbnailUrl: t.thumbnailUrl,
         description: t.description ?? "",
         isLegacy: false,
@@ -216,13 +223,18 @@ export default function StoreContent() {
         if (activeSort === "priceDesc") return b.priceNum - a.priceNum;
         if (activeSort === "sales")     return b.sales - a.sales;
         if (activeSort === "newest")    return a.createdAt - b.createdAt;
+        if (activeSort === "likes")     return b.likes - a.likes;
+        if (activeSort === "rating")    return b.rating - a.rating;
+        if (activeSort === "reviews")   return b.reviews - a.reviews;
         return 0;
     });
 
     const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
-    const paginated = sorted.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+    const safePage = Math.min(currentPage, totalPages);
+    const paginated = sorted.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
     // 필터·정렬·검색 바뀌면 1페이지로 리셋
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => { setCurrentPage(1); }, [activeCategory, activePlatform, activePrice, activeSort, searchQuery, searchType]);
 
     return (
