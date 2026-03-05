@@ -19,6 +19,8 @@ export async function GET() {
                 creatorName: string;
                 salesCount: number;
                 likeCount: number;
+                reviewCount: number;
+                avgRating: number;
             }[]>`
                 SELECT
                     t.id,
@@ -33,11 +35,14 @@ export async function GET() {
                     u.nickname AS "creatorNickname",
                     u.name     AS "creatorName",
                     COUNT(DISTINCT p.id)::int AS "salesCount",
-                    COUNT(DISTINCT l.id)::int AS "likeCount"
+                    COUNT(DISTINCT l.id)::int AS "likeCount",
+                    COUNT(DISTINCT r.id)::int AS "reviewCount",
+                    COALESCE(AVG(r.rating), 0)::float AS "avgRating"
                 FROM "Theme" t
                 JOIN "User" u ON t."creatorId" = u.id
                 LEFT JOIN "Purchase" p ON p."themeId" = t.id AND p.status = 'COMPLETED'
                 LEFT JOIN "ThemeLike" l ON l."themeId" = t.id
+                LEFT JOIN "Review" r ON r."themeId" = t.id
                 WHERE t.status = 'PUBLISHED'
                   AND (t."isPublic" IS NULL OR t."isPublic" = true)
                   AND (t."isSelling" IS NULL OR t."isSelling" = true)
@@ -59,6 +64,8 @@ export async function GET() {
                 creatorName: string;
                 salesCount: number;
                 likeCount: number;
+                reviewCount: number;
+                avgRating: number;
             }[]>`
                 SELECT
                     t.id,
@@ -73,7 +80,9 @@ export async function GET() {
                     u.nickname AS "creatorNickname",
                     u.name     AS "creatorName",
                     COUNT(DISTINCT p.id)::int AS "salesCount",
-                    0::int AS "likeCount"
+                    0::int AS "likeCount",
+                    0::int AS "reviewCount",
+                    0::float AS "avgRating"
                 FROM "Theme" t
                 JOIN "User" u ON t."creatorId" = u.id
                 LEFT JOIN "Purchase" p ON p."themeId" = t.id AND p.status = 'COMPLETED'
@@ -89,4 +98,3 @@ export async function GET() {
         return NextResponse.json({ themes: [] });
     }
 }
-

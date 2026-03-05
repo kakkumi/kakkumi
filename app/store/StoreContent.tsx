@@ -47,6 +47,8 @@ type DbTheme = {
     creatorName: string;
     salesCount: number;
     likeCount: number;
+    reviewCount: number;
+    avgRating: number;
 };
 
 // 시드 데이터용 숫자 id 테마 타입
@@ -102,8 +104,8 @@ function dbThemeToUnified(t: DbTheme): UnifiedTheme {
         sales: t.salesCount,
         createdAt: daysSince,
         likes: t.likeCount ?? 0,
-        rating: 0,
-        reviews: 0,
+        rating: Number(t.avgRating ?? 0),
+        reviews: t.reviewCount ?? 0,
         thumbnailUrl: t.thumbnailUrl,
         description: t.description ?? "",
         isLegacy: false,
@@ -428,17 +430,44 @@ export default function StoreContent() {
                                             </div>
                                             <span className="text-[14px] font-medium shrink-0 ml-2" style={{ color: "#1c1c1e" }}>{theme.price}</span>
                                         </div>
-                                        <div className="flex items-center gap-1.5 text-[11px]" style={{ color: "#8e8e93" }}>
-                                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                <path d="M12 3v13M7 11l5 5 5-5"/><path d="M5 20h14"/>
-                                            </svg>
-                                            {theme.sales.toLocaleString()}
-                                            {theme.category.length > 0 && (
-                                                <>
-                                                    <span style={{ color: "#c8c8cd" }}>·</span>
-                                                    <span className="truncate">{theme.category.slice(0, 2).join(", ")}</span>
-                                                </>
-                                            )}
+                                        <div className="flex items-center gap-2.5 text-[11px] flex-wrap" style={{ color: "#4e4e53" }}>
+                                            {/* 다운로드 */}
+                                            <span className="flex items-center gap-0.5">
+                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#4e4e53" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M12 3v13M7 11l5 5 5-5"/><path d="M5 20h14"/>
+                                                </svg>
+                                                {theme.sales.toLocaleString()}
+                                            </span>
+                                            <span style={{ color: "#d1d1d6" }}>·</span>
+                                            {/* 찜 */}
+                                            <span className="flex items-center gap-0.5">
+                                                <svg width="10" height="10" viewBox="0 0 24 24"
+                                                    fill={theme.likes > 0 ? "#ff3b30" : "none"}
+                                                    stroke="#ff3b30" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                                                </svg>
+                                                <span style={{ color: "#ff3b30" }}>{theme.likes.toLocaleString()}</span>
+                                            </span>
+                                            <span style={{ color: "#d1d1d6" }}>·</span>
+                                            {/* 별점 */}
+                                            <span className="flex items-center gap-0.5">
+                                                <svg width="10" height="10" viewBox="0 0 24 24"
+                                                    fill={theme.rating > 0 ? "#FF9500" : "none"}
+                                                    stroke="#FF9500" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                                </svg>
+                                                <span style={{ color: "#FF9500" }}>
+                                                    {theme.rating > 0 ? theme.rating.toFixed(1) : "-"}
+                                                </span>
+                                            </span>
+                                            <span style={{ color: "#d1d1d6" }}>·</span>
+                                            {/* 리뷰 수 */}
+                                            <span className="flex items-center gap-0.5">
+                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#4e4e53" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                                </svg>
+                                                {theme.reviews.toLocaleString()}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>

@@ -114,6 +114,7 @@ model User {
   followings     Follow[]              @relation("UserFollowings")
   notifications  Notification[]        @relation("UserNotifications")
   likes          ThemeLike[]
+  reviews        Review[]
 }
 
 model Follow {
@@ -174,6 +175,7 @@ model Theme {
   purchases Purchase[]
   reports   Report[]       @relation("ThemeReports")
   likes     ThemeLike[]
+  reviews   Review[]
 }
 
 model ThemeVersion {
@@ -248,6 +250,21 @@ model ThemeLike {
   userId    String
   themeId   String
   createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme Theme @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, themeId])
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  userId    String
+  themeId   String
+  rating    Int
+  content   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   theme Theme @relation(fields: [themeId], references: [id], onDelete: Cascade)
