@@ -14,7 +14,7 @@ const personSVG = (
 const updatedFriends = [
   { id: 1, name: '서울', color: '#FEE500', isAd: false, hasNew: true },
   { id: 2, name: '부산', color: '#A2C5FF', isAd: false, hasNew: true },
-  { id: 3, name: '제주', color: '#FFB836', isAd: true, hasNew: true },
+  { id: 3, name: '제주', color: '#c3c3c3', isAd: true, hasNew: true },
   { id: 4, name: '여수', color: '#FFDEDE', isAd: false, hasNew: true },
 ];
 
@@ -39,7 +39,7 @@ const newFriends = [
   { id: 12, name: '울산', color: '#A0C4FF' },
   { id: 13, name: '인천', color: '#FFB5A7' },
   { id: 14, name: '전주', color: '#C7CEEA' },
-  { id: 15, name: '제주', color: '#FFB836' },
+  { id: 15, name: '제주', color: '#c3c3c3' },
   { id: 16, name: '춘천', color: '#F6C3E5' },
   { id: 17, name: '통영', color: '#C9E4DE' },
 ];

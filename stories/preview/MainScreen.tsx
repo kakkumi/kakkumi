@@ -9,7 +9,7 @@ const chats = [
   { id: 4, type: 'single', room: '여수', message: '다이어트는 내일부터', time: '오후 1:19', unread: 0, isPinned: false, isMuted: false, avatars: ['🌅'], color: '#FFDEDE' },
   { id: 5, type: 'single', room: '전주', message: '뭐 해 잘 지내...?', time: '오전 4:41', unread: 1, isPinned: false, isMuted: true, avatars: ['🏯'], color: '#C7CEEA' },
   { id: 6, type: 'single', room: '인천', message: '오늘 즐거웠어~ 다음에 또 보자!', time: '어제', unread: 0, isPinned: false, isMuted: false, avatars: ['✈️'], color: '#FFB5A7' },
-  { id: 7, type: 'single', room: '제주', message: '배고파', time: '어제', unread: 0, isPinned: false, isMuted: false, avatars: ['🍊'], color: '#FFB836' },
+  { id: 7, type: 'single', room: '제주', message: '배고파', time: '어제', unread: 0, isPinned: false, isMuted: false, avatars: ['🍊'], color: '#c3c3c3' },
 ];
 
 const headerBaseStyle: React.CSSProperties = {

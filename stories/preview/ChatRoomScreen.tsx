@@ -108,7 +108,7 @@ export const ChatRoomScreen = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3, maxWidth: '82%' }}>
             <span style={{ fontSize: 12, color: global.descriptionColor, marginLeft: 2 }}>통영</span>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6 }}>
-              <div style={{ backgroundColor: chatRoom.friendBubbleBg, color: chatRoom.friendBubbleText, padding: '5px 14px', borderRadius: '4px 18px 18px 18px', fontSize: 13, lineHeight: 1.4, boxShadow: '0 1px 2px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.05)' }}>
+              <div style={{ backgroundColor: chatRoom.friendBubbleBg, color: chatRoom.friendBubbleText, padding: '5px 14px 5px 12px', borderRadius: '4px 18px 18px 18px', fontSize: 13, lineHeight: 1.4, boxShadow: '0 1px 2px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.05)' }}>
                 카꾸미에서 테마 만들어봤어?
               </div>
               <span style={{ fontSize: 11, color: global.descriptionColor, flexShrink: 0 }}>오후 2:10</span>
@@ -118,11 +118,11 @@ export const ChatRoomScreen = () => {
 
         {/* 거제 */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-          <div style={{ width: 34, height: 34, borderRadius: 13, backgroundColor: members[1].color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{personSVG}</div>
+          <div style={{ width: 34, height: 34, borderRadius: 13, backgroundColor: members[2].color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{personSVG}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3, maxWidth: '82%' }}>
             <span style={{ fontSize: 12, color: global.descriptionColor, marginLeft: 2 }}>거제</span>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6 }}>
-              <div style={{ backgroundColor: chatRoom.friendBubbleBg, color: chatRoom.friendBubbleText, padding: '5px 14px', borderRadius: '4px 18px 18px 18px', fontSize: 13, lineHeight: 1.4, boxShadow: '0 1px 2px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.05)' }}>
+              <div style={{ backgroundColor: chatRoom.friendBubbleBg, color: chatRoom.friendBubbleText, padding: '5px 14px 5px 12px', borderRadius: '4px 18px 18px 18px', fontSize: 13, lineHeight: 1.4, boxShadow: '0 1px 2px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.05)' }}>
                 그거 어렵지 않아?
               </div>
               <span style={{ fontSize: 11, color: global.descriptionColor, flexShrink: 0 }}>오후 2:11</span>
@@ -142,11 +142,11 @@ export const ChatRoomScreen = () => {
 
         {/* 안동 */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-          <div style={{ width: 34, height: 34, borderRadius: 13, backgroundColor: members[2].color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{personSVG}</div>
+          <div style={{ width: 34, height: 34, borderRadius: 13, backgroundColor: members[1].color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{personSVG}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3, maxWidth: '82%' }}>
             <span style={{ fontSize: 12, color: global.descriptionColor, marginLeft: 2 }}>안동</span>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6 }}>
-              <div style={{ backgroundColor: chatRoom.friendBubbleBg, color: chatRoom.friendBubbleText, padding: '5px 14px', borderRadius: '4px 18px 18px 18px', fontSize: 13, lineHeight: 1.4, boxShadow: '0 1px 2px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.05)' }}>
+              <div style={{ backgroundColor: chatRoom.friendBubbleBg, color: chatRoom.friendBubbleText, padding: '5px 14px 5px 12px', borderRadius: '4px 18px 18px 18px', fontSize: 13, lineHeight: 1.4, boxShadow: '0 1px 2px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.05)' }}>
                 나도 테마제작은 관심 있는데 코딩은 너무 어렵더라
               </div>
               <span style={{ fontSize: 11, color: global.descriptionColor, flexShrink: 0 }}>오후 2:13</span>
@@ -170,7 +170,7 @@ export const ChatRoomScreen = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3, maxWidth: '82%' }}>
             <span style={{ fontSize: 12, color: global.descriptionColor, marginLeft: 2 }}>강릉</span>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6 }}>
-              <div style={{ backgroundColor: chatRoom.friendBubbleBg, color: chatRoom.friendBubbleText, padding: '5px 14px', borderRadius: '4px 18px 18px 18px', fontSize: 13, lineHeight: 1.4, boxShadow: '0 1px 2px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.05)' }}>
+              <div style={{ backgroundColor: chatRoom.friendBubbleBg, color: chatRoom.friendBubbleText, padding: '5px 14px 5px 12px', borderRadius: '4px 18px 18px 18px', fontSize: 13, lineHeight: 1.4, boxShadow: '0 1px 2px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.05)' }}>
                 나 테마 만들었는데 코딩 1도 모름 ㅋㅋㅋ
               </div>
               <span style={{ fontSize: 11, color: global.descriptionColor, flexShrink: 0 }}>오후 2:15</span>
