@@ -8,6 +8,7 @@ import { WITHDRAW_CONFIRM_TEXT, WITHDRAW_REREGISTER_DAYS } from "@/lib/constants
 
 type Props = {
     session: SessionUser | null;
+    avatarUrl?: string | null;
 };
 
 const CHECKLIST = [
@@ -18,7 +19,7 @@ const CHECKLIST = [
     `탈퇴 후 ${WITHDRAW_REREGISTER_DAYS}일이 지나야 동일 카카오 계정으로 재가입할 수 있습니다.`,
 ];
 
-export default function WithdrawClient({ session }: Props) {
+export default function WithdrawClient({ session, avatarUrl }: Props) {
     const router = useRouter();
     const [checked, setChecked] = useState<boolean[]>(CHECKLIST.map(() => false));
     const [confirmInput, setConfirmInput] = useState("");
@@ -113,10 +114,10 @@ export default function WithdrawClient({ session }: Props) {
                 >
                     <div
                         className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center shrink-0"
-                        style={{ background: "#ffe500" }}
+                        style={{ background: "rgba(195,195,195,0.5)" }}
                     >
-                        {session.image ? (
-                            <Image src={session.image} alt={displayName} width={48} height={48} className="w-full h-full object-cover" unoptimized />
+                        {avatarUrl ? (
+                            <Image src={avatarUrl} alt={displayName} width={48} height={48} className="w-full h-full object-cover" unoptimized />
                         ) : (
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3A1D1D" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                                 <circle cx="12" cy="8" r="4" />

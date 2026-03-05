@@ -118,6 +118,8 @@ export default function StoreContent() {
     const [ownedIds, setOwnedIds]             = useState<Set<string>>(new Set());
     const [dbThemes, setDbThemes]             = useState<UnifiedTheme[]>([]);
     const [loading, setLoading]               = useState(true);
+    const [currentPage, setCurrentPage]       = useState(1);
+    const PAGE_SIZE = 36; // 4 × 9
 
     // DB에서 PUBLISHED 테마 불러오기
     useEffect(() => {
@@ -207,6 +209,12 @@ export default function StoreContent() {
         if (activeSort === "newest")    return a.createdAt - b.createdAt;
         return 0;
     });
+
+    const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+    const paginated = sorted.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+    // 필터·정렬·검색 바뀌면 1페이지로 리셋
+    useEffect(() => { setCurrentPage(1); }, [activeCategory, activePrice, activeSort, searchQuery, searchType]);
 
     return (
         <div className="flex w-full" style={{ maxWidth: 1400, margin: "0 auto" }}>
@@ -336,7 +344,7 @@ export default function StoreContent() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {sorted.map((theme, idx) => {
+                        {paginated.map((theme, idx) => {
                             const legacyColor = theme.legacyId ? THEME_COLORS[theme.legacyId]?.main : null;
                             const bg = legacyColor ?? PLACEHOLDER_GRADIENTS[idx % PLACEHOLDER_GRADIENTS.length];
                             return (
@@ -408,6 +416,62 @@ export default function StoreContent() {
                                 </div>
                             );
                         })}
+                    </div>
+                )}
+
+                {/* 페이지네이션 */}
+                {!loading && sorted.length > 0 && (
+                    <div className="flex items-center justify-center gap-1 pt-4 pb-2">
+                        {/* 이전 */}
+                        <button
+                            onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                            disabled={currentPage === 1}
+                            className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:opacity-70 active:scale-95 disabled:opacity-25"
+                            style={{ background: "rgba(0,0,0,0.06)" }}
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M15 18l-6-6 6-6"/>
+                            </svg>
+                        </button>
+
+                        {/* 페이지 번호 */}
+                        {Array.from({ length: totalPages }, (_, i) => i + 1)
+                            .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 2)
+                            .reduce<(number | "...")[]>((acc, p, i, arr) => {
+                                if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push("...");
+                                acc.push(p);
+                                return acc;
+                            }, [])
+                            .map((p, i) =>
+                                p === "..." ? (
+                                    <span key={`ellipsis-${i}`} className="w-9 h-9 flex items-center justify-center text-[13px]" style={{ color: "#8e8e93" }}>···</span>
+                                ) : (
+                                    <button
+                                        key={p}
+                                        onClick={() => { setCurrentPage(p as number); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                                        className="w-9 h-9 rounded-xl text-[13px] font-semibold transition-all hover:opacity-80 active:scale-95"
+                                        style={{
+                                            background: currentPage === p ? "#4c4a4a" : "rgba(0,0,0,0.06)",
+                                            color: currentPage === p ? "#fff" : "#3a3a3c",
+                                        }}
+                                    >
+                                        {p}
+                                    </button>
+                                )
+                            )
+                        }
+
+                        {/* 다음 */}
+                        <button
+                            onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                            disabled={currentPage === totalPages}
+                            className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:opacity-70 active:scale-95 disabled:opacity-25"
+                            style={{ background: "rgba(0,0,0,0.06)" }}
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M9 18l6-6-6-6"/>
+                            </svg>
+                        </button>
                     </div>
                 )}
             </main>
