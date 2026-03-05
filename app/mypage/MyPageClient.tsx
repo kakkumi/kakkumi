@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import ThemeVaultTabs from "./ThemeVaultTabs";
 import CreditPage from "./CreditPage";
+import RefundPage from "./RefundPage";
 import { formatKST } from "@/lib/date";
 import { validateNickname } from "@/lib/nickname";
 
@@ -205,6 +206,7 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
     const displayNickname = session?.nickname ?? session?.name ?? "사용자";
     const isThemeMenu = activeMenu !== null && THEME_TAB_MAP[activeMenu] !== undefined;
     const isCreditMenu = activeMenu === "적립금";
+    const isRefundMenu = activeMenu === "취소/환불 내역";
     const isSettingsMenu = activeMenu === "회원정보 수정";
     const isNotifMenu = activeMenu === "알림 설정";
     const isWithdrawMenu = activeMenu === "회원 탈퇴";
@@ -292,6 +294,8 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
                             <ThemeVaultTabs initialTab={themeTab} />
                         ) : isCreditMenu ? (
                             <CreditPage />
+                        ) : isRefundMenu ? (
+                            <RefundPage />
                         ) : isSettingsMenu ? (
                             /* ── 회원정보 수정 ── */
                             <>
