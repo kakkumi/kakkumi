@@ -8,6 +8,7 @@ import CreditPage from "./CreditPage";
 import RefundPage from "./RefundPage";
 import { formatKST } from "@/lib/date";
 import { validateNickname } from "@/lib/nickname";
+import { WITHDRAW_CONFIRM_TEXT, AVATAR_MAX_SIZE_MB } from "@/lib/constants";
 
 type SidebarMenu = {
     category: string;
@@ -94,14 +95,14 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
     const [withdrawLoading, setWithdrawLoading] = useState(false);
     const [withdrawError, setWithdrawError] = useState("");
     const withdrawAllChecked = withdrawChecked.every(Boolean);
-    const withdrawConfirmMatch = withdrawConfirmInput === "탈퇴하겠습니다";
+    const withdrawConfirmMatch = withdrawConfirmInput === WITHDRAW_CONFIRM_TEXT;
     const canWithdraw = withdrawAllChecked && withdrawConfirmMatch && !withdrawLoading;
     const toggleWithdrawCheck = (idx: number) => { setWithdrawChecked((prev) => prev.map((v, i) => (i === idx ? !v : v))); };
     const handleWithdraw = async () => {
         if (!canWithdraw) return;
         setWithdrawLoading(true);
         setWithdrawError("");
-        const res = await fetch("/api/auth/withdraw", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ confirm: "탈퇴하겠습니다" }) });
+        const res = await fetch("/api/auth/withdraw", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ confirm: WITHDRAW_CONFIRM_TEXT }) });
         const data = await res.json() as { ok?: boolean; error?: string };
         if (!res.ok) { setWithdrawError(data.error ?? "탈퇴 처리 중 오류가 발생했습니다."); setWithdrawLoading(false); return; }
         router.push("/?withdrawn=1");
@@ -173,8 +174,8 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
             setAvatarError("이미지 파일만 업로드할 수 있습니다.");
             return;
         }
-        if (file.size > 2 * 1024 * 1024) {
-            setAvatarError("이미지 크기는 2MB 이하여야 합니다.");
+        if (file.size > AVATAR_MAX_SIZE_MB * 1024 * 1024) {
+            setAvatarError(`이미지 크기는 ${AVATAR_MAX_SIZE_MB}MB 이하여야 합니다.`);
             return;
         }
         setAvatarError("");
@@ -543,9 +544,9 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
                                 <div className="p-6 rounded-[24px] flex flex-col gap-4" style={{ background: withdrawAllChecked ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.4)", backdropFilter: "blur(20px)", border: `1px solid ${withdrawAllChecked ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.5)"}`, boxShadow: "0 4px 24px rgba(0,0,0,0.06)", opacity: withdrawAllChecked ? 1 : 0.5, pointerEvents: withdrawAllChecked ? "auto" : "none" }}>
                                     <div className="flex flex-col gap-1.5">
                                         <label className="text-[13px] font-bold" style={{ color: "#1c1c1e" }}>탈퇴 확인</label>
-                                        <p className="text-[12px]" style={{ color: "#8e8e93" }}>아래 입력창에 <span className="font-bold" style={{ color: "#ff3b30" }}>탈퇴하겠습니다</span> 를 입력하세요.</p>
+                                        <p className="text-[12px]" style={{ color: "#8e8e93" }}>아래 입력창에 <span className="font-bold" style={{ color: "#ff3b30" }}>{WITHDRAW_CONFIRM_TEXT}</span> 를 입력하세요.</p>
                                     </div>
-                                    <input type="text" value={withdrawConfirmInput} onChange={(e) => setWithdrawConfirmInput(e.target.value)} placeholder="탈퇴하겠습니다" className="w-full px-4 py-3 rounded-xl text-[14px] outline-none" style={{ border: `1.5px solid ${withdrawConfirmMatch ? "#ff3b30" : "rgba(0,0,0,0.12)"}`, background: "rgba(255,255,255,0.9)", color: "#1c1c1e" }} />
+                                    <input type="text" value={withdrawConfirmInput} onChange={(e) => setWithdrawConfirmInput(e.target.value)} placeholder={WITHDRAW_CONFIRM_TEXT} className="w-full px-4 py-3 rounded-xl text-[14px] outline-none" style={{ border: `1.5px solid ${withdrawConfirmMatch ? "#ff3b30" : "rgba(0,0,0,0.12)"}`, background: "rgba(255,255,255,0.9)", color: "#1c1c1e" }} />
                                 </div>
                                 {withdrawError && <p className="text-[13px] font-medium" style={{ color: "#ff3b30" }}>{withdrawError}</p>}
                                 <div className="flex gap-3">

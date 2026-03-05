@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendCreditExpiryWarning } from "@/lib/email";
+import { CREDIT_EXPIRY_WARN_DAYS, CREDIT_EXPIRY_WARN_DEDUP_DAYS, DAY_MS } from "@/lib/constants";
+import { nowKST } from "@/lib/date";
 
 // 이 엔드포인트는 Vercel Cron Job 또는 외부 스케줄러에서 호출합니다.
 // 보호: CRON_SECRET 헤더 검증
@@ -10,7 +12,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const now = new Date();
+    const now = nowKST();
 
     try {
         // 1) 만료된 적립금 처리 (expiresAt <= now, 양수 금액인 것)
@@ -64,8 +66,8 @@ export async function POST(req: NextRequest) {
             expiredCount++;
         }
 
-        // 2) 30일 이내 만료 예정인 적립금 — 경고 알림 + 이메일 (오늘 이미 보낸 경우 제외)
-        const thirtyDaysLater = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+        // 2) 만료 경고 알림
+        const warnCutoff = new Date(now.getTime() + CREDIT_EXPIRY_WARN_DAYS * DAY_MS);
         const warned = await prisma.$queryRaw<{
             userId: string;
             totalAmount: bigint;
@@ -82,12 +84,12 @@ export async function POST(req: NextRequest) {
               AND ph.amount > 0
               AND ph."expiresAt" IS NOT NULL
               AND ph."expiresAt" > ${now}
-              AND ph."expiresAt" <= ${thirtyDaysLater}
+              AND ph."expiresAt" <= ${warnCutoff}
               AND ph."userId" NOT IN (
                   SELECT DISTINCT "userId" FROM "Notification"
                   WHERE type = 'CREDIT_EXPIRY'::"NotificationType"
                   AND title = '적립금 만료 예정'
-                  AND "createdAt" >= NOW() - INTERVAL '25 days'
+                  AND "createdAt" >= NOW() - (${CREDIT_EXPIRY_WARN_DEDUP_DAYS} || ' days')::INTERVAL
               )
             GROUP BY ph."userId", u.email, u.name, u.nickname
             HAVING SUM(ph.amount) > 0
@@ -105,7 +107,7 @@ export async function POST(req: NextRequest) {
                     ${row.userId},
                     'CREDIT_EXPIRY'::"NotificationType",
                     ${'적립금 만료 예정'},
-                    ${`${amount.toLocaleString()}원 적립금이 30일 이내에 만료됩니다.`},
+                    ${`${amount.toLocaleString()}원 적립금이 ${CREDIT_EXPIRY_WARN_DAYS}일 이내에 만료됩니다.`},
                     ${'/mypage'},
                     ${now}
                 )

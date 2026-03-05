@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { REFUND_ALLOWED_DAYS, DAY_MS } from "@/lib/constants";
 
 export async function GET() {
     const session = await getServerSession();
@@ -41,7 +42,7 @@ export async function GET() {
             canRefund:
                 p.status === "COMPLETED" &&
                 p.amount > 0 &&
-                (now - new Date(p.createdAt).getTime()) / 86400000 <= 7,
+                (now - new Date(p.createdAt).getTime()) / DAY_MS <= REFUND_ALLOWED_DAYS,
         }));
 
         return NextResponse.json({ purchases });
@@ -63,7 +64,7 @@ export async function GET() {
                 WHERE p."buyerId" = ${session.dbId}
                 ORDER BY p."createdAt" DESC
             `;
-            const now = Date.now();
+            const now2 = Date.now();
             const purchases = rows.map(p => ({
                 ...p,
                 refundedAt: null,
@@ -71,7 +72,7 @@ export async function GET() {
                 canRefund:
                     p.status === "COMPLETED" &&
                     p.amount > 0 &&
-                    (now - new Date(p.createdAt).getTime()) / 86400000 <= 7,
+                    (now2 - new Date(p.createdAt).getTime()) / DAY_MS <= REFUND_ALLOWED_DAYS,
             }));
             return NextResponse.json({ purchases });
         } catch (e2) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { NOTIFICATION_FETCH_LIMIT } from "@/lib/constants";
 
 // 알림 목록 조회
 export async function GET() {
@@ -23,7 +24,7 @@ export async function GET() {
             FROM "Notification"
             WHERE "userId" = ${session.dbId}
             ORDER BY "createdAt" DESC
-            LIMIT 30
+            LIMIT ${NOTIFICATION_FETCH_LIMIT}
         `;
 
         const unreadCount = notifications.filter(n => !n.isRead).length;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { REFUND_ALLOWED_DAYS, CREDIT_EXPIRY_DAYS } from "@/lib/constants";
 
 type PurchaseItem = {
     id: string;
@@ -90,10 +91,10 @@ export default function RefundPage() {
                 <div className="flex flex-col gap-1">
                     <p className="text-[13px] font-semibold" style={{ color: "#c97000" }}>환불 안내</p>
                     <ul className="text-[12px] leading-relaxed list-disc list-inside flex flex-col gap-0.5" style={{ color: "#8e8e93" }}>
-                        <li>구매 후 <strong>7일 이내</strong>만 환불 신청 가능합니다.</li>
+                        <li>구매 후 <strong>{REFUND_ALLOWED_DAYS}일 이내</strong>만 환불 신청 가능합니다.</li>
                         <li>환불 금액은 <strong>적립금</strong>으로 즉시 지급됩니다.</li>
                         <li>무료 테마는 환불 대상이 아닙니다.</li>
-                        <li>환불된 적립금의 유효기간은 지급일로부터 1년입니다.</li>
+                        <li>환불된 적립금의 유효기간은 지급일로부터 {CREDIT_EXPIRY_DAYS}일입니다.</li>
                     </ul>
                 </div>
             </div>

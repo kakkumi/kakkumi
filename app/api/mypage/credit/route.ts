@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { POINT_HISTORY_FETCH_LIMIT } from "@/lib/constants";
 
 export async function GET() {
     const session = await getServerSession();
@@ -22,7 +23,7 @@ export async function GET() {
             FROM "PointHistory"
             WHERE "userId" = ${session.dbId}
             ORDER BY "createdAt" DESC
-            LIMIT 50
+            LIMIT ${POINT_HISTORY_FETCH_LIMIT}
         `;
     } catch {
         // expiresAt 컬럼 없는 경우 (db push 전)
@@ -31,7 +32,7 @@ export async function GET() {
             FROM "PointHistory"
             WHERE "userId" = ${session.dbId}
             ORDER BY "createdAt" DESC
-            LIMIT 50
+            LIMIT ${POINT_HISTORY_FETCH_LIMIT}
         `;
         history = rows.map(r => ({ ...r, expiresAt: null }));
     }

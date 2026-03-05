@@ -1,3 +1,5 @@
+import { KST_OFFSET_MS } from "@/lib/constants";
+
 /**
  * ISO 날짜 문자열을 한국 시간(Asia/Seoul)으로 포맷
  * @example formatKST("2026-03-04T12:00:00Z") → "2026.03.04 21:00"
@@ -23,6 +25,5 @@ export function formatKST(iso: string, showTime = true): string {
  */
 export function nowKST(): Date {
     const now = new Date();
-    // UTC 시각에 9시간을 더해 KST로 변환
-    return new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    return new Date(now.getTime() + KST_OFFSET_MS);
 }

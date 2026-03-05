@@ -3,6 +3,7 @@ import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { sendPurchaseReceipt } from "@/lib/email";
 import { nowKST } from "@/lib/date";
+import { getPurchaseCredit, CREDIT_EXPIRY_DAYS, DAY_MS } from "@/lib/constants";
 
 // 적립금으로 테마 구매
 export async function POST(req: NextRequest) {
@@ -61,16 +62,9 @@ export async function POST(req: NextRequest) {
     `;
 
     // 구매 적립금 지급
-    function getPurchaseCredit(price: number): number {
-        if (price === 0) return 0;
-        if (price <= 500) return 10;
-        if (price <= 1000) return 20;
-        if (price <= 1500) return 30;
-        return 50;
-    }
     const reward = getPurchaseCredit(theme.price);
     if (reward > 0) {
-        const expiresAt = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+        const expiresAt = new Date(now.getTime() + CREDIT_EXPIRY_DAYS * DAY_MS);
         await prisma.$executeRaw`
             UPDATE "User" SET credit = credit + ${reward}, "updatedAt" = NOW() WHERE id = ${session.dbId}
         `;

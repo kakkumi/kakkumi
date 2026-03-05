@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { REFERRAL_REWARD_AMOUNT, REFERRAL_MAX_PER_MONTH, CREDIT_EXPIRY_DAYS } from "@/lib/constants";
 
 type HistoryItem = {
     id: string;
@@ -41,7 +42,7 @@ export default function CreditPage() {
         {
             icon: "👥",
             title: "친구 추천 혜택",
-            desc: "가입 시 친구의 닉네임을 입력하면 나와 친구 모두 500원씩 즉시 적립됩니다.",
+            desc: `가입 시 친구의 닉네임을 입력하면 나와 친구 모두 ${REFERRAL_REWARD_AMOUNT.toLocaleString()}원씩 즉시 적립됩니다.`,
         },
         {
             icon: "🔒",
@@ -50,8 +51,8 @@ export default function CreditPage() {
         },
         {
             icon: "📅",
-            title: "추천인 월 최대 3회 수령",
-            desc: "추천인(나)은 한 달에 최대 3명의 친구를 추천받아 적립금을 받을 수 있습니다.",
+            title: `추천인 월 최대 ${REFERRAL_MAX_PER_MONTH}회 수령`,
+            desc: `추천인(나)은 한 달에 최대 ${REFERRAL_MAX_PER_MONTH}명의 친구를 추천받아 적립금을 받을 수 있습니다.`,
         },
         {
             icon: "💸",
@@ -62,6 +63,11 @@ export default function CreditPage() {
             icon: "🛍️",
             title: "적립금 사용 방법",
             desc: "테마 구매 시 결제 방법으로 '적립금 결제'를 선택하면 보유 적립금으로 즉시 결제됩니다.",
+        },
+        {
+            icon: "⏳",
+            title: "적립금 유효기간",
+            desc: `적립금은 지급일로부터 ${CREDIT_EXPIRY_DAYS}일(1년) 이내에 사용해야 합니다. 만료 30일 전에 알림을 보내드립니다.`,
         },
     ];
 

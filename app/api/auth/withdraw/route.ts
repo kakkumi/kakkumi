@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { nowKST } from "@/lib/date";
-
-const SESSION_COOKIE_NAME = "kakkumi_session";
+import { SESSION_COOKIE_NAME, WITHDRAW_CONFIRM_TEXT } from "@/lib/constants";
 
 export async function DELETE(req: NextRequest) {
     const session = await getServerSession();
@@ -13,7 +12,7 @@ export async function DELETE(req: NextRequest) {
 
     // 탈퇴 확인 문구 검증
     const body = await req.json() as { confirm?: string };
-    if (body.confirm !== "탈퇴하겠습니다") {
+    if (body.confirm !== WITHDRAW_CONFIRM_TEXT) {
         return NextResponse.json({ error: "확인 문구가 올바르지 않습니다." }, { status: 400 });
     }
 

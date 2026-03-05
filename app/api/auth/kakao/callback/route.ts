@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 import { createHmac } from "crypto";
 import { prisma } from "@/lib/prisma";
-
-const SESSION_COOKIE_NAME = "kakkumi_session";
-const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
+import { SESSION_COOKIE_NAME, SESSION_MAX_AGE_SECONDS, WITHDRAW_REREGISTER_DAYS } from "@/lib/constants";
 
 function signSession(payload: Record<string, unknown>, secret: string) {
     const json = JSON.stringify(payload);
@@ -97,9 +95,9 @@ export async function GET(request: Request) {
                 const existing = existingRows[0];
                 if (existing.deletedAt !== null) {
                     // 탈퇴 후 3일 이내 재가입 차단
-                    const daysSinceDelete = (Date.now() - new Date(existing.deletedAt).getTime()) / 86400000;
-                    if (daysSinceDelete < 3) {
-                        const remainDays = Math.ceil(3 - daysSinceDelete);
+                    const daysSinceDelete = (Date.now() - new Date(existing.deletedAt).getTime()) / (24 * 60 * 60 * 1000);
+                    if (daysSinceDelete < WITHDRAW_REREGISTER_DAYS) {
+                        const remainDays = Math.ceil(WITHDRAW_REREGISTER_DAYS - daysSinceDelete);
                         return NextResponse.redirect(new URL(`/?login=blocked&days=${remainDays}`, url.origin));
                     }
                     // 탈퇴 유저 재가입 → 복원 (referralRewarded는 유지 — 추천 적립 재수령 방지)

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { nowKST } from "@/lib/date";
+import { REFUND_ALLOWED_DAYS, CREDIT_EXPIRY_DAYS, DAY_MS } from "@/lib/constants";
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession();
@@ -43,9 +44,9 @@ export async function POST(req: NextRequest) {
         }
 
         // 구매 후 7일 이내만 환불 가능
-        const daysSincePurchase = (Date.now() - new Date(purchase.createdAt).getTime()) / 86400000;
-        if (daysSincePurchase > 7) {
-            return NextResponse.json({ error: "구매 후 7일이 지나 환불이 불가합니다." }, { status: 400 });
+        const daysSincePurchase = (Date.now() - new Date(purchase.createdAt).getTime()) / DAY_MS;
+        if (daysSincePurchase > REFUND_ALLOWED_DAYS) {
+            return NextResponse.json({ error: `구매 후 ${REFUND_ALLOWED_DAYS}일이 지나 환불이 불가합니다.` }, { status: 400 });
         }
 
         const secretKey = process.env.TOSSPAYMENTS_SECRET_KEY;
@@ -97,7 +98,7 @@ export async function POST(req: NextRequest) {
 
         // 적립금 환불 지급
         if (purchase.amount > 0) {
-            const expiresAt = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+            const expiresAt = new Date(now.getTime() + CREDIT_EXPIRY_DAYS * DAY_MS);
             await prisma.$executeRaw`
                 UPDATE "User" SET credit = credit + ${purchase.amount}, "updatedAt" = NOW() WHERE id = ${session.dbId}
             `;

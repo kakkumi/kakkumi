@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import type { SessionUser } from "@/lib/session";
+import { WITHDRAW_CONFIRM_TEXT, WITHDRAW_REREGISTER_DAYS } from "@/lib/constants";
 
 type Props = {
     session: SessionUser | null;
@@ -14,6 +15,7 @@ const CHECKLIST = [
     "등록한 테마, 리뷰, 문의 내역이 모두 삭제됩니다.",
     "삭제된 계정과 데이터는 복구할 수 없습니다.",
     "같은 카카오 계정으로 재가입하면 새 계정으로 처음부터 시작합니다.",
+    `탈퇴 후 ${WITHDRAW_REREGISTER_DAYS}일이 지나야 동일 카카오 계정으로 재가입할 수 있습니다.`,
 ];
 
 export default function WithdrawClient({ session }: Props) {
@@ -24,7 +26,7 @@ export default function WithdrawClient({ session }: Props) {
     const [error, setError] = useState("");
 
     const allChecked = checked.every(Boolean);
-    const confirmMatch = confirmInput === "탈퇴하겠습니다";
+    const confirmMatch = confirmInput === WITHDRAW_CONFIRM_TEXT;
     const canSubmit = allChecked && confirmMatch && !loading;
 
     const toggleCheck = (idx: number) => {
@@ -39,7 +41,7 @@ export default function WithdrawClient({ session }: Props) {
         const res = await fetch("/api/auth/withdraw", {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ confirm: "탈퇴하겠습니다" }),
+            body: JSON.stringify({ confirm: WITHDRAW_CONFIRM_TEXT }),
         });
         const data = await res.json() as { ok?: boolean; error?: string };
 
@@ -198,14 +200,14 @@ export default function WithdrawClient({ session }: Props) {
                             탈퇴 확인
                         </label>
                         <p className="text-[12px]" style={{ color: "#8e8e93" }}>
-                            아래 입력창에 <span className="font-bold" style={{ color: "#ff3b30" }}>탈퇴하겠습니다</span> 를 입력하세요.
+                            아래 입력창에 <span className="font-bold" style={{ color: "#ff3b30" }}>{WITHDRAW_CONFIRM_TEXT}</span> 를 입력하세요.
                         </p>
                     </div>
                     <input
                         type="text"
                         value={confirmInput}
                         onChange={(e) => setConfirmInput(e.target.value)}
-                        placeholder="탈퇴하겠습니다"
+                        placeholder={WITHDRAW_CONFIRM_TEXT}
                         className="w-full px-4 py-3 rounded-xl text-[14px] outline-none"
                         style={{
                             border: `1.5px solid ${confirmMatch ? "#ff3b30" : "rgba(0,0,0,0.12)"}`,
