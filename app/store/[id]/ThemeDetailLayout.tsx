@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { THEME_COLORS } from "@/app/store/data";
 import { getPreviewSlots } from "./ThemeImageViewer";
 import ThemeActionButtons from "./ThemeActionButtons";
+import CreatorInquiryModal from "./CreatorInquiryModal";
 
 type Stats = {
     sales: number;
@@ -45,6 +46,7 @@ export default function ThemeDetailLayout({
     const useColor = realImages.length === 0 && !!colors;
     const [activeIdx, setActiveIdx] = useState(0);
     const [likeCount, setLikeCount] = useState(stats.likes);
+    const [showInquiryModal, setShowInquiryModal] = useState(false);
 
     const { slots } = getPreviewSlots(themeId, images, previews);
 
@@ -201,9 +203,21 @@ export default function ThemeDetailLayout({
                         isLoggedIn={isLoggedIn}
                         userId={userId}
                         isOwned={isOwned}
+                        onInquiry={() => setShowInquiryModal(true)}
                     />
                 </div>
             </div>
+
+            {/* 제작자 문의 모달 */}
+            {showInquiryModal && (
+                <CreatorInquiryModal
+                    creatorId={creatorId}
+                    creatorName={author}
+                    themeId={dbId}
+                    themeName={name}
+                    onClose={() => setShowInquiryModal(false)}
+                />
+            )}
         </div>
     );
 }

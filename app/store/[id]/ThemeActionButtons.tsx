@@ -12,10 +12,11 @@ type Props = {
     isLoggedIn: boolean;
     userId?: string;
     isOwned?: boolean;
+    onInquiry?: () => void;
 };
 
 export default function ThemeActionButtons(props: Props) {
-    const { themeMockId, priceNum, priceName, isLoggedIn, isOwned = false } = props;
+    const { themeMockId, priceNum, priceName, isLoggedIn, isOwned = false, onInquiry } = props;
     const router = useRouter();
     const [liked, setLiked] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -99,7 +100,7 @@ export default function ThemeActionButtons(props: Props) {
 
     const handleInquiry = () => {
         if (!isLoggedIn) { router.push("/api/auth/kakao"); return; }
-        router.push(`/support?themeId=${themeMockId}`);
+        if (onInquiry) onInquiry();
     };
 
     return (
