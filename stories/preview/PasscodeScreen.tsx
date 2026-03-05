@@ -6,10 +6,10 @@ const useThemeStore = (selector: any) => {
   const state = {
     themeConfig: {
       global: {
-        backgroundColor: '#FFDEDE',
+        backgroundColor: '#FFFFFF',
       },
       passcode: {
-        backgroundColor: '#FFDEDE',
+        backgroundColor: '#FFFFFF',
         titleColor: '#664242',
         keypadBackgroundColor: '#FFF2F2',
         keypadTextColor: '#664242',

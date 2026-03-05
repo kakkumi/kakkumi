@@ -23,12 +23,12 @@ const useThemeStore = (selector: any) => {
   const state = {
     themeConfig: {
       global: {
-        backgroundColor: '#FFDEDE',
+        backgroundColor: '#FFFFFF',
         textColor: '#664242',
         descriptionColor: '#805959',
       },
       chatRoom: {
-        backgroundColor: '#FFDEDE',
+        backgroundColor: '#FFFFFF',
         myBubbleBg: '#FF7F7F', // 보내기 말풍선 배경 (추정)
         myBubbleText: '#FFFFFF',
         friendBubbleBg: '#FFFFFF',

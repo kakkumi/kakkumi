@@ -21,7 +21,7 @@ const useThemeStore = (selector: any) => {
   const state = {
     themeConfig: {
       global: {
-        backgroundColor: '#FFDEDE',
+        backgroundColor: '#FFFFFF',
         textColor: '#664242',
         descriptionColor: '#805959',
       },
