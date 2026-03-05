@@ -271,9 +271,22 @@ export const FriendsScreen = () => {
                   <span style={{ fontSize: 18 }}>👤</span>
                 </div>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <p style={{ margin: 0, color: global.textColor, fontSize: 14, fontWeight: 600 }}>{friend.name}</p>
-                    <span style={{ fontSize: 13, color: friendsTab.updateSectionBg, marginTop: -2 }}>🎂</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 1, height: 20, overflow: 'visible' }}>
+                    <p style={{ margin: 0, color: global.textColor, fontSize: 14, fontWeight: 600, lineHeight: '20px' }}>{friend.name}</p>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0, marginTop: 0, marginLeft: 3 }}>
+                      {/* 초 */}
+                      <rect x="11" y="2" width="2" height="4" rx="1" fill="#ff3333"/>
+                      {/* 불꽃 */}
+                      <ellipse cx="12" cy="2" rx="1.2" ry="1.5" fill="#ff8c00"/>
+                      {/* 케이크 윗층 */}
+                      <rect x="5" y="9" width="14" height="5" rx="2" fill="#ff3333"/>
+                      {/* 크림 물결 */}
+                      <path d="M5 9 Q7 7 9 9 Q11 7 13 9 Q15 7 17 9 Q19 7 19 9" stroke="#fff" strokeWidth="1.2" fill="none"/>
+                      {/* 케이크 아랫층 */}
+                      <rect x="3" y="14" width="18" height="6" rx="2" fill="#ff3333"/>
+                      {/* 크림 물결 */}
+                      <path d="M3 14 Q5 12 7 14 Q9 12 11 14 Q13 12 15 14 Q17 12 19 14 Q21 12 21 14" stroke="#fff" strokeWidth="1.2" fill="none"/>
+                    </svg>
                   </div>
                   <p style={{ margin: '2px 0 0', color: global.descriptionColor, fontSize: 11, opacity: 0.8 }}>{friend.message}</p>
                 </div>
