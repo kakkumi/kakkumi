@@ -2,32 +2,40 @@ import React from 'react';
 import { Search, UserPlus, Music, Settings, ChevronDown, ArrowRight } from 'lucide-react';
 
 // --- 외부 파일 의존성 제거 (미리보기를 위한 통합 모의 데이터 및 스타일) ---
-const myProfile = { name: '어피치', message: '테마 수정 중입니다 ✨' };
+const myProfile = { name: '카꾸미', message: '테마 수정 중입니다 ✨' };
 
 const updatedFriends = [
-  { id: 1, name: '춘식이', color: '#FEE500', isAd: false, hasNew: true },
-  { id: 2, name: '라이언', color: '#A2C5FF', isAd: false, hasNew: true },
-  { id: 3, name: '카카오', color: '#FFB836', isAd: true, hasNew: true },
-  { id: 4, name: '어피치', color: '#FFDEDE', isAd: false, hasNew: true },
+  { id: 1, name: '서울', color: '#FEE500', isAd: false, hasNew: true },
+  { id: 2, name: '부산', color: '#A2C5FF', isAd: false, hasNew: true },
+  { id: 3, name: '제주', color: '#FFB836', isAd: true, hasNew: true },
+  { id: 4, name: '여수', color: '#FFDEDE', isAd: false, hasNew: true },
 ];
 
 const birthdayFriends = [
-  { id: 1, name: '스카피', message: '오늘 · 내게 생일 선물 준 친구' },
-  { id: 2, name: '죠르디', message: '오늘 · 내게 생일 선물 준 친구' },
-  { id: 3, name: '어피치', message: '오늘' },
-  { id: 4, name: '라이언', message: '오늘' },
-  { id: 5, name: '춘식이', message: '오늘' },
+  { id: 1, name: '경주', message: '오늘 · 내게 생일 선물 준 친구' },
+  { id: 2, name: '강릉', message: '오늘' },
+  { id: 3, name: '전주', message: '오늘 · 내게 생일 선물 준 친구' },
 ];
 
 const newFriends = [
-  { id: 1, name: '새로운 친구 1', message: '' },
+  { id: 1, name: '거제', message: '친구 1' },
+  { id: 2, name: '광주', message: '친구 2' },
+  { id: 3, name: '대전', message: '친구 3' },
+  { id: 4, name: '목포', message: '친구 4' },
+  { id: 5, name: '속초', message: '친구 5' },
+  { id: 6, name: '안동', message: '친구 6' },
+  { id: 7, name: '울산', message: '친구 7' },
+  { id: 8, name: '인천', message: '친구 8' },
+  { id: 9, name: '전주', message: '친구 9' },
+  { id: 10, name: '춘천', message: '친구 10' },
+  { id: 11, name: '통영', message: '친구 11' },
 ];
 
 const headerBaseStyle: React.CSSProperties = {
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  padding: '27px 14px 8px 14px',
+  padding: '42px 14px 8px 14px',
   backgroundColor: 'transparent',
 };
 
@@ -54,8 +62,16 @@ const avatarStyle: React.CSSProperties = {
 };
 
 // Zustand Store Mock (Apeach 테마 컬러 적용)
-const useThemeStore = (selector: any) => {
-  const state = {
+interface ThemeState {
+  themeConfig: {
+    global: { backgroundColor: string; textColor: string; descriptionColor: string };
+    friendsTab: { headerTitleColor: string; headerIconColor: string; profileNameColor: string; updateSectionBg: string };
+    chatsTab: { filterChipBg: string };
+  };
+}
+
+const useThemeStore = (selector: (state: ThemeState) => ThemeState['themeConfig']) => {
+  const state: ThemeState = {
     themeConfig: {
       global: {
         backgroundColor: '#FFDEDE',
@@ -66,10 +82,10 @@ const useThemeStore = (selector: any) => {
         headerTitleColor: '#664242',
         headerIconColor: '#664242',
         profileNameColor: '#664242',
-        updateSectionBg: '#F66C6C', // 어피치 테마의 섹션 타이틀/보더 컬러
+        updateSectionBg: '#F66C6C',
       },
       chatsTab: {
-        filterChipBg: '#FFFFFF', // 카카오톡 배너 배경은 흰색에 투명도를 줌
+        filterChipBg: '#FFFFFF',
       }
     }
   };
@@ -78,7 +94,7 @@ const useThemeStore = (selector: any) => {
 // -------------------------------------------------------------------------
 
 export const FriendsScreen = () => {
-  const themeConfig = useThemeStore((state: any) => state.themeConfig);
+  const themeConfig = useThemeStore((state) => state.themeConfig);
   const { global, friendsTab } = themeConfig;
 
   return (
@@ -111,7 +127,7 @@ export const FriendsScreen = () => {
           >
             🍑
           </div>
-          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>어피치</h2>
+          <h2 style={{ margin: 0, fontSize: 17, fontWeight: 800 }}>카꾸미</h2>
         </div>
         <div data-active-element-id="header-title-icon" style={iconRowStyle}>
           <Search size={20} strokeWidth={2.3} />
@@ -127,24 +143,24 @@ export const FriendsScreen = () => {
           backgroundColor: global.textColor, 
           color: global.backgroundColor, 
           borderRadius: 999, 
-          padding: '6px 14px', 
-          fontSize: 13, 
-          fontWeight: 700, 
+          padding: '5px 12px',
+          fontSize: 12,
+          fontWeight: 700,
           border: 'none',
           display: 'flex',
           alignItems: 'center',
           gap: 2
         }}>
-          친구 <span style={{ opacity: 0.9, fontSize: 12, fontWeight: 500 }}></span>
+          친구 <span style={{ opacity: 0.9, fontSize: 11, fontWeight: 500 }}></span>
         </button>
         <button style={{ 
           backgroundColor: 'transparent', 
           color: global.textColor, 
           borderRadius: 999, 
-          padding: '6px 14px', 
-          fontSize: 13, 
-          fontWeight: 600, 
-          border: `1px solid ${global.textColor}30` 
+          padding: '5px 12px',
+          fontSize: 12,
+          fontWeight: 600,
+          border: `1px solid ${global.textColor}30`
         }}>
           소식
         </button>
@@ -165,19 +181,11 @@ export const FriendsScreen = () => {
           }}>
             <div>
               <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: global.textColor }}>
-                오늘의 카카오가 궁금하다면?
+                크리에이터가 되어 수익을 만들어보세요
               </p>
               <p style={{ margin: '3px 0 0', fontSize: 11, color: global.descriptionColor, opacity: 0.8 }}>
-                카카오소식 보러가기
+                입점 신청하기
               </p>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 22 }}>
-              <span style={{ transform: 'rotate(-10deg)' }}>🍈</span>
-              <span style={{ transform: 'rotate(10deg)' }}>🧀</span>
-              <div style={{ 
-                backgroundColor: '#191919', color: '#fff', fontSize: 12, fontWeight: 800, 
-                padding: '2px 6px', borderRadius: 4, marginLeft: 4 
-              }}>31</div>
             </div>
           </div>
         </div>
@@ -205,14 +213,14 @@ export const FriendsScreen = () => {
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     border: `2px solid ${global.backgroundColor}`
                   }}>
-                    <span style={{ fontSize: 18 }}>{friend.name.slice(0, 1) === '춘' ? '🍠' : friend.name.slice(0, 1) === '라' ? '🦁' : friend.name.slice(0, 1) === '카' ? '🐻' : '🍑'}</span>
+                    <span style={{ fontSize: 18 }}>👤</span>
                   </div>
                   
                   {/* 빨간색 업데이트 점 (좌측 상단) */}
                   {friend.hasNew && (
                     <div style={{
                       position: 'absolute', top: -2, left: -2, width: 5, height: 5,
-                      backgroundColor: friendsTab.updateSectionBg, borderRadius: '50%',
+                      backgroundColor: '#f61010', borderRadius: '50%',
                       border: `1px solid ${global.backgroundColor}`
                     }} />
                   )}
@@ -253,14 +261,14 @@ export const FriendsScreen = () => {
         {/* 5. 생일인 친구 영역 */}
         <section style={{ padding: '8px 0' }}>
           <p style={{ margin: '0 14px 10px 14px', fontSize: 11, fontWeight: 600, color: friendsTab.updateSectionBg }}>
-            생일인 친구 8
+            생일인 친구 5
           </p>
           
           {birthdayFriends.map((friend) => (
             <article key={friend.id} style={listItemBaseStyle}>
               <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                 <div style={{ ...avatarStyle, width: 40, height: 40, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.6)', color: global.textColor }}>
-                  <span style={{ fontSize: 18 }}>{friend.name.slice(0, 1) === '스' ? '🐰' : friend.name.slice(0, 1) === '죠' ? '🦖' : friend.name.slice(0, 1) === '어' ? '🍑' : friend.name.slice(0, 1) === '라' ? '🦁' : '🍠'}</span>
+                  <span style={{ fontSize: 18 }}>👤</span>
                 </div>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -290,11 +298,11 @@ export const FriendsScreen = () => {
           <div style={{ padding: '10px 14px 6px 14px', display: 'flex', justifyContent: 'center' }}>
             <button style={{ 
               width: 'auto',
-              padding: '7px 12px', 
-              backgroundColor: 'transparent', 
+              padding: '4px 12px',
+              backgroundColor: 'transparent',
               border: `1px solid ${global.descriptionColor}20`, 
-              borderRadius: 999, // 스크린샷처럼 완전히 둥근 모서리
-              color: global.descriptionColor, 
+              borderRadius: 999,
+              color: global.descriptionColor,
               fontSize: 12, 
               fontWeight: 500,
               display: 'inline-flex', 
@@ -313,7 +321,7 @@ export const FriendsScreen = () => {
         {/* 6. 새로운 친구 영역 */}
         <section style={{ padding: '12px 0 28px 0' }}>
           <p style={{ margin: '0 14px 10px 14px', fontSize: 11, fontWeight: 600, color: friendsTab.updateSectionBg }}>
-            새로운 친구 1
+            친구 11
           </p>
           {newFriends.map((friend) => (
             <article key={friend.id} style={listItemBaseStyle}>

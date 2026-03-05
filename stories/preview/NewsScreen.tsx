@@ -16,7 +16,7 @@ const headerBaseStyle: React.CSSProperties = {
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  padding: '27px 14px 8px 14px',
+  padding: '42px 14px 8px 14px',
   backgroundColor: 'transparent',
 };
 
@@ -34,8 +34,16 @@ const avatarStyle: React.CSSProperties = {
   fontSize: '15px',
 };
 
-const useThemeStore = (selector: any) => {
-  const state = {
+interface ThemeState {
+  themeConfig: {
+    global: { backgroundColor: string; textColor: string; descriptionColor: string };
+    friendsTab: { headerTitleColor: string };
+    chatsTab: { filterChipBg: string };
+  };
+}
+
+const useThemeStore = (selector: (state: ThemeState) => ThemeState['themeConfig']) => {
+  const state: ThemeState = {
     themeConfig: {
       global: {
         backgroundColor: '#FFDEDE',
@@ -55,8 +63,8 @@ const useThemeStore = (selector: any) => {
 };
 
 export const NewsScreen = () => {
-  const themeConfig = useThemeStore((state: any) => state.themeConfig);
-  const { global, friendsTab, chatsTab } = themeConfig;
+  const themeConfig = useThemeStore((state) => state.themeConfig);
+  const { global, friendsTab } = themeConfig;
 
   return (
     <div
@@ -87,7 +95,7 @@ export const NewsScreen = () => {
           >
             🍑
           </div>
-          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>어피치</h2>
+          <h2 style={{ margin: 0, fontSize: 17, fontWeight: 800 }}>카꾸미</h2>
         </div>
         <div data-active-element-id="header-title-icon" style={iconRowStyle}>
           <Search size={20} strokeWidth={2.3} />
@@ -103,8 +111,8 @@ export const NewsScreen = () => {
             backgroundColor: 'transparent',
             color: global.textColor,
             borderRadius: 999,
-            padding: '6px 14px',
-            fontSize: 13,
+            padding: '5px 12px',
+            fontSize: 12,
             fontWeight: 600,
             border: `1px solid ${global.textColor}20`,
             cursor: 'pointer',
@@ -117,8 +125,8 @@ export const NewsScreen = () => {
             backgroundColor: global.textColor,
             color: global.backgroundColor,
             borderRadius: 999,
-            padding: '6px 14px',
-            fontSize: 13,
+            padding: '5px 12px',
+            fontSize: 12,
             fontWeight: 700,
             border: 'none',
             cursor: 'pointer',
@@ -142,25 +150,8 @@ export const NewsScreen = () => {
             }}
           >
             <div>
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: global.textColor }}>오늘의 카카오가 궁금하다면?</p>
-              <p style={{ margin: '3px 0 0', fontSize: 11, color: global.descriptionColor }}>카카오소식 보러가기</p>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 22 }}>
-              <span style={{ transform: 'rotate(-10deg)' }}>🍈</span>
-              <span style={{ transform: 'rotate(10deg)' }}>🧀</span>
-              <div
-                style={{
-                  backgroundColor: '#191919',
-                  color: '#fff',
-                  fontSize: 12,
-                  fontWeight: 800,
-                  padding: '2px 6px',
-                  borderRadius: 4,
-                  marginLeft: 4,
-                }}
-              >
-                31
-              </div>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: global.textColor }}>크리에이터가 되어 수익을 만들어보세요</p>
+              <p style={{ margin: '3px 0 0', fontSize: 11, color: global.descriptionColor }}>입점 신청하기</p>
             </div>
           </div>
         </div>
