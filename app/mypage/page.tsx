@@ -36,17 +36,19 @@ export default async function MyPage() {
     let purchasedCount = 0;
     let createdAt: string | null = null;
     let credit = 0;
+    let dbAvatarUrl: string | null = null;
 
     if (session?.dbId) {
         purchasedCount = await prisma.purchase.count({
             where: { buyerId: session.dbId, status: "COMPLETED" },
         });
         try {
-            const rows = await prisma.$queryRaw<{ createdAt: Date; credit: number }[]>`
-                SELECT "createdAt", credit FROM "User" WHERE id = ${session.dbId} LIMIT 1
+            const rows = await prisma.$queryRaw<{ createdAt: Date; credit: number; avatarUrl: string | null }[]>`
+                SELECT "createdAt", credit, "avatarUrl" FROM "User" WHERE id = ${session.dbId} LIMIT 1
             `;
             createdAt = rows[0]?.createdAt?.toISOString() ?? null;
             credit = rows[0]?.credit ?? 0;
+            dbAvatarUrl = rows[0]?.avatarUrl ?? null;
         } catch {
             createdAt = null;
         }
@@ -78,6 +80,8 @@ export default async function MyPage() {
         },
     ];
 
+    const sessionWithAvatar = session ? { ...session, avatarUrl: dbAvatarUrl } : null;
+
     return (
         <div
             className="min-h-screen flex flex-col mac-scroll"
@@ -89,7 +93,7 @@ export default async function MyPage() {
         >
             <Header />
             <MyPageClient
-                session={session}
+                session={sessionWithAvatar}
                 purchasedCount={purchasedCount}
                 sidebarMenus={sidebarMenus}
                 createdAt={createdAt}

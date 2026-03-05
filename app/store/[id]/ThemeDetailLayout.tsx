@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { THEME_COLORS } from "@/app/store/data";
@@ -44,8 +44,42 @@ export default function ThemeDetailLayout({
     const realImages = [...(images ?? []), ...(previews ?? [])].filter((s) => s && s !== "/back.jpg");
     const useColor = realImages.length === 0 && !!colors;
     const [activeIdx, setActiveIdx] = useState(0);
+    const [liked, setLiked] = useState(false);
+    const [likeCount, setLikeCount] = useState(stats.likes);
 
     const { slots } = getPreviewSlots(themeId, images, previews);
+
+    // 좋아요 상태 초기 로드
+    useEffect(() => {
+        fetch(`/api/themes/${dbId}/like`)
+            .then(r => r.json())
+            .then((d: { liked: boolean; count: number }) => {
+                setLiked(d.liked);
+                setLikeCount(d.count);
+            })
+            .catch(() => {});
+    }, [dbId]);
+
+    const toggleLike = async () => {
+        if (!isLoggedIn) {
+            router.push("/onboarding");
+            return;
+        }
+        // 낙관적 업데이트
+        const wasLiked = liked;
+        setLiked(!wasLiked);
+        setLikeCount(prev => wasLiked ? prev - 1 : prev + 1);
+        try {
+            const res = await fetch(`/api/themes/${dbId}/like`, { method: "POST" });
+            const d: { liked: boolean; count: number } = await res.json();
+            setLiked(d.liked);
+            setLikeCount(d.count);
+        } catch {
+            // 실패 시 롤백
+            setLiked(wasLiked);
+            setLikeCount(prev => wasLiked ? prev + 1 : prev - 1);
+        }
+    };
 
     const mainBg = useColor ? (slots[activeIdx] as string) ?? colors!.main : undefined;
     const mainSrc = useColor ? null : (realImages[activeIdx] ?? null);
@@ -163,9 +197,24 @@ export default function ThemeDetailLayout({
                             <span className="text-[16px] font-bold text-gray-800">{stats.createdAt}</span>
                         </div>
                         <div className="flex flex-col gap-0.5">
-                            <span className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Likes</span>
-                            <span className="text-[16px] font-bold text-gray-800">{stats.likes}</span>
-                        </div>
+                                <span className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Likes</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[16px] font-bold text-gray-800">{likeCount}</span>
+                                    <button
+                                        onClick={toggleLike}
+                                        className="flex items-center justify-center w-8 h-8 rounded-full transition-all hover:scale-110 active:scale-95"
+                                        style={{ background: liked ? "rgba(255,59,48,0.1)" : "rgba(0,0,0,0.05)" }}
+                                        title={liked ? "좋아요 취소" : "좋아요"}
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24"
+                                            fill={liked ? "#ff3b30" : "none"}
+                                            stroke={liked ? "#ff3b30" : "#8e8e93"}
+                                            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
                         <div className="flex flex-col gap-0.5">
                             <span className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Rating</span>
                             <div className="flex items-center gap-1">

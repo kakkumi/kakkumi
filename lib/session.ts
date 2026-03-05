@@ -9,8 +9,6 @@ export type SessionUser = {
     email: string | null;
     name: string | null;
     nickname: string | null;
-    image: string | null;
-    avatarUrl?: string | null;  // 카꾸미 자체 업로드 프로필 이미지
     role: "USER" | "CREATOR" | "ADMIN";
     provider: string;
     issuedAt: number;

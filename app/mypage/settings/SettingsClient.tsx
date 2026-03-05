@@ -8,7 +8,6 @@ import { validateNickname } from "@/lib/nickname";
 type Session = {
     name?: string | null;
     nickname?: string | null;
-    image?: string | null;
     avatarUrl?: string | null;
     id?: string | null;
     dbId?: string | null;
@@ -212,12 +211,10 @@ export default function SettingsClient({ session }: Props) {
                                 type="button"
                                 onClick={() => fileInputRef.current?.click()}
                                 className="relative group w-20 h-20 rounded-full overflow-hidden flex items-center justify-center shrink-0 transition-all hover:opacity-90 active:scale-95"
-                                style={{ background: "#ffe500", boxShadow: "0 2px 12px rgba(0,0,0,0.1)" }}
+                                style={{ background: avatarPreview ? 'transparent' : 'rgba(180,180,180,0.5)', boxShadow: '0 2px 12px rgba(0,0,0,0.1)' }}
                             >
                                 {avatarPreview ? (
                                     <Image src={avatarPreview} alt={displayName} width={80} height={80} className="w-full h-full object-cover" unoptimized />
-                                ) : session?.image ? (
-                                    <Image src={session.image} alt={displayName} width={80} height={80} className="w-full h-full object-cover" unoptimized />
                                 ) : (
                                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3A1D1D" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                                         <circle cx="12" cy="8" r="4" />
@@ -286,9 +283,6 @@ export default function SettingsClient({ session }: Props) {
                                     {avatarSuccess && <p className="text-[11px]" style={{ color: "#34c759" }}>✓ 프로필 사진이 저장되었습니다.</p>}
                                     {avatarError && <p className="text-[11px]" style={{ color: "#ff3b30" }}>{avatarError}</p>}
                                     <p className="text-[11px]" style={{ color: "#8e8e93" }}>JPG, PNG, GIF · 최대 2MB</p>
-                                    {!session?.avatarUrl && (
-                                        <p className="text-[11px]" style={{ color: "#8e8e93" }}>현재 카카오 프로필 이미지를 사용 중입니다.</p>
-                                    )}
                                 </div>
                             </div>
                         </div>

@@ -3,6 +3,7 @@ import { createHmac } from "crypto";
 import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
 import SettingsClient from "@/app/mypage/settings/SettingsClient";
+import { prisma } from "@/lib/prisma";
 
 const SESSION_COOKIE_NAME = "kakkumi_session";
 
@@ -26,7 +27,7 @@ async function getSession() {
         return session as {
             name?: string | null;
             nickname?: string | null;
-            image?: string | null;
+            avatarUrl?: string | null;
             id?: string | null;
             dbId?: string | null;
             email?: string | null;
@@ -40,6 +41,21 @@ async function getSession() {
 export default async function SettingsPage() {
     const session = await getSession();
 
+    // 쿠키 크기 한계로 avatarUrl이 잘릴 수 있으므로 DB에서 직접 조회
+    let dbAvatarUrl: string | null = null;
+    if (session?.dbId) {
+        try {
+            const rows = await prisma.$queryRaw<{ avatarUrl: string | null }[]>`
+                SELECT "avatarUrl" FROM "User" WHERE id = ${session.dbId} LIMIT 1
+            `;
+            dbAvatarUrl = rows[0]?.avatarUrl ?? null;
+        } catch {
+            dbAvatarUrl = null;
+        }
+    }
+
+    const sessionWithAvatar = session ? { ...session, avatarUrl: dbAvatarUrl } : null;
+
     return (
         <div
             className="min-h-screen flex flex-col mac-scroll"
@@ -50,7 +66,7 @@ export default async function SettingsPage() {
             }}
         >
             <Header />
-            <SettingsClient session={session} />
+            <SettingsClient session={sessionWithAvatar} />
             <Footer />
         </div>
     );

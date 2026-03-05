@@ -50,8 +50,6 @@ export async function PATCH(req: NextRequest) {
         email: session.email,
         name: session.name,
         nickname: session.nickname,
-        image: session.image,
-        avatarUrl: avatarUrl ?? null,
         role: session.role,
         issuedAt: Date.now(),
     };

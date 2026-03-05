@@ -39,6 +39,7 @@ type DbTheme = {
     creatorNickname: string | null;
     creatorName: string;
     salesCount: number;
+    likeCount: number;
 };
 
 // 시드 데이터용 숫자 id 테마 타입
@@ -61,7 +62,7 @@ type LegacyTheme = {
 
 // DB 테마를 통합 타입으로 변환
 type UnifiedTheme = {
-    key: string;          // 라우팅용 id
+    key: string;
     name: string;
     author: string;
     creatorId: string;
@@ -70,11 +71,12 @@ type UnifiedTheme = {
     tag: string;
     category: string[];
     sales: number;
-    createdAt: number;    // 상대 일수 (정렬용)
+    createdAt: number;
+    likes: number;
     thumbnailUrl: string | null;
     description: string;
     isLegacy: boolean;
-    legacyId?: number;    // THEME_COLORS 조회용
+    legacyId?: number;
 };
 
 function dbThemeToUnified(t: DbTheme): UnifiedTheme {
@@ -90,6 +92,7 @@ function dbThemeToUnified(t: DbTheme): UnifiedTheme {
         category: t.tags,
         sales: t.salesCount,
         createdAt: daysSince,
+        likes: t.likeCount ?? 0,
         thumbnailUrl: t.thumbnailUrl,
         description: t.description ?? "",
         isLegacy: false,
@@ -135,12 +138,34 @@ export default function StoreContent() {
             .catch(() => {});
     }, []);
 
-    const toggleLike = (key: string) => {
+    // 좋아요한 테마 초기 로드
+    useEffect(() => {
+        fetch("/api/themes/liked")
+            .then(r => r.json())
+            .then((d: { likedIds: string[] }) => setLikedIds(new Set(d.likedIds ?? [])))
+            .catch(() => {});
+    }, []);
+
+    const toggleLike = async (key: string) => {
+        // 낙관적 업데이트
         setLikedIds(prev => {
             const next = new Set(prev);
             next.has(key) ? next.delete(key) : next.add(key);
             return next;
         });
+        setDbThemes(prev => prev.map(t =>
+            t.key === key ? { ...t, likes: likedIds.has(key) ? t.likes - 1 : t.likes + 1 } : t
+        ));
+        try {
+            await fetch(`/api/themes/${key}/like`, { method: "POST" });
+        } catch {
+            // 실패 시 롤백
+            setLikedIds(prev => {
+                const next = new Set(prev);
+                next.has(key) ? next.delete(key) : next.add(key);
+                return next;
+            });
+        }
     };
 
     const themes = dbThemes;

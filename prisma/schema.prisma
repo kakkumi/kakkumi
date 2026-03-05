@@ -113,6 +113,7 @@ model User {
   followers      Follow[]              @relation("UserFollowers")
   followings     Follow[]              @relation("UserFollowings")
   notifications  Notification[]        @relation("UserNotifications")
+  likes          ThemeLike[]
 }
 
 model Follow {
@@ -159,8 +160,8 @@ model Theme {
   description  String?
   price        Int         @default(0)
   status       ThemeStatus @default(DRAFT)
-  isPublic     Boolean     @default(true)   // 공개/비공개 전환
-  isSelling    Boolean     @default(true)   // 판매중단 여부
+  isPublic     Boolean     @default(true)
+  isSelling    Boolean     @default(true)
   thumbnailUrl String?
   adminNote    String?
   images       String[]    @default([])
@@ -172,6 +173,7 @@ model Theme {
   versions  ThemeVersion[]
   purchases Purchase[]
   reports   Report[]       @relation("ThemeReports")
+  likes     ThemeLike[]
 }
 
 model ThemeVersion {
@@ -240,3 +242,16 @@ model Report {
   reporter User  @relation("UserReports", fields: [reporterId], references: [id])
   theme    Theme @relation("ThemeReports", fields: [themeId], references: [id])
 }
+
+model ThemeLike {
+  id        String   @id @default(uuid())
+  userId    String
+  themeId   String
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme Theme @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, themeId])
+}
+

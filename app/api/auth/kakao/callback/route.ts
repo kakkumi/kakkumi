@@ -70,67 +70,64 @@ export async function GET(request: Request) {
             id?: number;
             kakao_account?: {
                 email?: string;
-                profile?: { nickname?: string; profile_image_url?: string };
+                profile?: { nickname?: string };
             };
         };
 
         const kakaoId = String(profileJson.id);
         const email = profileJson.kakao_account?.email ?? null;
         const name = profileJson.kakao_account?.profile?.nickname ?? "카카오 사용자";
-        const image = profileJson.kakao_account?.profile?.profile_image_url ?? null;
 
         // 3) DB upsert — soft delete 유저 포함 처리
-        let dbUser: { id: string; email: string | null; name: string; image: string | null; role: string };
+        let dbUser: { id: string; email: string | null; name: string; role: string };
         try {
-            // kakaoId로 기존 유저 조회 (탈퇴한 유저 포함)
             const existingRows = await prisma.$queryRaw<{
-                id: string; email: string | null; name: string; image: string | null;
+                id: string; email: string | null; name: string;
                 role: string; deletedAt: Date | null;
             }[]>`
-                SELECT id, email, name, image, role::text, "deletedAt"
+                SELECT id, email, name, role::text, "deletedAt"
                 FROM "User" WHERE "kakaoId" = ${kakaoId} LIMIT 1
             `;
 
             if (existingRows.length > 0) {
                 const existing = existingRows[0];
                 if (existing.deletedAt !== null) {
-                    // 탈퇴 후 3일 이내 재가입 차단
                     const daysSinceDelete = (Date.now() - new Date(existing.deletedAt).getTime()) / (24 * 60 * 60 * 1000);
                     if (daysSinceDelete < WITHDRAW_REREGISTER_DAYS) {
                         const remainDays = Math.ceil(WITHDRAW_REREGISTER_DAYS - daysSinceDelete);
                         return NextResponse.redirect(new URL(`/?login=blocked&days=${remainDays}`, url.origin));
                     }
-                    // 탈퇴 유저 재가입 → 복원 (referralRewarded는 유지 — 추천 적립 재수령 방지)
+                    // 탈퇴 유저 재가입 → 복원
                     if (email) {
                         await prisma.$executeRaw`
-                            UPDATE "User" SET "deletedAt" = NULL, name = ${name}, image = ${image}, email = ${email}, "updatedAt" = NOW()
+                            UPDATE "User" SET "deletedAt" = NULL, name = ${name}, email = ${email}, "updatedAt" = NOW()
                             WHERE "kakaoId" = ${kakaoId}
                         `;
                     } else {
                         await prisma.$executeRaw`
-                            UPDATE "User" SET "deletedAt" = NULL, name = ${name}, image = ${image}, "updatedAt" = NOW()
+                            UPDATE "User" SET "deletedAt" = NULL, name = ${name}, "updatedAt" = NOW()
                             WHERE "kakaoId" = ${kakaoId}
                         `;
                     }
                 } else {
-                    // 일반 재로그인 → 프로필만 업데이트
+                    // 일반 재로그인 → 프로필 업데이트
                     if (email) {
                         await prisma.$executeRaw`
-                            UPDATE "User" SET name = ${name}, image = ${image}, email = ${email}, "updatedAt" = NOW()
+                            UPDATE "User" SET name = ${name}, email = ${email}, "updatedAt" = NOW()
                             WHERE "kakaoId" = ${kakaoId}
                         `;
                     } else {
                         await prisma.$executeRaw`
-                            UPDATE "User" SET name = ${name}, image = ${image}, "updatedAt" = NOW()
+                            UPDATE "User" SET name = ${name}, "updatedAt" = NOW()
                             WHERE "kakaoId" = ${kakaoId}
                         `;
                     }
                 }
-                dbUser = { ...existing, name, image };
+                dbUser = { ...existing, name };
             } else {
                 // 신규 가입
                 dbUser = await prisma.user.create({
-                    data: { kakaoId, email, name, image },
+                    data: { kakaoId, email, name },
                 });
             }
         } catch (upsertErr) {
@@ -171,7 +168,7 @@ export async function GET(request: Request) {
             nickname = dbUser.name;
         }
 
-        // 5) 세션 생성
+        // 5) 세션 생성 (avatarUrl은 쿠키 크기 초과 방지를 위해 세션에 포함하지 않음 — 페이지에서 DB 직접 조회)
         const sessionPayload = {
             provider: "kakao",
             dbId: dbUser.id,
@@ -179,8 +176,6 @@ export async function GET(request: Request) {
             email: dbUser.email,
             name: dbUser.name,
             nickname,
-            image: dbUser.image,
-            avatarUrl,
             role: dbUser.role,
             issuedAt: Date.now(),
         };

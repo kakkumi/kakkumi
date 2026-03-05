@@ -84,7 +84,12 @@ export default function OnboardingPage() {
         const data = await res.json() as { nickname?: string; error?: string };
 
         if (!res.ok) {
-            setError(data.error ?? "저장 실패");
+            const errorMsg = data.error ?? "저장 실패";
+            if (errorMsg.includes("닉네임")) {
+                setReferralMsg({ ok: false, text: errorMsg });
+            } else {
+                setError(errorMsg);
+            }
             setSaving(false);
             return;
         }
@@ -142,7 +147,7 @@ export default function OnboardingPage() {
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
                             className="relative group w-24 h-24 rounded-full overflow-hidden flex items-center justify-center transition-all hover:opacity-90 active:scale-95"
-                            style={{ background: "#ffe500", boxShadow: "0 2px 12px rgba(0,0,0,0.1)" }}
+                            style={{ background: avatarPreview ? 'transparent' : 'rgba(195,195,195,0.5)', boxShadow: "0 2px 12px rgba(0,0,0,0.1)" }}
                         >
                             {avatarPreview ? (
                                 <Image src={avatarPreview} alt="프로필 미리보기" fill className="object-cover" unoptimized />

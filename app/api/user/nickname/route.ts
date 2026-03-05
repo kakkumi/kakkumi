@@ -63,42 +63,44 @@ export async function PATCH(req: NextRequest) {
                 LIMIT 1
             `;
 
-            if (referrers.length > 0) {
-                const referrerId = referrers[0].id;
-                const now = new Date();
+            if (referrers.length === 0) {
+                return NextResponse.json({ error: "존재하지 않는 닉네임입니다." }, { status: 400 });
+            }
 
-                // 3) 추천인의 이번 달 추천 적립 횟수 확인 (월 최대 3회)
-                const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-                const monthCountRows = await prisma.$queryRaw<{ cnt: number }[]>`
-                    SELECT COUNT(*)::int AS cnt FROM "PointHistory"
-                    WHERE "userId" = ${referrerId}
-                      AND type = 'REFERRAL_REWARD'::"PointType"
-                      AND "createdAt" >= ${monthStart}
-                `;
-                const monthCount = monthCountRows[0]?.cnt ?? 0;
+            const referrerId = referrers[0].id;
+            const now = new Date();
 
-                if (monthCount < 3) {
-                    // 추천인에게 500원 적립
-                    await prisma.$executeRaw`
-                        UPDATE "User" SET credit = credit + 500, "updatedAt" = NOW() WHERE id = ${referrerId}
-                    `;
-                    await prisma.$executeRaw`
-                        INSERT INTO "PointHistory" (id, "userId", amount, type, memo, "createdAt")
-                        VALUES (${crypto.randomUUID()}, ${referrerId}, 500, 'REFERRAL_REWARD'::"PointType", ${'친구 추천 보상 (+500원)'}, ${now})
-                    `;
-                }
+            // 3) 추천인의 이번 달 추천 적립 횟수 확인 (월 최대 3회)
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            const monthCountRows = await prisma.$queryRaw<{ cnt: number }[]>`
+                SELECT COUNT(*)::int AS cnt FROM "PointHistory"
+                WHERE "userId" = ${referrerId}
+                  AND type = 'REFERRAL_REWARD'::"PointType"
+                  AND "createdAt" >= ${monthStart}
+            `;
+            const monthCount = monthCountRows[0]?.cnt ?? 0;
 
-                // 신규 가입자에게 500원 적립 + referralRewarded = true 표시
+            if (monthCount < 3) {
+                // 추천인에게 500원 적립
                 await prisma.$executeRaw`
-                    UPDATE "User"
-                    SET credit = credit + 500, "referralRewarded" = true, "updatedAt" = NOW()
-                    WHERE id = ${session.dbId}
+                    UPDATE "User" SET credit = credit + 500, "updatedAt" = NOW() WHERE id = ${referrerId}
                 `;
                 await prisma.$executeRaw`
                     INSERT INTO "PointHistory" (id, "userId", amount, type, memo, "createdAt")
-                    VALUES (${crypto.randomUUID()}, ${session.dbId}, 500, 'REFERRAL_REWARD'::"PointType", ${'추천인 코드 가입 보상 (+500원)'}, ${now})
+                    VALUES (${crypto.randomUUID()}, ${referrerId}, 500, 'REFERRAL_REWARD'::"PointType", ${'친구 추천 보상 (+500원)'}, ${now})
                 `;
             }
+
+            // 신규 가입자에게 500원 적립 + referralRewarded = true 표시
+            await prisma.$executeRaw`
+                UPDATE "User"
+                SET credit = credit + 500, "referralRewarded" = true, "updatedAt" = NOW()
+                WHERE id = ${session.dbId}
+            `;
+            await prisma.$executeRaw`
+                INSERT INTO "PointHistory" (id, "userId", amount, type, memo, "createdAt")
+                VALUES (${crypto.randomUUID()}, ${session.dbId}, 500, 'REFERRAL_REWARD'::"PointType", ${'추천인 코드 가입 보상 (+500원)'}, ${now})
+            `;
         }
     }
 
@@ -111,7 +113,6 @@ export async function PATCH(req: NextRequest) {
         email: session.email,
         name: session.name,
         nickname: trimmed,
-        image: session.image,
         avatarUrl: (session as { avatarUrl?: string | null }).avatarUrl ?? null,
         role: session.role,
         issuedAt: Date.now(),
