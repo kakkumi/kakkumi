@@ -14,19 +14,18 @@ type Props = {
     isLoggedIn: boolean;
     userId?: string;
     isOwned?: boolean;
+    ownedVersionIds?: string[];
     versions?: Version[];
     onInquiryAction?: () => void;
 };
 
 export default function ThemeActionButtons(props: Props) {
-    const { priceNum, priceName, isLoggedIn, isOwned = false, versions = [], onInquiryAction } = props;
+    const { priceNum, priceName, isLoggedIn, ownedVersionIds = [], versions = [], onInquiryAction } = props;
     const router = useRouter();
     const [liked, setLiked] = useState(false);
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<{ success?: boolean; message?: string } | null>(null);
-    const [ownedState, setOwnedState] = useState(isOwned);
 
-    // 옵션 선택 모달 (보유 시 다운로드 / 미보유 시 구매)
     const [optionModal, setOptionModal] = useState<"download" | "buy" | null>(null);
     const [selectedVersion, setSelectedVersion] = useState<Version | null>(null);
     const [downloadingId, setDownloadingId] = useState<string | null>(null);
@@ -42,33 +41,28 @@ export default function ThemeActionButtons(props: Props) {
 
     const isFree = priceNum === 0;
     const hasVersions = versions.length > 0;
-
-    // OS 라벨 파싱 (version 필드 예: "iOS · 핑크 ver.", "Android · 기본")
     const iosVersions = versions.filter(v => v.version.toLowerCase().startsWith("ios") && v.kthemeFileUrl);
     const androidVersions = versions.filter(v => v.version.toLowerCase().startsWith("android") && v.apkFileUrl);
+
+    // 버전별 보유 여부
+    const isVersionOwned = (verId: string) => ownedVersionIds.includes(verId);
 
     const handleMainAction = () => {
         if (!isLoggedIn) {
             setLoginModal(isFree ? "다운로드는 로그인이 필요한 기능이에요." : "구매하기는 로그인이 필요한 기능이에요.");
             return;
         }
-        if (ownedState) {
-            // 이미 보유 중 → 마이페이지 구매 테마로 이동
-            router.push("/mypage?menu=구매+테마");
-            return;
-        }
         if (isFree) {
-            // 무료 → 항상 옵션 모달 표시 (버전 없어도 모달로 안내)
+            // 무료 → 항상 옵션 모달
             setOptionModal("download");
             setSelectedVersion(null);
         } else {
-            // 유료 → 옵션 있으면 선택 후 구매, 없으면 바로 주문페이지
+            // 유료 → 옵션 있으면 모달, 없으면 바로 주문페이지
             if (hasVersions) { setOptionModal("buy"); setSelectedVersion(null); }
             else { router.push(`/store/${props.themeId}/order?themeId=${props.themeId}`); }
         }
     };
 
-    // 옵션 모달에서 선택 후 → 소유권 등록만 하고 마이페이지로 이동 (파일 다운로드 X)
     const handleRegisterAndGo = async (ver: Version) => {
         setDownloadingId(ver.id);
         try {
@@ -171,31 +165,41 @@ export default function ThemeActionButtons(props: Props) {
                                         </svg>
                                         <span className="text-[12px] font-bold text-gray-500">iOS (.ktheme)</span>
                                     </div>
-                                    {iosVersions.map(ver => (
-                                        <button key={ver.id}
-                                            onClick={() => optionModal === "download" ? handleRegisterAndGo(ver) : setSelectedVersion(ver)}
-                                            disabled={downloadingId === ver.id}
-                                            className="flex items-center justify-between px-4 py-3 rounded-[12px] text-left transition-all disabled:opacity-50"
-                                            style={{
-                                                background: selectedVersion?.id === ver.id ? "rgba(74,123,247,0.08)" : "rgba(0,0,0,0.03)",
-                                                border: selectedVersion?.id === ver.id ? "1.5px solid rgba(74,123,247,0.5)" : "1.5px solid transparent",
-                                            }}>
-                                            <span className="text-[14px] font-semibold text-gray-800">{shortName(ver)}</span>
-                                            {optionModal === "download" ? (
-                                                downloadingId === ver.id ? (
-                                                    <div className="w-4 h-4 rounded-full border-2 border-blue-200 border-t-blue-500 animate-spin" />
-                                                ) : (
-                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4A7BF7" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                                                        <path d="M5 12h14"/><path d="M12 5l7 7-7 7"/>
+                                    {iosVersions.map(ver => {
+                                        const owned = isVersionOwned(ver.id);
+                                        return (
+                                            <button key={ver.id}
+                                                onClick={() => {
+                                                    if (owned) return;
+                                                    if (optionModal === "download") handleRegisterAndGo(ver);
+                                                    else setSelectedVersion(ver);
+                                                }}
+                                                disabled={downloadingId === ver.id || (optionModal === "buy" && owned)}
+                                                className="flex items-center justify-between px-4 py-3 rounded-[12px] text-left transition-all disabled:opacity-60"
+                                                style={{
+                                                    background: owned ? "rgba(52,199,89,0.08)" : selectedVersion?.id === ver.id ? "rgba(74,123,247,0.08)" : "rgba(0,0,0,0.03)",
+                                                    border: owned ? "1.5px solid rgba(52,199,89,0.4)" : selectedVersion?.id === ver.id ? "1.5px solid rgba(74,123,247,0.5)" : "1.5px solid transparent",
+                                                    cursor: owned ? "default" : "pointer",
+                                                }}>
+                                                <span className="text-[14px] font-semibold text-gray-800">{shortName(ver)}</span>
+                                                {owned ? (
+                                                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(52,199,89,0.15)", color: "#34c759" }}>보유중</span>
+                                                ) : optionModal === "download" ? (
+                                                    downloadingId === ver.id ? (
+                                                        <div className="w-4 h-4 rounded-full border-2 border-blue-200 border-t-blue-500 animate-spin" />
+                                                    ) : (
+                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4A7BF7" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                                            <path d="M5 12h14"/><path d="M12 5l7 7-7 7"/>
+                                                        </svg>
+                                                    )
+                                                ) : selectedVersion?.id === ver.id ? (
+                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4A7BF7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M20 6L9 17l-5-5"/>
                                                     </svg>
-                                                )
-                                            ) : selectedVersion?.id === ver.id ? (
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4A7BF7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path d="M20 6L9 17l-5-5"/>
-                                                </svg>
-                                            ) : null}
-                                        </button>
-                                    ))}
+                                                ) : null}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             )}
                             {/* Android 섹션 */}
@@ -209,31 +213,41 @@ export default function ThemeActionButtons(props: Props) {
                                         </svg>
                                         <span className="text-[12px] font-bold text-gray-500">Android (.apk)</span>
                                     </div>
-                                    {androidVersions.map(ver => (
-                                        <button key={ver.id}
-                                            onClick={() => optionModal === "download" ? handleRegisterAndGo(ver) : setSelectedVersion(ver)}
-                                            disabled={downloadingId === ver.id}
-                                            className="flex items-center justify-between px-4 py-3 rounded-[12px] text-left transition-all disabled:opacity-50"
-                                            style={{
-                                                background: selectedVersion?.id === ver.id ? "rgba(74,123,247,0.08)" : "rgba(0,0,0,0.03)",
-                                                border: selectedVersion?.id === ver.id ? "1.5px solid rgba(74,123,247,0.5)" : "1.5px solid transparent",
-                                            }}>
-                                            <span className="text-[14px] font-semibold text-gray-800">{shortName(ver)}</span>
-                                            {optionModal === "download" ? (
-                                                downloadingId === ver.id ? (
-                                                    <div className="w-4 h-4 rounded-full border-2 border-blue-200 border-t-blue-500 animate-spin" />
-                                                ) : (
-                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4A7BF7" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                                                        <path d="M5 12h14"/><path d="M12 5l7 7-7 7"/>
+                                    {androidVersions.map(ver => {
+                                        const owned = isVersionOwned(ver.id);
+                                        return (
+                                            <button key={ver.id}
+                                                onClick={() => {
+                                                    if (owned) return;
+                                                    if (optionModal === "download") handleRegisterAndGo(ver);
+                                                    else setSelectedVersion(ver);
+                                                }}
+                                                disabled={downloadingId === ver.id || (optionModal === "buy" && owned)}
+                                                className="flex items-center justify-between px-4 py-3 rounded-[12px] text-left transition-all disabled:opacity-60"
+                                                style={{
+                                                    background: owned ? "rgba(52,199,89,0.08)" : selectedVersion?.id === ver.id ? "rgba(74,123,247,0.08)" : "rgba(0,0,0,0.03)",
+                                                    border: owned ? "1.5px solid rgba(52,199,89,0.4)" : selectedVersion?.id === ver.id ? "1.5px solid rgba(74,123,247,0.5)" : "1.5px solid transparent",
+                                                    cursor: owned ? "default" : "pointer",
+                                                }}>
+                                                <span className="text-[14px] font-semibold text-gray-800">{shortName(ver)}</span>
+                                                {owned ? (
+                                                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(52,199,89,0.15)", color: "#34c759" }}>보유중</span>
+                                                ) : optionModal === "download" ? (
+                                                    downloadingId === ver.id ? (
+                                                        <div className="w-4 h-4 rounded-full border-2 border-blue-200 border-t-blue-500 animate-spin" />
+                                                    ) : (
+                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4A7BF7" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                                            <path d="M5 12h14"/><path d="M12 5l7 7-7 7"/>
+                                                        </svg>
+                                                    )
+                                                ) : selectedVersion?.id === ver.id ? (
+                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4A7BF7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M20 6L9 17l-5-5"/>
                                                     </svg>
-                                                )
-                                            ) : selectedVersion?.id === ver.id ? (
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4A7BF7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path d="M20 6L9 17l-5-5"/>
-                                                </svg>
-                                            ) : null}
-                                        </button>
-                                    ))}
+                                                ) : null}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             )}
                             {/* 버전 없음 */}
@@ -384,14 +398,11 @@ export default function ThemeActionButtons(props: Props) {
                     disabled={loading}
                     className="flex-[3] py-[14px] rounded-[14px] text-[15px] font-bold text-white transition-all active:scale-[0.98] disabled:opacity-60"
                     style={{
-                        background: ownedState ? "#34c759" : "#4A7BF7",
-                        boxShadow: ownedState ? "0 4px 20px rgba(52,199,89,0.3)" : "0 4px 20px rgba(74,123,247,0.3)",
+                        background: "#4A7BF7",
+                        boxShadow: "0 4px 20px rgba(74,123,247,0.3)",
                     }}
                 >
-                    {loading ? "처리 중..."
-                        : ownedState ? "다운로드"
-                        : isFree ? "무료 다운로드"
-                        : `${priceName} 구매하기`}
+                    {loading ? "처리 중..." : isFree ? "무료 다운로드" : `${priceName} 구매하기`}
                 </button>
                 <button
                     onClick={handleLike}

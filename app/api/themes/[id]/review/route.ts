@@ -52,6 +52,10 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
         return NextResponse.json({ error: "별점은 1~5 사이여야 합니다." }, { status: 400 });
     }
 
+    if (content && content.length > 200) {
+        return NextResponse.json({ error: "리뷰 내용은 200자 이하로 작성해주세요." }, { status: 400 });
+    }
+
     const safeImages = Array.isArray(images) ? images.slice(0, 5) : [];
 
     const existing = await prisma.$queryRaw<{ id: string }[]>`

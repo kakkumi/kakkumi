@@ -181,14 +181,14 @@ export default function ReviewModal({
                     <textarea
                         value={content}
                         onChange={e => setContent(e.target.value)}
-                        maxLength={500}
+                        maxLength={200}
                         rows={4}
                         placeholder="테마 사용 후기를 자유롭게 작성해주세요."
                         className="resize-none px-4 py-3 rounded-2xl text-[14px] outline-none"
                         style={{ border: "1.5px solid rgba(0,0,0,0.1)", background: "rgba(0,0,0,0.02)", color: "#1c1c1e" }}
                     />
                     <div className="flex justify-end">
-                        <span className="text-[11px]" style={{ color: "#8e8e93" }}>{content.length} / 500</span>
+                        <span className="text-[11px]" style={{ color: "#8e8e93" }}>{content.length} / 200</span>
                     </div>
                 </div>
 

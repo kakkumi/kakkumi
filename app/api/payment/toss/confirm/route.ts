@@ -48,13 +48,17 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: `결제 금액이 일치하지 않습니다. (DB: ${theme.price}원, 요청: ${amount}원)` }, { status: 400 });
     }
 
-    // 이미 구매한 테마인지 확인
-    const existing = await prisma.purchase.findFirst({
-        where: { buyerId: session.dbId, themeId, status: "COMPLETED" },
-    });
-
-    if (existing) {
-        return NextResponse.json({ error: "이미 구매한 테마입니다." }, { status: 409 });
+    // 동일 버전 이미 구매 여부 확인
+    const existingRows = await prisma.$queryRaw<{ id: string }[]>`
+        SELECT id FROM "Purchase"
+        WHERE "buyerId" = ${session.dbId}
+          AND "themeId" = ${themeId}
+          AND ("versionId" = ${versionId ?? null} OR ("versionId" IS NULL AND ${versionId ?? null}::text IS NULL))
+          AND status = 'COMPLETED'::"PurchaseStatus"
+        LIMIT 1
+    `;
+    if (existingRows.length > 0) {
+        return NextResponse.json({ error: "이미 구매한 옵션입니다." }, { status: 409 });
     }
 
     // 토스페이먼츠 결제 승인 요청
@@ -79,21 +83,17 @@ export async function POST(request: Request) {
 
     const tossData = (await tossResponse.json()) as { paymentKey: string; status: string };
 
+    const purchaseId = crypto.randomUUID();
+    const now = nowKST();
+
     // DB에 구매 기록 저장
-    await prisma.purchase.create({
-        data: {
-            buyerId: session.dbId,
-            themeId,
-            versionId: versionId ?? null,
-            amount,
-            pgTransactionId: tossData.paymentKey,
-            status: "COMPLETED",
-        },
-    });
+    await prisma.$executeRaw`
+        INSERT INTO "Purchase" (id, "buyerId", "themeId", "versionId", amount, "pgTransactionId", status, "createdAt")
+        VALUES (${purchaseId}, ${session.dbId}, ${themeId}, ${versionId ?? null}, ${amount}, ${tossData.paymentKey}, 'COMPLETED'::"PurchaseStatus", ${now})
+    `;
 
     // 구매 적립금 지급
     const reward = getPurchaseCredit(theme.price);
-    const now = nowKST();
     if (reward > 0) {
         const expiresAt = new Date(now.getTime() + CREDIT_EXPIRY_DAYS * DAY_MS);
         await prisma.$executeRaw`

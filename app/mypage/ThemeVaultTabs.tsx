@@ -16,6 +16,7 @@ const TABS: { key: Tab; label: string }[] = [
 type Version = { id: string; version: string; kthemeFileUrl: string | null; apkFileUrl: string | null };
 
 type ThemeItem = {
+    purchaseId?: string;
     id: string;
     name: string;
     price: number;
@@ -54,7 +55,7 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
     // 버전 선택 모달
     const [versionModal, setVersionModal] = useState<{ themeId: string; themeName: string; versions: Version[] } | null>(null);
 
-    // 다운로드 버튼 클릭 → 버전이 1개면 바로 다운로드, 여러 개면 모달 표시
+    // 다운로드 버튼 클릭 → 버전이 1개면 바로 파일 다운로드, 여러 개면 모달 표시
     const handleDownload = (themeId: string, themeName: string, versions: Version[]) => {
         setDownloadError(null);
         const available = versions.filter(v => v.kthemeFileUrl || v.apkFileUrl);
@@ -69,19 +70,23 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
         }
     };
 
-    // 실제 파일 다운로드
+    // 실제 파일 다운로드 (fetch 없이 파일 URL로 바로 다운로드)
     const handleFileDownload = async (ver: Version, themeName: string) => {
         const fileUrl = ver.kthemeFileUrl ?? ver.apkFileUrl;
         if (!fileUrl) { setDownloadError("파일을 찾을 수 없습니다."); return; }
         setDownloadingId(ver.id);
         setVersionModal(null);
         try {
+            const res = await fetch(fileUrl);
+            const blob = await res.blob();
+            const blobUrl = URL.createObjectURL(blob);
             const a = document.createElement("a");
-            a.href = fileUrl;
+            a.href = blobUrl;
             a.download = `${themeName}_${ver.version}.${ver.kthemeFileUrl ? "ktheme" : "apk"}`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
         } catch {
             setDownloadError("다운로드 중 오류가 발생했습니다.");
         } finally {
@@ -289,9 +294,9 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
                 )}
                 {themes.map((theme) => {
                     const mockId = getMockId(theme.id);
-                    const isDownloading = downloadingId === theme.id;
+                    const isDownloading = downloadingId !== null;
                     return (
-                        <div key={theme.id} className="flex flex-col gap-2 px-4 py-3 rounded-[14px]" style={{ background: "rgba(255,255,255,0.7)" }}>
+                        <div key={theme.purchaseId ?? theme.id} className="flex flex-col gap-2 px-4 py-3 rounded-[14px]" style={{ background: "rgba(255,255,255,0.7)" }}>
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="w-9 h-9 rounded-[10px] overflow-hidden flex items-center justify-center shrink-0" style={{ background: "rgba(0,0,0,0.07)" }}>
@@ -305,9 +310,15 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
                                     </div>
                                     <div>
                                         <p className="text-[13px] font-semibold" style={{ color: "#1c1c1e" }}>{theme.name}</p>
-                                        <p className="text-[11px] flex items-center gap-1.5" style={{ color: "#8e8e93" }}>
+                                        <p className="text-[11px] flex items-center gap-1.5 flex-wrap" style={{ color: "#8e8e93" }}>
                                             {formatPrice(theme.price)}
-                                            {theme.tag && (
+                                            {/* 구매 테마일 때 옵션명 표시 */}
+                                            {isPurchased && theme.versions && theme.versions.length > 0 && (
+                                                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "rgba(74,123,247,0.12)", color: "#4A7BF7" }}>
+                                                    {theme.versions[0].version}
+                                                </span>
+                                            )}
+                                            {theme.tag && !isPurchased && (
                                                 <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold" style={{ background: theme.tag === "내 테마" ? "rgba(255,149,0,0.15)" : "#FFEF9A", color: "#3A1D1D" }}>
                                                     {theme.tag}
                                                 </span>

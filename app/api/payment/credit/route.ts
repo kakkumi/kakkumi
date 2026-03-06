@@ -17,7 +17,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "테마 정보가 없습니다." }, { status: 400 });
     }
 
-    // 테마 조회
     const theme = await prisma.theme.findUnique({ where: { id: themeId } });
     if (!theme || theme.status !== "PUBLISHED") {
         return NextResponse.json({ error: "테마를 찾을 수 없습니다." }, { status: 404 });
@@ -26,12 +25,17 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "무료 테마는 적립금 결제가 필요하지 않습니다." }, { status: 400 });
     }
 
-    // 이미 구매 여부
-    const existing = await prisma.purchase.findFirst({
-        where: { buyerId: session.dbId, themeId, status: "COMPLETED" },
-    });
-    if (existing) {
-        return NextResponse.json({ error: "이미 구매한 테마입니다." }, { status: 409 });
+    // 동일 버전 이미 구매 여부 확인
+    const existingRows = await prisma.$queryRaw<{ id: string }[]>`
+        SELECT id FROM "Purchase"
+        WHERE "buyerId" = ${session.dbId}
+          AND "themeId" = ${themeId}
+          AND ("versionId" = ${versionId ?? null} OR ("versionId" IS NULL AND ${versionId ?? null}::text IS NULL))
+          AND status = 'COMPLETED'::"PurchaseStatus"
+        LIMIT 1
+    `;
+    if (existingRows.length > 0) {
+        return NextResponse.json({ error: "이미 구매한 옵션입니다." }, { status: 409 });
     }
 
     // 적립금 조회

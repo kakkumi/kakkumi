@@ -9,10 +9,10 @@ export async function GET() {
         return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
     }
 
-    // 구매한 테마 목록 (versionId 포함)
-    type PurchaseRow = { themeId: string; versionId: string | null; createdAt: Date; themeTitle: string; themePrice: number; themeThumbnailUrl: string | null };
+    // 구매한 테마 목록 (versionId, purchaseId 포함)
+    type PurchaseRow = { purchaseId: string; themeId: string; versionId: string | null; createdAt: Date; themeTitle: string; themePrice: number; themeThumbnailUrl: string | null };
     const purchases = await prisma.$queryRaw<PurchaseRow[]>`
-        SELECT p."themeId", p."versionId", p."createdAt",
+        SELECT p.id AS "purchaseId", p."themeId", p."versionId", p."createdAt",
                t.title AS "themeTitle", t.price AS "themePrice", t."thumbnailUrl" AS "themeThumbnailUrl"
         FROM "Purchase" p
         JOIN "Theme" t ON t.id = p."themeId"
@@ -41,46 +41,54 @@ export async function GET() {
         myThemes = rows.map(r => ({ ...r, isPublic: true, isSelling: true, thumbnailUrl: null }));
     }
 
-    // 구매한 버전 정보 조회
-    type VersionRow = { themeId: string; id: string; version: string; kthemeFileUrl: string | null; apkFileUrl: string | null };
-    const versionsByTheme: Record<string, VersionRow[]> = {};
+    // 구매한 버전 정보 조회 (구매별로 정확한 버전 1개씩 매핑)
+    type VersionRow = { id: string; themeId: string; version: string; kthemeFileUrl: string | null; apkFileUrl: string | null };
 
-    // versionId가 있는 구매 → 해당 버전만
+    // versionId가 있는 구매들의 버전 조회
     const versionIds = purchases.map(p => p.versionId).filter((v): v is string => !!v);
+    const versionMap: Record<string, VersionRow> = {};
     if (versionIds.length > 0) {
-        const specificVersions = await prisma.$queryRaw<VersionRow[]>`
-            SELECT "themeId", id, version, "kthemeFileUrl", "apkFileUrl"
+        const versionRows = await prisma.$queryRaw<VersionRow[]>`
+            SELECT id, "themeId", version, "kthemeFileUrl", "apkFileUrl"
             FROM "ThemeVersion"
             WHERE id = ANY(${versionIds}::text[])
         `;
-        for (const v of specificVersions) {
-            if (!versionsByTheme[v.themeId]) versionsByTheme[v.themeId] = [];
-            versionsByTheme[v.themeId].push(v);
+        for (const v of versionRows) {
+            versionMap[v.id] = v;
         }
     }
-    // versionId 없는 구매 → 전체 버전 (구버전 데이터 호환)
-    const themesWithoutVersion = purchases.filter(p => !p.versionId).map(p => p.themeId);
+
+    // versionId 없는 구매의 fallback: themeId 기준 전체 버전
+    const themesWithoutVersion = [...new Set(purchases.filter(p => !p.versionId).map(p => p.themeId))];
+    const fallbackVersionsByTheme: Record<string, VersionRow[]> = {};
     if (themesWithoutVersion.length > 0) {
         const fallbackVersions = await prisma.$queryRaw<VersionRow[]>`
-            SELECT "themeId", id, version, "kthemeFileUrl", "apkFileUrl"
+            SELECT id, "themeId", version, "kthemeFileUrl", "apkFileUrl"
             FROM "ThemeVersion"
             WHERE "themeId" = ANY(${themesWithoutVersion}::text[])
             ORDER BY "createdAt" ASC
         `;
         for (const v of fallbackVersions) {
-            if (!versionsByTheme[v.themeId]) versionsByTheme[v.themeId] = [];
-            versionsByTheme[v.themeId].push(v);
+            if (!fallbackVersionsByTheme[v.themeId]) fallbackVersionsByTheme[v.themeId] = [];
+            fallbackVersionsByTheme[v.themeId].push(v);
         }
     }
 
-    const purchasedList = purchases.map((p) => ({
-        id: p.themeId,
-        name: p.themeTitle,
-        price: p.themePrice,
-        thumbnailUrl: p.themeThumbnailUrl ?? null,
-        purchasedAt: p.createdAt,
-        versions: versionsByTheme[p.themeId] ?? [],
-    }));
+    const purchasedList = purchases.map((p) => {
+        // versionId가 있으면 해당 버전 1개만, 없으면 fallback 전체
+        const versions = p.versionId
+            ? (versionMap[p.versionId] ? [versionMap[p.versionId]] : [])
+            : (fallbackVersionsByTheme[p.themeId] ?? []);
+        return {
+            purchaseId: p.purchaseId,
+            id: p.themeId,
+            name: p.themeTitle,
+            price: p.themePrice,
+            thumbnailUrl: p.themeThumbnailUrl ?? null,
+            purchasedAt: p.createdAt,
+            versions,
+        };
+    });
 
     const mineList = myThemes.map((t) => ({
         id: t.id,

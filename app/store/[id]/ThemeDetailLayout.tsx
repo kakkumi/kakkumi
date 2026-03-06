@@ -53,13 +53,14 @@ type Props = {
     isLoggedIn: boolean;
     userId?: string;
     isOwned?: boolean;
+    ownedVersionIds?: string[];
     versions?: ThemeVersion[];
 };
 
 export default function ThemeDetailLayout({
     images, previews, name, tag, themeId,
     price, priceNum, author, creatorId, description, category,
-    stats, dbId, isLoggedIn, userId, isOwned, versions = [],
+    stats, dbId, isLoggedIn, userId, isOwned, ownedVersionIds = [], versions = [],
 }: Props) {
     const router = useRouter();
     const colors = themeId ? THEME_COLORS[themeId] : undefined;
@@ -223,6 +224,7 @@ export default function ThemeDetailLayout({
                         isLoggedIn={isLoggedIn}
                         userId={userId}
                         isOwned={isOwned}
+                        ownedVersionIds={ownedVersionIds}
                         versions={versions}
                         onInquiryAction={() => setShowInquiryModal(true)}
                     />

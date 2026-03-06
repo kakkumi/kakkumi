@@ -53,13 +53,14 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
     const session = await getServerSession();
     const isLoggedIn = !!session?.dbId;
 
-    // 보유 여부 확인
-    let isOwned = false;
+    // 구매한 versionId 목록 조회
+    let ownedVersionIds: string[] = [];
     if (session?.dbId) {
-        const purchase = await prisma.purchase.findFirst({
-            where: { buyerId: session.dbId, themeId: id, status: "COMPLETED" },
-        });
-        isOwned = !!purchase;
+        const ownedRows = await prisma.$queryRaw<{ versionId: string | null }[]>`
+            SELECT "versionId" FROM "Purchase"
+            WHERE "buyerId" = ${session.dbId} AND "themeId" = ${id} AND status = 'COMPLETED'::"PurchaseStatus"
+        `;
+        ownedVersionIds = ownedRows.map(r => r.versionId).filter((v): v is string => !!v);
     }
 
     // 다운로드 옵션 (ThemeVersion) 조회
@@ -136,7 +137,8 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
                     dbId={dbTheme.id}
                     isLoggedIn={isLoggedIn}
                     userId={session?.dbId ?? undefined}
-                    isOwned={isOwned}
+                    isOwned={ownedVersionIds.length > 0}
+                    ownedVersionIds={ownedVersionIds}
                     versions={versions as { id: string; version: string; kthemeFileUrl: string | null; apkFileUrl: string | null }[]}
                 />
 
@@ -144,7 +146,7 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
                     themeId={dbTheme.id}
                     themeName={dbTheme.title}
                     thumbnailUrl={dbTheme.thumbnailUrl}
-                    isOwned={isOwned}
+                    isOwned={ownedVersionIds.length > 0}
                     userId={session?.dbId ?? undefined}
                 />
             </div>

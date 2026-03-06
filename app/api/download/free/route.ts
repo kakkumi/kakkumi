@@ -29,22 +29,21 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "유료 테마는 결제 후 다운로드 가능합니다." }, { status: 403 });
     }
 
-    // 이미 다운로드(구매) 기록이 있는지 확인
-    const existing = await prisma.purchase.findFirst({
-        where: { buyerId: session.dbId, themeId, status: "COMPLETED" },
-    });
+    // 동일 버전을 이미 보유 중인지 확인 (versionId 기준)
+    const existing = await prisma.$queryRaw<{ id: string }[]>`
+        SELECT id FROM "Purchase"
+        WHERE "buyerId" = ${session.dbId}
+          AND "themeId" = ${themeId}
+          AND ("versionId" = ${versionId ?? null} OR ("versionId" IS NULL AND ${versionId ?? null}::text IS NULL))
+          AND status = 'COMPLETED'::"PurchaseStatus"
+        LIMIT 1
+    `.then(rows => rows[0] ?? null);
 
-    // 없으면 Purchase 기록 생성
     if (!existing) {
-        await prisma.purchase.create({
-            data: {
-                buyerId: session.dbId,
-                themeId,
-                versionId: versionId ?? null,
-                amount: 0,
-                status: "COMPLETED",
-            },
-        });
+        await prisma.$executeRaw`
+            INSERT INTO "Purchase" (id, "buyerId", "themeId", "versionId", amount, status, "createdAt")
+            VALUES (${crypto.randomUUID()}, ${session.dbId}, ${themeId}, ${versionId ?? null}, ${0}, 'COMPLETED'::"PurchaseStatus", NOW())
+        `;
     }
 
     return NextResponse.json({ success: true, alreadyOwned: !!existing });
