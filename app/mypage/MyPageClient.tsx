@@ -46,7 +46,7 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
     const router = useRouter();
     const searchParams = useSearchParams();
     const menuFromUrl = searchParams.get("menu") ?? "";
-    const [activeMenu, setActiveMenu] = useState<string>(menuFromUrl || "회원정보 수정");
+    const [activeMenu, setActiveMenu] = useState<string>(menuFromUrl || "회원 정보");
     const [themeTab, setThemeTab] = useState<Tab>(() => THEME_TAB_MAP[menuFromUrl] ?? "purchased");
 
     // 닉네임 상태
@@ -252,7 +252,7 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
     const isThemeMenu = activeMenu !== null && THEME_TAB_MAP[activeMenu] !== undefined;
     const isCreditMenu = activeMenu === "적립금";
     const isRefundMenu = activeMenu === "취소/환불 내역";
-    const isSettingsMenu = activeMenu === "회원정보 수정";
+    const isSettingsMenu = activeMenu === "회원 정보";
     const isNotifMenu = activeMenu === "알림 설정";
     const isWithdrawMenu = activeMenu === "회원 탈퇴";
     const isFollowMenu = activeMenu === "팔로우";
@@ -439,10 +439,10 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
                                 </div>
                             </>
                         ) : isSettingsMenu ? (
-                            /* ── 회원정보 수정 ── */
+                            /* ── 회원 정보 ── */
                             <>
                                 <div>
-                                    <h1 className="text-[22px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>회원정보 수정</h1>
+                                    <h1 className="text-[22px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>회원 정보</h1>
                                     <p className="text-[13px] mt-1" style={{ color: "#8e8e93" }}>계정 정보를 관리하세요.</p>
                                 </div>
 
@@ -557,40 +557,18 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
                                         </div>
                                         <p className="text-[11px]" style={{ color: "#8e8e93" }}>이메일은 카카오 계정과 연동되어 있습니다. 변경을 원하시면 카카오 계정에서 수정해주세요.</p>
                                     </div>
-                                </div>
 
-                                {/* 계정 정보 섹션 */}
-                                <div className="p-7 rounded-[24px] flex flex-col gap-5" style={{ background: "rgba(255,255,255,0.7)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.8)", boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
-                                    <h3 className="text-[15px] font-bold" style={{ color: "#1c1c1e" }}>계정 정보</h3>
-                                    <div className="flex flex-col gap-4">
-                                        <div className="flex items-center justify-between py-3 border-b" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
-                                            <div className="flex flex-col gap-0.5">
-                                                <span className="text-[13px] font-medium" style={{ color: "#1c1c1e" }}>연결된 소셜 계정</span>
-                                                <span className="text-[11px]" style={{ color: "#8e8e93" }}>카카오 계정으로 로그인 중</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: "rgba(255,231,58,0.2)", border: "1px solid rgba(255,231,58,0.5)" }}>
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="#3A1D1D">
-                                                    <path d="M12 3C7.029 3 3 6.582 3 11c0 2.67 1.416 5.03 3.6 6.6L5.4 21l4.2-2.1C10.5 19.26 11.23 19.4 12 19.4c4.971 0 9-3.582 9-8S16.971 3 12 3z" />
-                                                </svg>
-                                                <span className="text-[12px] font-semibold" style={{ color: "#3A1D1D" }}>카카오</span>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center justify-between py-3 border-b" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
-                                            <div className="flex flex-col gap-0.5">
-                                                <span className="text-[13px] font-medium" style={{ color: "#1c1c1e" }}>계정 등급</span>
-                                                <span className="text-[11px]" style={{ color: "#8e8e93" }}>현재 서비스 이용 등급</span>
-                                            </div>
+                                    <div className="h-[1px]" style={{ background: "rgba(0,0,0,0.07)" }} />
+
+                                    {/* 계정 등급 */}
+                                    <div className="flex flex-col gap-3">
+                                        <label className="text-[13px] font-bold" style={{ color: "#1c1c1e" }}>계정 등급</label>
+                                        <div className="flex items-center gap-3">
                                             <span className="text-[12px] font-semibold px-3 py-1 rounded-full" style={{ background: session.role === "ADMIN" ? "rgba(255,59,48,0.12)" : session.role === "CREATOR" ? "rgba(255,149,0,0.12)" : "rgba(0,122,255,0.12)", color: session.role === "ADMIN" ? "#ff3b30" : session.role === "CREATOR" ? "#FF9500" : "#007aff" }}>
                                                 {session.role === "ADMIN" ? "관리자" : session.role === "CREATOR" ? "크리에이터" : "일반 회원"}
                                             </span>
                                         </div>
-                                        <div className="flex items-center justify-between py-3">
-                                            <div className="flex flex-col gap-0.5">
-                                                <span className="text-[13px] font-medium" style={{ color: "#1c1c1e" }}>카카오 이름</span>
-                                                <span className="text-[11px]" style={{ color: "#8e8e93" }}>카카오 계정에 등록된 이름</span>
-                                            </div>
-                                            <span className="text-[13px] font-medium" style={{ color: "#3a3a3c" }}>{session.name ?? "-"}</span>
-                                        </div>
+                                        <p className="text-[11px]" style={{ color: "#8e8e93" }}>현재 서비스 이용 등급입니다.</p>
                                     </div>
                                 </div>
                             </>
@@ -688,7 +666,7 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
                                 </div>
                                 {withdrawError && <p className="text-[13px] font-medium" style={{ color: "#ff3b30" }}>{withdrawError}</p>}
                                 <div className="flex gap-3">
-                                    <button onClick={() => setActiveMenu("회원정보 수정")} className="flex-1 py-3.5 rounded-xl text-[14px] font-semibold transition-all hover:opacity-80 active:scale-95" style={{ background: "rgba(0,0,0,0.06)", color: "#3a3a3c" }}>취소</button>
+                                    <button onClick={() => setActiveMenu("회원 정보")} className="flex-1 py-3.5 rounded-xl text-[14px] font-semibold transition-all hover:opacity-80 active:scale-95" style={{ background: "rgba(0,0,0,0.06)", color: "#3a3a3c" }}>취소</button>
                                     <button onClick={handleWithdraw} disabled={!canWithdraw} className="flex-1 py-3.5 rounded-xl text-[14px] font-bold transition-all active:scale-95 disabled:opacity-30" style={{ background: canWithdraw ? "#ff3b30" : "rgba(255,59,48,0.3)", color: "#fff", boxShadow: canWithdraw ? "0 4px 16px rgba(255,59,48,0.3)" : "none" }}>
                                         {withdrawLoading ? "탈퇴 처리 중..." : "탈퇴하기"}
                                     </button>

@@ -58,7 +58,7 @@ export default async function MyPage() {
     const sidebarMenus = [
         {
             category: "정보",
-            items: [{ label: "회원정보 수정" }, { label: "알림 설정" }],
+            items: [{ label: "회원 정보" }, { label: "알림 설정" }],
         },
         {
             category: "테마",
