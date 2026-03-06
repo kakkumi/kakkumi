@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import { sendThemeRejectionEmail } from "@/lib/email";
+import { notifyThemeApproved, notifyThemeRejected, notifyNewThemeToFollowers } from "@/lib/notification";
 
 // 전체 테마 목록 (DRAFT 포함)
 export async function GET() {
@@ -64,50 +65,14 @@ export async function PATCH(req: NextRequest) {
 
         if (action === "approve") {
             await prisma.$executeRaw`UPDATE "Theme" SET status = 'PUBLISHED', "adminNote" = NULL, "updatedAt" = NOW() WHERE id = ${themeId}`;
-            // 승인 알림 (크리에이터에게)
             if (theme) {
-                await prisma.$executeRaw`
-                    INSERT INTO "Notification" (id, "userId", type, title, body, "linkUrl", "createdAt")
-                    VALUES (
-                        ${crypto.randomUUID()}, ${theme.creatorId},
-                        'THEME_APPROVED'::"NotificationType",
-                        ${'테마 승인'},
-                        ${`"${theme.title}" 테마가 승인되어 스토어에 공개되었습니다.`},
-                        ${`/store`}, NOW()
-                    )
-                `;
-                // 팔로워들에게 NEW_THEME 알림
-                const followers = await prisma.$queryRaw<{ followerId: string }[]>`
-                    SELECT "followerId" FROM "Follow" WHERE "followingId" = ${theme.creatorId}
-                `;
-                const creatorDisplayName = theme.creatorNickname ?? theme.creatorName;
-                for (const f of followers) {
-                    await prisma.$executeRaw`
-                        INSERT INTO "Notification" (id, "userId", type, title, body, "linkUrl", "createdAt")
-                        VALUES (
-                            ${crypto.randomUUID()}, ${f.followerId},
-                            'NEW_THEME'::"NotificationType",
-                            ${'새 테마 등록'},
-                            ${`${creatorDisplayName}님이 새 테마 "${theme.title}"를 등록했습니다.`},
-                            ${`/store/${themeId}`}, NOW()
-                        )
-                    `;
-                }
+                await notifyThemeApproved(theme.creatorId, theme.title, themeId);
+                await notifyNewThemeToFollowers(theme.creatorId, theme.title, themeId);
             }
         } else if (action === "reject") {
             await prisma.$executeRaw`UPDATE "Theme" SET status = 'DRAFT', "adminNote" = ${adminNote ?? ""}, "updatedAt" = NOW() WHERE id = ${themeId}`;
-            // 반려 알림 + 이메일
             if (theme) {
-                await prisma.$executeRaw`
-                    INSERT INTO "Notification" (id, "userId", type, title, body, "linkUrl", "createdAt")
-                    VALUES (
-                        ${crypto.randomUUID()}, ${theme.creatorId},
-                        'THEME_REJECTED'::"NotificationType",
-                        ${'테마 반려'},
-                        ${`"${theme.title}" 테마가 반려되었습니다. 사유: ${adminNote ?? "사유 없음"}`},
-                        ${`/mypage`}, NOW()
-                    )
-                `;
+                await notifyThemeRejected(theme.creatorId, theme.title, adminNote);
                 if (theme.creatorEmail) {
                     await sendThemeRejectionEmail({
                         to: theme.creatorEmail,

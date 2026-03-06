@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "@/lib/session";
+import { notifyNewReview } from "@/lib/notification";
 
 // GET /api/themes/:id/review - 리뷰 목록 + 내 리뷰 조회
 export async function GET(_req: Request, props: { params: Promise<{ id: string }> }) {
@@ -67,6 +68,13 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
             INSERT INTO "Review" (id, "userId", "themeId", rating, content, images, "createdAt", "updatedAt")
             VALUES (gen_random_uuid(), ${session.dbId}, ${themeId}, ${rating}, ${content ?? null}, ${safeImages}::text[], NOW(), NOW())
         `;
+        // 신규 리뷰 등록 시 크리에이터에게 알림 (알림 설정 체크)
+        const themeRows = await prisma.$queryRaw<{ creatorId: string; title: string }[]>`
+            SELECT "creatorId", title FROM "Theme" WHERE id = ${themeId} LIMIT 1
+        `;
+        if (themeRows[0] && themeRows[0].creatorId !== session.dbId) {
+            await notifyNewReview(themeRows[0].creatorId, themeRows[0].title, themeId);
+        }
     }
 
     return NextResponse.json({ ok: true });

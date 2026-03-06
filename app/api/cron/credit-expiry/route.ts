@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { sendCreditExpiryWarning } from "@/lib/email";
 import { CREDIT_EXPIRY_WARN_DAYS, CREDIT_EXPIRY_WARN_DEDUP_DAYS, DAY_MS } from "@/lib/constants";
 import { nowKST } from "@/lib/date";
+import { notifyCreditExpiry } from "@/lib/notification";
 
 // 이 엔드포인트는 Vercel Cron Job 또는 외부 스케줄러에서 호출합니다.
 // 보호: CRON_SECRET 헤더 검증
@@ -100,18 +101,9 @@ export async function POST(req: NextRequest) {
             const amount = Number(row.totalAmount);
             if (amount <= 0) continue;
 
-            await prisma.$executeRaw`
-                INSERT INTO "Notification" (id, "userId", type, title, body, "linkUrl", "createdAt")
-                VALUES (
-                    ${crypto.randomUUID()},
-                    ${row.userId},
-                    'CREDIT_EXPIRY'::"NotificationType",
-                    ${'적립금 만료 예정'},
-                    ${`${amount.toLocaleString()}원 적립금이 ${CREDIT_EXPIRY_WARN_DAYS}일 이내에 만료됩니다.`},
-                    ${'/mypage'},
-                    ${now}
-                )
-            `;
+            const daysLeft = Math.ceil((new Date(row.expiresAt).getTime() - now.getTime()) / DAY_MS);
+            // 설정 체크 포함한 헬퍼 사용
+            await notifyCreditExpiry(row.userId, amount, daysLeft);
             if (row.email) {
                 try {
                     await sendCreditExpiryWarning({

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { sendPurchaseReceipt } from "@/lib/email";
 import { nowKST } from "@/lib/date";
 import { getPurchaseCredit, CREDIT_EXPIRY_DAYS, DAY_MS } from "@/lib/constants";
+import { notifyPurchaseComplete } from "@/lib/notification";
 
 // 토스페이먼츠 결제 승인 API
 // 클라이언트에서 받은 paymentKey, orderId, amount를 서버에서 검증 후 DB 저장
@@ -102,19 +103,8 @@ export async function POST(request: Request) {
         `;
     }
 
-    // 구매 완료 알림
-    await prisma.$executeRaw`
-        INSERT INTO "Notification" (id, "userId", type, title, body, "linkUrl", "createdAt")
-        VALUES (
-            ${crypto.randomUUID()},
-            ${session.dbId},
-            'PURCHASE_COMPLETE'::"NotificationType",
-            ${'구매 완료'},
-            ${`"${theme.title}" 구매가 완료되었습니다.`},
-            ${'/mypage'},
-            ${now}
-        )
-    `;
+    // 구매 완료 알림 (알림 설정 체크)
+    await notifyPurchaseComplete(session.dbId, theme.title, themeId);
 
     // 영수증 이메일 발송
     const userRows = await prisma.$queryRaw<{ email: string | null; name: string; nickname: string | null }[]>`

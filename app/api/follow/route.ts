@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { nowKST } from "@/lib/date";
+import { notifyFollow } from "@/lib/notification";
 
 // 팔로우 상태 확인
 export async function GET(req: NextRequest) {
@@ -68,24 +69,12 @@ export async function POST(req: NextRequest) {
                 ON CONFLICT ("followerId", "followingId") DO NOTHING
             `;
 
-            // 팔로우 알림 생성 (팔로우 당한 사람에게)
+            // 팔로우 알림 (설정 체크 포함)
             const followerRows = await prisma.$queryRaw<{ nickname: string | null; name: string }[]>`
                 SELECT nickname, name FROM "User" WHERE id = ${session.dbId} LIMIT 1
             `;
             const followerName = followerRows[0]?.nickname ?? followerRows[0]?.name ?? "누군가";
-
-            await prisma.$executeRaw`
-                INSERT INTO "Notification" (id, "userId", type, title, body, "linkUrl", "createdAt")
-                VALUES (
-                    ${crypto.randomUUID()},
-                    ${creatorId},
-                    'FOLLOW'::"NotificationType",
-                    ${'새 팔로워'},
-                    ${`${followerName}님이 팔로우했습니다.`},
-                    ${`/creator/${session.dbId}`},
-                    ${nowKST()}
-                )
-            `;
+            await notifyFollow(creatorId, followerName, session.dbId);
 
             return NextResponse.json({ isFollowing: true });
         }

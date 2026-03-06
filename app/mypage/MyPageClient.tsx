@@ -64,24 +64,64 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // 알림 설정 상태
-    type NotifKey = "purchaseComplete" | "newReview" | "reviewReply" | "inquiryReply" | "newTheme" | "promotionEvent" | "serviceBroadcast";
+    type NotifKey = "purchaseComplete" | "newReview" | "inquiryReply" | "newTheme" | "promotionEvent" | "serviceBroadcast" | "followAlert" | "creditExpiry" | "priceDropAlert";
     type NotifSettings = Record<NotifKey, boolean>;
+    const isCreatorOrAdmin = session?.role === "CREATOR" || session?.role === "ADMIN";
     const NOTIFICATION_GROUPS: { category: string; items: { key: NotifKey; label: string; desc: string }[] }[] = [
         { category: "구매 / 다운로드", items: [{ key: "purchaseComplete", label: "구매 완료 알림", desc: "테마 결제가 완료되면 알려드립니다." }] },
-        { category: "리뷰 & 문의", items: [{ key: "newReview", label: "새 리뷰 알림", desc: "내 테마에 리뷰가 등록되면 알려드립니다." }, { key: "reviewReply", label: "리뷰 답글 알림", desc: "내가 작성한 리뷰에 답글이 달리면 알려드립니다." }, { key: "inquiryReply", label: "문의 답변 알림", desc: "1:1 문의에 답변이 등록되면 알려드립니다." }] },
-        { category: "테마 스토어", items: [{ key: "newTheme", label: "신규 테마 알림", desc: "팔로우한 크리에이터가 새 테마를 등록하면 알려드립니다." }, { key: "promotionEvent", label: "할인 / 이벤트 알림", desc: "관심 테마의 가격 변동이나 이벤트를 알려드립니다." }] },
+        { category: "리뷰 & 문의", items: [
+            { key: "newReview", label: "새 리뷰 알림", desc: "내 테마에 리뷰가 등록되면 알려드립니다." },
+            { key: "inquiryReply", label: "문의 답변 알림", desc: "1:1 문의에 답변이 등록되면 알려드립니다." },
+        ]},
+        { category: "테마 스토어", items: [
+            { key: "newTheme", label: "신규 테마 알림", desc: "팔로우한 크리에이터가 새 테마를 등록하면 알려드립니다." },
+            { key: "promotionEvent", label: "할인 / 이벤트 알림", desc: "관심 테마의 가격 변동이나 이벤트를 알려드립니다." },
+            { key: "priceDropAlert", label: "찜한 테마 가격 인하 알림", desc: "좋아요한 테마의 가격이 내려가면 알려드립니다." },
+        ]},
+        { category: "적립금", items: [
+            { key: "creditExpiry", label: "적립금 만료 알림", desc: "적립금 만료 7일·1일 전에 미리 알려드립니다." },
+        ]},
+        ...(isCreatorOrAdmin ? [{ category: "크리에이터", items: [
+            { key: "followAlert" as NotifKey, label: "팔로우 알림", desc: "누군가 나를 팔로우하면 알려드립니다." },
+        ]}] : []),
         { category: "서비스", items: [{ key: "serviceBroadcast", label: "공지 및 서비스 알림", desc: "카꾸미의 공지사항과 업데이트 소식을 알려드립니다." }] },
     ];
-    const [notifSettings, setNotifSettings] = useState<NotifSettings>({ purchaseComplete: true, newReview: true, reviewReply: true, inquiryReply: true, newTheme: false, promotionEvent: false, serviceBroadcast: true });
+    const [notifSettings, setNotifSettings] = useState<NotifSettings>({ purchaseComplete: true, newReview: true, inquiryReply: true, newTheme: false, promotionEvent: false, serviceBroadcast: true, followAlert: true, creditExpiry: true, priceDropAlert: false });
     const [notifSaving, setNotifSaving] = useState(false);
     const [notifSaveSuccess, setNotifSaveSuccess] = useState(false);
+    const [notifLoaded, setNotifLoaded] = useState(false);
+
+    // 알림 설정 메뉴 진입 시 서버에서 불러오기
+    useEffect(() => {
+        if (activeMenu !== "알림 설정" || notifLoaded) return;
+        const load = async () => {
+            try {
+                const res = await fetch("/api/user/notif-settings");
+                const data = await res.json() as { settings: NotifSettings };
+                if (data.settings) setNotifSettings(data.settings);
+            } catch { /* 기본값 유지 */ } finally {
+                setNotifLoaded(true);
+            }
+        };
+        void load();
+    }, [activeMenu, notifLoaded]);
+
     const toggleNotif = (key: NotifKey) => { setNotifSettings((prev) => ({ ...prev, [key]: !prev[key] })); setNotifSaveSuccess(false); };
     const handleNotifSaveAll = async () => {
         setNotifSaving(true);
-        await new Promise((r) => setTimeout(r, 600));
-        setNotifSaving(false);
-        setNotifSaveSuccess(true);
-        setTimeout(() => setNotifSaveSuccess(false), 3000);
+        try {
+            const res = await fetch("/api/user/notif-settings", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(notifSettings),
+            });
+            if (res.ok) {
+                setNotifSaveSuccess(true);
+                setTimeout(() => setNotifSaveSuccess(false), 3000);
+            }
+        } catch { /* ignore */ } finally {
+            setNotifSaving(false);
+        }
     };
 
     // 회원 탈퇴 상태

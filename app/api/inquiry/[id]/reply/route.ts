@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { notifyInquiryReply } from "@/lib/notification";
 
 // 답글 작성
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -38,6 +39,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         await prisma.$executeRaw`
             UPDATE "Inquiry" SET status = 'ANSWERED', "updatedAt" = ${now} WHERE id = ${id}
         `;
+        // 문의자에게 답변 알림 (알림 설정 체크)
+        const [inq] = await prisma.$queryRaw<{ title: string }[]>`
+            SELECT title FROM "Inquiry" WHERE id = ${id} LIMIT 1
+        `;
+        if (inquiry.userId !== session.dbId) {
+            await notifyInquiryReply(inquiry.userId, inq?.title ?? "문의");
+        }
     }
 
     const reply = {

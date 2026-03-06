@@ -98,7 +98,8 @@ model User {
   isSuspended       Boolean   @default(false)
   credit            Int       @default(0)
   referralCode      String?   @unique
-  referralRewarded  Boolean   @default(false)  // 추천 적립을 이미 받았는지 (평생 1회)
+  referralRewarded  Boolean   @default(false)
+  notifSettings     Json?                       // 알림 설정 (null이면 기본값 사용)
   deletedAt         DateTime?                   // soft delete
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt

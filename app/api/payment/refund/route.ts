@@ -3,6 +3,7 @@ import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { nowKST } from "@/lib/date";
 import { REFUND_ALLOWED_DAYS, CREDIT_EXPIRY_DAYS, DAY_MS } from "@/lib/constants";
+import { notifyRefundComplete } from "@/lib/notification";
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession();
@@ -108,19 +109,8 @@ export async function POST(req: NextRequest) {
             `;
         }
 
-        // 환불 완료 알림
-        await prisma.$executeRaw`
-            INSERT INTO "Notification" (id, "userId", type, title, body, "linkUrl", "createdAt")
-            VALUES (
-                ${crypto.randomUUID()},
-                ${session.dbId},
-                'REFUND_COMPLETE'::"NotificationType",
-                ${'환불 완료'},
-                ${`"${purchase.themeTitle}" 환불이 완료되었습니다. ${purchase.amount.toLocaleString()}원이 적립금으로 지급됩니다.`},
-                ${'/mypage'},
-                ${now}
-            )
-        `;
+        // 환불 완료 알림 (알림 설정 체크)
+        await notifyRefundComplete(session.dbId, purchase.themeTitle);
 
         return NextResponse.json({ ok: true });
     } catch (e) {
