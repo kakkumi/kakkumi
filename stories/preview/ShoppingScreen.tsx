@@ -1,8 +1,7 @@
 import React from 'react';
 import {
   Search, ShoppingBag, Settings, Info,
-  Gift, Percent, Package, Receipt,
-  Upload, Heart
+  Gift, Percent, Package, Receipt
 } from 'lucide-react';
 
 // --- 외부 파일 의존성 제거 (미리보기를 위한 통합 모의 데이터 및 스타일) ---
@@ -21,8 +20,18 @@ const iconRowStyle: React.CSSProperties = {
 };
 
 // Zustand Store Mock (Apeach 테마 컬러 적용)
-const useThemeStore = (selector: any) => {
-  const state = {
+interface ThemeState {
+  themeConfig: {
+    global: {
+      backgroundColor: string;
+      textColor: string;
+      descriptionColor: string;
+    };
+  };
+}
+
+const useThemeStore = (selector: (state: ThemeState) => ThemeState['themeConfig']) => {
+  const state: ThemeState = {
     themeConfig: {
       global: {
         backgroundColor: '#FFFFFF',
@@ -36,7 +45,7 @@ const useThemeStore = (selector: any) => {
 // -------------------------------------------------------------------------
 
 export const ShoppingScreen = () => {
-  const themeConfig = useThemeStore((state: any) => state.themeConfig);
+  const themeConfig = useThemeStore((state) => state.themeConfig);
   const { global } = themeConfig;
 
   return (
@@ -66,23 +75,22 @@ export const ShoppingScreen = () => {
       </header>
 
       {/* 2. 상단 탭 칩 메뉴 */}
-      <div className="no-scrollbar" style={{ display: 'flex', gap: 8, padding: '4px 16px 16px 16px', overflowX: 'auto' }}>
-        {['홈', '랭킹', 'LG생건쎈딜', '쟁쟁한특가', '베이비&키즈'].map((chip, idx) => (
+      <div style={{ display: 'flex', gap: 7, padding: '2px 14px 4px 14px' }}>
+        {[{ label: '홈', active: true }, { label: '랭킹', active: false }].map(({ label, active }) => (
           <button
-            key={chip}
+            key={label}
             style={{
-              backgroundColor: idx === 0 ? global.textColor : 'transparent',
-              color: idx === 0 ? '#FFFFFF' : global.textColor,
+              backgroundColor: active ? '#000000' : 'transparent',
+              color: active ? global.backgroundColor : global.textColor,
               borderRadius: 999,
-              padding: '8px 16px',
-              fontSize: 15,
-              fontWeight: idx === 0 ? 700 : 500,
-              border: idx === 0 ? 'none' : `1px solid ${global.textColor}30`,
-              flexShrink: 0,
-              cursor: 'pointer'
+              padding: '5px 12px',
+              fontSize: 12,
+              fontWeight: 400,
+              border: active ? 'none' : `1px solid ${global.textColor}30`,
+              cursor: 'pointer',
             }}
           >
-            {chip}
+            {label}
           </button>
         ))}
       </div>
@@ -91,7 +99,7 @@ export const ShoppingScreen = () => {
       <div className="no-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: 'auto', backgroundColor: '#FFFFFF' }}>
 
         {/* 배너 카드 영역 (가로 스크롤) */}
-        <section className="no-scrollbar" style={{ display: 'flex', gap: 12, padding: '16px', overflowX: 'auto', scrollSnapType: 'x mandatory' }}>
+        <section className="no-scrollbar" style={{ display: 'flex', gap: 12, padding: '10px 16px 10px 16px', overflowX: 'auto', scrollSnapType: 'x mandatory' }}>
 
           {/* 카드 1 : 베이비&키즈페어 */}
           <div style={{
@@ -156,7 +164,7 @@ export const ShoppingScreen = () => {
         </section>
 
         {/* 퀵 메뉴 아이콘 영역 */}
-        <section style={{ display: 'flex', justifyContent: 'space-between', padding: '16px 24px 32px 24px' }}>
+        <section style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 24px 16px 24px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
             <Gift size={32} color="#FF5C5C" fill="#FFC1C1" strokeWidth={1.5} />
             <span style={{ fontSize: 12, color: '#191919' }}>선물하기</span>
@@ -184,103 +192,11 @@ export const ShoppingScreen = () => {
         <div style={{ height: 8, backgroundColor: '#F2F2F2' }} />
 
         {/* 나를 위한 추천 딜 영역 */}
-        <section style={{ padding: '24px 16px 40px 16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 16 }}>
+        <section style={{ padding: '24px 16px 0 16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#191919' }}>나를 위한 추천 딜</h3>
             <Info size={16} color="#999999" />
           </div>
-
-          {/* 추천 딜 아이템 1 (구운란) */}
-          <article style={{ marginBottom: 32 }}>
-            <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', backgroundColor: '#E5C07B', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-              <span style={{ fontSize: 120 }}>🥚</span>
-              {/* 마감 1일전 뱃지 */}
-              <div style={{ position: 'absolute', top: 12, left: 12, backgroundColor: 'rgba(0,0,0,0.6)', color: '#FFF', fontSize: 12, fontWeight: 600, padding: '4px 8px', borderRadius: 6 }}>
-                마감 1일전
-              </div>
-              {/* 하단 어피치 장식 (스크린샷 고증) */}
-              <div style={{ position: 'absolute', bottom: -10, left: 0, right: 0, height: 40, display: 'flex', justifyContent: 'space-around', fontSize: 32 }}>
-                <span>🍑</span><span>🍑</span><span>🍑</span><span>🍑</span><span>🍑</span>
-              </div>
-            </div>
-
-            <div style={{ padding: '16px 0' }}>
-              <div style={{ backgroundColor: '#F5F5F5', display: 'inline-block', padding: '3px 6px', borderRadius: 4, fontSize: 11, color: '#666', fontWeight: 500, marginBottom: 8 }}>
-                무료배송
-              </div>
-              <p style={{ margin: '0 0 8px 0', fontSize: 16, color: '#191919', lineHeight: 1.4 }}>
-                국내산 구운란 대란 30구. 쫄깃하고 탱글한 맛
-              </p>
-
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6 }}>
-                  <span style={{ fontSize: 20, fontWeight: 800, color: '#0A7BFF' }}>톡딜가</span>
-                  <span style={{ fontSize: 22, fontWeight: 800, color: '#191919' }}>8,900원~</span>
-                  <span style={{ fontSize: 14, color: '#999', textDecoration: 'line-through', marginBottom: 2 }}>49,900원</span>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <div style={{ display: 'flex' }}>
-                    <div style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#FFC1C1', zIndex: 2, border: '1.5px solid #FFF' }} />
-                    <div style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#A2C5FF', zIndex: 1, marginLeft: -10, border: '1.5px solid #FFF' }} />
-                  </div>
-                  <span style={{ fontSize: 13, color: '#666' }}>2,818개 주문 중이에요</span>
-                </div>
-                <div style={{ display: 'flex', gap: 16, color: '#191919' }}>
-                  <Upload size={24} strokeWidth={1.5} />
-                  <Heart size={24} strokeWidth={1.5} />
-                </div>
-              </div>
-            </div>
-          </article>
-
-          {/* 추천 딜 아이템 2 (카무트 효소) */}
-          <article>
-            <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', backgroundColor: '#F0F0F0', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: 100 }}>💊</span>
-              <div style={{ position: 'absolute', top: 12, left: 12, backgroundColor: 'rgba(0,0,0,0.6)', color: '#FFF', fontSize: 12, fontWeight: 600, padding: '4px 8px', borderRadius: 6 }}>
-                마감 2일전
-              </div>
-            </div>
-
-            <div style={{ padding: '16px 0' }}>
-              <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
-                <div style={{ backgroundColor: 'rgba(10, 123, 255, 0.1)', color: '#0A7BFF', display: 'inline-block', padding: '3px 6px', borderRadius: 4, fontSize: 11, fontWeight: 600 }}>할인쿠폰 2장</div>
-                <div style={{ backgroundColor: '#F5F5F5', display: 'inline-block', padding: '3px 6px', borderRadius: 4, fontSize: 11, color: '#666', fontWeight: 500 }}>무료배송</div>
-              </div>
-
-              <p style={{ margin: '0 0 8px 0', fontSize: 16, color: '#191919', lineHeight: 1.4 }}>
-                골드카무트효소 3개월+추가 9포+리조또 4개+쇼핑백
-              </p>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6 }}>
-                  <span style={{ fontSize: 20, fontWeight: 800, color: '#0A7BFF' }}>톡딜가</span>
-                  <span style={{ fontSize: 22, fontWeight: 800, color: '#191919' }}>41,000원~</span>
-                  <span style={{ fontSize: 14, color: '#999', textDecoration: 'line-through', marginBottom: 2 }}>110,000원</span>
-                </div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: '#FF3B30' }}>
-                  최대혜택가 36,900원
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <div style={{ display: 'flex' }}>
-                    <div style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#98E59E', zIndex: 2, border: '1.5px solid #FFF' }} />
-                    <div style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#FEE500', zIndex: 1, marginLeft: -10, border: '1.5px solid #FFF' }} />
-                  </div>
-                  <span style={{ fontSize: 13, color: '#666' }}>2,495개 주문 중이에요</span>
-                </div>
-                <div style={{ display: 'flex', gap: 16, color: '#191919' }}>
-                  <Upload size={24} strokeWidth={1.5} />
-                  <Heart size={24} strokeWidth={1.5} />
-                </div>
-              </div>
-            </div>
-          </article>
 
         </section>
 
