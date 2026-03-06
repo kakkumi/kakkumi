@@ -173,7 +173,7 @@ export const NewsScreen = () => {
               </div>
             </div>
 
-            <p style={{ margin: '0 0 10px 0', fontSize: 13, color: global.textColor, lineHeight: 1.45 }}>이번에 새로 들인 식물..🌱</p>
+            <p style={{ margin: '0 0 10px 0', fontSize: 13, color: global.textColor, lineHeight: 1.45 }}>밤 산책하면서 제대로 힐링하고 왔다</p>
 
             <div
               style={{
@@ -182,19 +182,16 @@ export const NewsScreen = () => {
                 backgroundColor: '#EBEBEB',
                 borderRadius: 14,
                 marginBottom: 10,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
                 overflow: 'hidden',
                 boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.05)',
               }}
             >
-              <span style={{ fontSize: 72 }}>🪴</span>
+              <img src="/previews/seoul.jpg" alt="서울 야경" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 14, cursor: 'pointer' }}>
               <MapPin size={14} color={global.textColor} />
-              <span style={{ fontSize: 12, color: global.textColor, fontWeight: 500 }}>분당구 삼평동</span>
+              <span style={{ fontSize: 12, color: global.textColor, fontWeight: 500 }}>반포대교 달빛무지개분수</span>
             </div>
 
             <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>

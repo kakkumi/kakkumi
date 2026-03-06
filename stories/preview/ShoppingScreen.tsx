@@ -196,7 +196,7 @@ export const ShoppingScreen = () => {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
             <Percent size={26} color="#FF3B30" strokeWidth={2.5} />
-            <span style={{ fontSize: 11, color: '#191919' }}>톡딜</span>
+            <span style={{ fontSize: 11, color: '#191919' }}>핫딜</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -204,7 +204,7 @@ export const ShoppingScreen = () => {
                 LIVE
               </div>
             </div>
-            <span style={{ fontSize: 11, color: '#191919' }}>라이브쇼핑</span>
+            <span style={{ fontSize: 11, color: '#191919' }}>라이브방송</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
             <Package size={26} color="#FF9500" fill="#FFEBB3" strokeWidth={1.5} />
