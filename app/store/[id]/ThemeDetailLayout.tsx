@@ -8,6 +8,24 @@ import { getPreviewSlots } from "./ThemeImageViewer";
 import ThemeActionButtons from "./ThemeActionButtons";
 import CreatorInquiryModal from "./CreatorInquiryModal";
 
+function getPurchaseCredit(price: number): number {
+    if (price === 0) return 0;
+    if (price <= 500) return 10;
+    if (price <= 1000) return 20;
+    if (price <= 1500) return 30;
+    if (price <= 2000) return 40;
+    return 50;
+}
+
+function getReviewCredit(price: number): number {
+    if (price === 0) return 0;
+    if (price <= 500) return 30;
+    if (price <= 1000) return 70;
+    if (price <= 1500) return 120;
+    if (price <= 2000) return 180;
+    return 250;
+}
+
 type Stats = {
     sales: number;
     createdAt: string;
@@ -205,6 +223,33 @@ export default function ThemeDetailLayout({
                         isOwned={isOwned}
                         onInquiryAction={() => setShowInquiryModal(true)}
                     />
+
+                    {/* 포인트 혜택 */}
+                    {priceNum > 0 && (() => {
+                        const purchaseCredit = getPurchaseCredit(priceNum);
+                        const reviewCredit = getReviewCredit(priceNum);
+                        return (
+                            <div className="flex flex-col gap-3 p-4 rounded-[16px]"
+                                style={{ background: "rgba(74,123,247,0.04)", border: "1px solid rgba(74,123,247,0.12)" }}>
+                                <p className="text-[12px] font-bold" style={{ color: "#4A7BF7" }}>포인트 혜택</p>
+                                <div className="flex flex-col gap-2">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[12px]" style={{ color: "#8e8e93" }}>구매 완료 적립</span>
+                                        <span className="text-[13px] font-bold" style={{ color: "#4A7BF7" }}>+{purchaseCredit}원</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[12px]" style={{ color: "#8e8e93" }}>리뷰 작성 적립</span>
+                                        <span className="text-[13px] font-bold" style={{ color: "#FF9500" }}>+{reviewCredit}원</span>
+                                    </div>
+                                    <div className="h-[1px]" style={{ background: "rgba(0,0,0,0.06)" }} />
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[12px] font-semibold" style={{ color: "#3a3a3c" }}>예상 총 적립</span>
+                                        <span className="text-[14px] font-extrabold" style={{ color: "#34c759" }}>+{(purchaseCredit + reviewCredit).toLocaleString()}원</span>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })()}
                 </div>
             </div>
 

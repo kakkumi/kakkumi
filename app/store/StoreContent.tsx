@@ -17,7 +17,7 @@ const SIDEBAR_MENUS = [
     },
     {
         category: "가격",
-        items: ["전체", "무료", "500원", "1,000원", "1,500원", "2,000원"],
+        items: ["전체", "무료", "500원", "1,000원", "1,500원", "2,000원", "2,500원"],
     },
 ];
 
@@ -202,7 +202,8 @@ export default function StoreContent() {
             (activePrice === "500원"   && t.priceNum <= 500) ||
             (activePrice === "1,000원" && t.priceNum <= 1000) ||
             (activePrice === "1,500원" && t.priceNum <= 1500) ||
-            (activePrice === "2,000원" && t.priceNum <= 2000);
+            (activePrice === "2,000원" && t.priceNum <= 2000) ||
+            (activePrice === "2,500원" && t.priceNum <= 2500);
 
         const q = searchQuery.trim().toLowerCase();
         const searchMatch =
