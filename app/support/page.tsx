@@ -341,104 +341,97 @@ export default function SupportPage() {
             <div className="flex w-full" style={{ maxWidth: 1400, margin: "0 auto" }}>
 
                 {/* ── 사이드바 ── */}
-                <aside className="fixed w-[220px] flex flex-col gap-1 px-6 pt-12">
-                    <span className="text-[11px] font-bold tracking-[0.15em] uppercase px-3 mb-1" style={{ color: "#8e8e93" }}>
+                <aside className="fixed w-[160px] flex flex-col gap-1 px-5 pt-12">
+                    <span className="text-[10.5px] font-bold tracking-[0.15em] uppercase px-2 mb-1" style={{ color: "#8e8e93" }}>
                         고객센터
                     </span>
                     {tabs.map((tab) => (
                         <button
                             key={tab.key}
                             onClick={() => { setActiveTab(tab.key); }}
-                            className="text-left px-3 py-2 rounded-xl text-[13px] font-medium transition-all"
-                            style={{
-                                color: activeTab === tab.key ? "#FF9500" : "#3a3a3c",
-                                fontWeight: activeTab === tab.key ? 700 : 500,
-                            }}
+                            className="text-left px-2 py-[7px] rounded-xl text-[12.5px] font-medium transition-all"
+                            style={{ color: activeTab === tab.key ? "#FF9500" : "#3a3a3c", fontWeight: activeTab === tab.key ? 700 : 500 }}
                         >
                             {tab.label}
                         </button>
                     ))}
 
-                    <div className="my-3 h-[1px]" style={{ background: "rgba(0,0,0,0.18)" }} />
+                    <div className="my-2.5 h-[1px]" style={{ background: "rgba(0,0,0,0.18)" }} />
 
-                    <div className="px-3 flex flex-col gap-2">
-                        <p className="text-[11px] font-bold" style={{ color: "#8e8e93" }}>운영시간</p>
-                        <p className="text-[12px] leading-relaxed" style={{ color: "#3a3a3c" }}>
-                            평일 10:00 – 18:00<br />
-                            <span style={{ color: "#8e8e93" }}>점심 12:00 – 13:00 제외</span>
-                        </p>
-                        <a
-                            href="mailto:aaa@kakkumi.com"
-                            className="text-[12px] hover:underline mt-1"
-                            style={{ color: "#FF9500" }}
-                        >
-                            aaa@kakkumi.com
-                        </a>
-                    </div>
+                    <span className="text-[10.5px] font-bold tracking-[0.15em] uppercase px-2 mb-1" style={{ color: "#8e8e93" }}>
+                        운영시간
+                    </span>
+                    <p className="px-2 text-[12px] leading-relaxed" style={{ color: "#3a3a3c" }}>
+                        평일 10:00 – 18:00<br />
+                        <span style={{ color: "#8e8e93" }}>점심 12:00 – 13:00</span>
+                    </p>
+                    <a
+                        href="mailto:aaa@kakkumi.com"
+                        className="px-2 text-[12px] hover:underline mt-1"
+                        style={{ color: "#FF9500" }}
+                    >
+                        aaa@kakkumi.com
+                    </a>
                 </aside>
 
                 {/* ── 메인 콘텐츠 ── */}
-                <main className="flex-1 flex flex-col gap-6 px-6 pt-12 pb-20" style={{ marginLeft: 220 }}>
+                <main className="flex-1 flex flex-col gap-6 px-8 pt-14 pb-24" style={{ marginLeft: 200 }}>
 
                     {/* ── 자주 묻는 질문 ── */}
                     {activeTab === "faq" && (
-                        <div className="flex flex-col gap-3">
-                            <div className="flex items-end justify-between gap-4 mb-2">
-                                <div className="flex flex-col gap-1">
-                                    <h1 className="text-[28px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>자주 묻는 질문</h1>
-                                    <p className="text-[14px]" style={{ color: "#8e8e93" }}>궁금한 점을 빠르게 확인해보세요.</p>
-                                </div>
+                        <div className="flex flex-col gap-5">
+                            <div>
+                                <h1 className="text-[26px] font-extrabold tracking-tight mb-1" style={{ color: "#1c1c1e" }}>자주 묻는 질문</h1>
+                                <p className="text-[14px]" style={{ color: "#aeaeb2" }}>궁금한 점을 빠르게 확인해보세요.</p>
+                            </div>
 
-                                {/* ── 검색바 ── */}
-                                <div
-                                    className="flex items-center p-1 gap-1.5 shrink-0"
-                                    style={{
-                                        background: "#dde4ee",
-                                        borderRadius: 999,
-                                        width: 400,
-                                    }}
-                                >
-                                    <div
-                                        className="flex-1 flex items-center px-4"
-                                        style={{ background: "#fff", borderRadius: 999, height: 34 }}
+                            {/* ── 검색바 ── */}
+                            <div
+                                className="flex items-center px-4 gap-2"
+                                style={{
+                                    background: "rgba(255,255,255,0.8)",
+                                    border: "1px solid rgba(0,0,0,0.08)",
+                                    borderRadius: 14,
+                                    height: 44,
+                                    maxWidth: 440,
+                                }}
+                            >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aeaeb2" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                                    <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
+                                </svg>
+                                <input
+                                    type="text"
+                                    value={faqSearch}
+                                    onChange={(e) => { setFaqSearch(e.target.value); setOpenFaqs(new Set()); }}
+                                    placeholder="질문 검색"
+                                    className="flex-1 text-[13px] outline-none bg-transparent"
+                                    style={{ color: "#1c1c1e" }}
+                                />
+                                {faqSearch && (
+                                    <button
+                                        type="button"
+                                        onClick={() => { setFaqSearch(""); setOpenFaqs(new Set()); }}
+                                        className="shrink-0 flex items-center justify-center w-5 h-5 rounded-full transition-all hover:opacity-60"
+                                        style={{ background: "rgba(0,0,0,0.08)" }}
                                     >
-                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mr-2">
-                                            <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
+                                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                                         </svg>
-                                        <input
-                                            type="text"
-                                            value={faqSearch}
-                                            onChange={(e) => { setFaqSearch(e.target.value); setOpenFaqs(new Set()); }}
-                                            placeholder="질문을 검색하세요"
-                                            className="flex-1 text-[13px] outline-none bg-transparent"
-                                            style={{ color: "#1c1c1e" }}
-                                        />
-                                        {faqSearch && (
-                                            <button
-                                                type="button"
-                                                onClick={() => { setFaqSearch(""); setOpenFaqs(new Set()); }}
-                                                className="ml-1 shrink-0 flex items-center justify-center w-5 h-5 rounded-full transition-all hover:opacity-70"
-                                                style={{ background: "rgba(0,0,0,0.1)" }}
-                                            >
-                                                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                                                </svg>
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
+                                    </button>
+                                )}
                             </div>
 
                             {/* ── 카테고리 필터 ── */}
-                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
                                 {FAQ_CATEGORIES.map((cat) => (
                                     <button
                                         key={cat}
                                         onClick={() => { setFaqCategory(cat); setOpenFaqs(new Set()); }}
-                                        className="px-3 py-1.5 rounded-full text-[12px] font-semibold transition-all"
+                                        className="px-3.5 py-1.5 rounded-full text-[12px] transition-all"
                                         style={{
-                                            background: faqCategory === cat ? "#3a3a3c" : "rgba(0,0,0,0.06)",
-                                            color: faqCategory === cat ? "#fff" : "#3a3a3c",
+                                            background: faqCategory === cat ? "rgb(74,123,247)" : "rgba(0,0,0,0.05)",
+                                            color: faqCategory === cat ? "#fff" : "#6e6e73",
+                                            fontWeight: faqCategory === cat ? 700 : 400,
                                         }}
                                     >
                                         {cat}
@@ -462,97 +455,101 @@ export default function SupportPage() {
                                 if (filtered.length === 0) {
                                     return (
                                         <div
-                                            className="flex flex-col items-center gap-3 py-14 rounded-[20px]"
-                                            style={{ background: "rgba(0,0,0,0.03)" }}
+                                            className="flex flex-col items-center gap-3 py-16"
                                         >
-                                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d1d1d6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                                                 <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
                                             </svg>
-                                            <p className="text-[13px]" style={{ color: "#8e8e93" }}>
+                                            <p className="text-[13px]" style={{ color: "#aeaeb2" }}>
                                                 {q ? `'${faqSearch}'에 대한 검색 결과가 없습니다.` : "해당 카테고리의 질문이 없습니다."}
                                             </p>
                                         </div>
                                     );
                                 }
 
-                                return filtered.map((faq, i) => (
-                                    <div key={i} className="rounded-[20px] overflow-hidden transition-all">
-                                        <button
-                                            className="w-full text-left px-6 py-4 flex items-center justify-between gap-4"
-                                            onClick={() => toggleFaq(i)}
-                                        >
-                                            <span className="flex items-center gap-2 text-[14px] font-semibold" style={{ color: "#1c1c1e" }}>
-                                                <span
-                                                    className="shrink-0 px-2 py-0.5 rounded-full text-[11px] font-bold"
-                                                    style={{
-                                                        background: TAG_STYLE[faq.category]?.bg,
-                                                        color: TAG_STYLE[faq.category]?.color,
-                                                    }}
+                                return (
+                                    <div className="flex flex-col">
+                                        {filtered.map((faq, i) => (
+                                            <div key={i} style={{ marginBottom: 2 }}>
+                                                <button
+                                                    className="w-full text-left px-1 py-4 flex items-center justify-between gap-4 transition-all hover:opacity-70"
+                                                    onClick={() => toggleFaq(i)}
                                                 >
-                                                    {faq.category}
-                                                </span>
-                                                {faq.q}
-                                            </span>
-                                            <svg
-                                                width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                                stroke="#8e8e93" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                                                style={{ transform: openFaqs.has(i) ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", flexShrink: 0 }}
-                                            >
-                                                <polyline points="6 9 12 15 18 9" />
-                                            </svg>
-                                        </button>
-                                        {openFaqs.has(i) && (
-                                            <div className="px-6 pb-3">
-                                                <div className="h-[1px] mb-4" style={{ background: "rgba(0,0,0,0.06)" }} />
-                                                <p className="text-[13px] leading-relaxed" style={{ color: "#48484a" }}>
-                                                    <span style={{ color: "#aabde8", marginRight: 8, fontWeight: 700 }}>A.</span>{faq.a}
-                                                </p>
+                                                    <span className="flex items-center gap-2.5 text-[14px]" style={{ color: "#1c1c1e", fontWeight: openFaqs.has(i) ? 700 : 500 }}>
+                                                        <span
+                                                            className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold"
+                                                            style={{
+                                                                background: TAG_STYLE[faq.category]?.bg,
+                                                                color: TAG_STYLE[faq.category]?.color,
+                                                            }}
+                                                        >
+                                                            {faq.category}
+                                                        </span>
+                                                        {faq.q}
+                                                    </span>
+                                                    <svg
+                                                        width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                                        stroke="#aeaeb2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                                                        style={{ transform: openFaqs.has(i) ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", flexShrink: 0 }}
+                                                    >
+                                                        <polyline points="6 9 12 15 18 9" />
+                                                    </svg>
+                                                </button>
+                                                {openFaqs.has(i) && (
+                                                    <div className="px-1 pb-4">
+                                                        <p className="text-[13px] leading-relaxed pl-1" style={{ color: "#48484a" }}>
+                                                            <span style={{ color: "rgb(74,123,247)", marginRight: 8, fontWeight: 700 }}>A.</span>{faq.a}
+                                                        </p>
+                                                    </div>
+                                                )}
                                             </div>
-                                        )}
+                                        ))}
                                     </div>
-                                ));
+                                );
                             })()}
                         </div>
                     )}
 
                     {/* ── 이용방법 ── */}
                     {activeTab === "howto" && (
-                        <div className="flex flex-col gap-4">
-                            <div className="flex flex-col gap-1 mb-2">
-                                <h1 className="text-[28px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>이용방법</h1>
-                                <p className="text-[14px]" style={{ color: "#8e8e93" }}>카꾸미 사용 방법을 단계별로 안내해드려요.</p>
+                        <div className="flex flex-col gap-6">
+                            <div>
+                                <h1 className="text-[26px] font-extrabold tracking-tight mb-1" style={{ color: "#1c1c1e" }}>이용방법</h1>
+                                <p className="text-[14px]" style={{ color: "#aeaeb2" }}>카꾸미 사용 방법을 단계별로 안내해드려요.</p>
                             </div>
-                            {howToSteps.map(({ step, title, desc }) => (
-                                <div
-                                    key={step}
-                                    className="rounded-[20px] px-7 py-6 flex items-start gap-6"
-                                    style={{
-                                        boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
-                                    }}
-                                >
-                                    <span className="text-[26px] font-black shrink-0 leading-none mt-0.5" style={{ color: "#aabde8" }}>{step}</span>
-                                    <div className="flex flex-col gap-1.5">
-                                        <h3 className="text-[16px] font-bold" style={{ color: "#1c1c1e" }}>{title}</h3>
-                                        <p className="text-[13px] leading-relaxed break-keep" style={{ color: "#48484a" }}>{desc}</p>
+                            <div className="flex flex-col" style={{ gap: 0 }}>
+                                {howToSteps.map(({ step, title, desc }, idx) => (
+                                    <div
+                                        key={step}
+                                        className="flex items-start gap-6 py-6"
+                                        style={{ borderBottom: idx < howToSteps.length - 1 ? "1px solid rgba(0,0,0,0.07)" : "none" }}
+                                    >
+                                        <div className="shrink-0 flex flex-col items-center" style={{ width: 40, paddingTop: 2 }}>
+                                            <span className="text-[12px] font-black" style={{ color: "rgb(255,149,0)", letterSpacing: "0.05em" }}>{step}</span>
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <h3 className="text-[15px] font-bold" style={{ color: "#1c1c1e" }}>{title}</h3>
+                                            <p className="text-[13px] leading-relaxed break-keep" style={{ color: "#6e6e73" }}>{desc}</p>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
                     )}
 
                     {/* ── 1:1 문의 ── */}
                     {activeTab === "contact" && (
-                        <div className="flex flex-col gap-4">
-                            <div className="flex items-end justify-between mb-2">
-                                <div className="flex flex-col gap-1">
-                                    <h1 className="text-[28px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>1:1 문의</h1>
-                                    <p className="text-[14px]" style={{ color: "#8e8e93" }}>문의를 남기시면 페이지에서 바로 답변을 확인하실 수 있어요.</p>
+                        <div className="flex flex-col gap-6">
+                            <div className="flex items-end justify-between">
+                                <div>
+                                    <h1 className="text-[26px] font-extrabold tracking-tight mb-1" style={{ color: "#1c1c1e" }}>1:1 문의</h1>
+                                    <p className="text-[14px]" style={{ color: "#aeaeb2" }}>문의를 남기시면 페이지에서 바로 답변을 확인하실 수 있어요.</p>
                                 </div>
                                 {isLoggedIn && !showForm && !selectedInquiry && (
                                     <button
                                         onClick={() => setShowForm(true)}
                                         className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-[13px] font-bold transition-all hover:brightness-105 active:scale-95"
-                                        style={{ background: "rgba(255,231,58,0.95)", color: "#3A1D1D" }}
+                                        style={{ background: "rgb(255,149,0)", color: "#fff" }}
                                     >
                                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                             <path d="M12 5v14M5 12h14" />
@@ -565,15 +562,15 @@ export default function SupportPage() {
                             {!isLoggedIn ? (
                                 /* 비로그인 */
                                 <div
-                                    className="flex flex-col items-center gap-5 p-12 rounded-[24px]"
-                                    style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(0,0,0,0.06)" }}
+                                    className="flex flex-col items-center gap-5 py-16"
+                                    style={{ borderTop: "1px solid rgba(0,0,0,0.07)" }}
                                 >
-                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#d1d1d6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                                     </svg>
                                     <div className="text-center flex flex-col gap-1">
                                         <p className="text-[15px] font-bold" style={{ color: "#1c1c1e" }}>로그인 후 문의하실 수 있어요</p>
-                                        <p className="text-[13px]" style={{ color: "#8e8e93" }}>카카오 로그인 후 문의를 남겨주세요.</p>
+                                        <p className="text-[13px]" style={{ color: "#aeaeb2" }}>카카오 로그인 후 문의를 남겨주세요.</p>
                                     </div>
                                     <a href="/api/auth/kakao">
                                         <button className="px-6 py-2.5 rounded-xl text-[13px] font-bold transition-all hover:brightness-105 active:scale-95"
@@ -584,11 +581,11 @@ export default function SupportPage() {
                                 </div>
                             ) : selectedInquiry ? (
                                 /* 문의 상세 + 스레드 */
-                                <div className="flex flex-col gap-4">
+                                <div className="flex flex-col gap-5">
                                     <button
                                         onClick={() => setSelectedInquiry(null)}
-                                        className="flex items-center gap-1.5 text-[13px] font-medium self-start transition-all hover:opacity-70"
-                                        style={{ color: "#8e8e93" }}
+                                        className="flex items-center gap-1.5 text-[13px] self-start transition-all hover:opacity-60"
+                                        style={{ color: "#aeaeb2" }}
                                     >
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                             <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
@@ -597,7 +594,7 @@ export default function SupportPage() {
                                     </button>
 
                                     {/* 원문 */}
-                                    <div className="rounded-[20px] p-6 flex flex-col gap-3" style={{ background: "rgba(255,255,255,0.85)", border: "1px solid rgba(0,0,0,0.07)" }}>
+                                    <div className="flex flex-col gap-3 pb-5" style={{ borderBottom: "1px solid rgba(0,0,0,0.07)" }}>
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full" style={{ background: STATUS_LABEL[selectedInquiry.status]?.bg, color: STATUS_LABEL[selectedInquiry.status]?.color }}>
@@ -605,10 +602,10 @@ export default function SupportPage() {
                                                 </span>
                                                 <span className="text-[11px] px-2.5 py-1 rounded-full" style={{ background: "rgba(0,0,0,0.05)", color: "#8e8e93" }}>{selectedInquiry.category}</span>
                                             </div>
-                                            <span className="text-[12px]" style={{ color: "#8e8e93" }}>{formatDate(selectedInquiry.createdAt)}</span>
+                                            <span className="text-[12px]" style={{ color: "#aeaeb2" }}>{formatDate(selectedInquiry.createdAt)}</span>
                                         </div>
-                                        <h2 className="text-[17px] font-bold" style={{ color: "#1c1c1e" }}>{selectedInquiry.title}</h2>
-                                        <p className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: "#3a3a3c" }}>{selectedInquiry.content}</p>
+                                        <h2 className="text-[18px] font-bold" style={{ color: "#1c1c1e" }}>{selectedInquiry.title}</h2>
+                                        <p className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: "#48484a" }}>{selectedInquiry.content}</p>
                                     </div>
 
                                     {/* 답변 스레드 */}
@@ -617,27 +614,27 @@ export default function SupportPage() {
                                             {selectedInquiry.replies.map((reply) => (
                                                 <div
                                                     key={reply.id}
-                                                    className={`rounded-[16px] px-4 py-2.5 flex flex-col gap-1.5 ${reply.isAdmin ? "ml-0" : "ml-6"}`}
+                                                    className={`px-5 py-4 flex flex-col gap-2 rounded-2xl ${reply.isAdmin ? "ml-0" : "ml-8"}`}
                                                     style={{
-                                                        background: reply.isAdmin ? "rgba(255,149,0,0.07)" : "rgba(74,123,247,0.07)",
-                                                        border: `1px solid ${reply.isAdmin ? "rgba(255,149,0,0.2)" : "rgba(74,123,247,0.15)"}`,
+                                                        background: reply.isAdmin ? "rgba(255,149,0,0.06)" : "rgba(74,123,247,0.06)",
+                                                        borderLeft: `3px solid ${reply.isAdmin ? "rgba(255,149,0,0.5)" : "rgba(74,123,247,0.4)"}`,
                                                     }}
                                                 >
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center gap-2">
                                                             <div
                                                                 className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold"
-                                                                style={{ background: reply.isAdmin ? "rgba(255,149,0,0.2)" : "rgba(74,123,247,0.15)", color: reply.isAdmin ? "#c97000" : "#4A7BF7" }}
+                                                                style={{ background: reply.isAdmin ? "rgba(255,149,0,0.15)" : "rgba(74,123,247,0.15)", color: reply.isAdmin ? "rgb(255,149,0)" : "rgb(74,123,247)" }}
                                                             >
                                                                 {reply.isAdmin ? "관" : "나"}
                                                             </div>
-                                                            <span className="text-[12px] font-semibold" style={{ color: reply.isAdmin ? "#c97000" : "#4A7BF7" }}>
+                                                            <span className="text-[12px] font-semibold" style={{ color: reply.isAdmin ? "rgb(255,149,0)" : "rgb(74,123,247)" }}>
                                                                 {reply.isAdmin ? "카꾸미 고객센터" : reply.author.name}
                                                             </span>
                                                         </div>
-                                                        <span className="text-[11px]" style={{ color: "#8e8e93" }}>{formatDate(reply.createdAt)}</span>
+                                                        <span className="text-[11px]" style={{ color: "#aeaeb2" }}>{formatDate(reply.createdAt)}</span>
                                                     </div>
-                                                    <p className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: "#3a3a3c" }}>{reply.content}</p>
+                                                    <p className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: "#48484a" }}>{reply.content}</p>
                                                 </div>
                                             ))}
                                         </div>
@@ -645,21 +642,21 @@ export default function SupportPage() {
 
                                     {/* 추가 답글 입력 */}
                                     {selectedInquiry.status !== "CLOSED" && (
-                                        <div className="flex flex-col gap-2 rounded-[16px] p-5" style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(0,0,0,0.07)" }}>
-                                            <label className="text-[12px] font-semibold" style={{ color: "#3a3a3c" }}>추가 문의</label>
+                                        <div className="flex flex-col gap-2 pt-2">
+                                            <label className="text-[12px] font-semibold" style={{ color: "#6e6e73" }}>추가 문의</label>
                                             <textarea
                                                 rows={4}
                                                 value={replyText}
                                                 onChange={(e) => setReplyText(e.target.value)}
                                                 placeholder="추가로 문의하실 내용을 입력해주세요."
                                                 className="px-4 py-3 rounded-xl text-[13px] outline-none resize-none"
-                                                style={{ background: "rgba(255,255,255,0.9)", border: "1px solid rgba(0,0,0,0.1)", color: "#1c1c1e" }}
+                                                style={{ background: "rgba(255,255,255,0.9)", border: "1px solid rgba(0,0,0,0.09)", color: "#1c1c1e" }}
                                             />
                                             <button
                                                 onClick={handleSubmitReply}
                                                 disabled={submitting || !replyText.trim()}
-                                                className="self-end px-6 py-2.5 rounded-xl text-[13px] font-bold transition-all hover:brightness-105 active:scale-95 disabled:opacity-40"
-                                                style={{ background: "rgba(255,231,58,0.95)", color: "#3A1D1D" }}
+                                                className="self-end px-5 py-2 rounded-xl text-[13px] font-bold transition-all hover:brightness-105 active:scale-95 disabled:opacity-40"
+                                                style={{ background: "rgb(74,123,247)", color: "#fff" }}
                                             >
                                                 {submitting ? "전송 중..." : "전송"}
                                             </button>
@@ -668,16 +665,16 @@ export default function SupportPage() {
                                 </div>
                             ) : showForm ? (
                                 /* 문의 작성 폼 */
-                                <form onSubmit={handleSubmitInquiry} className="flex flex-col gap-5 rounded-[24px] p-8" style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(0,0,0,0.06)" }}>
-                                    <div className="flex items-center justify-between">
+                                <form onSubmit={handleSubmitInquiry} className="flex flex-col gap-6">
+                                    <div className="flex items-center justify-between pb-4" style={{ borderBottom: "1px solid rgba(0,0,0,0.07)" }}>
                                         <h2 className="text-[16px] font-bold" style={{ color: "#1c1c1e" }}>새 문의 작성</h2>
-                                        <button type="button" onClick={() => { setShowForm(false); setContactForm({ title: "", content: "", category: "" }); }} className="text-[13px]" style={{ color: "#8e8e93" }}>취소</button>
+                                        <button type="button" onClick={() => { setShowForm(false); setContactForm({ title: "", content: "", category: "" }); }} className="text-[13px] hover:opacity-60 transition-opacity" style={{ color: "#aeaeb2" }}>취소</button>
                                     </div>
 
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-[12px] font-semibold" style={{ color: "#3a3a3c" }}>
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[12px] font-semibold" style={{ color: "#6e6e73" }}>
                                             카테고리 <span style={{ color: "#FF3B30" }}>*</span>
-                                            {!contactForm.category && <span className="ml-2 font-normal" style={{ color: "#8e8e93" }}>카테고리를 선택해주세요</span>}
+                                            {!contactForm.category && <span className="ml-2 font-normal" style={{ color: "#aeaeb2" }}>카테고리를 선택해주세요</span>}
                                         </label>
                                         <div className="flex flex-wrap gap-2">
                                             {INQUIRY_CATEGORIES.map((cat) => (
@@ -685,10 +682,11 @@ export default function SupportPage() {
                                                     key={cat}
                                                     type="button"
                                                     onClick={() => setContactForm((f) => ({ ...f, category: cat }))}
-                                                    className="px-3 py-1.5 rounded-full text-[12px] font-semibold transition-all"
+                                                    className="px-3.5 py-1.5 rounded-full text-[12px] transition-all"
                                                     style={{
-                                                        background: contactForm.category === cat ? "#3a3a3c" : "rgba(0,0,0,0.06)",
-                                                        color: contactForm.category === cat ? "#fff" : "#3a3a3c",
+                                                        background: contactForm.category === cat ? "rgb(74,123,247)" : "rgba(0,0,0,0.05)",
+                                                        color: contactForm.category === cat ? "#fff" : "#6e6e73",
+                                                        fontWeight: contactForm.category === cat ? 700 : 400,
                                                     }}
                                                 >
                                                     {cat}
@@ -697,8 +695,8 @@ export default function SupportPage() {
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-[12px] font-semibold" style={{ color: "#3a3a3c" }}>제목 <span style={{ color: "#FF3B30" }}>*</span></label>
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[12px] font-semibold" style={{ color: "#6e6e73" }}>제목 <span style={{ color: "#FF3B30" }}>*</span></label>
                                         <input
                                             type="text"
                                             required
@@ -706,12 +704,12 @@ export default function SupportPage() {
                                             value={contactForm.title}
                                             onChange={(e) => setContactForm((f) => ({ ...f, title: e.target.value }))}
                                             className="px-4 py-3 rounded-xl text-[13px] outline-none"
-                                            style={{ background: "rgba(255,255,255,0.9)", border: "1px solid rgba(0,0,0,0.1)", color: "#1c1c1e" }}
+                                            style={{ background: "rgba(255,255,255,0.9)", border: "1px solid rgba(0,0,0,0.09)", color: "#1c1c1e" }}
                                         />
                                     </div>
 
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-[12px] font-semibold" style={{ color: "#3a3a3c" }}>문의 내용 <span style={{ color: "#FF3B30" }}>*</span></label>
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[12px] font-semibold" style={{ color: "#6e6e73" }}>문의 내용 <span style={{ color: "#FF3B30" }}>*</span></label>
                                         <textarea
                                             required
                                             rows={7}
@@ -719,15 +717,15 @@ export default function SupportPage() {
                                             value={contactForm.content}
                                             onChange={(e) => setContactForm((f) => ({ ...f, content: e.target.value }))}
                                             className="px-4 py-3 rounded-xl text-[13px] outline-none resize-none"
-                                            style={{ background: "rgba(255,255,255,0.9)", border: "1px solid rgba(0,0,0,0.1)", color: "#1c1c1e" }}
+                                            style={{ background: "rgba(255,255,255,0.9)", border: "1px solid rgba(0,0,0,0.09)", color: "#1c1c1e" }}
                                         />
                                     </div>
 
                                     <button
                                         type="submit"
                                         disabled={submitting || !contactForm.category}
-                                        className="self-start px-8 py-3 rounded-xl text-[14px] font-bold transition-all hover:brightness-105 active:scale-95 disabled:opacity-50"
-                                        style={{ background: "rgba(255,231,58,0.95)", color: "#3A1D1D", boxShadow: "0 4px 16px rgba(255,200,0,0.3)" }}
+                                        className="self-start px-7 py-2.5 rounded-xl text-[13px] font-bold transition-all hover:brightness-105 active:scale-95 disabled:opacity-50"
+                                        style={{ background: "rgb(255,149,0)", color: "#fff" }}
                                     >
                                         {submitting ? "접수 중..." : "문의 접수하기"}
                                     </button>
@@ -735,39 +733,39 @@ export default function SupportPage() {
                             ) : (
                                 /* 문의 목록 */
                                 inquiryLoading ? (
-                                    <div className="flex items-center gap-2 py-8" style={{ color: "#8e8e93" }}>
-                                        <div className="w-4 h-4 rounded-full border-2 border-black/20 border-t-black/60 animate-spin" />
+                                    <div className="flex items-center gap-2 py-10" style={{ color: "#aeaeb2" }}>
+                                        <div className="w-4 h-4 rounded-full border-2 border-black/10 border-t-black/40 animate-spin" />
                                         <span className="text-[13px]">불러오는 중...</span>
                                     </div>
                                 ) : inquiries.length === 0 ? (
-                                    <div className="flex flex-col items-center gap-4 py-16" style={{ color: "#8e8e93" }}>
-                                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <div className="flex flex-col items-center gap-4 py-16" style={{ borderTop: "1px solid rgba(0,0,0,0.07)", color: "#aeaeb2" }}>
+                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d1d1d6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                                         </svg>
-                                        <p className="text-[14px]">아직 문의 내역이 없어요.</p>
+                                        <p className="text-[13px]">아직 문의 내역이 없어요.</p>
                                     </div>
                                 ) : (
-                                    <div className="flex flex-col gap-2">
+                                    <div className="flex flex-col" style={{ borderTop: "1px solid rgba(0,0,0,0.07)" }}>
                                         {inquiries.map((inq) => (
                                             <button
                                                 key={inq.id}
                                                 onClick={() => { setSelectedInquiry(inq); setReplyText(""); }}
-                                                className="flex items-center justify-between px-5 py-4 rounded-[16px] text-left transition-all hover:brightness-95"
-                                                style={{ background: "rgba(255,255,255,0.85)", border: "1px solid rgba(0,0,0,0.06)" }}
+                                                className="flex items-center justify-between px-1 py-4 text-left transition-all hover:opacity-70"
+                                                style={{ borderBottom: "1px solid rgba(0,0,0,0.07)" }}
                                             >
                                                 <div className="flex items-center gap-3 min-w-0">
                                                     <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full shrink-0" style={{ background: STATUS_LABEL[inq.status]?.bg, color: STATUS_LABEL[inq.status]?.color }}>
                                                         {STATUS_LABEL[inq.status]?.label}
                                                     </span>
-                                                    <span className="text-[11px] px-2 py-0.5 rounded-full shrink-0" style={{ background: "rgba(0,0,0,0.05)", color: "#8e8e93" }}>{inq.category}</span>
-                                                    <span className="text-[14px] font-semibold truncate" style={{ color: "#1c1c1e" }}>{inq.title}</span>
+                                                    <span className="text-[11px] px-2 py-0.5 rounded-full shrink-0" style={{ background: "rgba(0,0,0,0.05)", color: "#aeaeb2" }}>{inq.category}</span>
+                                                    <span className="text-[14px] font-medium truncate" style={{ color: "#1c1c1e" }}>{inq.title}</span>
                                                 </div>
                                                 <div className="flex items-center gap-3 shrink-0 ml-4">
                                                     {inq.replies.length > 0 && (
-                                                        <span className="text-[11px]" style={{ color: "#8e8e93" }}>답변 {inq.replies.length}개</span>
+                                                        <span className="text-[11px]" style={{ color: "#aeaeb2" }}>답변 {inq.replies.length}개</span>
                                                     )}
-                                                    <span className="text-[12px]" style={{ color: "#c7c7cc" }}>{formatDate(inq.createdAt)}</span>
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <span className="text-[12px]" style={{ color: "#d1d1d6" }}>{formatDate(inq.createdAt)}</span>
+                                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d1d1d6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                         <path d="M9 18l6-6-6-6" />
                                                     </svg>
                                                 </div>
