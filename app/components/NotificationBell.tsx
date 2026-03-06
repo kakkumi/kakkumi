@@ -223,7 +223,7 @@ export default function NotificationBell() {
                     </div>
 
                     {/* 목록 */}
-                    <div className="max-h-[360px] overflow-y-auto">
+                    <div className="max-h-[360px] overflow-y-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
                         {loading && notifications.length === 0 ? (
                             <div className="flex items-center justify-center py-10">
                                 <span className="text-[13px]" style={{ color: "#8e8e93" }}>불러오는 중...</span>
@@ -243,7 +243,7 @@ export default function NotificationBell() {
                                     <div key={n.id}>
                                         <button
                                             onClick={() => handleClick(n)}
-                                            className="w-full flex items-start gap-2 px-3 py-3 text-left transition-colors hover:bg-white/20"
+                                            className="w-full flex items-start gap-[12px] px-3 py-3 text-left transition-colors hover:bg-white/20"
                                             style={{ background: n.isRead ? "transparent" : "rgba(255,255,255,0.08)" }}
                                         >
                                             <div
