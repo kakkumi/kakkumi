@@ -72,9 +72,10 @@ export default function NotificationBell() {
         if (n.linkUrl) router.push(n.linkUrl);
     };
 
-    const typeIcon: Record<string, { icon: React.ReactNode; bg: string }> = {
+    const typeIcon: Record<string, { icon: React.ReactNode; bg: string; color: string }> = {
         FOLLOW: {
-            bg: "rgba(74,123,247,0.1)",
+            bg: "rgba(74,123,247,0.12)",
+            color: "#4a7bf7",
             icon: (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4a7bf7" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
@@ -83,7 +84,8 @@ export default function NotificationBell() {
             ),
         },
         NEW_THEME: {
-            bg: "rgba(255,149,0,0.1)",
+            bg: "rgba(255,149,0,0.12)",
+            color: "#FF9500",
             icon: (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF9500" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10"/>
@@ -92,7 +94,8 @@ export default function NotificationBell() {
             ),
         },
         CREDIT_EXPIRY: {
-            bg: "rgba(255,59,48,0.1)",
+            bg: "rgba(255,59,48,0.12)",
+            color: "#ff3b30",
             icon: (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
@@ -101,7 +104,8 @@ export default function NotificationBell() {
             ),
         },
         PURCHASE_COMPLETE: {
-            bg: "rgba(52,199,89,0.1)",
+            bg: "rgba(52,199,89,0.12)",
+            color: "#34c759",
             icon: (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34c759" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
@@ -110,7 +114,8 @@ export default function NotificationBell() {
             ),
         },
         REFUND_COMPLETE: {
-            bg: "rgba(74,123,247,0.1)",
+            bg: "rgba(74,123,247,0.12)",
+            color: "#4a7bf7",
             icon: (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4a7bf7" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
@@ -119,7 +124,8 @@ export default function NotificationBell() {
             ),
         },
         THEME_APPROVED: {
-            bg: "rgba(255,149,0,0.1)",
+            bg: "rgba(255,149,0,0.12)",
+            color: "#FF9500",
             icon: (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF9500" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
@@ -128,7 +134,8 @@ export default function NotificationBell() {
             ),
         },
         THEME_REJECTED: {
-            bg: "rgba(255,59,48,0.1)",
+            bg: "rgba(255,59,48,0.12)",
+            color: "#ff3b30",
             icon: (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10"/>
@@ -137,7 +144,8 @@ export default function NotificationBell() {
             ),
         },
         SYSTEM: {
-            bg: "rgba(142,142,147,0.1)",
+            bg: "rgba(142,142,147,0.12)",
+            color: "#8e8e93",
             icon: (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
@@ -146,7 +154,8 @@ export default function NotificationBell() {
             ),
         },
         INQUIRY: {
-            bg: "rgba(74,123,247,0.1)",
+            bg: "rgba(74,123,247,0.12)",
+            color: "#4a7bf7",
             icon: (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4a7bf7" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -156,7 +165,8 @@ export default function NotificationBell() {
     };
 
     const defaultIcon = {
-        bg: "rgba(142,142,147,0.1)",
+        bg: "rgba(142,142,147,0.12)",
+        color: "#8e8e93",
         icon: (
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
@@ -174,6 +184,8 @@ export default function NotificationBell() {
         if (hours < 24) return `${hours}시간 전`;
         return `${Math.floor(hours / 24)}일 전`;
     };
+
+    const visibleNotifications = notifications.slice(0, 5);
 
     return (
         <div className="relative" ref={dropdownRef}>
@@ -198,24 +210,31 @@ export default function NotificationBell() {
 
             {open && (
                 <div
-                    className="absolute right-0 top-11 w-[340px] rounded-2xl z-50"
+                    className="absolute right-0 z-50"
                     style={{
-                        background: "rgba(245,245,247,0.98)",
-                        backdropFilter: "blur(10px)",
-                        WebkitBackdropFilter: "blur(10px)",
-                        boxShadow: "0 8px 40px rgba(0,0,0,0.18)",
-                        border: "1px solid rgba(255,255,255,0.8)",
+                        top: "calc(100% + 18px)",
+                        width: "400px",
+                        right: "-80px",
+                        borderRadius: "18px",
+                        background: "#ffffff",
+                        boxShadow: "0 12px 48px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.06)",
+                        border: "1px solid rgba(0,0,0,0.07)",
                         overflow: "hidden",
                     }}
                 >
                     {/* 헤더 */}
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-white/20">
-                        <span className="text-[14px] font-bold" style={{ color: "#1c1c1e" }}>알림</span>
+                    <div
+                        className="flex items-center justify-between px-5 py-3"
+                        style={{ borderBottom: "1px solid rgba(0,0,0,0.07)" }}
+                    >
+                        <span className="text-[15px] font-bold" style={{ color: "#1c1c1e", letterSpacing: "-0.2px" }}>
+                            알림
+                        </span>
                         {unreadCount > 0 && (
                             <button
                                 onClick={handleMarkAllRead}
                                 className="text-[12px] font-medium transition-opacity hover:opacity-60"
-                                style={{ color: "#FF9500" }}
+                                style={{ color: "#4a7bf7" }}
                             >
                                 모두 읽음
                             </button>
@@ -223,7 +242,7 @@ export default function NotificationBell() {
                     </div>
 
                     {/* 목록 */}
-                    <div className="max-h-[360px] overflow-y-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+                    <div style={{ overflowY: "auto", scrollbarWidth: "none" }}>
                         {loading && notifications.length === 0 ? (
                             <div className="flex items-center justify-center py-10">
                                 <span className="text-[13px]" style={{ color: "#8e8e93" }}>불러오는 중...</span>
@@ -237,38 +256,94 @@ export default function NotificationBell() {
                                 <span className="text-[13px]" style={{ color: "#8e8e93" }}>알림이 없습니다.</span>
                             </div>
                         ) : (
-                            notifications.map((n, idx) => {
+                            visibleNotifications.map((n, idx) => {
                                 const iconData = typeIcon[n.type] ?? defaultIcon;
                                 return (
                                     <div key={n.id}>
                                         <button
                                             onClick={() => handleClick(n)}
-                                            className="w-full flex items-start gap-[12px] px-3 py-3 text-left transition-colors hover:bg-white/20"
-                                            style={{ background: n.isRead ? "transparent" : "rgba(255,255,255,0.08)" }}
+                                            className="w-full flex items-start gap-[14px] px-5 py-3.5 text-left transition-colors hover:bg-gray-50"
+                                            style={{ background: n.isRead ? "rgba(0,0,0,0.04)" : "transparent" }}
                                         >
+                                            {/* 아이콘 원형 */}
                                             <div
-                                                className="w-[36px] h-[36px] rounded-full shrink-0 flex items-center justify-center"
-                                                style={{ background: iconData.bg }}
+                                                className="shrink-0 flex items-center justify-center"
+                                                style={{
+                                                    width: 44,
+                                                    height: 44,
+                                                    borderRadius: "50%",
+                                                    background: n.isRead ? "rgba(0,0,0,0.04)" : iconData.bg,
+                                                    border: `1.5px solid ${n.isRead ? "rgba(0,0,0,0.06)" : iconData.color + "22"}`,
+                                                    opacity: n.isRead ? 0.5 : 1,
+                                                }}
                                             >
                                                 {iconData.icon}
                                             </div>
+
+                                            {/* 텍스트 영역 */}
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-[13px] font-semibold truncate" style={{ color: "#1c1c1e" }}>{n.title}</p>
-                                                <p className="text-[12px] leading-snug mt-0.5" style={{ color: "#4b4b4e" }}>{n.body}</p>
-                                                <p className="text-[11px] mt-1" style={{ color: "#8e8e93" }}>{timeAgo(n.createdAt)}</p>
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <p
+                                                        className="text-[13px] font-semibold leading-snug"
+                                                        style={{ color: n.isRead ? "#aeaeb2" : "#1c1c1e" }}
+                                                    >
+                                                        {n.title}
+                                                    </p>
+                                                    <span
+                                                        className="text-[11px] shrink-0 mt-[1px]"
+                                                        style={{ color: n.isRead ? "#c8c8cd" : "#aeaeb2" }}
+                                                    >
+                                                        {timeAgo(n.createdAt)}
+                                                    </span>
+                                                </div>
+                                                <p
+                                                    className="text-[12px] leading-snug mt-0.5"
+                                                    style={{ color: n.isRead ? "#c8c8cd" : "#636366" }}
+                                                >
+                                                    {n.body}
+                                                </p>
                                             </div>
+
+                                            {/* 읽지 않음 점 */}
                                             {!n.isRead && (
-                                                <div className="w-2 h-2 rounded-full shrink-0 mt-1.5" style={{ background: "#FF9500" }} />
+                                                <div
+                                                    className="shrink-0 mt-1.5"
+                                                    style={{
+                                                        width: 8,
+                                                        height: 8,
+                                                        borderRadius: "50%",
+                                                        background: "#4a7bf7",
+                                                    }}
+                                                />
                                             )}
                                         </button>
-                                        {idx < notifications.length - 1 && (
-                                            <div className="mx-3 h-[1px]" style={{ background: "rgba(0,0,0,0.15)" }} />
+                                        {idx < visibleNotifications.length - 1 && (
+                                            <div
+                                                className="mx-5"
+                                                style={{ height: 1, background: "rgba(0,0,0,0.07)" }}
+                                            />
                                         )}
                                     </div>
                                 );
                             })
                         )}
                     </div>
+
+                    {/* 모든 알림 보기 */}
+                    {notifications.length > 0 && (
+                        <div style={{ borderTop: "1px solid rgba(0,0,0,0.07)" }}>
+                            <button
+                                onClick={() => {
+                                    setOpen(false);
+                                    router.push("/notifications");
+                                }}
+                                className="w-full py-3.5 text-center text-[13px] font-semibold transition-opacity hover:opacity-60"
+                                style={{ color: "#4a7bf7" }}
+                            >
+                                모든 알림 보기
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
         </div>
