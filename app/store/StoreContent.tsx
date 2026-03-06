@@ -368,8 +368,8 @@ export default function StoreContent() {
                             {opt.label}
                         </button>
                     ))}
-                    <span className="ml-auto text-[12px]" style={{ color: "#aeaeb2" }}>
-                        {loading ? "불러오는 중" : `${sorted.length}개`}
+                    <span className="ml-auto text-[12px]" style={{ color: "#616161" }}>
+                        {loading ? "불러오는 중" : `전체 ${sorted.length}개`}
                     </span>
                 </div>
 
