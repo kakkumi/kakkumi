@@ -56,7 +56,6 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
     const [nickCheckStatus, setNickCheckStatus] = useState<"idle" | "checking" | "available" | "taken">("idle");
     const [nickSaving, setNickSaving] = useState(false);
     const [nickSuccess, setNickSuccess] = useState(false);
-    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // 프로필 이미지 상태
     const [avatarPreview, setAvatarPreview] = useState<string | null>(session?.avatarUrl ?? null);
@@ -152,38 +151,35 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
         router.push("/?withdrawn=1");
     };
 
-    useEffect(() => {
-        if (debounceRef.current) clearTimeout(debounceRef.current);
+    const handleNickCheck = async () => {
         const trimmed = nickInput.trim();
-        debounceRef.current = setTimeout(async () => {
-            if (!trimmed || trimmed === currentNickname) {
-                setNickError("");
+        if (!trimmed || trimmed === currentNickname) {
+            setNickError("현재 닉네임과 동일합니다.");
+            setNickCheckStatus("idle");
+            return;
+        }
+        const validationError = validateNickname(trimmed);
+        if (validationError) {
+            setNickError(validationError);
+            setNickCheckStatus("idle");
+            return;
+        }
+        setNickError("");
+        setNickCheckStatus("checking");
+        try {
+            const res = await fetch(`/api/user/nickname/check?nickname=${encodeURIComponent(trimmed)}`);
+            const data = await res.json() as { available: boolean; error?: string };
+            if (data.error) {
+                setNickError(data.error);
                 setNickCheckStatus("idle");
-                return;
+            } else {
+                setNickCheckStatus(data.available ? "available" : "taken");
+                if (!data.available) setNickError("이미 사용 중인 닉네임입니다.");
             }
-            const validationError = validateNickname(trimmed);
-            if (validationError) {
-                setNickError(validationError);
-                setNickCheckStatus("idle");
-                return;
-            }
-            setNickError("");
-            setNickCheckStatus("checking");
-            try {
-                const res = await fetch(`/api/user/nickname/check?nickname=${encodeURIComponent(trimmed)}`);
-                const data = await res.json() as { available: boolean; error?: string };
-                if (data.error) {
-                    setNickError(data.error);
-                    setNickCheckStatus("idle");
-                } else {
-                    setNickCheckStatus(data.available ? "available" : "taken");
-                    if (!data.available) setNickError("이미 사용 중인 닉네임입니다.");
-                }
-            } catch {
-                setNickCheckStatus("idle");
-            }
-        }, 500);
-    }, [nickInput, currentNickname]);
+        } catch {
+            setNickCheckStatus("idle");
+        }
+    };
 
     const handleNickSave = async () => {
         if (nickSaving) return;
@@ -512,8 +508,8 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
                                                 <div className="relative">
                                                     <input
                                                         value={nickInput}
-                                                        onChange={(e) => { setNickInput(e.target.value); setNickSuccess(false); }}
-                                                        onKeyDown={(e) => { if (e.key === "Enter") handleNickSave(); }}
+                                                        onChange={(e) => { setNickInput(e.target.value); setNickSuccess(false); setNickCheckStatus("idle"); setNickError(""); }}
+                                                        onKeyDown={(e) => { if (e.key === "Enter") handleNickCheck(); }}
                                                         maxLength={10}
                                                         placeholder="닉네임을 입력하세요"
                                                         className="text-[14px] font-medium px-4 py-2.5 rounded-xl outline-none pr-10"
@@ -529,6 +525,9 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
                                                         )}
                                                     </div>
                                                 </div>
+                                                <button onClick={handleNickCheck} disabled={nickCheckStatus === "checking" || !nickInput.trim()} className="px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all hover:brightness-105 active:scale-95 disabled:opacity-40" style={{ background: "rgba(0,0,0,0.06)", color: "#3a3a3c" }}>
+                                                    {nickCheckStatus === "checking" ? "확인 중..." : "중복 확인"}
+                                                </button>
                                                 <button onClick={handleNickSave} disabled={nickSaving || nickCheckStatus !== "available" || nickInput.trim() === currentNickname} className="px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all hover:brightness-105 active:scale-95 disabled:opacity-40" style={{ background: "#FF9500", color: "#fff" }}>
                                                     {nickSaving ? "저장 중..." : "저장"}
                                                 </button>
