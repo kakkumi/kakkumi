@@ -6,6 +6,8 @@ import Image from "next/image";
 import ThemeVaultTabs from "./ThemeVaultTabs";
 import CreditPage from "./CreditPage";
 import RefundPage from "./RefundPage";
+import MyReviewsPage from "./MyReviewsPage";
+import ReviewablePage from "./ReviewablePage";
 import { formatKST } from "@/lib/date";
 import { validateNickname } from "@/lib/nickname";
 import { WITHDRAW_CONFIRM_TEXT, AVATAR_MAX_SIZE_MB } from "@/lib/constants";
@@ -212,6 +214,8 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
     const isNotifMenu = activeMenu === "알림 설정";
     const isWithdrawMenu = activeMenu === "회원 탈퇴";
     const isFollowMenu = activeMenu === "팔로우";
+    const isReviewMenu = activeMenu === "리뷰";
+    const isReviewableMenu = activeMenu === "작성 가능한 후기";
 
     type FollowingUser = { id: string; nickname: string | null; name: string; avatarUrl: string | null; themeCount: number };
     const [followingList, setFollowingList] = useState<FollowingUser[]>([]);
@@ -220,15 +224,20 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
 
     useEffect(() => {
         if (!isFollowMenu) return;
-        setFollowingLoading(true);
-        fetch("/api/mypage/following")
-            .then(r => r.json())
-            .then((d: { following: FollowingUser[]; error?: string }) => {
+        const load = async () => {
+            setFollowingLoading(true);
+            try {
+                const r = await fetch("/api/mypage/following");
+                const d = await r.json() as { following: FollowingUser[]; error?: string };
                 if (d.error) console.error("[following]", d.error);
                 setFollowingList(d.following ?? []);
-            })
-            .catch(() => {})
-            .finally(() => setFollowingLoading(false));
+            } catch {
+                //
+            } finally {
+                setFollowingLoading(false);
+            }
+        };
+        void load();
     }, [isFollowMenu]);
 
     const handleUnfollow = async (targetId: string) => {
@@ -327,6 +336,10 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
                             <CreditPage />
                         ) : isRefundMenu ? (
                             <RefundPage />
+                        ) : isReviewMenu ? (
+                            <MyReviewsPage />
+                        ) : isReviewableMenu ? (
+                            <ReviewablePage />
                         ) : isFollowMenu ? (
                             <>
                                 <div>

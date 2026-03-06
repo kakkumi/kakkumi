@@ -12,12 +12,13 @@ export async function GET(_req: Request, props: { params: Promise<{ id: string }
         userId: string;
         rating: number;
         content: string | null;
+        images: string[];
         createdAt: Date;
         nickname: string | null;
         name: string;
         avatarUrl: string | null;
     }[]>`
-        SELECT r.id, r."userId", r.rating, r.content, r."createdAt",
+        SELECT r.id, r."userId", r.rating, r.content, r.images, r."createdAt",
                u.nickname, u.name, u."avatarUrl"
         FROM "Review" r
         JOIN "User" u ON u.id = r."userId"
@@ -44,11 +45,13 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
     }
 
     const { id: themeId } = await props.params;
-    const { rating, content } = await req.json() as { rating: number; content?: string };
+    const { rating, content, images } = await req.json() as { rating: number; content?: string; images?: string[] };
 
     if (!rating || rating < 1 || rating > 5) {
         return NextResponse.json({ error: "별점은 1~5 사이여야 합니다." }, { status: 400 });
     }
+
+    const safeImages = Array.isArray(images) ? images.slice(0, 5) : [];
 
     const existing = await prisma.$queryRaw<{ id: string }[]>`
         SELECT id FROM "Review" WHERE "userId" = ${session.dbId} AND "themeId" = ${themeId} LIMIT 1
@@ -56,13 +59,13 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
 
     if (existing.length > 0) {
         await prisma.$executeRaw`
-            UPDATE "Review" SET rating = ${rating}, content = ${content ?? null}, "updatedAt" = NOW()
+            UPDATE "Review" SET rating = ${rating}, content = ${content ?? null}, images = ${safeImages}::text[], "updatedAt" = NOW()
             WHERE "userId" = ${session.dbId} AND "themeId" = ${themeId}
         `;
     } else {
         await prisma.$executeRaw`
-            INSERT INTO "Review" (id, "userId", "themeId", rating, content, "createdAt", "updatedAt")
-            VALUES (gen_random_uuid(), ${session.dbId}, ${themeId}, ${rating}, ${content ?? null}, NOW(), NOW())
+            INSERT INTO "Review" (id, "userId", "themeId", rating, content, images, "createdAt", "updatedAt")
+            VALUES (gen_random_uuid(), ${session.dbId}, ${themeId}, ${rating}, ${content ?? null}, ${safeImages}::text[], NOW(), NOW())
         `;
     }
 

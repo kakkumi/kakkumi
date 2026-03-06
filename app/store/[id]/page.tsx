@@ -5,6 +5,7 @@ import Link from "next/link";
 import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import ThemeDetailLayout from "./ThemeDetailLayout";
+import ThemeDetailTabs from "./ThemeDetailTabs";
 
 export default async function ThemeDetailPage(props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
@@ -129,21 +130,13 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
                     isOwned={isOwned}
                 />
 
-                {/* 하단 탭 영역 */}
-                <div className="mt-20 border-t border-gray-100 pt-10">
-                    <div className="flex items-center gap-6 mb-8">
-                        <button className="pb-3 border-b-2 border-gray-900 font-bold text-[15px] text-gray-900">상세 이미지</button>
-                        <button className="pb-3 border-b-2 border-transparent text-gray-400 font-medium text-[15px] hover:text-gray-700 transition-colors">리뷰 (0)</button>
-                        <button className="pb-3 border-b-2 border-transparent text-gray-400 font-medium text-[15px] hover:text-gray-700 transition-colors">크리에이터 다른 테마</button>
-                    </div>
-
-                    <div className="bg-white rounded-2xl p-10 min-h-[360px] flex items-center justify-center border border-gray-100">
-                        <div className="text-center">
-                            <p className="text-[14px] text-gray-400">테마 상세 소개 이미지가 들어갈 영역입니다.</p>
-                            <p className="text-[13px] text-gray-300 mt-1">스크린샷, 적용 예시 등 다양한 이미지를 확인하세요.</p>
-                        </div>
-                    </div>
-                </div>
+                <ThemeDetailTabs
+                    themeId={dbTheme.id}
+                    themeName={dbTheme.title}
+                    thumbnailUrl={dbTheme.thumbnailUrl}
+                    isOwned={isOwned}
+                    userId={session?.dbId ?? undefined}
+                />
             </div>
             <Footer />
         </div>
