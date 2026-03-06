@@ -10,23 +10,15 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
     }
 
-    const body = (await request.json()) as { themeId: string };
-    const { themeId } = body;
+    const body = (await request.json()) as { themeId: string; versionId?: string };
+    const { themeId, versionId } = body;
 
     if (!themeId) {
         return NextResponse.json({ error: "themeId가 필요합니다." }, { status: 400 });
     }
 
     // DB에서 테마 확인
-    const theme = await prisma.theme.findUnique({
-        where: { id: themeId },
-        include: {
-            versions: {
-                orderBy: { createdAt: "desc" },
-                take: 1,
-            },
-        },
-    });
+    const theme = await prisma.theme.findUnique({ where: { id: themeId } });
 
     if (!theme) {
         return NextResponse.json({ error: "테마를 찾을 수 없습니다." }, { status: 404 });
@@ -39,11 +31,7 @@ export async function POST(request: Request) {
 
     // 이미 다운로드(구매) 기록이 있는지 확인
     const existing = await prisma.purchase.findFirst({
-        where: {
-            buyerId: session.dbId,
-            themeId,
-            status: "COMPLETED",
-        },
+        where: { buyerId: session.dbId, themeId, status: "COMPLETED" },
     });
 
     // 없으면 Purchase 기록 생성
@@ -52,20 +40,12 @@ export async function POST(request: Request) {
             data: {
                 buyerId: session.dbId,
                 themeId,
+                versionId: versionId ?? null,
                 amount: 0,
                 status: "COMPLETED",
             },
         });
     }
 
-    // 최신 버전의 다운로드 URL 반환
-    const latestVersion = theme.versions[0];
-    const downloadUrl = latestVersion?.kthemeFileUrl ?? latestVersion?.apkFileUrl ?? null;
-
-    return NextResponse.json({
-        success: true,
-        alreadyOwned: !!existing,
-        downloadUrl,
-        themeName: theme.title,
-    });
+    return NextResponse.json({ success: true, alreadyOwned: !!existing });
 }

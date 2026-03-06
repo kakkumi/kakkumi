@@ -34,6 +34,8 @@ type Stats = {
     reviews: number;
 };
 
+type ThemeVersion = { id: string; version: string; kthemeFileUrl: string | null; apkFileUrl: string | null };
+
 type Props = {
     images: string[];
     previews: string[];
@@ -51,12 +53,13 @@ type Props = {
     isLoggedIn: boolean;
     userId?: string;
     isOwned?: boolean;
+    versions?: ThemeVersion[];
 };
 
 export default function ThemeDetailLayout({
     images, previews, name, tag, themeId,
     price, priceNum, author, creatorId, description, category,
-    stats, dbId, isLoggedIn, userId, isOwned,
+    stats, dbId, isLoggedIn, userId, isOwned, versions = [],
 }: Props) {
     const router = useRouter();
     const colors = themeId ? THEME_COLORS[themeId] : undefined;
@@ -215,12 +218,12 @@ export default function ThemeDetailLayout({
                     {/* 액션 버튼 */}
                     <ThemeActionButtons
                         themeId={dbId}
-                        themeMockId={themeId ?? 0}
                         priceNum={priceNum}
                         priceName={price}
                         isLoggedIn={isLoggedIn}
                         userId={userId}
                         isOwned={isOwned}
+                        versions={versions}
                         onInquiryAction={() => setShowInquiryModal(true)}
                     />
 

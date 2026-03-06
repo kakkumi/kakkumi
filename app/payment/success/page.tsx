@@ -15,45 +15,35 @@ function PaymentSuccessContent() {
         const paymentKey = searchParams.get("paymentKey");
         const orderId = searchParams.get("orderId");
         const amount = searchParams.get("amount");
-
-        // themeId는 successUrl에 쿼리스트링으로 전달됨
         const themeId = searchParams.get("themeId") ?? "";
 
-        if (!paymentKey || !orderId || !amount || !themeId) {
-            setStatus("error");
-            setErrorMessage("결제 정보가 올바르지 않습니다.");
-            return;
-        }
-
-        let cancelled = false;
-
-        fetch("/api/payment/toss/confirm", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                paymentKey,
-                orderId,
-                amount: Number(amount),
-                themeId,
-            }),
-        })
-            .then((res) => res.json())
-            .then((data: { success?: boolean; error?: string }) => {
-                if (cancelled) return;
+        const confirm = async () => {
+            if (!paymentKey || !orderId || !amount || !themeId) {
+                setStatus("error");
+                setErrorMessage("결제 정보가 올바르지 않습니다.");
+                return;
+            }
+            const versionId = searchParams.get("versionId") ?? undefined;
+            try {
+                const res = await fetch("/api/payment/toss/confirm", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ paymentKey, orderId, amount: Number(amount), themeId, versionId }),
+                });
+                const data = await res.json() as { success?: boolean; error?: string };
                 if (data.success) {
                     setStatus("success");
                 } else {
                     setErrorMessage(data.error ?? "결제 처리 중 오류가 발생했습니다.");
                     setStatus("error");
                 }
-            })
-            .catch(() => {
-                if (cancelled) return;
+            } catch {
                 setErrorMessage("네트워크 오류가 발생했습니다.");
                 setStatus("error");
-            });
+            }
+        };
 
-        return () => { cancelled = true; };
+        void confirm();
     }, [searchParams]);
 
     return (
@@ -82,11 +72,11 @@ function PaymentSuccessContent() {
                         </div>
                         <div className="flex gap-3 w-full">
                             <button
-                                onClick={() => router.push("/mypage")}
+                                onClick={() => router.push("/mypage?menu=구매+테마")}
                                 className="flex-1 py-3 rounded-[12px] text-[14px] font-bold text-white transition-all active:scale-[0.98]"
                                 style={{ background: "#4A7BF7" }}
                             >
-                                마이페이지로 이동
+                                구매 테마 바로가기
                             </button>
                             <button
                                 onClick={() => router.push("/store")}

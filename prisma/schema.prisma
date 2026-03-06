@@ -189,13 +189,15 @@ model ThemeVersion {
   buildStatus   BuildStatus @default(PENDING)
   createdAt     DateTime    @default(now())
 
-  theme Theme @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  theme     Theme      @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  purchases Purchase[]
 }
 
 model Purchase {
   id              String         @id @default(uuid())
   buyerId         String
   themeId         String
+  versionId       String?        // 구매한 버전 ID
   amount          Int
   pgTransactionId String?        @unique
   status          PurchaseStatus @default(PENDING)
@@ -203,8 +205,9 @@ model Purchase {
   refundedAt      DateTime?
   createdAt       DateTime       @default(now())
 
-  buyer User  @relation("UserPurchases", fields: [buyerId], references: [id])
-  theme Theme @relation(fields: [themeId], references: [id])
+  buyer   User          @relation("UserPurchases", fields: [buyerId], references: [id])
+  theme   Theme         @relation(fields: [themeId], references: [id])
+  version ThemeVersion? @relation(fields: [versionId], references: [id])
 }
 
 model Inquiry {

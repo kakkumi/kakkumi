@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { createHmac } from "crypto";
+import { Suspense } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { prisma } from "@/lib/prisma";
@@ -92,13 +93,15 @@ export default async function MyPage() {
             }}
         >
             <Header />
-            <MyPageClient
-                session={sessionWithAvatar}
-                purchasedCount={purchasedCount}
-                sidebarMenus={sidebarMenus}
-                createdAt={createdAt}
-                credit={credit}
-            />
+            <Suspense fallback={<div className="flex-1 flex items-center justify-center py-24"><div className="w-10 h-10 rounded-full border-4 border-gray-200 border-t-gray-500 animate-spin" /></div>}>
+                <MyPageClient
+                    session={sessionWithAvatar}
+                    purchasedCount={purchasedCount}
+                    sidebarMenus={sidebarMenus}
+                    createdAt={createdAt}
+                    credit={credit}
+                />
+            </Suspense>
             <Footer />
         </div>
     );

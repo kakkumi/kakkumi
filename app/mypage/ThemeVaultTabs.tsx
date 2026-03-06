@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { THEMES } from "@/app/store/data";
 
 type Tab = "mine" | "purchased" | "all";
@@ -12,15 +13,19 @@ const TABS: { key: Tab; label: string }[] = [
     { key: "all", label: "전체 테마" },
 ];
 
+type Version = { id: string; version: string; kthemeFileUrl: string | null; apkFileUrl: string | null };
+
 type ThemeItem = {
     id: string;
     name: string;
     price: number;
+    thumbnailUrl?: string | null;
     tag?: "내 테마" | "구매";
     purchasedAt?: string;
     isPublic?: boolean;
     isSelling?: boolean;
     status?: string;
+    versions?: Version[];
 };
 
 type ApiResponse = {
@@ -44,6 +49,45 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
     const [data, setData] = useState<ApiResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
+    const [downloadingId, setDownloadingId] = useState<string | null>(null);
+    const [downloadError, setDownloadError] = useState<string | null>(null);
+    // 버전 선택 모달
+    const [versionModal, setVersionModal] = useState<{ themeId: string; themeName: string; versions: Version[] } | null>(null);
+
+    // 다운로드 버튼 클릭 → 버전이 1개면 바로 다운로드, 여러 개면 모달 표시
+    const handleDownload = (themeId: string, themeName: string, versions: Version[]) => {
+        setDownloadError(null);
+        const available = versions.filter(v => v.kthemeFileUrl || v.apkFileUrl);
+        if (available.length === 0) {
+            setDownloadError("아직 다운로드 파일이 준비되지 않았습니다.");
+            return;
+        }
+        if (available.length === 1) {
+            void handleFileDownload(available[0], themeName);
+        } else {
+            setVersionModal({ themeId, themeName, versions: available });
+        }
+    };
+
+    // 실제 파일 다운로드
+    const handleFileDownload = async (ver: Version, themeName: string) => {
+        const fileUrl = ver.kthemeFileUrl ?? ver.apkFileUrl;
+        if (!fileUrl) { setDownloadError("파일을 찾을 수 없습니다."); return; }
+        setDownloadingId(ver.id);
+        setVersionModal(null);
+        try {
+            const a = document.createElement("a");
+            a.href = fileUrl;
+            a.download = `${themeName}_${ver.version}.${ver.kthemeFileUrl ? "ktheme" : "apk"}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        } catch {
+            setDownloadError("다운로드 중 오류가 발생했습니다.");
+        } finally {
+            setDownloadingId(null);
+        }
+    };
 
     useEffect(() => {
         if (initialTab) setActiveTab(initialTab);
@@ -175,7 +219,7 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
         );
     };
 
-    const renderThemeList = (themes: ThemeItem[], emptyMsg: string, emptyLink?: { href: string; label: string }) => {
+    const renderThemeList = (themes: ThemeItem[], emptyMsg: string, emptyLink?: { href: string; label: string }, isPurchased = false) => {
         if (loading) {
             return (
                 <div className="flex items-center gap-2 py-2">
@@ -200,41 +244,104 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
         }
         return (
             <div className="flex flex-col gap-2">
+                {downloadError && (
+                    <p className="text-[12px] px-1" style={{ color: "#ff3b30" }}>{downloadError}</p>
+                )}
+                {/* 버전 선택 모달 */}
+                {versionModal && (
+                    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center px-4 pb-4 sm:pb-0"
+                        style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(5px)" }}
+                        onClick={(e) => { if (e.target === e.currentTarget) setVersionModal(null); }}>
+                        <div className="w-full max-w-[400px] rounded-[24px] overflow-hidden flex flex-col bg-white"
+                            style={{ boxShadow: "0 24px 60px rgba(0,0,0,0.18)" }}>
+                            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+                                <h3 className="text-[15px] font-bold text-gray-900">버전 선택</h3>
+                                <button onClick={() => setVersionModal(null)} className="text-gray-400 hover:text-gray-700 p-1">
+                                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div className="flex flex-col gap-2 px-6 py-5">
+                                {versionModal.versions.map(ver => (
+                                    <button key={ver.id}
+                                        onClick={() => void handleFileDownload(ver, versionModal.themeName)}
+                                        disabled={downloadingId === ver.id}
+                                        className="flex items-center justify-between px-4 py-3 rounded-[12px] transition-all hover:brightness-95 disabled:opacity-50"
+                                        style={{ background: "rgba(0,0,0,0.04)" }}>
+                                        <div className="text-left">
+                                            <p className="text-[13px] font-semibold text-gray-800">{ver.version}</p>
+                                            <p className="text-[11px] text-gray-400">{ver.kthemeFileUrl ? ".ktheme (iOS)" : ".apk (Android)"}</p>
+                                        </div>
+                                        {downloadingId === ver.id ? (
+                                            <div className="w-4 h-4 rounded-full border-2 border-blue-200 border-t-blue-500 animate-spin" />
+                                        ) : (
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4A7BF7" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                                <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                                            </svg>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {themes.map((theme) => {
                     const mockId = getMockId(theme.id);
+                    const isDownloading = downloadingId === theme.id;
                     return (
-                        <div key={theme.id} className="flex items-center justify-between px-4 py-3 rounded-[14px] transition-all hover:brightness-95" style={{ background: "rgba(255,255,255,0.7)" }}>
-                            <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: "rgba(0,0,0,0.07)" }}>
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3a3a3c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <rect x="3" y="3" width="18" height="18" rx="3" /><path d="M3 9h18" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p className="text-[13px] font-semibold" style={{ color: "#1c1c1e" }}>{theme.name}</p>
-                                    <p className="text-[11px] flex items-center gap-1.5" style={{ color: "#8e8e93" }}>
-                                        {formatPrice(theme.price)}
-                                        {theme.tag && (
-                                            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold" style={{ background: theme.tag === "내 테마" ? "rgba(255,149,0,0.15)" : "#FFEF9A", color: "#3A1D1D" }}>
-                                                {theme.tag}
-                                            </span>
+                        <div key={theme.id} className="flex flex-col gap-2 px-4 py-3 rounded-[14px]" style={{ background: "rgba(255,255,255,0.7)" }}>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-[10px] overflow-hidden flex items-center justify-center shrink-0" style={{ background: "rgba(0,0,0,0.07)" }}>
+                                        {theme.thumbnailUrl ? (
+                                            <Image src={theme.thumbnailUrl} alt={theme.name} width={36} height={36} className="w-full h-full object-cover" unoptimized />
+                                        ) : (
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3a3a3c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <rect x="3" y="3" width="18" height="18" rx="3" /><path d="M3 9h18" />
+                                            </svg>
                                         )}
-                                    </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[13px] font-semibold" style={{ color: "#1c1c1e" }}>{theme.name}</p>
+                                        <p className="text-[11px] flex items-center gap-1.5" style={{ color: "#8e8e93" }}>
+                                            {formatPrice(theme.price)}
+                                            {theme.tag && (
+                                                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold" style={{ background: theme.tag === "내 테마" ? "rgba(255,149,0,0.15)" : "#FFEF9A", color: "#3A1D1D" }}>
+                                                    {theme.tag}
+                                                </span>
+                                            )}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {isPurchased && (
+                                        <button
+                                            onClick={() => handleDownload(theme.id, theme.name, theme.versions ?? [])}
+                                            disabled={downloadingId !== null}
+                                            className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-[10px] transition-all hover:brightness-95 disabled:opacity-50 active:scale-95"
+                                            style={{ background: "rgba(0,122,255,0.12)", color: "#007aff" }}
+                                        >
+                                            {isDownloading ? (
+                                                <div className="w-3 h-3 rounded-full border-2 border-blue-300 border-t-blue-600 animate-spin" />
+                                            ) : (
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                                    <polyline points="7 10 12 15 17 10" />
+                                                    <line x1="12" y1="15" x2="12" y2="3" />
+                                                </svg>
+                                            )}
+                                            {isDownloading ? "다운로드 중..." : "다운로드"}
+                                        </button>
+                                    )}
+                                    <Link href={mockId ? `/store/${mockId}` : `/store/${theme.id}`}>
+                                        <button className="text-[12px] font-semibold px-3 py-1.5 rounded-[10px] transition-all hover:brightness-95" style={{ background: "rgba(0,0,0,0.07)", color: "#3a3a3c" }}>
+                                            보기
+                                        </button>
+                                    </Link>
                                 </div>
                             </div>
-                            {mockId ? (
-                                <Link href={`/store/${mockId}`}>
-                                    <button className="text-[12px] font-semibold px-3 py-1.5 rounded-[10px] transition-all hover:brightness-95" style={{ background: "rgba(0,0,0,0.07)", color: "#3a3a3c" }}>
-                                        보기
-                                    </button>
-                                </Link>
-                            ) : (
-                                <Link href={`/store/${theme.id}`}>
-                                    <button className="text-[12px] font-semibold px-3 py-1.5 rounded-[10px] transition-all hover:brightness-95" style={{ background: "rgba(0,0,0,0.07)", color: "#3a3a3c" }}>
-                                        보기
-                                    </button>
-                                </Link>
-                            )}
                         </div>
                     );
                 })}
@@ -282,7 +389,7 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
             {/* 탭 콘텐츠 */}
             <div className="px-8 py-6">
                 {activeTab === "mine" && renderMineList(data?.mine ?? [])}
-                {activeTab === "purchased" && renderThemeList(data?.purchased ?? [], "아직 구매한 테마가 없어요. 테마 스토어를 둘러보세요!", { href: "/store", label: "테마 스토어 구경하기" })}
+                {activeTab === "purchased" && renderThemeList(data?.purchased ?? [], "아직 구매한 테마가 없어요. 테마 스토어를 둘러보세요!", { href: "/store", label: "테마 스토어 구경하기" }, true)}
                 {activeTab === "all" && renderThemeList(data?.all ?? [], "보유한 테마가 없어요.", { href: "/store", label: "테마 스토어 구경하기" })}
             </div>
         </div>

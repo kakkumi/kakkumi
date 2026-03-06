@@ -5,24 +5,31 @@ import { useRouter } from "next/navigation";
 import { Siren } from "lucide-react";
 import LoginRequiredModal from "../../components/LoginRequiredModal";
 
+type Version = { id: string; version: string; kthemeFileUrl: string | null; apkFileUrl: string | null };
+
 type Props = {
     themeId: string;
-    themeMockId: number;
     priceNum: number;
     priceName: string;
     isLoggedIn: boolean;
     userId?: string;
     isOwned?: boolean;
+    versions?: Version[];
     onInquiryAction?: () => void;
 };
 
 export default function ThemeActionButtons(props: Props) {
-    const { themeMockId, priceNum, priceName, isLoggedIn, isOwned = false, onInquiryAction } = props;
+    const { priceNum, priceName, isLoggedIn, isOwned = false, versions = [], onInquiryAction } = props;
     const router = useRouter();
     const [liked, setLiked] = useState(false);
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<{ success?: boolean; message?: string } | null>(null);
     const [ownedState, setOwnedState] = useState(isOwned);
+
+    // 옵션 선택 모달 (보유 시 다운로드 / 미보유 시 구매)
+    const [optionModal, setOptionModal] = useState<"download" | "buy" | null>(null);
+    const [selectedVersion, setSelectedVersion] = useState<Version | null>(null);
+    const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
     const [reportModal, setReportModal] = useState(false);
     const [reportReason, setReportReason] = useState("");
@@ -34,34 +41,60 @@ export default function ThemeActionButtons(props: Props) {
     const [loginModal, setLoginModal] = useState<string | null>(null);
 
     const isFree = priceNum === 0;
+    const hasVersions = versions.length > 0;
 
-    const handleMainAction = async () => {
-        if (!isLoggedIn) { setLoginModal(isFree ? "다운로드는 로그인이 필요한 기능이에요." : "구매하기는 로그인이 필요한 기능이에요."); return; }
-        if (isFree) {
-            setLoading(true);
-            setResult(null);
-            try {
-                const res = await fetch("/api/download/free", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ themeId: props.themeId }),
-                });
-                const data = await res.json() as { success?: boolean; error?: string; alreadyOwned?: boolean; downloadUrl?: string };
-                if (!res.ok) { setResult({ success: false, message: data.error ?? "다운로드 실패" }); return; }
-                if (data.downloadUrl) window.open(data.downloadUrl, "_blank");
-                setOwnedState(true);
-                if (!data.alreadyOwned) {
-                    setResult({ success: true, message: "다운로드가 완료되었습니다!" });
-                    setTimeout(() => setResult(null), 2000);
-                }
-            } catch {
-                setResult({ success: false, message: "오류가 발생했습니다. 다시 시도해주세요." });
-            } finally {
-                setLoading(false);
-            }
-        } else {
-            router.push(`/store/${props.themeId}/order?themeId=${props.themeId}`);
+    // OS 라벨 파싱 (version 필드 예: "iOS · 핑크 ver.", "Android · 기본")
+    const iosVersions = versions.filter(v => v.version.toLowerCase().startsWith("ios") && v.kthemeFileUrl);
+    const androidVersions = versions.filter(v => v.version.toLowerCase().startsWith("android") && v.apkFileUrl);
+
+    const handleMainAction = () => {
+        if (!isLoggedIn) {
+            setLoginModal(isFree ? "다운로드는 로그인이 필요한 기능이에요." : "구매하기는 로그인이 필요한 기능이에요.");
+            return;
         }
+        if (ownedState) {
+            // 이미 보유 중 → 마이페이지 구매 테마로 이동
+            router.push("/mypage?menu=구매+테마");
+            return;
+        }
+        if (isFree) {
+            // 무료 → 항상 옵션 모달 표시 (버전 없어도 모달로 안내)
+            setOptionModal("download");
+            setSelectedVersion(null);
+        } else {
+            // 유료 → 옵션 있으면 선택 후 구매, 없으면 바로 주문페이지
+            if (hasVersions) { setOptionModal("buy"); setSelectedVersion(null); }
+            else { router.push(`/store/${props.themeId}/order?themeId=${props.themeId}`); }
+        }
+    };
+
+    // 옵션 모달에서 선택 후 → 소유권 등록만 하고 마이페이지로 이동 (파일 다운로드 X)
+    const handleRegisterAndGo = async (ver: Version) => {
+        setDownloadingId(ver.id);
+        try {
+            const res = await fetch("/api/download/free", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ themeId: props.themeId, versionId: ver.id }),
+            });
+            const data = await res.json() as { success?: boolean; error?: string };
+            if (!res.ok) {
+                setResult({ success: false, message: data.error ?? "처리 중 오류가 발생했습니다." });
+                return;
+            }
+            setOptionModal(null);
+            router.push("/mypage?menu=구매+테마");
+        } catch {
+            setResult({ success: false, message: "오류가 발생했습니다." });
+        } finally {
+            setDownloadingId(null);
+        }
+    };
+
+    const handleBuyWithVersion = () => {
+        setOptionModal(null);
+        const versionParam = selectedVersion ? `&versionId=${selectedVersion.id}` : "";
+        router.push(`/store/${props.themeId}/order?themeId=${props.themeId}${versionParam}`);
     };
 
     const handleLike = () => {
@@ -105,8 +138,122 @@ export default function ThemeActionButtons(props: Props) {
         if (onInquiryAction) onInquiryAction();
     };
 
+    // 옵션 이름에서 OS 제거 (예: "iOS · 핑크 ver." → "핑크 ver.")
+    const shortName = (ver: Version) => ver.version.replace(/^(ios|android)\s*·\s*/i, "");
+
     return (
         <div className="flex flex-col gap-3">
+
+            {/* ── 옵션 선택 모달 ── */}
+            {optionModal && (
+                <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center px-4 pb-4 sm:pb-0"
+                    style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(5px)" }}
+                    onClick={(e) => { if (e.target === e.currentTarget) setOptionModal(null); }}>
+                    <div className="w-full max-w-[460px] rounded-[24px] overflow-hidden flex flex-col"
+                        style={{ background: "#fff", boxShadow: "0 24px 60px rgba(0,0,0,0.18)" }}>
+                        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+                            <h3 className="text-[16px] font-bold text-gray-900">
+                                {optionModal === "download" ? "버전 선택 후 다운로드" : "구매 옵션 선택"}
+                            </h3>
+                            <button onClick={() => setOptionModal(null)} className="text-gray-400 hover:text-gray-700 p-1">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="flex flex-col gap-4 px-6 py-5">
+                            {/* iOS 섹션 */}
+                            {iosVersions.length > 0 && (
+                                <div className="flex flex-col gap-2">
+                                    <div className="flex items-center gap-2">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+                                        </svg>
+                                        <span className="text-[12px] font-bold text-gray-500">iOS (.ktheme)</span>
+                                    </div>
+                                    {iosVersions.map(ver => (
+                                        <button key={ver.id}
+                                            onClick={() => optionModal === "download" ? handleRegisterAndGo(ver) : setSelectedVersion(ver)}
+                                            disabled={downloadingId === ver.id}
+                                            className="flex items-center justify-between px-4 py-3 rounded-[12px] text-left transition-all disabled:opacity-50"
+                                            style={{
+                                                background: selectedVersion?.id === ver.id ? "rgba(74,123,247,0.08)" : "rgba(0,0,0,0.03)",
+                                                border: selectedVersion?.id === ver.id ? "1.5px solid rgba(74,123,247,0.5)" : "1.5px solid transparent",
+                                            }}>
+                                            <span className="text-[14px] font-semibold text-gray-800">{shortName(ver)}</span>
+                                            {optionModal === "download" ? (
+                                                downloadingId === ver.id ? (
+                                                    <div className="w-4 h-4 rounded-full border-2 border-blue-200 border-t-blue-500 animate-spin" />
+                                                ) : (
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4A7BF7" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M5 12h14"/><path d="M12 5l7 7-7 7"/>
+                                                    </svg>
+                                                )
+                                            ) : selectedVersion?.id === ver.id ? (
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4A7BF7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M20 6L9 17l-5-5"/>
+                                                </svg>
+                                            ) : null}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                            {/* Android 섹션 */}
+                            {androidVersions.length > 0 && (
+                                <div className="flex flex-col gap-2">
+                                    <div className="flex items-center gap-2">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M5 16v-4a7 7 0 0 1 14 0v4"/>
+                                            <rect x="3" y="16" width="4" height="4" rx="1"/>
+                                            <rect x="17" y="16" width="4" height="4" rx="1"/>
+                                        </svg>
+                                        <span className="text-[12px] font-bold text-gray-500">Android (.apk)</span>
+                                    </div>
+                                    {androidVersions.map(ver => (
+                                        <button key={ver.id}
+                                            onClick={() => optionModal === "download" ? handleRegisterAndGo(ver) : setSelectedVersion(ver)}
+                                            disabled={downloadingId === ver.id}
+                                            className="flex items-center justify-between px-4 py-3 rounded-[12px] text-left transition-all disabled:opacity-50"
+                                            style={{
+                                                background: selectedVersion?.id === ver.id ? "rgba(74,123,247,0.08)" : "rgba(0,0,0,0.03)",
+                                                border: selectedVersion?.id === ver.id ? "1.5px solid rgba(74,123,247,0.5)" : "1.5px solid transparent",
+                                            }}>
+                                            <span className="text-[14px] font-semibold text-gray-800">{shortName(ver)}</span>
+                                            {optionModal === "download" ? (
+                                                downloadingId === ver.id ? (
+                                                    <div className="w-4 h-4 rounded-full border-2 border-blue-200 border-t-blue-500 animate-spin" />
+                                                ) : (
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4A7BF7" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M5 12h14"/><path d="M12 5l7 7-7 7"/>
+                                                    </svg>
+                                                )
+                                            ) : selectedVersion?.id === ver.id ? (
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4A7BF7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M20 6L9 17l-5-5"/>
+                                                </svg>
+                                            ) : null}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                            {/* 버전 없음 */}
+                            {iosVersions.length === 0 && androidVersions.length === 0 && (
+                                <p className="text-[14px] text-gray-400 text-center py-4">다운로드 파일이 아직 준비되지 않았습니다.</p>
+                            )}
+                            {/* 구매 버튼 (buy 모드일 때) */}
+                            {optionModal === "buy" && (iosVersions.length > 0 || androidVersions.length > 0) && (
+                                <button
+                                    onClick={handleBuyWithVersion}
+                                    disabled={!selectedVersion}
+                                    className="w-full py-3.5 rounded-[14px] text-[15px] font-bold text-white transition-all active:scale-[0.98] disabled:opacity-40 mt-1"
+                                    style={{ background: "#4A7BF7", boxShadow: "0 4px 20px rgba(74,123,247,0.3)" }}>
+                                    {selectedVersion ? `${priceName} 구매하기` : "옵션을 선택해주세요"}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* ── 신고 모달 ── */}
             {reportModal && (
@@ -125,10 +272,7 @@ export default function ThemeActionButtons(props: Props) {
                                     </svg>
                                 </div>
                                 <p className="text-[17px] font-bold text-gray-900">신고가 접수되었습니다</p>
-                                <p className="text-[13px] text-gray-400 text-center leading-relaxed">
-                                    검토 후 필요한 조치를 취하겠습니다.<br />
-                                    허위 신고로 판명될 경우 서비스 이용이 제한될 수 있습니다.
-                                </p>
+                                <p className="text-[13px] text-gray-400 text-center leading-relaxed">검토 후 필요한 조치를 취하겠습니다.<br />허위 신고로 판명될 경우 서비스 이용이 제한될 수 있습니다.</p>
                             </div>
                         ) : (
                             <>
@@ -210,9 +354,7 @@ export default function ThemeActionButtons(props: Props) {
                                         </span>
                                     </button>
                                     {reportError && (
-                                        <p className="text-[12px] font-medium px-3 py-2 rounded-lg" style={{ background: "rgba(255,59,48,0.08)", color: "#ff3b30" }}>
-                                            {reportError}
-                                        </p>
+                                        <p className="text-[12px] font-medium px-3 py-2 rounded-lg" style={{ background: "rgba(255,59,48,0.08)", color: "#ff3b30" }}>{reportError}</p>
                                     )}
                                     <button onClick={handleReportSubmit}
                                         disabled={!reportReason || !reportAgreed || !reportDetail.trim() || reportLoading}
@@ -239,7 +381,7 @@ export default function ThemeActionButtons(props: Props) {
             <div className="flex gap-3">
                 <button
                     onClick={handleMainAction}
-                    disabled={loading || ownedState}
+                    disabled={loading}
                     className="flex-[3] py-[14px] rounded-[14px] text-[15px] font-bold text-white transition-all active:scale-[0.98] disabled:opacity-60"
                     style={{
                         background: ownedState ? "#34c759" : "#4A7BF7",
@@ -247,10 +389,9 @@ export default function ThemeActionButtons(props: Props) {
                     }}
                 >
                     {loading ? "처리 중..."
-                        : ownedState ? "보유중"
-                        : isLoggedIn
-                            ? isFree ? "무료 다운로드" : `${priceName} 구매하기`
-                            : isFree ? "무료 다운로드" : `${priceName} 구매하기`}
+                        : ownedState ? "다운로드"
+                        : isFree ? "무료 다운로드"
+                        : `${priceName} 구매하기`}
                 </button>
                 <button
                     onClick={handleLike}

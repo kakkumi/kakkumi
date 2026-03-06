@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useRef, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import ThemeVaultTabs from "./ThemeVaultTabs";
 import CreditPage from "./CreditPage";
@@ -44,8 +44,10 @@ type Props = {
 
 export default function MyPageClient({ session, purchasedCount, sidebarMenus, createdAt, credit = 0 }: Props) {
     const router = useRouter();
-    const [activeMenu, setActiveMenu] = useState<string>("회원정보 수정");
-    const [themeTab, setThemeTab] = useState<Tab>("purchased");
+    const searchParams = useSearchParams();
+    const menuFromUrl = searchParams.get("menu") ?? "";
+    const [activeMenu, setActiveMenu] = useState<string>(menuFromUrl || "회원정보 수정");
+    const [themeTab, setThemeTab] = useState<Tab>(() => THEME_TAB_MAP[menuFromUrl] ?? "purchased");
 
     // 닉네임 상태
     const currentNickname = session?.nickname ?? session?.name ?? "";

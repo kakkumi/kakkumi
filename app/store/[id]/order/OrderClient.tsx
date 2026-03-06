@@ -43,6 +43,7 @@ export default function OrderPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const themeId = searchParams.get("themeId") ?? "";
+    const versionId = searchParams.get("versionId") ?? undefined;
 
     const [theme, setTheme] = useState<OrderInfo | null>(null);
     const [myCredit, setMyCredit] = useState(0);
@@ -104,11 +105,11 @@ export default function OrderPage() {
                 const res = await fetch("/api/payment/credit", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ themeId }),
+                    body: JSON.stringify({ themeId, versionId }),
                 });
                 const data = await res.json() as { success?: boolean; error?: string };
                 if (data.success) {
-                    router.push(`/payment/success?themeId=${encodeURIComponent(themeId)}&method=credit`);
+                    router.push(`/mypage?menu=구매+테마`);
                 } else {
                     setError(data.error ?? "결제에 실패했습니다.");
                 }
@@ -141,7 +142,7 @@ export default function OrderPage() {
                 orderId,
                 orderName: theme.title,
                 customerName: "카꾸미 고객",
-                successUrl: `${window.location.origin}/payment/success?themeId=${encodeURIComponent(themeId)}&creditUsed=${creditToUse}`,
+                successUrl: `${window.location.origin}/payment/success?themeId=${encodeURIComponent(themeId)}&creditUsed=${creditToUse}${versionId ? `&versionId=${encodeURIComponent(versionId)}` : ""}`,
                 failUrl: `${window.location.origin}/payment/fail`,
             });
         } catch (err: unknown) {

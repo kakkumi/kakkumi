@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
     }
 
-    const { themeId } = (await req.json()) as { themeId: string };
+    const { themeId, versionId } = (await req.json()) as { themeId: string; versionId?: string };
     if (!themeId) {
         return NextResponse.json({ error: "테마 정보가 없습니다." }, { status: 400 });
     }
@@ -53,8 +53,8 @@ export async function POST(req: NextRequest) {
         UPDATE "User" SET credit = credit - ${theme.price}, "updatedAt" = NOW() WHERE id = ${session.dbId}
     `;
     await prisma.$executeRaw`
-        INSERT INTO "Purchase" (id, "buyerId", "themeId", amount, status, "createdAt")
-        VALUES (${purchaseId}, ${session.dbId}, ${themeId}, ${theme.price}, 'COMPLETED'::"PurchaseStatus", ${now})
+        INSERT INTO "Purchase" (id, "buyerId", "themeId", "versionId", amount, status, "createdAt")
+        VALUES (${purchaseId}, ${session.dbId}, ${themeId}, ${versionId ?? null}, ${theme.price}, 'COMPLETED'::"PurchaseStatus", ${now})
     `;
     await prisma.$executeRaw`
         INSERT INTO "PointHistory" (id, "userId", amount, type, memo, "createdAt")

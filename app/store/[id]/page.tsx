@@ -62,6 +62,15 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
         isOwned = !!purchase;
     }
 
+    // 다운로드 옵션 (ThemeVersion) 조회
+    type VersionRow = { id: string; version: string; kthemeFileUrl: string | null; apkFileUrl: string | null };
+    const versions = await prisma.$queryRaw<VersionRow[]>`
+        SELECT id, version, "kthemeFileUrl", "apkFileUrl"
+        FROM "ThemeVersion"
+        WHERE "themeId" = ${id}
+        ORDER BY "createdAt" ASC
+    `;
+
     const now = new Date();
     const created = new Date(dbTheme.createdAt);
 
@@ -128,6 +137,7 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
                     isLoggedIn={isLoggedIn}
                     userId={session?.dbId ?? undefined}
                     isOwned={isOwned}
+                    versions={versions as { id: string; version: string; kthemeFileUrl: string | null; apkFileUrl: string | null }[]}
                 />
 
                 <ThemeDetailTabs

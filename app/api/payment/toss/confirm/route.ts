@@ -22,12 +22,13 @@ export async function POST(request: Request) {
 
     const body = (await request.json()) as {
         paymentKey: string;
-        orderId: string;     // "{themeId}_{userId}_{timestamp}" 형식
+        orderId: string;
         amount: number;
         themeId: string;
+        versionId?: string;
     };
 
-    const { paymentKey, orderId, amount, themeId } = body;
+    const { paymentKey, orderId, amount, themeId, versionId } = body;
 
     if (!paymentKey || !orderId || !amount || !themeId) {
         return NextResponse.json({ error: "필수 파라미터가 누락되었습니다." }, { status: 400 });
@@ -83,6 +84,7 @@ export async function POST(request: Request) {
         data: {
             buyerId: session.dbId,
             themeId,
+            versionId: versionId ?? null,
             amount,
             pgTransactionId: tossData.paymentKey,
             status: "COMPLETED",
