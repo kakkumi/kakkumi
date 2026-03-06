@@ -521,8 +521,10 @@ export default function RegisterForm({ authorName, headerSlot }: { authorName: s
                     <div className="flex gap-3">
                         <button
                             type="button"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => { window.location.href = "/store"; }}
+                            onClick={() => {
+                                if (nameCheckTimer.current) clearTimeout(nameCheckTimer.current);
+                                router.push("/store");
+                            }}
                             className="px-6 py-3 rounded-xl text-[14px] font-medium transition-all hover:opacity-70"
                             style={{ background: "rgba(0,0,0,0.05)", color: "#3a3a3c" }}
                         >
