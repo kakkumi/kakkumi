@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
-const PRICE_OPTIONS = ["무료", "500원", "1,000원", "1,500원", "2,000원"];
+const PRICE_OPTIONS = ["무료", "500원", "1,000원", "1,500원", "2,000원", "2,500원"];
 const MAX_MINI_PREVIEWS = 5;
 const MAX_FILES = 5;
 

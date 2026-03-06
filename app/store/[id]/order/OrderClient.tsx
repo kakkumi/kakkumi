@@ -13,16 +13,18 @@ function getPurchaseCredit(price: number): number {
     if (price <= 500) return 10;
     if (price <= 1000) return 20;
     if (price <= 1500) return 30;
+    if (price <= 2000) return 40;
     return 50;
 }
 
 // 리뷰 적립금 테이블
 function getReviewCredit(price: number): number {
     if (price === 0) return 0;
-    if (price <= 500) return 50;
-    if (price <= 1000) return 80;
-    if (price <= 1500) return 100;
-    return 120;
+    if (price <= 500) return 30;
+    if (price <= 1000) return 70;
+    if (price <= 1500) return 120;
+    if (price <= 2000) return 180;
+    return 250;
 }
 
 type TossPaymentsFn = (clientKey: string) => {
