@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Siren } from "lucide-react";
+import LoginRequiredModal from "../../components/LoginRequiredModal";
 
 type Props = {
     themeId: string;
@@ -30,11 +31,12 @@ export default function ThemeActionButtons(props: Props) {
     const [reportSubmitted, setReportSubmitted] = useState(false);
     const [reportLoading, setReportLoading] = useState(false);
     const [reportError, setReportError] = useState("");
+    const [loginModal, setLoginModal] = useState<string | null>(null);
 
     const isFree = priceNum === 0;
 
     const handleMainAction = async () => {
-        if (!isLoggedIn) { router.push("/api/auth/kakao"); return; }
+        if (!isLoggedIn) { setLoginModal(isFree ? "다운로드는 로그인이 필요한 기능이에요." : "구매하기는 로그인이 필요한 기능이에요."); return; }
         if (isFree) {
             setLoading(true);
             setResult(null);
@@ -63,12 +65,12 @@ export default function ThemeActionButtons(props: Props) {
     };
 
     const handleLike = () => {
-        if (!isLoggedIn) { router.push("/api/auth/kakao"); return; }
+        if (!isLoggedIn) { setLoginModal("찜하기는 로그인이 필요한 기능이에요."); return; }
         setLiked(prev => !prev);
     };
 
     const handleReport = () => {
-        if (!isLoggedIn) { router.push("/api/auth/kakao"); return; }
+        if (!isLoggedIn) { setLoginModal("신고하기는 로그인이 필요한 기능이에요."); return; }
         setReportModal(true);
         setReportSubmitted(false);
         setReportReason("");
@@ -99,7 +101,7 @@ export default function ThemeActionButtons(props: Props) {
     };
 
     const handleInquiry = () => {
-        if (!isLoggedIn) { router.push("/api/auth/kakao"); return; }
+        if (!isLoggedIn) { setLoginModal("크리에이터 문의는 로그인이 필요한 기능이에요."); return; }
         if (onInquiryAction) onInquiryAction();
     };
 
@@ -248,7 +250,7 @@ export default function ThemeActionButtons(props: Props) {
                         : ownedState ? "보유중"
                         : isLoggedIn
                             ? isFree ? "무료 다운로드" : `${priceName} 구매하기`
-                            : isFree ? "로그인 후 무료 다운로드" : "로그인 후 구매하기"}
+                            : isFree ? "무료 다운로드" : `${priceName} 구매하기`}
                 </button>
                 <button
                     onClick={handleLike}
@@ -280,6 +282,9 @@ export default function ThemeActionButtons(props: Props) {
                 </svg>
                 크리에이터에게 문의하기
             </button>
+            {loginModal && (
+                <LoginRequiredModal message={loginModal} onClose={() => setLoginModal(null)} />
+            )}
         </div>
     );
 }

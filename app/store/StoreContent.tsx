@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import LoginRequiredModal from "../components/LoginRequiredModal";
 
 // data.ts의 THEME_COLORS는 시드 데이터용 색상이므로 DB 테마엔 플레이스홀더 사용
 import { THEME_COLORS } from "./data";
@@ -133,6 +134,18 @@ export default function StoreContent() {
     const [dbThemes, setDbThemes]             = useState<UnifiedTheme[]>([]);
     const [loading, setLoading]               = useState(true);
     const [currentPage, setCurrentPage]       = useState(1);
+    const [isLoggedIn, setIsLoggedIn]         = useState(false);
+    const [showLoginModal, setShowLoginModal] = useState(false);
+
+    // 로그인 여부 확인
+    useEffect(() => {
+        fetch("/api/auth/session", { cache: "no-store" })
+            .then(r => r.json())
+            .then((d: { session?: { role?: string } | null }) => {
+                setIsLoggedIn(!!d?.session);
+            })
+            .catch(() => {});
+    }, []);
     const PAGE_SIZE = 36; // 4 × 9
 
     // DB에서 PUBLISHED 테마 불러오기
@@ -163,6 +176,10 @@ export default function StoreContent() {
     }, []);
 
     const toggleLike = async (key: string) => {
+        if (!isLoggedIn) {
+            setShowLoginModal(true);
+            return;
+        }
         // 낙관적 업데이트
         setLikedIds(prev => {
             const next = new Set(prev);
@@ -544,6 +561,12 @@ export default function StoreContent() {
                     <path d="M18 15l-6-6-6 6"/>
                 </svg>
             </button>
+            {showLoginModal && (
+                <LoginRequiredModal
+                    message="찜하기는 로그인이 필요한 기능이에요."
+                    onClose={() => setShowLoginModal(false)}
+                />
+            )}
         </div>
     );
 }

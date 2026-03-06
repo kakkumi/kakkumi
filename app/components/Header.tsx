@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import AuthStatus from "./AuthStatus";
 import NotificationBell from "./NotificationBell";
+import LoginRequiredModal from "./LoginRequiredModal";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -48,17 +49,32 @@ function getNavItems(role: string | null) {
 export default function Header() {
     const pathname = usePathname();
     const [role, setRole] = useState<string | null>(null);
+    const [sessionLoaded, setSessionLoaded] = useState(false);
+    const [loginModal, setLoginModal] = useState<string | null>(null);
 
     useEffect(() => {
         fetch("/api/auth/session", { cache: "no-store" })
             .then((r) => r.json())
             .then((d: { session?: { role?: string } | null }) => {
                 setRole(d?.session?.role ?? null);
+                setSessionLoaded(true);
             })
-            .catch(() => {});
+            .catch(() => { setSessionLoaded(true); });
     }, []);
 
     const NAV_ITEMS = getNavItems(role);
+
+    // 로그인이 필요한 href 목록 (비로그인 상태에서만)
+    const LOGIN_REQUIRED_HREFS = ["/create", "/mypage/creator-apply"];
+
+    const handleNavClick = (e: React.MouseEvent, href: string) => {
+        if (!sessionLoaded) return;
+        if (role === null && LOGIN_REQUIRED_HREFS.includes(href)) {
+            e.preventDefault();
+            const label = href === "/create" ? "테마 만들기는" : "입점 신청은";
+            setLoginModal(`${label} 로그인이 필요한 기능이에요.`);
+        }
+    };
 
     const isActive = (href: string) => {
         if (href === "/store") {
@@ -68,6 +84,7 @@ export default function Header() {
     };
 
     return (
+        <>
         <header
             className="sticky top-0 z-50 flex items-center px-6 py-0 shrink-0"
             style={{
@@ -90,6 +107,7 @@ export default function Header() {
                         <Link
                             key={href}
                             href={href}
+                            onClick={(e) => handleNavClick(e, href)}
                             className="text-[13px] font-medium transition-opacity hover:opacity-60"
                             style={{
                                 color: active ? "rgb(255, 149, 0)" : isAdminLink ? "#ff3b30" : "#3a3a3c",
@@ -106,5 +124,9 @@ export default function Header() {
                 <AuthStatus />
             </div>
         </header>
+        {loginModal && (
+            <LoginRequiredModal message={loginModal} onClose={() => setLoginModal(null)} />
+        )}
+        </>
     );
 }

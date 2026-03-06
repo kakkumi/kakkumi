@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import LoginRequiredModal from "../../components/LoginRequiredModal";
 
 type Theme = {
     id: string;
@@ -41,6 +42,7 @@ export default function CreatorProfileClient({ creatorId }: { creatorId: string 
     const [loading, setLoading] = useState(true);
     const [followLoading, setFollowLoading] = useState(false);
     const [error, setError] = useState("");
+    const [loginModal, setLoginModal] = useState(false);
 
     useEffect(() => {
         fetch(`/api/creator/${creatorId}`)
@@ -68,7 +70,7 @@ export default function CreatorProfileClient({ creatorId }: { creatorId: string 
                 body: JSON.stringify({ creatorId }),
             });
             if (res.status === 401) {
-                router.push("/api/auth/kakao");
+                setLoginModal(true);
                 return;
             }
             const data = await res.json() as { isFollowing?: boolean; error?: string };
@@ -235,6 +237,12 @@ export default function CreatorProfileClient({ creatorId }: { creatorId: string 
                     </div>
                 )}
             </div>
+            {loginModal && (
+                <LoginRequiredModal
+                    message="팔로우는 로그인이 필요한 기능이에요."
+                    onClose={() => setLoginModal(false)}
+                />
+            )}
         </div>
     );
 }
