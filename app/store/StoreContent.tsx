@@ -261,10 +261,10 @@ export default function StoreContent() {
         <div className="flex w-full" style={{ maxWidth: 1400, margin: "0 auto" }}>
 
             {/* ── 사이드바 ── */}
-            <aside className="fixed w-[180px] flex flex-col gap-1 px-6 pt-12">
+            <aside className="fixed w-[160px] flex flex-col gap-1 px-5 pt-12">
                 {SIDEBAR_MENUS.map((group, index) => (
                     <div key={group.category} className="flex flex-col gap-0.5">
-                        <span className="text-[11px] font-bold tracking-[0.15em] uppercase px-3 mb-1" style={{ color: "#8e8e93" }}>
+                        <span className="text-[10.5px] font-bold tracking-[0.15em] uppercase px-2 mb-1" style={{ color: "#8e8e93" }}>
                             {group.category}
                         </span>
                         {group.items.map(item => {
@@ -280,7 +280,7 @@ export default function StoreContent() {
                                         group.category === "카테고리" ? setActiveCategory(item) :
                                         setActivePrice(item)
                                     }
-                                    className="text-left px-3 py-2 rounded-xl text-[13px] font-medium transition-all"
+                                    className="text-left px-2 py-[7px] rounded-xl text-[12.5px] font-medium transition-all"
                                     style={{ color: isActive ? "#FF9500" : "#3a3a3c", fontWeight: isActive ? 700 : 500 }}
                                 >
                                     {item}
@@ -288,7 +288,7 @@ export default function StoreContent() {
                             );
                         })}
                         {index < SIDEBAR_MENUS.length - 1 && (
-                            <div className="my-3 h-[1px]" style={{ background: "rgba(0,0,0,0.18)" }} />
+                            <div className="my-2.5 h-[1px]" style={{ background: "rgba(0,0,0,0.18)" }} />
                         )}
                     </div>
                 ))}
