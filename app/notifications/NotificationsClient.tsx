@@ -84,13 +84,6 @@ function timeAgo(dateStr: string) {
     return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
 }
 
-function formatDate(dateStr: string) {
-    const d = new Date(dateStr);
-    return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-}
-
-type FilterType = "all" | "unread";
-
 const CARD_STYLE = {
     background: "rgba(255,255,255,0.8)",
     backdropFilter: "blur(20px)",
@@ -101,10 +94,8 @@ const CARD_STYLE = {
 export default function NotificationsClient({ initialNotifications }: Props) {
     const router = useRouter();
     const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
-    const [filter, setFilter] = useState<FilterType>("all");
     const [typeFilter, setTypeFilter] = useState<string>("all");
     const [markingAll, setMarkingAll] = useState(false);
-    const [selected, setSelected] = useState<Notification | null>(null);
 
     const totalCount = notifications.length;
     const unreadCount = notifications.filter((n) => !n.isRead).length;
@@ -117,14 +108,11 @@ export default function NotificationsClient({ initialNotifications }: Props) {
     }, {});
     const usedTypes = Object.keys(typeCounts);
 
-    const filtered = notifications.filter((n) => {
-        const matchRead = filter === "all" || !n.isRead;
-        const matchType = typeFilter === "all" || n.type === typeFilter;
-        return matchRead && matchType;
-    });
+    const filtered = notifications.filter((n) =>
+        typeFilter === "all" || n.type === typeFilter
+    );
 
     const handleClick = async (n: Notification) => {
-        setSelected(n);
         if (!n.isRead) {
             await fetch("/api/notifications", {
                 method: "PATCH",
@@ -132,8 +120,8 @@ export default function NotificationsClient({ initialNotifications }: Props) {
                 body: JSON.stringify({ id: n.id }),
             });
             setNotifications((prev) => prev.map((x) => (x.id === n.id ? { ...x, isRead: true } : x)));
-            setSelected({ ...n, isRead: true });
         }
+        if (n.linkUrl) router.push(n.linkUrl);
     };
 
     const handleMarkAllRead = async () => {
@@ -144,12 +132,7 @@ export default function NotificationsClient({ initialNotifications }: Props) {
             body: JSON.stringify({ all: true }),
         });
         setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-        if (selected) setSelected({ ...selected, isRead: true });
         setMarkingAll(false);
-    };
-
-    const handleDetailLink = () => {
-        if (selected?.linkUrl) router.push(selected.linkUrl);
     };
 
     return (
@@ -216,29 +199,6 @@ export default function NotificationsClient({ initialNotifications }: Props) {
                         </p>
                     </div>
 
-                    {/* 필터 */}
-                    <div className="rounded-[18px] p-5 flex flex-col gap-2" style={CARD_STYLE}>
-                        <p className="text-[11px] font-bold uppercase tracking-widest mb-1" style={{ color: "#aeaeb2" }}>상태 필터</p>
-                        {(["all", "unread"] as FilterType[]).map((f) => (
-                            <button
-                                key={f}
-                                onClick={() => setFilter(f)}
-                                className="flex items-center justify-between w-full px-3 py-2 rounded-xl text-[13px] font-medium transition-all hover:opacity-80"
-                                style={{
-                                    background: filter === f ? "#1c1c1e" : "transparent",
-                                    color: filter === f ? "#fff" : "#636366",
-                                }}
-                            >
-                                <span>{f === "all" ? "전체" : "읽지 않음"}</span>
-                                {f === "unread" && unreadCount > 0 && (
-                                    <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: filter === f ? "rgba(255,255,255,0.2)" : "rgba(74,123,247,0.12)", color: filter === f ? "#fff" : "#4a7bf7" }}>
-                                        {unreadCount}
-                                    </span>
-                                )}
-                            </button>
-                        ))}
-                    </div>
-
                     {/* 카테고리 필터 */}
                     {usedTypes.length > 0 && (
                         <div className="rounded-[18px] p-5 flex flex-col gap-2" style={CARD_STYLE}>
@@ -294,17 +254,14 @@ export default function NotificationsClient({ initialNotifications }: Props) {
                         ) : (
                             filtered.map((n, idx) => {
                                 const meta = TYPE_META[n.type] ?? DEFAULT_META;
-                                const isActive = selected?.id === n.id;
                                 return (
                                     <div key={n.id}>
                                         <button
                                             onClick={() => handleClick(n)}
                                             className="w-full flex items-start gap-4 px-5 py-4 text-left transition-all"
                                             style={{
-                                                background: isActive
-                                                    ? "rgba(74,123,247,0.06)"
-                                                    : n.isRead ? "transparent" : "rgba(74,123,247,0.02)",
-                                                borderLeft: isActive ? `3px solid ${meta.color}` : "3px solid transparent",
+                                                background: n.isRead ? "transparent" : "rgba(74,123,247,0.02)",
+                                                borderLeft: "3px solid transparent",
                                             }}
                                         >
                                             {/* 아이콘 */}
@@ -348,72 +305,6 @@ export default function NotificationsClient({ initialNotifications }: Props) {
                     </div>
                 </section>
 
-                {/* ── 우측 상세 패널 ── */}
-                <aside className="w-[280px] shrink-0 sticky top-6">
-                    {selected ? (() => {
-                        const meta = TYPE_META[selected.type] ?? DEFAULT_META;
-                        return (
-                            <div className="rounded-[20px] overflow-hidden flex flex-col" style={CARD_STYLE}>
-                                {/* 상단 컬러 헤더 */}
-                                <div className="px-6 pt-6 pb-5" style={{ background: meta.bg, borderBottom: `1px solid ${meta.color}22` }}>
-                                    <div className="flex items-center gap-3 mb-3">
-                                        <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: "rgba(255,255,255,0.6)", border: `1.5px solid ${meta.color}40` }}>
-                                            {meta.icon}
-                                        </div>
-                                        <div>
-                                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: meta.color + "22", color: meta.color }}>{meta.label}</span>
-                                            <p className="text-[11px] mt-1" style={{ color: "#8e8e93" }}>{formatDate(selected.createdAt)}</p>
-                                        </div>
-                                    </div>
-                                    <p className="text-[15px] font-bold leading-snug" style={{ color: "#1c1c1e" }}>{selected.title}</p>
-                                </div>
-
-                                {/* 본문 */}
-                                <div className="px-6 py-5 flex flex-col gap-4">
-                                    <p className="text-[13px] leading-relaxed" style={{ color: "#3a3a3c" }}>{selected.body}</p>
-
-                                    {/* 읽음 상태 */}
-                                    <div className="flex items-center gap-2 py-3 px-4 rounded-xl" style={{ background: "rgba(0,0,0,0.03)" }}>
-                                        <div className="w-2 h-2 rounded-full" style={{ background: selected.isRead ? "#34c759" : "#4a7bf7" }} />
-                                        <span className="text-[12px] font-medium" style={{ color: "#636366" }}>
-                                            {selected.isRead ? "읽음" : "읽지 않음"}
-                                        </span>
-                                    </div>
-
-                                    {/* 바로가기 버튼 */}
-                                    {selected.linkUrl && (
-                                        <button
-                                            onClick={handleDetailLink}
-                                            className="w-full py-3 rounded-xl text-[13px] font-bold transition-all hover:brightness-105 active:scale-95 flex items-center justify-center gap-2"
-                                            style={{ background: meta.color, color: "#fff" }}
-                                        >
-                                            바로가기
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                <path d="M5 12h14M12 5l7 7-7 7" />
-                                            </svg>
-                                        </button>
-                                    )}
-
-                                    <button
-                                        onClick={() => setSelected(null)}
-                                        className="w-full py-2.5 rounded-xl text-[13px] font-medium transition-all hover:bg-black/5 active:scale-95"
-                                        style={{ color: "#8e8e93" }}
-                                    >
-                                        닫기
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    })() : (
-                        <div className="rounded-[20px] flex flex-col items-center justify-center py-14 gap-3" style={CARD_STYLE}>
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d1d1d6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                            </svg>
-                            <p className="text-[13px] text-center leading-snug" style={{ color: "#c8c8cd" }}>알림을 선택하면<br/>상세 내용이 표시됩니다.</p>
-                        </div>
-                    )}
-                </aside>
 
             </div>
         </main>
