@@ -84,12 +84,6 @@ function timeAgo(dateStr: string) {
     return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
 }
 
-const CARD_STYLE = {
-    background: "rgba(255,255,255,0.8)",
-    backdropFilter: "blur(20px)",
-    border: "1px solid rgba(0,0,0,0.07)",
-    boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
-};
 
 export default function NotificationsClient({ initialNotifications }: Props) {
     const router = useRouter();
@@ -99,7 +93,6 @@ export default function NotificationsClient({ initialNotifications }: Props) {
 
     const totalCount = notifications.length;
     const unreadCount = notifications.filter((n) => !n.isRead).length;
-    const readCount = totalCount - unreadCount;
 
     // 타입별 카운트
     const typeCounts = notifications.reduce<Record<string, number>>((acc, n) => {
@@ -135,178 +128,160 @@ export default function NotificationsClient({ initialNotifications }: Props) {
         setMarkingAll(false);
     };
 
+    // 날짜별 그룹핑
+    const grouped = filtered.reduce<Record<string, Notification[]>>((acc, n) => {
+        const d = new Date(n.createdAt);
+        const now = new Date();
+        const diffDays = Math.floor((now.getTime() - d.getTime()) / 86400000);
+        const key =
+            diffDays === 0 ? "오늘" :
+            diffDays === 1 ? "어제" :
+            diffDays < 7 ? "이번 주" :
+            `${d.getFullYear()}년 ${d.getMonth() + 1}월`;
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(n);
+        return acc;
+    }, {});
+    const groupOrder = ["오늘", "어제", "이번 주"];
+    const sortedGroups = [
+        ...groupOrder.filter((k) => grouped[k]),
+        ...Object.keys(grouped).filter((k) => !groupOrder.includes(k)),
+    ];
+
     return (
-        <main className="flex-1 w-full max-w-[1400px] mx-auto px-6 py-8">
+        <div className="min-h-screen" style={{ backgroundColor: "#f3f3f3" }}>
+            <div className="max-w-[720px] mx-auto px-5 pt-16 pb-24">
 
-            {/* 상단 헤더 */}
-            <div className="flex items-center justify-between mb-7">
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => router.back()}
-                        className="w-9 h-9 flex items-center justify-center rounded-full transition-all hover:bg-black/5 active:scale-95"
-                    >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3a3a3c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M15 18l-6-6 6-6" />
-                        </svg>
-                    </button>
+                {/* 페이지 헤더 */}
+                <div className="flex items-end justify-between mb-10">
                     <div>
-                        <h1 className="text-[24px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>알림</h1>
-                        <p className="text-[12px] mt-0.5" style={{ color: "#8e8e93" }}>총 {totalCount}개 · 읽지 않음 {unreadCount}개</p>
-                    </div>
-                </div>
-                {unreadCount > 0 && (
-                    <button
-                        onClick={handleMarkAllRead}
-                        disabled={markingAll}
-                        className="text-[13px] font-semibold px-4 py-2 rounded-xl transition-all hover:opacity-70 disabled:opacity-40 active:scale-95"
-                        style={{ background: "rgba(74,123,247,0.1)", color: "#4a7bf7" }}
-                    >
-                        {markingAll ? "처리 중..." : "모두 읽음 처리"}
-                    </button>
-                )}
-            </div>
-
-            {/* 3단 레이아웃 */}
-            <div className="flex gap-5 items-start">
-
-                {/* ── 왼쪽 사이드바 ── */}
-                <aside className="w-[220px] shrink-0 flex flex-col gap-4 sticky top-6">
-
-                    {/* 요약 카드 */}
-                    <div className="rounded-[18px] p-5 flex flex-col gap-3" style={CARD_STYLE}>
-                        <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: "#aeaeb2" }}>요약</p>
-                        <div className="flex flex-col gap-2">
-                            {[
-                                { label: "전체", value: totalCount, color: "#1c1c1e" },
-                                { label: "읽지 않음", value: unreadCount, color: "#4a7bf7" },
-                                { label: "읽음", value: readCount, color: "#aeaeb2" },
-                            ].map((s) => (
-                                <div key={s.label} className="flex items-center justify-between">
-                                    <span className="text-[13px]" style={{ color: "#636366" }}>{s.label}</span>
-                                    <span className="text-[15px] font-bold" style={{ color: s.color }}>{s.value}</span>
-                                </div>
-                            ))}
-                        </div>
-                        {/* 읽음 진행바 */}
-                        <div className="h-1.5 rounded-full overflow-hidden mt-1" style={{ background: "rgba(0,0,0,0.06)" }}>
-                            <div
-                                className="h-full rounded-full transition-all"
-                                style={{ width: totalCount > 0 ? `${Math.round((readCount / totalCount) * 100)}%` : "0%", background: "#34c759" }}
-                            />
-                        </div>
-                        <p className="text-[11px]" style={{ color: "#aeaeb2" }}>
-                            {totalCount > 0 ? Math.round((readCount / totalCount) * 100) : 0}% 읽음
+                        <p className="text-[11px] font-semibold tracking-[0.12em] uppercase mb-2" style={{ color: "#a8a29e" }}>
+                            Notifications
                         </p>
+                        <h1 className="text-[28px] font-bold tracking-tight" style={{ color: "#1c1917", letterSpacing: "-0.02em" }}>
+                            알림
+                        </h1>
                     </div>
-
-                    {/* 카테고리 필터 */}
-                    {usedTypes.length > 0 && (
-                        <div className="rounded-[18px] p-5 flex flex-col gap-2" style={CARD_STYLE}>
-                            <p className="text-[11px] font-bold uppercase tracking-widest mb-1" style={{ color: "#aeaeb2" }}>카테고리</p>
-                            <button
-                                onClick={() => setTypeFilter("all")}
-                                className="flex items-center justify-between w-full px-3 py-2 rounded-xl text-[13px] font-medium transition-all hover:opacity-80"
-                                style={{ background: typeFilter === "all" ? "#1c1c1e" : "transparent", color: typeFilter === "all" ? "#fff" : "#636366" }}
-                            >
-                                <span>전체</span>
-                                <span className="text-[11px] font-bold">{totalCount}</span>
-                            </button>
-                            {usedTypes.map((t) => {
-                                const meta = TYPE_META[t] ?? DEFAULT_META;
-                                const active = typeFilter === t;
-                                return (
-                                    <button
-                                        key={t}
-                                        onClick={() => setTypeFilter(t)}
-                                        className="flex items-center justify-between w-full px-3 py-2 rounded-xl text-[13px] font-medium transition-all hover:opacity-80"
-                                        style={{ background: active ? meta.color : "transparent", color: active ? "#fff" : "#636366" }}
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <span style={{ opacity: active ? 1 : 0.6 }}>{meta.icon}</span>
-                                            <span>{meta.label}</span>
-                                        </div>
-                                        <span className="text-[11px] font-bold">{typeCounts[t]}</span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    )}
-                </aside>
-
-                {/* ── 중앙 알림 목록 ── */}
-                <section className="flex-1 min-w-0">
-                    <div className="rounded-[20px] overflow-hidden" style={CARD_STYLE}>
-                        {/* 목록 헤더 */}
-                        <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
-                            <span className="text-[13px] font-semibold" style={{ color: "#636366" }}>
-                                {filtered.length}개의 알림
-                            </span>
-                        </div>
-
-                        {filtered.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-20 gap-3">
-                                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#c8c8cd" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                                </svg>
-                                <p className="text-[14px]" style={{ color: "#aeaeb2" }}>알림이 없습니다.</p>
-                            </div>
-                        ) : (
-                            filtered.map((n, idx) => {
-                                const meta = TYPE_META[n.type] ?? DEFAULT_META;
-                                return (
-                                    <div key={n.id}>
-                                        <button
-                                            onClick={() => handleClick(n)}
-                                            className="w-full flex items-start gap-4 px-5 py-4 text-left transition-all"
-                                            style={{
-                                                background: n.isRead ? "transparent" : "rgba(74,123,247,0.02)",
-                                                borderLeft: "3px solid transparent",
-                                            }}
-                                        >
-                                            {/* 아이콘 */}
-                                            <div
-                                                className="shrink-0 flex items-center justify-center"
-                                                style={{
-                                                    width: 44, height: 44, borderRadius: "50%",
-                                                    background: n.isRead ? "rgba(0,0,0,0.04)" : meta.bg,
-                                                    border: `1.5px solid ${n.isRead ? "rgba(0,0,0,0.06)" : meta.color + "40"}`,
-                                                    opacity: n.isRead ? 0.45 : 1,
-                                                }}
-                                            >
-                                                {meta.icon}
-                                            </div>
-                                            {/* 텍스트 */}
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-start justify-between gap-2">
-                                                    <p className="text-[13px] font-semibold truncate" style={{ color: n.isRead ? "#aeaeb2" : "#1c1c1e" }}>{n.title}</p>
-                                                    <span className="text-[11px] shrink-0" style={{ color: "#c8c8cd" }}>{timeAgo(n.createdAt)}</span>
-                                                </div>
-                                                <p className="text-[12px] mt-0.5 line-clamp-2" style={{ color: n.isRead ? "#c8c8cd" : "#636366" }}>{n.body}</p>
-                                                <span
-                                                    className="inline-block mt-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                                                    style={{ background: n.isRead ? "rgba(0,0,0,0.04)" : meta.bg, color: n.isRead ? "#aeaeb2" : meta.color }}
-                                                >
-                                                    {meta.label}
-                                                </span>
-                                            </div>
-                                            {/* 읽지 않음 점 */}
-                                            {!n.isRead && (
-                                                <div className="shrink-0 mt-1.5" style={{ width: 7, height: 7, borderRadius: "50%", background: "#4a7bf7" }} />
-                                            )}
-                                        </button>
-                                        {idx < filtered.length - 1 && (
-                                            <div className="mx-5" style={{ height: 1, background: "rgba(0,0,0,0.05)" }} />
-                                        )}
-                                    </div>
-                                );
-                            })
+                    <div className="flex items-center gap-4 pb-1">
+                        {unreadCount > 0 && (
+                            <>
+                                <span className="text-[13px]" style={{ color: "#a8a29e" }}>
+                                    읽지 않은 알림{" "}
+                                    <span className="font-semibold" style={{ color: "#1c1917" }}>{unreadCount}</span>개
+                                </span>
+                                <button
+                                    onClick={handleMarkAllRead}
+                                    disabled={markingAll}
+                                    className="text-[13px] font-medium transition-opacity hover:opacity-60 disabled:opacity-30"
+                                    style={{ color: "#78716c" }}
+                                >
+                                    {markingAll ? "처리 중…" : "모두 읽음"}
+                                </button>
+                            </>
                         )}
                     </div>
-                </section>
+                </div>
 
+                {/* 필터 탭 */}
+                <div className="flex items-center gap-1 mb-8 -mx-1 overflow-x-auto no-scrollbar">
+                    {[{ key: "all", label: "전체", count: totalCount }, ...usedTypes.map((t) => ({ key: t, label: (TYPE_META[t] ?? DEFAULT_META).label, count: typeCounts[t] }))].map(({ key, label, count }) => {
+                        const active = typeFilter === key;
+                        return (
+                            <button
+                                key={key}
+                                onClick={() => setTypeFilter(key)}
+                                className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium transition-all duration-150"
+                                style={{
+                                    backgroundColor: active ? "#1c1917" : "transparent",
+                                    color: active ? "#fafaf9" : "#78716c",
+                                    border: `1px solid ${active ? "#1c1917" : "#e7e5e4"}`,
+                                }}
+                            >
+                                {label}
+                                <span className="text-[11px] font-bold" style={{ opacity: active ? 0.55 : 0.7 }}>{count}</span>
+                            </button>
+                        );
+                    })}
+                </div>
 
+                {/* 알림 피드 */}
+                {filtered.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-32 gap-3">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d6d3d1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                        </svg>
+                        <p className="text-[14px]" style={{ color: "#a8a29e" }}>새로운 알림이 없습니다.</p>
+                    </div>
+                ) : (
+                    <div>
+                        {sortedGroups.map((group, gi) => (
+                            <div key={group}>
+                                {/* 날짜 그룹 레이블 */}
+                                <div className={`flex items-center gap-3 ${gi > 0 ? "mt-10" : ""} mb-1`}>
+                                    <span className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "#a8a29e" }}>
+                                        {group}
+                                    </span>
+                                    <div className="flex-1 h-px" style={{ backgroundColor: "#e7e5e4" }} />
+                                </div>
+
+                                {/* 그룹 내 알림 목록 */}
+                                {grouped[group].map((n) => {
+                                    const meta = TYPE_META[n.type] ?? DEFAULT_META;
+                                    return (
+                                        <div
+                                            key={n.id}
+                                            onClick={() => handleClick(n)}
+                                            className="group flex items-start gap-4 py-4 cursor-pointer transition-all duration-150"
+                                            style={{
+                                                opacity: n.isRead ? 0.55 : 1,
+                                            }}
+                                            onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = "1"; }}
+                                            onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = n.isRead ? "0.55" : "1"; }}
+                                        >
+                                            {/* 왼쪽: 읽음 여부 인디케이터 + 아이콘 */}
+                                            <div className="relative shrink-0 mt-0.5">
+                                                <div
+                                                    className="flex items-center justify-center w-9 h-9 rounded-xl"
+                                                    style={{ backgroundColor: meta.bg }}
+                                                >
+                                                    {meta.icon}
+                                                </div>
+                                                {!n.isRead && (
+                                                    <div
+                                                        className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full"
+                                                        style={{ backgroundColor: "#3b82f6", border: "1.5px solid #fafaf9" }}
+                                                    />
+                                                )}
+                                            </div>
+
+                                            {/* 오른쪽: 텍스트 */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-baseline justify-between gap-3 mb-0.5">
+                                                    <span
+                                                        className="text-[14px] leading-snug"
+                                                        style={{
+                                                            color: "#1c1917",
+                                                            fontWeight: n.isRead ? 400 : 600,
+                                                        }}
+                                                    >
+                                                        {n.title}
+                                                    </span>
+                                                    <span className="shrink-0 text-[12px]" style={{ color: "#a8a29e" }}>
+                                                        {timeAgo(n.createdAt)}
+                                                    </span>
+                                                </div>
+                                                <p className="text-[13px] leading-relaxed line-clamp-2" style={{ color: "#78716c" }}>
+                                                    {n.body}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
-        </main>
+        </div>
     );
 }
