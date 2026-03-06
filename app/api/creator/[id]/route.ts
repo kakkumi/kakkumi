@@ -10,7 +10,7 @@ export async function GET(
     const session = await getServerSession();
 
     try {
-        // 제작자 정보
+        // 크리에이터 정보
         const creatorRows = await prisma.$queryRaw<{
             id: string;
             nickname: string | null;
@@ -27,7 +27,7 @@ export async function GET(
         `;
 
         if (creatorRows.length === 0) {
-            return NextResponse.json({ error: "제작자를 찾을 수 없습니다." }, { status: 404 });
+            return NextResponse.json({ error: "크리에이터를 찾을 수 없습니다." }, { status: 404 });
         }
 
         const creator = creatorRows[0];

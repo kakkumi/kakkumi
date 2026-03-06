@@ -51,7 +51,6 @@ export async function PATCH(req: NextRequest) {
             adminNote?: string;
         };
 
-        // 테마 정보 + 제작자 정보 조회
         const themeRows = await prisma.$queryRaw<{
             title: string; creatorId: string; creatorEmail: string | null;
             creatorName: string; creatorNickname: string | null;
@@ -65,7 +64,7 @@ export async function PATCH(req: NextRequest) {
 
         if (action === "approve") {
             await prisma.$executeRaw`UPDATE "Theme" SET status = 'PUBLISHED', "adminNote" = NULL, "updatedAt" = NOW() WHERE id = ${themeId}`;
-            // 승인 알림 (제작자에게)
+            // 승인 알림 (크리에이터에게)
             if (theme) {
                 await prisma.$executeRaw`
                     INSERT INTO "Notification" (id, "userId", type, title, body, "linkUrl", "createdAt")

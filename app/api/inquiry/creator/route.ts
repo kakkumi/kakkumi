@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 
-// POST /api/inquiry/creator - 제작자에게 문의
 export async function POST(req: NextRequest) {
     const session = await getServerSession();
     if (!session?.dbId) {
@@ -27,7 +26,7 @@ export async function POST(req: NextRequest) {
 
     const id = crypto.randomUUID();
     const now = new Date();
-    const category = `제작자 문의 · ${themeName}`;
+    const category = `크리에이터 문의 · ${themeName}`;
 
     try {
         await prisma.$executeRaw`
@@ -35,7 +34,7 @@ export async function POST(req: NextRequest) {
             VALUES (${id}, ${session.dbId}, ${category}, ${title.trim()}, ${content.trim()}, 'OPEN'::"InquiryStatus", ${now}, ${now})
         `;
 
-        // 제작자에게 알림 발송
+
         try {
             const notifId = crypto.randomUUID();
             const msg = `${session.nickname ?? session.name ?? "누군가"}님이 테마 [${themeName}]에 문의를 남겼어요.`;

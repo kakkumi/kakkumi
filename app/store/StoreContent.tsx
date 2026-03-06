@@ -128,7 +128,7 @@ export default function StoreContent() {
     const [activeSort, setActiveSort]         = useState<SortKey>("newest");
     const [likedIds, setLikedIds]             = useState<Set<string>>(new Set());
     const [searchQuery, setSearchQuery]       = useState("");
-    const [searchType, setSearchType]         = useState<"전체" | "테마명" | "제작자" | "카테고리">("전체");
+    const [searchType, setSearchType]         = useState<"전체" | "테마명" | "크리에이터" | "카테고리">("전체");
     const [ownedIds, setOwnedIds]             = useState<Set<string>>(new Set());
     const [dbThemes, setDbThemes]             = useState<UnifiedTheme[]>([]);
     const [loading, setLoading]               = useState(true);
@@ -215,7 +215,7 @@ export default function StoreContent() {
                 t.description.toLowerCase().includes(q)
             )) ||
             (searchType === "테마명"   && t.name.toLowerCase().includes(q)) ||
-            (searchType === "제작자"   && t.author.toLowerCase().includes(q)) ||
+            (searchType === "크리에이터"   && t.author.toLowerCase().includes(q)) ||
             (searchType === "카테고리" && t.category.some(c => c.toLowerCase().includes(q)));
 
         return platformMatch && catMatch && priceMatch && searchMatch;
@@ -309,7 +309,7 @@ export default function StoreContent() {
                             className="appearance-none pl-3 pr-7 text-[12px] font-bold outline-none cursor-pointer"
                             style={{ background: "transparent", color: "#1c1c1e", border: "none", height: 34 }}
                         >
-                            {(["전체", "테마명", "제작자", "카테고리"] as const).map(t => (
+                            {(["전체", "테마명", "크리에이터", "카테고리"] as const).map(t => (
                                 <option key={t} value={t}>{t}</option>
                             ))}
                         </select>
@@ -325,9 +325,9 @@ export default function StoreContent() {
                             onChange={e => setSearchQuery(e.target.value)}
                             placeholder={
                                 searchType === "테마명" ? "테마 이름을 검색하세요" :
-                                searchType === "제작자" ? "제작자 이름을 검색하세요" :
+                                searchType === "크리에이터" ? "크리에이터 이름을 검색하세요" :
                                 searchType === "카테고리" ? "카테고리를 검색하세요" :
-                                "테마명, 제작자, 카테고리 검색"
+                                "테마명, 크리에이터, 카테고리 검색"
                             }
                             className="flex-1 text-[13px] outline-none bg-transparent"
                             style={{ color: "#1c1c1e" }}

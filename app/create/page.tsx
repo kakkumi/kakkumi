@@ -1558,11 +1558,11 @@ export default function CreatePage() {
               placeholder="com.kakao.talk.theme.id"
             />
             <MacInput
-              label="제작자 이름"
+              label="크리에이터 이름"
               hint="(-kakaotalk-author-name)"
               value={config.authorName}
               onChange={set("authorName")}
-              placeholder="제작자"
+              placeholder="크리에이터"
             />
 
             {/* 다크모드 토글 */}

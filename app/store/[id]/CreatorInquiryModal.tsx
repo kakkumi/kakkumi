@@ -82,7 +82,7 @@ export default function CreatorInquiryModal({ creatorId, creatorName, themeId, t
                         {/* 헤더 */}
                         <div className="flex items-center justify-between">
                             <div className="flex flex-col gap-0.5">
-                                <h2 className="text-[18px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>제작자에게 문의하기</h2>
+                                <h2 className="text-[18px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>크리에이터에게 문의하기</h2>
                                 <p className="text-[12px]" style={{ color: "#8e8e93" }}>
                                     <span className="font-semibold" style={{ color: "#3a3a3c" }}>{creatorName}</span> 님 · {themeName}
                                 </p>

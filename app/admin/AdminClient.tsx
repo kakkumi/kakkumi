@@ -538,11 +538,11 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
                     <div className="flex flex-col gap-5">
                         <div>
                             <h2 className="text-[20px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>매출 / 정산</h2>
-                            <p className="text-[12px] mt-0.5" style={{ color: "#8e8e93" }}>전체 결제 내역과 제작자별 정산을 관리합니다.</p>
+                            <p className="text-[12px] mt-0.5" style={{ color: "#8e8e93" }}>전체 결제 내역과 크리에이터별 정산을 관리합니다.</p>
                         </div>
                         <div className="rounded-[20px] overflow-hidden" style={CARD_BG}>
                             <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
-                                <h3 className="text-[14px] font-bold" style={{ color: "#1c1c1e" }}>제작자별 정산 (수수료 20% 제외)</h3>
+                                <h3 className="text-[14px] font-bold" style={{ color: "#1c1c1e" }}>크리에이터별 정산 (수수료 20% 제외)</h3>
                             </div>
                             <div className="divide-y" style={{ borderColor: "rgba(0,0,0,0.05)" }}>
                                 {settlements.map((s) => (
@@ -573,7 +573,7 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
                                                 <Badge style={STATUS_STYLE[p.status] ?? { label: p.status, bg: "rgba(0,0,0,0.07)", color: "#8e8e93" }} />
                                             </div>
                                             <span className="text-[11px]" style={{ color: "#8e8e93" }}>
-                                                구매자: {p.buyerNickname ?? p.buyerName} · 제작자: {p.creatorNickname ?? p.creatorName} · {formatKST(p.createdAt)}
+                                                구매자: {p.buyerNickname ?? p.buyerName} · 크리에이터: {p.creatorNickname ?? p.creatorName} · {formatKST(p.createdAt)}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-3 shrink-0">
@@ -1025,7 +1025,7 @@ function ThemeManageTab({
                                             <span className="shrink-0 text-[11px] font-semibold px-2.5 py-0.5 rounded-full" style={{ background: "rgba(255,149,0,0.12)", color: "#c97000" }}>승인 대기</span>
                                         </div>
                                         <span className="text-[11px]" style={{ color: "#8e8e93" }}>
-                                            제작자: {t.creatorNickname ?? t.creatorName} · {t.price === 0 ? "무료" : `${t.price.toLocaleString()}원`} · {formatKST(t.createdAt, false)}
+                                            크리에이터: {t.creatorNickname ?? t.creatorName} · {t.price === 0 ? "무료" : `${t.price.toLocaleString()}원`} · {formatKST(t.createdAt, false)}
                                         </span>
                                         {t.adminNote && (
                                             <span className="text-[11px]" style={{ color: "#ff3b30" }}>이전 반려 사유: {t.adminNote}</span>
@@ -1086,7 +1086,7 @@ function ThemeManageTab({
                                                     <span className="font-semibold" style={{ color: "#1c1c1e" }}>{t.price === 0 ? "무료" : `${t.price.toLocaleString()}원`}</span>
                                                 </div>
                                                 <div className="rounded-xl p-3 flex flex-col gap-1" style={{ background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.06)" }}>
-                                                    <span style={{ color: "#8e8e93" }}>제작자</span>
+                                                    <span style={{ color: "#8e8e93" }}>크리에이터</span>
                                                     <span className="font-semibold" style={{ color: "#1c1c1e" }}>{t.creatorNickname ?? t.creatorName}</span>
                                                 </div>
                                             </div>

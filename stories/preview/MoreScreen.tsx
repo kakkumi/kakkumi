@@ -57,7 +57,7 @@ export const MoreScreen = () => {
     { icon: <Smile size={22} strokeWidth={1.2} />, label: '이모티콘' },
     { icon: <MonitorPlay size={22} strokeWidth={1.2} />, label: '라이브방송' },
     { icon: <Shirt size={22} strokeWidth={1.2} />, label: '브랜드관' },
-    { icon: <ShoppingBag size={22} strokeWidth={1.2} />, label: '제작자마켓' },
+    { icon: <ShoppingBag size={22} strokeWidth={1.2} />, label: '마켓' },
     { icon: <Gamepad2 size={22} strokeWidth={1.2} />, label: '게임' },
     { icon: <UserCircle size={22} strokeWidth={1.2} />, label: '모바일신분증' },
     { icon: <Cloud size={22} strokeWidth={1.2} />, label: '클라우드' },

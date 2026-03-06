@@ -253,7 +253,7 @@ export default function ThemeDetailLayout({
                 </div>
             </div>
 
-            {/* 제작자 문의 모달 */}
+            {/* 크리에이터 문의 모달 */}
             {showInquiryModal && (
                 <CreatorInquiryModal
                     creatorId={creatorId}

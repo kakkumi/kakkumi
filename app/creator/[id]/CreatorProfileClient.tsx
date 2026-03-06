@@ -55,7 +55,7 @@ export default function CreatorProfileClient({ creatorId }: { creatorId: string 
                 setFollowerCount(data.followerCount ?? 0);
                 setIsFollowing(data.isFollowing ?? false);
             })
-            .catch(() => setError("제작자 정보를 불러올 수 없습니다."))
+            .catch(() => setError("크리에이터 정보를 불러올 수 없습니다."))
             .finally(() => setLoading(false));
     }, [creatorId]);
 
@@ -92,7 +92,7 @@ export default function CreatorProfileClient({ creatorId }: { creatorId: string 
     if (error || !creator) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center gap-3">
-                <p className="text-[16px]" style={{ color: "#1c1c1e" }}>제작자를 찾을 수 없습니다.</p>
+                <p className="text-[16px]" style={{ color: "#1c1c1e" }}>크리에이터를 찾을 수 없습니다.</p>
                 <button onClick={() => router.back()} className="text-[13px]" style={{ color: "#8e8e93" }}>← 뒤로 가기</button>
             </div>
         );
