@@ -221,18 +221,6 @@ export default function OrderPage() {
                                     style={{ background: "rgba(255,255,255,0.8)", border: "1px solid rgba(255,255,255,0.9)", boxShadow: "0 4px 20px rgba(0,0,0,0.06)", backdropFilter: "blur(20px)" }}>
                                     <h2 className="text-[14px] font-bold" style={{ color: "#1c1c1e" }}>할인 / 적립금</h2>
 
-                                    {/* 쿠폰 (준비중) */}
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                <path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
-                                            </svg>
-                                            <span className="text-[13px]" style={{ color: "#3a3a3c" }}>쿠폰</span>
-                                        </div>
-                                        <span className="text-[12px] px-3 py-1 rounded-full" style={{ background: "rgba(0,0,0,0.05)", color: "#8e8e93" }}>보유 쿠폰 없음</span>
-                                    </div>
-
-                                    <div className="h-[1px]" style={{ background: "rgba(0,0,0,0.06)" }} />
 
                                     {/* 적립금 사용 */}
                                     <div className="flex items-center justify-between">

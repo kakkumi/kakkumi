@@ -355,12 +355,11 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
 
                         {/* 수치 카드 - 테마/쇼핑/수익 메뉴에서만 표시 */}
                         {!isSettingsMenu && !isNotifMenu && !isWithdrawMenu && (
-                            <div className="grid grid-cols-4 gap-4">
+                            <div className="grid grid-cols-3 gap-4">
                                 {[
                                     { label: "제작한 테마", value: "0개", color: "rgba(255,239,154,0.7)" },
                                     { label: "구매한 테마", value: `${purchasedCount}개`, color: "rgba(170,189,232,0.6)" },
                                     { label: "적립금", value: `${credit.toLocaleString()}원`, color: "rgba(212,245,212,0.8)" },
-                                    { label: "쿠폰", value: "0장", color: "rgba(253,216,229,0.7)" },
                                 ].map((card) => (
                                     <div key={card.label} className="flex flex-col gap-2 p-5 rounded-[20px] cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md" style={{ background: card.color, boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}>
                                         <span className="text-[11px] font-semibold" style={{ color: "rgba(0,0,0,0.45)" }}>{card.label}</span>
