@@ -53,7 +53,7 @@ function PaymentFailContent() {
 
 export default function PaymentFailPage() {
     return (
-        <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#fdfcfc" }}>
+        <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#f3f3f3" }}>
             <Header />
             <Suspense fallback={<div className="flex-1 flex items-center justify-center"><div className="w-10 h-10 rounded-full border-4 border-blue-200 border-t-blue-500 animate-spin" /></div>}>
                 <PaymentFailContent />

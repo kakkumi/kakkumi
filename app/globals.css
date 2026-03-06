@@ -46,7 +46,7 @@ html {
 }
 
 html, body {
-  background-color: transparent !important;
+  background-color: #f3f3f3 !important;
   background-image: none !important;
   min-height: 100%;
 }
@@ -126,7 +126,7 @@ body {
 
 /* 배경 메시 그라디언트 */
 .mesh-bg {
-  background-color: #e8e8ed;
+  background-color: #f3f3f3;
   background-image:
     radial-gradient(ellipse at 20% 20%, rgba(255, 229, 0, 0.18) 0%, transparent 55%),
     radial-gradient(ellipse at 80% 10%, rgba(180, 160, 255, 0.15) 0%, transparent 50%),

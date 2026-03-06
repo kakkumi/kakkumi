@@ -104,7 +104,7 @@ export default function CreatorProfileClient({ creatorId }: { creatorId: string 
     const avatarSrc = creator.avatarUrl ?? creator.image;
 
     return (
-        <div className="min-h-screen" style={{ background: "#f5f5f7" }}>
+        <div className="min-h-screen" style={{ background: "#f3f3f3" }}>
             <div style={{ maxWidth: 900, margin: "0 auto", padding: "48px 24px" }}>
                 {/* 뒤로 가기 */}
                 <button
