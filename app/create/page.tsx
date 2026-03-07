@@ -1082,22 +1082,24 @@ export default function CreatePage() {
 
   const [saveToast, setSaveToast] = useState<"idle" | "saving" | "saved">("idle");
 
-  const handleSaveTheme = () => {
+  const handleSaveTheme = async () => {
     setSaveToast("saving");
     try {
-      const raw = localStorage.getItem("kakkumi_my_themes");
-      const existing: { id: string; name: string; savedAt: string; previewImageUrl: string | null; os: "ios" | "android" }[] = raw ? JSON.parse(raw) : [];
-      const newTheme = {
-        id: crypto.randomUUID(),
-        name: config.name,
-        savedAt: new Date().toISOString(),
-        previewImageUrl: imageUploads["mainBg"] ?? null,
-        os,
-      };
-      const updated = [newTheme, ...existing];
-      localStorage.setItem("kakkumi_my_themes", JSON.stringify(updated));
-      setSaveToast("saved");
-      setTimeout(() => setSaveToast("idle"), 2200);
+      const res = await fetch("/api/my-themes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: config.name,
+          os,
+          previewImageUrl: imageUploads["mainBg"] ?? null,
+        }),
+      });
+      if (res.ok) {
+        setSaveToast("saved");
+        setTimeout(() => setSaveToast("idle"), 2200);
+      } else {
+        setSaveToast("idle");
+      }
     } catch {
       setSaveToast("idle");
     }

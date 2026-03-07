@@ -1,19 +1,19 @@
 "use client";
 
-import { useEffect, useState, startTransition, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import Header from "../components/Header";
 import Link from "next/link";
 
 export type SavedTheme = {
   id: string;
   name: string;
-  savedAt: string;
-  updatedAt?: string;
-  trashedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  trashedAt?: string | null;
   previewImageUrl: string | null;
-  os: "ios" | "android";
+  os: string;
   folderId?: string | null;
-  trashed?: boolean;
+  trashed: boolean;
 };
 
 export type ThemeFolder = {
@@ -25,110 +25,92 @@ export type ThemeFolder = {
 type SortKey = "created" | "updated";
 type View = "main" | "trash";
 
-function loadThemes(): SavedTheme[] {
-  try {
-    const raw = localStorage.getItem("kakkumi_my_themes");
-    return raw ? (JSON.parse(raw) as SavedTheme[]) : [];
-  } catch { return []; }
-}
-function saveThemes(themes: SavedTheme[]) {
-  localStorage.setItem("kakkumi_my_themes", JSON.stringify(themes));
-}
-function loadFolders(): ThemeFolder[] {
-  try {
-    const raw = localStorage.getItem("kakkumi_my_folders");
-    return raw ? (JSON.parse(raw) as ThemeFolder[]) : [];
-  } catch { return []; }
-}
-function saveFolders(folders: ThemeFolder[]) {
-  localStorage.setItem("kakkumi_my_folders", JSON.stringify(folders));
-}
-
 export default function MyThemesPage() {
   const [themes, setThemes] = useState<SavedTheme[]>([]);
   const [folders, setFolders] = useState<ThemeFolder[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("created");
   const [view, setView] = useState<View>("main");
-  const [openFolderId, setOpenFolderId] = useState<string | null>(null); // null = 전체보기
+  const [openFolderId, setOpenFolderId] = useState<string | null>(null);
   const [newFolderModal, setNewFolderModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
   const [moveModal, setMoveModal] = useState<{ themeId: string } | null>(null);
   const [emptyTrashConfirm, setEmptyTrashConfirm] = useState(false);
 
+  const fetchAll = async () => {
+    const [tRes, fRes] = await Promise.all([
+      fetch("/api/my-themes"),
+      fetch("/api/my-themes/folders"),
+    ]);
+    if (tRes.ok) {
+      const d = await tRes.json() as { themes: SavedTheme[] };
+      setThemes(d.themes);
+    }
+    if (fRes.ok) {
+      const d = await fRes.json() as { folders: ThemeFolder[] };
+      setFolders(d.folders);
+    }
+    setLoaded(true);
+  };
+
   useEffect(() => {
-    startTransition(() => {
-      const loaded = loadThemes();
-      // 30일 지난 휴지통 항목 자동 완전 삭제
-      const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
-      const now = Date.now();
-      const cleaned = loaded.filter(t => {
-        if (!t.trashed) return true;
-        const trashedTime = t.trashedAt ? new Date(t.trashedAt).getTime() : 0;
-        return now - trashedTime < THIRTY_DAYS;
-      });
-      if (cleaned.length !== loaded.length) saveThemes(cleaned);
-      setThemes(cleaned);
-      setFolders(loadFolders());
-      setLoaded(true);
-    });
+    void fetchAll();
   }, []);
 
-  const persist = (next: SavedTheme[]) => {
-    setThemes(next);
-    saveThemes(next);
-  };
-  const persistFolders = (next: ThemeFolder[]) => {
-    setFolders(next);
-    saveFolders(next);
-  };
-
   // 휴지통으로 이동
-  const handleTrash = (id: string) => {
-    persist(themes.map(t => t.id === id ? { ...t, trashed: true, trashedAt: new Date().toISOString(), updatedAt: new Date().toISOString() } : t));
+  const handleTrash = async (id: string) => {
+    setThemes(prev => prev.map(t => t.id === id ? { ...t, trashed: true, trashedAt: new Date().toISOString() } : t));
+    await fetch(`/api/my-themes/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trashed: true }) });
   };
-  // 휴지통에서 복원
-  const handleRestore = (id: string) => {
-    persist(themes.map(t => t.id === id ? { ...t, trashed: false, updatedAt: new Date().toISOString() } : t));
+  // 복원
+  const handleRestore = async (id: string) => {
+    setThemes(prev => prev.map(t => t.id === id ? { ...t, trashed: false, trashedAt: null } : t));
+    await fetch(`/api/my-themes/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trashed: false }) });
   };
   // 완전 삭제
-  const handlePermanentDelete = (id: string) => {
-    persist(themes.filter(t => t.id !== id));
+  const handlePermanentDelete = async (id: string) => {
+    setThemes(prev => prev.filter(t => t.id !== id));
+    await fetch(`/api/my-themes/${id}`, { method: "DELETE" });
   };
   // 사본 만들기
-  const handleDuplicate = (id: string) => {
-    const orig = themes.find(t => t.id === id);
-    if (!orig) return;
-    const copy: SavedTheme = {
-      ...orig,
-      id: crypto.randomUUID(),
-      name: `${orig.name} 사본`,
-      savedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      trashed: false,
-    };
-    persist([copy, ...themes]);
+  const handleDuplicate = async (id: string) => {
+    const res = await fetch(`/api/my-themes/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ duplicate: true }) });
+    if (res.ok) {
+      const d = await res.json() as { theme: SavedTheme };
+      setThemes(prev => [d.theme, ...prev]);
+    }
   };
   // 폴더 이동
-  const handleMove = (themeId: string, folderId: string | null) => {
-    persist(themes.map(t => t.id === themeId ? { ...t, folderId, updatedAt: new Date().toISOString() } : t));
+  const handleMove = async (themeId: string, folderId: string | null) => {
+    setThemes(prev => prev.map(t => t.id === themeId ? { ...t, folderId } : t));
+    await fetch(`/api/my-themes/${themeId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ folderId }) });
     setMoveModal(null);
   };
   // 폴더 생성
-  const handleCreateFolder = () => {
+  const handleCreateFolder = async () => {
     const name = newFolderName.trim();
     if (!name) return;
-    const folder: ThemeFolder = { id: crypto.randomUUID(), name, createdAt: new Date().toISOString() };
-    persistFolders([...folders, folder]);
+    const res = await fetch("/api/my-themes/folders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) });
+    if (res.ok) {
+      const d = await res.json() as { folder: ThemeFolder };
+      setFolders(prev => [...prev, d.folder]);
+    }
     setNewFolderName("");
     setNewFolderModal(false);
   };
   // 폴더 삭제
-  const handleDeleteFolder = (id: string) => {
-    persistFolders(folders.filter(f => f.id !== id));
-    persist(themes.map(t => t.folderId === id ? { ...t, folderId: null } : t));
+  const handleDeleteFolder = async (id: string) => {
+    setFolders(prev => prev.filter(f => f.id !== id));
+    setThemes(prev => prev.map(t => t.folderId === id ? { ...t, folderId: null } : t));
     if (openFolderId === id) setOpenFolderId(null);
+    await fetch(`/api/my-themes/folders/${id}`, { method: "DELETE" });
+  };
+  // 휴지통 비우기
+  const handleEmptyTrash = async () => {
+    setThemes(prev => prev.filter(t => !t.trashed));
+    setEmptyTrashConfirm(false);
+    await fetch("/api/my-themes/trash", { method: "DELETE" });
   };
 
   // 드래그앤드롭
@@ -146,12 +128,11 @@ export default function MyThemesPage() {
   // 정렬
   const sorted = (list: SavedTheme[]) =>
     [...list].sort((a, b) => {
-      const aTime = sortKey === "updated" ? (a.updatedAt ?? a.savedAt) : a.savedAt;
-      const bTime = sortKey === "updated" ? (b.updatedAt ?? b.savedAt) : b.savedAt;
+      const aTime = sortKey === "updated" ? a.updatedAt : a.createdAt;
+      const bTime = sortKey === "updated" ? b.updatedAt : b.createdAt;
       return new Date(bTime).getTime() - new Date(aTime).getTime();
     });
 
-  // 보여줄 목록
   const active = themes.filter(t => !t.trashed);
   const trashed = themes.filter(t => t.trashed);
   const displayThemes = view === "trash"
@@ -274,7 +255,7 @@ export default function MyThemesPage() {
                             boxShadow: sortKey === k ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
                           }}
                         >
-                          {k === "created" ? "생성일" : "수정일"}
+                          {k === "created" ? "생성일 순" : "수정일 순"}
                         </button>
                       ))}
                     </div>
@@ -372,7 +353,7 @@ export default function MyThemesPage() {
               취소
             </button>
             <button
-              onClick={() => { persist(themes.filter(t => !t.trashed)); setEmptyTrashConfirm(false); }}
+              onClick={handleEmptyTrash}
               className="flex-1 py-2.5 rounded-xl text-[13px] font-medium transition-all hover:opacity-85"
               style={{ background: "#ff5c52", color: "#fff" }}
             >
@@ -520,7 +501,7 @@ function ThemeCard({ theme, isTrash, onTrash, onRestore, onPermanentDelete, onDu
 
   const formattedDate = (() => {
     try {
-      const d = theme.updatedAt ?? theme.savedAt;
+      const d = theme.updatedAt ?? theme.createdAt;
       return new Date(d).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
     } catch { return ""; }
   })();
