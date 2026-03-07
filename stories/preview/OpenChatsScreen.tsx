@@ -48,19 +48,18 @@ export const OpenChatsScreen = React.memo(function OpenChatsScreen({ config }: {
       {/* 1. 상단 헤더 */}
       <header style={{ ...headerBaseStyle, color: openChatsTab.headerTitleColor }}>
         <h2 data-active-element-id="header-title-icon" style={{ margin: 0, fontSize: 17, fontWeight: 400, color: '#3c2a2a' }}>지금</h2>
-        <div data-active-element-id="header-title-icon" style={iconRowStyle}>
-          <Search size={20} strokeWidth={2.3} />
+        <div data-active-element-id="header-title-icon" style={{ ...iconRowStyle, color: global.textColor }}>
+          <Search size={20} strokeWidth={2.3} color={global.textColor} />
           <div style={{ position: 'relative', display: 'inline-flex', width: 20, height: 20 }}>
-            {/* 말풍선 아이콘: 우상단 +버튼 영역만큼 잘림 */}
             <div style={{
               position: 'absolute',
               inset: 0,
               overflow: 'hidden',
               clipPath: 'polygon(0% 0%, 62% 0%, 62% 38%, 100% 38%, 100% 100%, 0% 100%)',
+              color: global.textColor,
             }}>
               <MessageCircle size={19} strokeWidth={2.3} />
             </div>
-            {/* + 버튼: 배경 없이 텍스트만 */}
             <span style={{
               position: 'absolute',
               top: -3,
@@ -69,7 +68,7 @@ export const OpenChatsScreen = React.memo(function OpenChatsScreen({ config }: {
               height: 10,
               borderRadius: '50%',
               backgroundColor: 'transparent',
-              color: 'currentColor',
+              color: global.textColor,
               fontSize: 11,
               fontWeight: 900,
               WebkitTextStroke: '0.5px currentColor',
@@ -79,7 +78,7 @@ export const OpenChatsScreen = React.memo(function OpenChatsScreen({ config }: {
               lineHeight: 1,
             }}>+</span>
           </div>
-          <Settings size={20} strokeWidth={2.3} />
+          <Settings size={20} strokeWidth={2.3} color={global.textColor} />
         </div>
       </header>
 
@@ -97,8 +96,8 @@ export const OpenChatsScreen = React.memo(function OpenChatsScreen({ config }: {
                 border: chip.isActive ? 'none' : `1px solid ${global.textColor}30`,
                 flexShrink: 0,
                 borderRadius: 999,
-                backgroundColor: chip.isActive ? '#000000' : 'transparent',
-                color: chip.isActive ? '#FFFFFF' : global.textColor,
+                backgroundColor: chip.isActive ? global.textColor : 'transparent',
+                color: chip.isActive ? global.backgroundColor : global.textColor,
                 padding: '5px 12px',
                 fontSize: 12,
                 fontWeight: 400,
@@ -146,7 +145,7 @@ export const OpenChatsScreen = React.memo(function OpenChatsScreen({ config }: {
             alignItems: 'center',
           }}>
             <div>
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: global.textColor }}>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#3c2a2a' }}>
                 테마 만들기는?
               </p>
               <p style={{ margin: '3px 0 0', fontSize: 11, color: global.descriptionColor, opacity: 0.8 }}>
@@ -220,20 +219,20 @@ export const OpenChatsScreen = React.memo(function OpenChatsScreen({ config }: {
                 </div>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <p style={{ margin: 0, color: '#3c2a2a', fontSize: 14, fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <p style={{ margin: 0, color: global.textColor, fontSize: 14, fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {chat.room}
                     </p>
-                    <span style={{ fontSize: 12, color: global.descriptionColor, opacity: 0.7, flexShrink: 0 }}>
+                    <span style={{ fontSize: 12, color: global.textColor, opacity: 0.7, flexShrink: 0 }}>
                       {chat.members.toLocaleString()}
                     </span>
                   </div>
-                  <p style={{ margin: '2px 0 0', color: '#3c2a2a', fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: 0.9 }}>
+                  <p style={{ margin: '2px 0 0', color: global.textColor, fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: 0.9 }}>
                     {chat.message}
                   </p>
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, marginLeft: 12, flexShrink: 0 }}>
-                <span style={{ color: global.descriptionColor, fontSize: 11, opacity: 0.8 }}>{chat.time}</span>
+                <span style={{ color: global.textColor, fontSize: 11, opacity: 0.8 }}>{chat.time}</span>
                 {chat.unread > 0 && (
                   <span style={{
                     backgroundColor: '#ff6507',
@@ -269,9 +268,9 @@ export const OpenChatsScreen = React.memo(function OpenChatsScreen({ config }: {
               position: 'absolute', 
               top: 40, 
               bottom: 40, 
-              left: 36, // 아바타 중앙 정렬
-              width: 1.5, 
-              backgroundColor: `${global.descriptionColor}30` 
+              left: 36,
+              width: 1.5,
+              backgroundColor: `${global.textColor}30`
             }} />
 
             {/* 메인 피드 (해외 여행 사진방) */}
@@ -294,7 +293,7 @@ export const OpenChatsScreen = React.memo(function OpenChatsScreen({ config }: {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
                         <span style={{ fontSize: 15, fontWeight: 400, color: global.textColor }}>해외 여행 사진방</span>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: global.descriptionColor, opacity: 0.9 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: global.textColor, opacity: 0.9 }}>
                         <span>지구 한 바퀴</span>
                         <span>·</span>
                         <span>30분 전</span>
@@ -329,7 +328,7 @@ export const OpenChatsScreen = React.memo(function OpenChatsScreen({ config }: {
 
                   {/* 리액션 영역 */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', fontSize: 13, color: global.descriptionColor, fontWeight: 400 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', fontSize: 13, color: global.textColor, fontWeight: 400 }}>
                     <span style={{ display: 'flex', alignItems: 'center', marginRight: 4, gap: 1 }}>
                       {/* 하트 */}
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -345,8 +344,8 @@ export const OpenChatsScreen = React.memo(function OpenChatsScreen({ config }: {
                     </span>
                     12
                   </div>
-                    <span style={{ color: global.descriptionColor, opacity: 0.5 }}>·</span>
-                    <div style={{ display: 'flex', alignItems: 'center', fontSize: 13, color: global.descriptionColor, fontWeight: 400, gap: 4 }}>
+                    <span style={{ color: global.textColor, opacity: 0.5 }}>·</span>
+                    <div style={{ display: 'flex', alignItems: 'center', fontSize: 13, color: global.textColor, fontWeight: 400, gap: 4 }}>
                       댓글 16
                     </div>
                   </div>
@@ -368,7 +367,7 @@ export const OpenChatsScreen = React.memo(function OpenChatsScreen({ config }: {
                 <div style={{ flex: 1, minWidth: 0, marginTop: 2 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                     <span style={{ fontSize: 14, fontWeight: 400, color: global.textColor }}>새벽 비행기</span>
-                    <span style={{ fontSize: 12, color: global.descriptionColor, opacity: 0.8 }}>· 17분 전</span>
+                    <span style={{ fontSize: 12, color: global.textColor, opacity: 0.8 }}>· 17분 전</span>
                   </div>
                   <div style={{ fontSize: 14, color: global.textColor, lineHeight: 1.5, display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
                     <span>와 에펠탑은 언제 봐도 로망 그 자체네요!</span>
@@ -397,7 +396,7 @@ export const OpenChatsScreen = React.memo(function OpenChatsScreen({ config }: {
                     <div style={{ fontSize: 15, fontWeight: 400, color: global.textColor, marginBottom: 2 }}>
                       수도권 날씨 실시간 대화방
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: global.descriptionColor, opacity: 0.9 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: global.textColor, opacity: 0.9 }}>
                       <span>파란 하늘</span>
                       <span>·</span>
                       <span>54분 전</span>
@@ -415,7 +414,7 @@ export const OpenChatsScreen = React.memo(function OpenChatsScreen({ config }: {
 
                 {/* 리액션 영역 */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', fontSize: 13, color: global.descriptionColor, fontWeight: 400 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', fontSize: 13, color: global.textColor, fontWeight: 400 }}>
                     <span style={{ display: 'flex', alignItems: 'center', marginRight: 4, gap: 1 }}>
                       {/* 엄지 좋아요 */}
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -432,8 +431,8 @@ export const OpenChatsScreen = React.memo(function OpenChatsScreen({ config }: {
                     </span>
                     12
                   </div>
-                  <span style={{ color: global.descriptionColor, opacity: 0.5 }}>·</span>
-                  <div style={{ display: 'flex', alignItems: 'center', fontSize: 13, color: global.descriptionColor, fontWeight: 400 }}>
+                  <span style={{ color: global.textColor, opacity: 0.5 }}>·</span>
+                  <div style={{ display: 'flex', alignItems: 'center', fontSize: 13, color: global.textColor, fontWeight: 400 }}>
                     댓글 16
                   </div>
                 </div>

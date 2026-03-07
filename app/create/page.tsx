@@ -26,7 +26,18 @@ interface ThemeConfig {
   version: string;
   packageId: string;
   authorName: string;
+  themeUrl: string;
   darkMode: boolean;
+  selectedBgAlpha: string;
+  borderAlpha: string;
+  inputBarText: string;
+  moreServiceText: string;
+  weatherText: string;
+  weatherDescText: string;
+  weatherIconColor: string;
+  gameText: string;
+  gameDescText: string;
+  bottomBannerBg: string;
   // ── 공통 ──
   tabBarBg: string;
   tabBarIcon: string;
@@ -84,7 +95,18 @@ const defaultConfig: ThemeConfig = {
   version: "1.0.0",
   packageId: "com.kakao.talk.theme.mytheme",
   authorName: "제작자",
+  themeUrl: "http://www.kakao.com",
   darkMode: false,
+  selectedBgAlpha: "1.0",
+  borderAlpha: "1.0",
+  inputBarText: "#8E8E93",
+  moreServiceText: "#191919",
+  weatherText: "#191919",
+  weatherDescText: "#9E9E9E",
+  weatherIconColor: "#191919",
+  gameText: "#191919",
+  gameDescText: "#9E9E9E",
+  bottomBannerBg: "#FFFFFF",
   // 공통
   tabBarBg: "#FFFFFF",
   tabBarIcon: "#9E9E9E",
@@ -143,9 +165,10 @@ interface ColorRowProps {
   value: string;
   onChange: (v: string) => void;
   tooltip?: string;
+  disabled?: boolean;
 }
 
-const ColorRow = memo(function ColorRow({ label, value, onChange, tooltip }: ColorRowProps) {
+const ColorRow = memo(function ColorRow({ label, value, onChange, tooltip, disabled = false }: ColorRowProps) {
   const [draftValue, setDraftValue] = useState(value);
   const frameRef = useRef<number | null>(null);
   const pendingValueRef = useRef(value);
@@ -185,10 +208,10 @@ const ColorRow = memo(function ColorRow({ label, value, onChange, tooltip }: Col
     <div
       data-setting-item="true"
       className="flex items-center justify-between gap-2 py-2 px-1 transition-colors group"
-      style={{ borderBottom: "1px solid rgba(0,0,0,0.045)" }}
+      style={{ borderBottom: "1px solid rgba(0,0,0,0.045)", opacity: disabled ? 0.45 : 1 }}
     >
-      <div className="flex items-center gap-1.5 min-w-0">
-        <span className="text-[13px] truncate" style={{color:"#4a4a4a"}}>{label}</span>
+      <div className="flex items-start gap-1.5 flex-1 min-w-0">
+        <span className="text-[13px] break-words leading-snug" style={{color:"#4a4a4a"}}>{label}</span>
         {tooltip && (
           <div className="group/tip relative">
             <span className="text-[10px] w-4 h-4 rounded-full inline-flex items-center justify-center cursor-help transition-colors" style={{color:"#b0b0b0", background:"rgba(0,0,0,0.05)"}}>?</span>
@@ -209,6 +232,7 @@ const ColorRow = memo(function ColorRow({ label, value, onChange, tooltip }: Col
               scheduleColorCommit(nextValue);
             }}
             onBlur={commitColorNow}
+            disabled={disabled}
             className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
           />
           <div
@@ -225,6 +249,7 @@ const ColorRow = memo(function ColorRow({ label, value, onChange, tooltip }: Col
             pendingValueRef.current = nextValue;
             onChange(nextValue);
           }}
+          disabled={disabled}
           className="w-[76px] text-[11px] rounded-lg px-2 py-1.5 font-mono"
           style={{background:"rgba(0,0,0,0.04)", border:"1px solid rgba(0,0,0,0.08)", color:"#3a3a3c", outline:"none"}}
           maxLength={7}
@@ -245,10 +270,11 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 /* ── 이미지 업로드 행 ── */
-const ImageUploadRow = memo(function ImageUploadRow({ label, tooltip, imgKey, imageUploads, onUpload }: {
+const ImageUploadRow = memo(function ImageUploadRow({ label, tooltip, imgKey, imageUploads, onUpload, onRemove }: {
   label: string; tooltip: string; imgKey: string;
   imageUploads: Record<string, string>;
   onUpload: (key: string, file: File) => void;
+  onRemove?: (key: string) => void;
 }) {
   return (
     <div data-setting-item="true" className="py-2 px-1" style={{ borderBottom: "1px solid rgba(0,0,0,0.045)" }}>
@@ -263,6 +289,16 @@ const ImageUploadRow = memo(function ImageUploadRow({ label, tooltip, imgKey, im
           </div>
         </div>
         <label className="flex items-center gap-2 cursor-pointer">
+          {imageUploads[imgKey] && onRemove ? (
+            <button
+              type="button"
+              onClick={() => onRemove(imgKey)}
+              className="text-[11px]"
+              style={{ color: "#ff3b30" }}
+            >
+              삭제
+            </button>
+          ) : null}
           <div className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden shrink-0 transition-transform hover:scale-105"
             style={{ background: imageUploads[imgKey] ? "transparent" : "rgba(0,0,0,0.04)", border: "1.5px dashed rgba(0,0,0,0.15)" }}>
             {imageUploads[imgKey]
@@ -866,7 +902,7 @@ function AndroidFriendsProfileMockup({ config }: { config: ThemeConfig }) {
           style={{ top: 0, bottom: 0 }}>
           <section style={{ ...frameStyle, borderRadius: 23, border: 'none', boxShadow: 'none' }}>
             <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
-              <NewsScreen config={{ bodyBg: config.bodyBg, headerBg: config.headerBg, headerText: config.headerText, primaryText: config.primaryText, descText: config.descText, tabBarBg: config.tabBarBg, tabBarIcon: config.tabBarIcon, tabBarSelectedIcon: config.tabBarSelectedIcon, friendsSelectedBg: config.friendsSelectedBg, chatBg: config.chatBg, otherBubbleBg: config.otherBubbleBg, myBubbleBg: config.myBubbleBg, inputBarBg: config.inputBarBg, sendBtnBg: config.sendBtnBg, passcodeBg: config.passcodeBg, passcodeTitleText: config.passcodeTitleText, passcodeKeypadText: config.passcodeKeypadText, unreadCountColor: config.unreadCountColor, openchatBg: config.openchatBg }} />
+              <NewsScreen config={{ bodyBg: config.bodyBg, headerBg: config.headerBg, headerText: config.headerText, primaryText: config.primaryText, descText: config.descText, tabBarBg: config.tabBarBg, tabBarIcon: config.tabBarIcon, tabBarSelectedIcon: config.tabBarSelectedIcon, friendsSelectedBg: config.friendsSelectedBg, chatBg: config.chatBg, otherBubbleBg: config.otherBubbleBg, myBubbleBg: config.myBubbleBg, inputBarBg: config.inputBarBg, sendBtnBg: config.sendBtnBg, passcodeBg: config.passcodeBg, passcodeTitleText: config.passcodeTitleText, passcodeKeypadText: config.passcodeKeypadText, unreadCountColor: config.unreadCountColor, openchatBg: config.openchatBg, mainBgImageUrl: undefined }} />
             </div>
             <TabBar disabled />
           </section>
@@ -968,7 +1004,6 @@ function IOSChatRoomMockup({ config }: { config: ThemeConfig }) {
   );
 }
 
-/* ── Android 채팅방 목업 (채팅 탭 듀얼용) ── */
 function AndroidChatRoomMockup({ config }: { config: ThemeConfig }) {
   return (
     <div className="relative mx-auto select-none" style={{ width: 368, height: 699 }}>
@@ -982,7 +1017,7 @@ function AndroidChatRoomMockup({ config }: { config: ThemeConfig }) {
           style={{ top: 0, bottom: 0 }}>
           <section style={{ ...frameStyle, borderRadius: 23, border: 'none', boxShadow: 'none' }}>
             <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
-              <ChatRoomScreen config={{ bodyBg: config.bodyBg, headerBg: config.headerBg, headerText: config.headerText, primaryText: config.primaryText, descText: config.descText, tabBarBg: config.tabBarBg, tabBarIcon: config.tabBarIcon, tabBarSelectedIcon: config.tabBarSelectedIcon, friendsSelectedBg: config.friendsSelectedBg, chatBg: config.chatBg, otherBubbleBg: config.otherBubbleBg, myBubbleBg: config.myBubbleBg, inputBarBg: config.inputBarBg, sendBtnBg: config.sendBtnBg, passcodeBg: config.passcodeBg, passcodeTitleText: config.passcodeTitleText, passcodeKeypadText: config.passcodeKeypadText, unreadCountColor: config.unreadCountColor, openchatBg: config.openchatBg }} />
+              <ChatRoomScreen config={{ bodyBg: config.bodyBg, headerBg: config.headerBg, headerText: config.headerText, primaryText: config.primaryText, descText: config.descText, tabBarBg: config.tabBarBg, tabBarIcon: config.tabBarIcon, tabBarSelectedIcon: config.tabBarSelectedIcon, friendsSelectedBg: config.friendsSelectedBg, chatBg: config.chatBg, otherBubbleBg: config.otherBubbleBg, myBubbleBg: config.myBubbleBg, inputBarBg: config.inputBarBg, sendBtnBg: config.sendBtnBg, passcodeBg: config.passcodeBg, passcodeTitleText: config.passcodeTitleText, passcodeKeypadText: config.passcodeKeypadText, unreadCountColor: config.unreadCountColor, openchatBg: config.openchatBg, mainBgImageUrl: undefined }} />
             </div>
           </section>
         </div>
@@ -1013,6 +1048,7 @@ function AndroidMockup({ config, previewTab }: { config: ThemeConfig; previewTab
     passcodeKeypadText: config.passcodeKeypadText,
     unreadCountColor: config.unreadCountColor,
     openchatBg: config.openchatBg,
+    mainBgImageUrl: undefined,
   }), [
     config.bodyBg, config.headerBg, config.headerText, config.primaryText, config.descText,
     config.tabBarBg, config.tabBarIcon, config.tabBarSelectedIcon, config.friendsSelectedBg,
@@ -1062,12 +1098,31 @@ function AndroidMockup({ config, previewTab }: { config: ThemeConfig; previewTab
 }
 
 type PreviewTab = "friends" | "chat" | "openchat" | "shopping" | "more" | "passcode";
+type EditorCategory =
+  | "manifest"
+  | "main-view"
+  | "tabbar"
+  | "chat-input"
+  | "message"
+  | "features"
+  | "passcode-notification";
+
+const editorCategories: { key: EditorCategory; label: string; badge: string }[] = [
+  { key: "manifest", label: "1. 테마 정보 및 기본 설정", badge: "ManifestStyle" },
+  { key: "main-view", label: "2. 메인 화면 공통", badge: "MainViewStyle" },
+  { key: "tabbar", label: "3. 하단 탭바", badge: "TabbarStyle" },
+  { key: "chat-input", label: "4. 채팅방 UI", badge: "InputBarStyle-Chat" },
+  { key: "message", label: "5. 메시지 스타일", badge: "MessageCellStyle" },
+  { key: "features", label: "6. 부가 기능 스타일", badge: "Features & Profile" },
+  { key: "passcode-notification", label: "7. 잠금화면 및 배너", badge: "Passcode / NotificationBar" },
+];
 
 export default function CreatePage() {
   const leftAsideRef = useRef<HTMLElement | null>(null);
   const [os, setOs] = useState<OS>("ios");
   const [config, setConfig] = useState<ThemeConfig>(defaultConfig);
   const [previewTab, setPreviewTab] = useState<PreviewTab>("friends");
+  const [activeEditorCategory, setActiveEditorCategory] = useState<EditorCategory>("manifest");
   const [imageUploads, setImageUploads] = useState<Record<string, string>>({});
   const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
   const [selectedSettingKey, setSelectedSettingKey] = useState<string | null>(null);
@@ -1079,13 +1134,54 @@ export default function CreatePage() {
   // TabBar 컴포넌트는 store를 참조하므로 탭바 색상만 동기화
   useEffect(() => {
     setTheme({
+      global: {
+        bodyBg: config.bodyBg,
+        headerBg: config.headerBg,
+        headerText: config.headerText,
+        primaryText: config.primaryText,
+        descText: config.descText,
+      },
       tabBar: {
         activeIconColor: config.tabBarSelectedIcon,
         inactiveIconColor: config.tabBarIcon,
         backgroundColor: config.tabBarBg,
       },
+      openChatsTab: {
+        bannerBackgroundColor: config.openchatBg,
+      },
+      chatRoom: {
+        backgroundColor: config.chatBg,
+        friendBubbleBg: config.otherBubbleBg,
+        myBubbleBg: config.myBubbleBg,
+        inputBarBg: config.inputBarBg,
+        sendButtonBg: config.sendBtnBg,
+      },
+      passcode: {
+        backgroundColor: config.passcodeBg,
+        titleColor: config.passcodeTitleText,
+        keypadTextColor: config.passcodeKeypadText,
+      },
     });
-  }, [config.tabBarBg, config.tabBarIcon, config.tabBarSelectedIcon, setTheme]);
+  }, [
+    config.bodyBg,
+    config.headerBg,
+    config.headerText,
+    config.primaryText,
+    config.descText,
+    config.tabBarBg,
+    config.tabBarIcon,
+    config.tabBarSelectedIcon,
+    config.openchatBg,
+    config.chatBg,
+    config.otherBubbleBg,
+    config.myBubbleBg,
+    config.inputBarBg,
+    config.sendBtnBg,
+    config.passcodeBg,
+    config.passcodeTitleText,
+    config.passcodeKeypadText,
+    setTheme,
+  ]);
 
   useEffect(() => {
     const screenMap: Record<PreviewTab, ScreenType> = {
@@ -1180,9 +1276,9 @@ export default function CreatePage() {
           os,
           previewImageUrl: imageUploads["mainBg"] ?? null,
           configJson: config,
-          imageData: imageDataMap,
-        }),
-      });
+           imageData: imageDataMap,
+         }),
+       });
       if (res.ok) {
         setSaveToast("saved");
         setTimeout(() => setSaveToast("idle"), 2200);
@@ -1197,6 +1293,14 @@ export default function CreatePage() {
   const handleImageUpload = (key: string, file: File) => {
     const url = URL.createObjectURL(file);
     setImageUploads((prev) => ({ ...prev, [key]: url }));
+  };
+
+  const handleImageRemove = (key: string) => {
+    setImageUploads((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
   };
 
   const handleDownload = async () => {
@@ -1429,7 +1533,7 @@ export default function CreatePage() {
         {/* 가운데: 탭 프리뷰 선택 */}
         <div className="flex items-center gap-0.5 rounded-full px-1 py-1" style={{ background: "rgba(0,0,0,0.05)" }}>
           {(["friends","chat","openchat","shopping","more"] as PreviewTab[]).map((tab) => {
-            const labels: Record<PreviewTab, string> = { friends:"친구", chat:"채팅", openchat:"오픈채팅", shopping:"쇼핑", more:"더보기", passcode:"암호" };
+            const labels: Record<PreviewTab, string> = { friends:"친구", chat:"채팅", openchat:"지금", shopping:"쇼핑", more:"더보기", passcode:"암호" };
             return (
               <button key={tab} onClick={() => setPreviewTab(tab)}
                 className="px-3.5 py-1 text-[12px] font-semibold transition-all rounded-full"
@@ -1538,180 +1642,232 @@ export default function CreatePage() {
         {/* ── 좌측 설정 패널 ── */}
         <aside
           ref={leftAsideRef}
-          className="w-64 overflow-y-auto mac-scroll shrink-0 flex flex-col"
+          className="w-72 overflow-y-auto mac-scroll shrink-0 flex flex-col"
           style={{
             background: "rgba(252,252,254,0.96)",
             borderRight: "1px solid rgba(0,0,0,0.07)",
           }}
         >
-          {/* 패널 상단: 공통 설정 레이블 */}
+          {/* 패널 상단: 7개 카테고리 */}
           <div className="px-5 pt-5 pb-2 shrink-0">
-            <p className="text-[10px] font-bold tracking-[0.14em] uppercase" style={{ color: "rgb(74,123,247)" }}>공통 설정</p>
+            <p className="text-[10px] font-bold tracking-[0.14em] uppercase" style={{ color: "rgb(74,123,247)" }}>편집 카테고리</p>
           </div>
 
-          <div className="px-3 pb-2">
-            <Accordion title="배경 · 바디" badge="MainViewStyle">
-              <ColorRow label="배경색" value={config.bodyBg} onChange={set("bodyBg")} tooltip="background-color — MainViewStyle" />
-              <ImageUploadRow label="배경 이미지" tooltip="mainBgImage.png (상단/센터 크롭)" imgKey="mainBg" imageUploads={imageUploads} onUpload={handleImageUpload} />
-            </Accordion>
-
-            <Accordion
-              title="헤더"
-              badge="HeaderStyle"
-              autoOpenSignal={activeElementId === "header-title-icon" ? activeElementId : null}
-              isSelected={false}
-            >
-              <div data-setting-key="header-title-icon-color">
-                <ColorRow label="타이틀 · 아이콘 색" value={config.headerText} onChange={set("headerText")} tooltip="-ios-text-color (타이틀, 검색, 설정 아이콘)" />
-              </div>
-            </Accordion>
-
-            <Accordion
-              title="하단 탭바"
-              badge="TabBarStyle"
-              autoOpenSignal={activeElementId?.startsWith("tabBar-") ? activeElementId : null}
-              isSelected={(activeElementId?.startsWith("tabBar-") ?? false) || (selectedSettingKey?.startsWith("tab-") ?? false)}
-            >
-              <ColorRow label="탭바 배경색" value={config.tabBarBg} onChange={set("tabBarBg")} tooltip="background-color — TabBarStyle" />
-              <ColorRow label="일반 아이콘" value={config.tabBarIcon} onChange={set("tabBarIcon")} tooltip="각 탭 -normal 아이콘 컬러" />
-              <ColorRow label="선택 아이콘" value={config.tabBarSelectedIcon} onChange={set("tabBarSelectedIcon")} tooltip="각 탭 -selected 아이콘 컬러" />
-              <ImageUploadRow label="탭바 배경 이미지" tooltip="maintabBgImage.png" imgKey="tabBg" imageUploads={imageUploads} onUpload={handleImageUpload} />
-              <div className="mt-2 mb-1.5 text-[10px] font-bold px-1 tracking-wide" style={{ color: "rgb(74,123,247)" }}>
-                탭 아이콘 이미지 (전체)
-              </div>
-              {[
-                { label: "친구", settingKey: "tab-friends", normalKey: "tabFriendsNormal", selectedKey: "tabFriendsSelected", normalTooltip: "-ios-friends-normal-icon-image", selectedTooltip: "-ios-friends-selected-icon-image" },
-                { label: "채팅", settingKey: "tab-chat", normalKey: "tabChatNormal", selectedKey: "tabChatSelected", normalTooltip: "-ios-chats-normal-icon-image", selectedTooltip: "-ios-chats-selected-icon-image" },
-                { label: "오픈채팅", settingKey: "tab-openchat", normalKey: "tabOpenNormal", selectedKey: "tabOpenSelected", normalTooltip: "-ios-openchats-normal-icon-image", selectedTooltip: "-ios-openchats-selected-icon-image" },
-                { label: "쇼핑", settingKey: "tab-shopping", normalKey: "tabShopNormal", selectedKey: "tabShopSelected", normalTooltip: "-ios-shopping-normal-icon-image", selectedTooltip: "-ios-shopping-selected-icon-image" },
-                { label: "더보기", settingKey: "tab-more", normalKey: "tabMoreNormal", selectedKey: "tabMoreSelected", normalTooltip: "-ios-more-normal-icon-image", selectedTooltip: "-ios-more-selected-icon-image" },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  data-setting-key={item.settingKey}
-                  className="rounded-xl px-2 py-2 mb-1.5 transition-colors"
+          <div className="px-3 pb-3 shrink-0" style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+            <div className="flex flex-col gap-1">
+              {editorCategories.map((category) => (
+                <button
+                  key={category.key}
+                  type="button"
+                  onClick={() => setActiveEditorCategory(category.key)}
+                  className="w-full text-left px-3 py-2 rounded-xl text-[12px] font-semibold transition-all"
                   style={{
-                    background: selectedSettingKey === item.settingKey ? "rgba(74,123,247,0.07)" : "transparent",
-                    borderLeft: selectedSettingKey === item.settingKey ? "2px solid rgba(74,123,247,0.5)" : "2px solid transparent",
+                    color: activeEditorCategory === category.key ? "rgb(74,123,247)" : "#4a4a4a",
+                    background: activeEditorCategory === category.key ? "rgba(74,123,247,0.1)" : "transparent",
+                    border: activeEditorCategory === category.key ? "1px solid rgba(74,123,247,0.18)" : "1px solid transparent",
                   }}
                 >
-                  <div className="text-[11px] font-semibold mb-1 px-1" style={{ color: selectedSettingKey === item.settingKey ? "rgb(74,123,247)" : "#6e6e73" }}>{item.label}</div>
-                  <ImageUploadRow label={`${item.label} 탭 일반`} tooltip={item.normalTooltip} imgKey={item.normalKey} imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ImageUploadRow label={`${item.label} 탭 선택`} tooltip={item.selectedTooltip} imgKey={item.selectedKey} imageUploads={imageUploads} onUpload={handleImageUpload} />
-                </div>
+                  {category.label}
+                </button>
               ))}
-            </Accordion>
-
-            <Accordion title="기본 프로필" badge="DefaultProfileStyle">
-              <ImageUploadRow label="기본 프로필 이미지" tooltip="profileImg01.png" imgKey="defaultProfile" imageUploads={imageUploads} onUpload={handleImageUpload} />
-              <ImageUploadRow label="앱 아이콘 (162×162)" tooltip="commonIcoTheme.png — 테마 목록 아이콘" imgKey="icon" imageUploads={imageUploads} onUpload={handleImageUpload} />
-            </Accordion>
+            </div>
           </div>
 
-          {/* 탭별 설정 구분선 */}
-          {previewTab !== "passcode" && (
-            <div className="px-5 pt-4 pb-2 shrink-0" style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
-              <p className="text-[10px] font-bold tracking-[0.14em] uppercase" style={{ color: "rgb(74,123,247)" }}>
-                {previewTab === "friends" && "친구 탭 설정"}
-                {previewTab === "chat" && "채팅 탭 설정"}
-                {previewTab === "openchat" && "오픈채팅 탭 설정"}
-                {previewTab === "shopping" && "쇼핑 탭 설정"}
-                {previewTab === "more" && "더보기 탭 설정"}
-              </p>
-            </div>
-          )}
-          {previewTab === "passcode" && (
-            <div className="px-5 pt-4 pb-2 shrink-0" style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
-              <p className="text-[10px] font-bold tracking-[0.14em] uppercase" style={{ color: "rgb(74,123,247)" }}>암호 설정</p>
-            </div>
-          )}
-
-          <div className="px-3 pb-6">
-            {previewTab === "friends" && (
-              <Accordion title="친구 목록" badge="FriendsStyle">
-                <ColorRow label="이름 텍스트" value={config.friendsNameText} onChange={set("friendsNameText")} tooltip="-ios-text-color (친구 이름)" />
-                <ColorRow label="상태메시지 텍스트" value={config.descText} onChange={set("descText")} tooltip="-ios-description-text-color (상태 메시지, 생일 섹션)" />
-                <ColorRow label="구분선 색" value={config.friendsBorderColor} onChange={set("friendsBorderColor")} tooltip="border-color (리스트 구분선)" />
-                <ColorRow label="선택 시 배경" value={config.friendsSelectedBg} onChange={set("friendsSelectedBg")} tooltip="-ios-selected-background-color (친구 클릭 시)" />
-              </Accordion>
-            )}
-            {previewTab === "chat" && (
+           <div className="px-3 pb-2">
+            {activeEditorCategory === "manifest" && (
               <>
-                <Accordion title="채팅 목록" badge="ChatsStyle">
-                  <ColorRow label="채팅방 이름" value={config.chatListNameText} onChange={set("chatListNameText")} tooltip="-ios-text-color (채팅방 이름)" />
-                  <ColorRow label="마지막 메시지" value={config.chatListLastMsgText} onChange={set("chatListLastMsgText")} tooltip="-ios-paragraph-text-color (마지막 메시지)" />
-                  <ColorRow label="클릭 시 이름 색" value={config.chatListHighlightText} onChange={set("chatListHighlightText")} tooltip="-ios-highlighted-text-color (채팅방 이름 클릭 시)" />
+                <Accordion title="테마 정보" badge="ManifestStyle">
+                  <MacInput label="이름" hint="(-kakaotalk-theme-name)" value={config.name} onChange={set("name")} />
+                  <MacInput label="아이디" hint="(-kakaotalk-theme-id)" value={config.packageId} onChange={set("packageId")} />
+                  <MacInput label="버전" hint="(-kakaotalk-theme-version)" value={config.version} onChange={set("version")} readOnly={true} />
+                  <MacInput label="제작자" hint="(-kakaotalk-author-name)" value={config.authorName} onChange={set("authorName")} />
+                  <MacInput label="참조 URL" hint="(-kakaotalk-theme-url)" value={config.themeUrl} onChange={set("themeUrl")} />
                 </Accordion>
-                <Accordion title="채팅방 배경" badge="ChatRoomStyle">
-                  <ColorRow label="배경색" value={config.chatBg} onChange={set("chatBg")} tooltip="background-color — ChatRoomStyle" />
+                <Accordion title="시스템 스타일" badge="ManifestStyle">
+                  <div className="flex items-center justify-between py-2.5 px-1">
+                    <div>
+                      <div className="text-[13px] font-semibold" style={{color:"#2c2c2e"}}>다크 모드 지원</div>
+                      <div className="text-[10px] mt-0.5 font-mono" style={{color:"#aeaeb2"}}>-kakaotalk-theme-style: 'dark'</div>
+                    </div>
+                    <button
+                      onClick={() => set("darkMode")(!config.darkMode)}
+                      className="w-[38px] h-[22px] rounded-full relative transition-all duration-200 shrink-0"
+                      style={{
+                        backgroundColor: config.darkMode ? "#34c759" : "rgba(0,0,0,0.15)",
+                        boxShadow: config.darkMode ? "0 0 0 1px rgba(52,199,89,0.4)" : "0 0 0 1px rgba(0,0,0,0.1)",
+                      }}
+                    >
+                      <div className="absolute top-[2px] w-[18px] h-[18px] rounded-full bg-white shadow-md transition-all duration-200" style={{ left: config.darkMode ? "18px" : "2px" }} />
+                    </button>
+                  </div>
+                </Accordion>
+                <Accordion title="아이콘 이미지" badge="ManifestStyle">
+                  <ImageUploadRow label="앱 테마 리스트 이미지" tooltip="commonIcoTheme.png (162×162)" imgKey="icon" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                </Accordion>
+                {os === "android" && (
+                  <Accordion title="Android 빌드 설정" badge="ManifestStyle">
+                    <MacInput label="namespace" hint="(build.gradle)" value={config.namespace} onChange={set("namespace")} />
+                    <div className="flex gap-2 mt-3">
+                      <MacInput label="compileSdk" value={config.compileSdk} onChange={set("compileSdk")} type="number" />
+                      <MacInput label="targetSdk" value={config.targetSdk} onChange={set("targetSdk")} type="number" />
+                    </div>
+                  </Accordion>
+                )}
+              </>
+            )}
+
+            {activeEditorCategory === "main-view" && (
+              <>
+                <Accordion title="배경" badge="MainViewStyle">
+                  <ColorRow label="배경색" value={config.bodyBg} onChange={set("bodyBg")} tooltip="background-color" disabled={Boolean(imageUploads.mainBg)} />
+                  <ImageUploadRow label="배경 이미지" tooltip="mainBgImage.png" imgKey="mainBg" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                </Accordion>
+                <Accordion title="목록 텍스트" badge="MainViewStyle">
+                  <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={set("primaryText")} tooltip="-ios-text-color" />
+                  <ColorRow label="이름 프레스" value={config.chatListHighlightText} onChange={set("chatListHighlightText")} tooltip="-ios-highlighted-text-color" />
+                  <ColorRow label="마지막 메시지" value={config.chatListLastMsgText} onChange={set("chatListLastMsgText")} tooltip="-ios-paragraph-text-color" />
+                  <ColorRow label="마지막 메시지 프레스" value={config.chatListHighlightText} onChange={set("chatListHighlightText")} tooltip="-ios-paragraph-highlighted-text-color" />
+                </Accordion>
+                <Accordion title="목록 배경 / 칩 / 버튼" badge="MainViewStyle">
+                  <ColorRow label="선택 배경" value={config.friendsSelectedBg} onChange={set("friendsSelectedBg")} tooltip="-ios-selected-background-color" />
+                  <MacInput label="선택 배경 투명도" hint="(-ios-selected-background-alpha)" value={config.selectedBgAlpha} onChange={set("selectedBgAlpha")} />
+                  <ColorRow label="칩 선택 텍스트" value={config.headerText} onChange={set("headerText")} tooltip="-ios-text-color" />
+                </Accordion>
+                <Accordion title="섹션 / 보더" badge="MainViewStyle">
+                  <ColorRow label="섹션 타이틀" value={config.descText} onChange={set("descText")} tooltip="-ios-description-text-color" />
+                  <ColorRow label="보더 컬러" value={config.friendsBorderColor} onChange={set("friendsBorderColor")} tooltip="border-color" />
+                  <MacInput label="보더 투명도" hint="(border-alpha)" value={config.borderAlpha} onChange={set("borderAlpha")} />
+                </Accordion>
+              </>
+            )}
+
+            {activeEditorCategory === "tabbar" && (
+              <>
+                <Accordion title="탭바 배경" badge="TabbarStyle">
+                  <ColorRow label="배경 컬러" value={config.tabBarBg} onChange={set("tabBarBg")} tooltip="background-color" />
+                  <ImageUploadRow label="배경 이미지" tooltip="maintabBgImage.png" imgKey="tabBg" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ColorRow label="숏폼 배경 컬러" value={config.tabBarBg} onChange={set("tabBarBg")} tooltip="숏폼 전용 background-color" />
+                </Accordion>
+                <Accordion title="탭 아이콘" badge="TabbarStyle" autoOpenSignal={activeElementId?.startsWith("tabBar-") ? activeElementId : null} isSelected={(activeElementId?.startsWith("tabBar-") ?? false) || (selectedSettingKey?.startsWith("tab-") ?? false)}>
+                  <ColorRow label="일반 아이콘 컬러" value={config.tabBarIcon} onChange={set("tabBarIcon")} tooltip="일반 아이콘 컬러" />
+                  <ColorRow label="선택 아이콘 컬러" value={config.tabBarSelectedIcon} onChange={set("tabBarSelectedIcon")} tooltip="선택 아이콘 컬러" />
+                  {[
+                    { label: "친구", settingKey: "tab-friends", normalKey: "tabFriendsNormal", selectedKey: "tabFriendsSelected", normalTooltip: "maintablcoFriends.png", selectedTooltip: "maintablcoFriendsSelected.png" },
+                    { label: "채팅", settingKey: "tab-chat", normalKey: "tabChatNormal", selectedKey: "tabChatSelected", normalTooltip: "maintablcoChats.png", selectedTooltip: "maintabicoChatsSelected.png" },
+                    { label: "지금", settingKey: "tab-openchat", normalKey: "tabOpenNormal", selectedKey: "tabOpenSelected", normalTooltip: "maintabicoNow.png", selectedTooltip: "maintablcoNowSelected.png" },
+                    { label: "쇼핑", settingKey: "tab-shopping", normalKey: "tabShopNormal", selectedKey: "tabShopSelected", normalTooltip: "maintabicoShopping.png", selectedTooltip: "maintabicoShoppingSelected.png" },
+                    { label: "더보기", settingKey: "tab-more", normalKey: "tabMoreNormal", selectedKey: "tabMoreSelected", normalTooltip: "maintablcoMore.png", selectedTooltip: "maintablcoMoreSelected.png" },
+                  ].map((item) => (
+                    <div key={item.label} data-setting-key={item.settingKey} className="rounded-xl px-2 py-2 mb-1.5 transition-colors" style={{ background: selectedSettingKey === item.settingKey ? "rgba(74,123,247,0.07)" : "transparent", borderLeft: selectedSettingKey === item.settingKey ? "2px solid rgba(74,123,247,0.5)" : "2px solid transparent" }}>
+                      <div className="text-[11px] font-semibold mb-1 px-1" style={{ color: selectedSettingKey === item.settingKey ? "rgb(74,123,247)" : "#6e6e73" }}>{item.label}</div>
+                      <ImageUploadRow label={`${item.label} 일반`} tooltip={item.normalTooltip} imgKey={item.normalKey} imageUploads={imageUploads} onUpload={handleImageUpload} />
+                      <ImageUploadRow label={`${item.label} 선택`} tooltip={item.selectedTooltip} imgKey={item.selectedKey} imageUploads={imageUploads} onUpload={handleImageUpload} />
+                    </div>
+                  ))}
+                </Accordion>
+              </>
+            )}
+
+            {activeEditorCategory === "chat-input" && (
+              <>
+                <Accordion title="채팅방 배경" badge="InputBarStyle-Chat">
+                  <ColorRow label="배경 컬러" value={config.chatBg} onChange={set("chatBg")} tooltip="background-color" />
                   <ImageUploadRow label="배경 이미지" tooltip="chatroomBgImage.png" imgKey="chatroomBg" imageUploads={imageUploads} onUpload={handleImageUpload} />
                 </Accordion>
-                <Accordion title="입력창" badge="InputBar">
-                  <ColorRow label="인풋바 배경" value={config.inputBarBg} onChange={set("inputBarBg")} tooltip="background-color (인풋바)" />
-                  <ColorRow label="보내기 버튼 배경" value={config.sendBtnBg} onChange={set("sendBtnBg")} tooltip="-ios-send-normal-background-color" />
-                  <ColorRow label="보내기 아이콘 색" value={config.sendBtnIcon} onChange={set("sendBtnIcon")} tooltip="-ios-send-normal-foreground-color" />
-                  <ColorRow label="메뉴(+) 아이콘 색" value={config.menuBtnColor} onChange={set("menuBtnColor")} tooltip="-ios-button-normal-foreground-color" />
-                  <ColorRow label="입력 필드 배경" value={config.inputFieldBg} onChange={set("inputFieldBg")} tooltip="-ios-button-normal-background-color" />
+                <Accordion title="인풋바" badge="InputBarStyle-Chat">
+                  <ColorRow label="배경 컬러" value={config.inputBarBg} onChange={set("inputBarBg")} tooltip="background-color" />
+                  <ColorRow label="텍스트 컬러" value={config.inputBarText} onChange={set("inputBarText")} tooltip="-ios-button-text-color" />
                 </Accordion>
-                <Accordion title="말풍선" badge="MessageStyle">
-                  <div className="text-[11px] px-1 mb-1 font-semibold" style={{color:"#6e6e73"}}>보낸 메시지 (Send)</div>
-                  <ColorRow label="배경색" value={config.myBubbleBg} onChange={set("myBubbleBg")} tooltip="BubbleSend01/02.png 대체색" />
-                  <ColorRow label="텍스트" value={config.myBubbleText} onChange={set("myBubbleText")} tooltip="-ios-text-color (send)" />
-                  <ImageUploadRow label="말풍선 이미지 1" tooltip="BubbleSend01.png" imgKey="bubbleSend1" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ImageUploadRow label="말풍선 이미지 2" tooltip="BubbleSend02.png (연속)" imgKey="bubbleSend2" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <div className="text-[11px] px-1 mt-3 mb-1 font-semibold" style={{color:"#6e6e73"}}>받은 메시지 (Receive)</div>
-                  <ColorRow label="배경색" value={config.otherBubbleBg} onChange={set("otherBubbleBg")} tooltip="BubbleReceive01/02.png 대체색" />
-                  <ColorRow label="텍스트" value={config.otherBubbleText} onChange={set("otherBubbleText")} tooltip="-ios-text-color (receive)" />
-                  <ImageUploadRow label="말풍선 이미지 1" tooltip="BubbleReceive01.png" imgKey="bubbleReceive1" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ImageUploadRow label="말풍선 이미지 2" tooltip="BubbleReceive02.png (연속)" imgKey="bubbleReceive2" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <div className="text-[11px] px-1 mt-3 mb-1 font-semibold" style={{color:"#6e6e73"}}>공통</div>
-                  <ColorRow label="안읽은 숫자 색" value={config.unreadCountColor} onChange={set("unreadCountColor")} tooltip="-ios-unread-text-color" />
+                <Accordion title="메뉴 버튼" badge="InputBarStyle-Chat">
+                  <ColorRow label="아이콘 컬러" value={config.menuBtnColor} onChange={set("menuBtnColor")} tooltip="-ios-button-normal-foreground-color" />
+                  <ColorRow label="프레스 컬러" value={config.menuBtnColor} onChange={set("menuBtnColor")} tooltip="-ios-button-highlighted-foreground-color" />
+                  <ColorRow label="배경 컬러" value={config.inputFieldBg} onChange={set("inputFieldBg")} tooltip="-ios-button-normal-background-color" />
+                </Accordion>
+                <Accordion title="전송 버튼" badge="InputBarStyle-Chat">
+                  <ColorRow label="기본 배경" value={config.sendBtnBg} onChange={set("sendBtnBg")} tooltip="-ios-send-normal-background-color" />
+                  <ColorRow label="프레스 배경" value={config.sendBtnBg} onChange={set("sendBtnBg")} tooltip="-ios-send-highlighted-background-color" />
+                  <ColorRow label="기본 아이콘" value={config.sendBtnIcon} onChange={set("sendBtnIcon")} tooltip="-ios-send-normal-foreground-color" />
+                  <ColorRow label="프레스 아이콘" value={config.sendBtnIcon} onChange={set("sendBtnIcon")} tooltip="-ios-send-highlighted-foreground-color" />
                 </Accordion>
               </>
             )}
-            {previewTab === "openchat" && (
-              <Accordion title="오픈채팅 스타일" badge="OpenChatStyle">
-                <ColorRow label="바디 배경색" value={config.openchatBg} onChange={set("openchatBg")} tooltip="background-color (오픈채팅 바디)" />
-                <ColorRow label="타이틀 · 본문 텍스트" value={config.openchatText} onChange={set("openchatText")} tooltip="-ios-text-color (커뮤니티 타이틀, 피드 본문)" />
-              </Accordion>
-            )}
-            {previewTab === "shopping" && (
-              <Accordion title="쇼핑 스타일" badge="ShoppingStyle">
-                <ColorRow label="배경색" value={config.shoppingBg} onChange={set("shoppingBg")} tooltip="background-color (쇼핑 메인)" />
-                <ColorRow label="상품명 · 정보 텍스트" value={config.shoppingText} onChange={set("shoppingText")} tooltip="-ios-text-color (상품명, 정보)" />
-              </Accordion>
-            )}
-            {previewTab === "more" && (
+
+            {activeEditorCategory === "message" && (
               <>
-                <Accordion title="더보기 스타일" badge="MoreStyle">
-                  <ColorRow label="상단 영역 배경" value={config.moreBg} onChange={set("moreBg")} tooltip="background-color (더보기 상단)" />
-                  <ColorRow label="그리드 라벨 텍스트" value={config.moreTabText} onChange={set("moreTabText")} tooltip="-ios-tab-text-color (그리드 아이콘 하단 라벨)" />
-                  <ColorRow label="기본 텍스트" value={config.primaryText} onChange={set("primaryText")} tooltip="-ios-text-color (기본 텍스트)" />
+                <Accordion title="보낸 메시지" badge="MessageCellStyle-Send">
+                  <ImageUploadRow label="첫 번째 배경 이미지" tooltip="chatroomBubbleSend01.png" imgKey="bubbleSend1" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ImageUploadRow label="연속 배경 이미지" tooltip="chatroomBubbleSend02.png" imgKey="bubbleSend2" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ColorRow label="텍스트" value={config.myBubbleText} onChange={set("myBubbleText")} tooltip="-ios-text-color" />
+                  <ColorRow label="선택 텍스트" value={config.myBubbleText} onChange={set("myBubbleText")} tooltip="-ios-selected-text-color" />
+                  <MacInput label="첫 메시지 인셋" hint="-ios-title-edgeinsets" value="10px 11px 7px 17px" onChange={() => {}} readOnly={true} />
+                  <MacInput label="연속 메시지 인셋" hint="-ios-group-title-edgeinsets" value="10px 11px 7px 17px" onChange={() => {}} readOnly={true} />
+                </Accordion>
+                <Accordion title="받은 메시지" badge="MessageCellStyle-Receive">
+                  <ImageUploadRow label="첫 번째 배경 이미지" tooltip="chatroomBubbleReceive01.png" imgKey="bubbleReceive1" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ImageUploadRow label="연속 배경 이미지" tooltip="chatroomBubbleReceive02.png" imgKey="bubbleReceive2" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ColorRow label="텍스트" value={config.otherBubbleText} onChange={set("otherBubbleText")} tooltip="-ios-text-color" />
+                  <ColorRow label="선택 텍스트" value={config.otherBubbleText} onChange={set("otherBubbleText")} tooltip="-ios-selected-text-color" />
+                  <MacInput label="첫 메시지 인셋" hint="-ios-title-edgeinsets" value="10px 17px 7px 11px" onChange={() => {}} readOnly={true} />
+                  <MacInput label="연속 메시지 인셋" hint="-ios-group-title-edgeinsets" value="10px 17px 7px 11px" onChange={() => {}} readOnly={true} />
+                </Accordion>
+                <Accordion title="공통" badge="MessageCellStyle">
+                  <ColorRow label="안읽은 숫자 컬러" value={config.unreadCountColor} onChange={set("unreadCountColor")} tooltip="-ios-unread-text-color" />
+                </Accordion>
+              </>
+            )}
+
+            {activeEditorCategory === "features" && (
+              <>
+                <Accordion title="기본 프로필" badge="Features & Profile">
+                  <ImageUploadRow label="기본 프로필 이미지" tooltip="profileImg01.png" imgKey="defaultProfile" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                </Accordion>
+                <Accordion title="더보기 / 그리드" badge="Features & Profile">
+                  <ColorRow label="상단 탭 텍스트" value={config.moreTabText} onChange={set("moreTabText")} tooltip="-ios-tab-text-color" />
+                  <ColorRow label="서비스 버튼 컬러" value={config.moreServiceText} onChange={set("moreServiceText")} tooltip="-ios-text-color" />
+                </Accordion>
+                <Accordion title="날씨" badge="Features & Profile">
+                  <ColorRow label="위치 / 온도 텍스트" value={config.weatherText} onChange={set("weatherText")} tooltip="-ios-text-color" />
+                  <ColorRow label="미세먼지 텍스트" value={config.weatherDescText} onChange={set("weatherDescText")} tooltip="-ios-description-text-color" />
+                  <ColorRow label="GPS 아이콘 / 보더" value={config.weatherIconColor} onChange={set("weatherIconColor")} tooltip="-ios-text-color" />
+                </Accordion>
+                <Accordion title="게임" badge="Features & Profile">
+                  <ColorRow label="타이틀 / 공지 텍스트" value={config.gameText} onChange={set("gameText")} tooltip="-ios-text-color" />
+                  <ColorRow label="부가정보 텍스트" value={config.gameDescText} onChange={set("gameDescText")} tooltip="-ios-description-text-color" />
+                  <ColorRow label="보더 컬러" value={config.friendsBorderColor} onChange={set("friendsBorderColor")} tooltip="border-color" />
+                  <MacInput label="보더 알파" hint="border-alpha" value={config.borderAlpha} onChange={set("borderAlpha")} />
+                </Accordion>
+              </>
+            )}
+
+            {activeEditorCategory === "passcode-notification" && (
+              <>
+                <Accordion title="잠금화면" badge="PasscodeStyle">
+                  <ColorRow label="배경색" value={config.passcodeBg} onChange={set("passcodeBg")} tooltip="background-color" />
+                  <ImageUploadRow label="배경 이미지" tooltip="passcodeBgImage.png" imgKey="passcodeBgImg" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ColorRow label="타이틀 컬러" value={config.passcodeTitleText} onChange={set("passcodeTitleText")} tooltip="-ios-text-color" />
+                </Accordion>
+                <Accordion title="불릿 이미지" badge="PasscodeStyle">
+                  <div className="text-[11px] px-1 mb-1 font-semibold" style={{color:"#6e6e73"}}>일반</div>
+                  {["bullet1Empty","bullet2Empty","bullet3Empty","bullet4Empty"].map((k, i) => (
+                    <ImageUploadRow key={k} label={`불릿 ${i+1}`} tooltip={`passcodeImgCode0${i+1}.png`} imgKey={k} imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  ))}
+                  <div className="text-[11px] px-1 mt-3 mb-1 font-semibold" style={{color:"#6e6e73"}}>선택</div>
+                  {["bullet1Fill","bullet2Fill","bullet3Fill","bullet4Fill"].map((k, i) => (
+                    <ImageUploadRow key={k} label={`선택 불릿 ${i+1}`} tooltip={`passcodeImgCode0${i+1}Selected.png`} imgKey={k} imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  ))}
+                </Accordion>
+                <Accordion title="키패드" badge="PasscodeStyle">
+                  <ColorRow label="배경색" value={config.passcodeKeypadBg} onChange={set("passcodeKeypadBg")} tooltip="-ios-keypad-background-color" />
+                  <ColorRow label="숫자 컬러" value={config.passcodeKeypadText} onChange={set("passcodeKeypadText")} tooltip="-ios-keypad-text-normal-color" />
+                  <ImageUploadRow label="프레스 이미지" tooltip="passcodeKeypadPressed.png" imgKey="passcodeKeypadPressed" imageUploads={imageUploads} onUpload={handleImageUpload} />
                 </Accordion>
                 <Accordion title="알림 배너" badge="NotificationBar">
-                  <ColorRow label="알림 배경" value={config.notifBannerBg} onChange={set("notifBannerBg")} tooltip="background-color — MessageNotificationBar" />
-                  <ColorRow label="알림 텍스트" value={config.notifBannerText} onChange={set("notifBannerText")} tooltip="-ios-text-color (알림 배너)" />
+                  <ColorRow label="배경색" value={config.notifBannerBg} onChange={set("notifBannerBg")} tooltip="background-color" />
+                  <ColorRow label="이름 컬러" value={config.notifBannerText} onChange={set("notifBannerText")} tooltip="-ios-text-color" />
+                  <ColorRow label="메시지 컬러" value={config.notifBannerText} onChange={set("notifBannerText")} tooltip="-ios-text-color" />
                 </Accordion>
-              </>
-            )}
-            {previewTab === "passcode" && (
-              <>
-                <Accordion title="암호화면 스타일" badge="PasscodeStyle">
-                  <ColorRow label="배경색" value={config.passcodeBg} onChange={set("passcodeBg")} tooltip="background-color — PasscodeStyle" />
-                  <ColorRow label="안내 텍스트 색" value={config.passcodeTitleText} onChange={set("passcodeTitleText")} tooltip="-ios-text-color (비밀번호 입력 안내)" />
-                  <ColorRow label="키패드 배경" value={config.passcodeKeypadBg} onChange={set("passcodeKeypadBg")} tooltip="-ios-keypad-background-color" />
-                  <ColorRow label="키패드 텍스트" value={config.passcodeKeypadText} onChange={set("passcodeKeypadText")} tooltip="-ios-keypad-text-normal-color" />
-                  <ImageUploadRow label="배경 이미지" tooltip="passcodeBgImage.png" imgKey="passcodeBgImg" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                </Accordion>
-                <Accordion title="불릿 이미지" badge="Bullet (8종)">
-                  <div className="text-[11px] px-1 mb-1 font-semibold" style={{color:"#6e6e73"}}>미입력 (4종)</div>
-                  {["bullet1Empty","bullet2Empty","bullet3Empty","bullet4Empty"].map((k, i) => (
-                    <ImageUploadRow key={k} label={`불릿 ${i+1} (미입력)`} tooltip={`-ios-bullet-${["first","second","third","fourth"][i]}-image`} imgKey={k} imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  ))}
-                  <div className="text-[11px] px-1 mt-3 mb-1 font-semibold" style={{color:"#6e6e73"}}>입력 시 (4종)</div>
-                  {["bullet1Fill","bullet2Fill","bullet3Fill","bullet4Fill"].map((k, i) => (
-                    <ImageUploadRow key={k} label={`불릿 ${i+1} (입력)`} tooltip={`-ios-bullet-${["first","second","third","fourth"][i]}-selected-image`} imgKey={k} imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  ))}
+                <Accordion title="하단 배너" badge="NotificationBar">
+                  <ColorRow label="배경 컬러" value={config.bottomBannerBg} onChange={set("bottomBannerBg")} tooltip="background-color" />
                 </Accordion>
               </>
             )}
@@ -1723,16 +1879,16 @@ export default function CreatePage() {
           <div className="transition-all duration-300 ease-out">
             {os === "ios" && previewTab === "friends" ? (
               <div className="flex items-start gap-8">
-                <PreviewMockup disableTabNavigation />
-                <PreviewNewsMockup disableTabNavigation />
+                <PreviewMockup disableTabNavigation mainBgImageUrl={imageUploads.mainBg} />
+                <PreviewNewsMockup disableTabNavigation mainBgImageUrl={imageUploads.mainBg} />
               </div>
             ) : os === "ios" && previewTab === "chat" ? (
               <div className="flex items-start gap-8">
-                <PreviewMockup disableTabNavigation />
+                <PreviewMockup disableTabNavigation mainBgImageUrl={imageUploads.mainBg} />
                 <PreviewChatRoomMockup />
               </div>
             ) : os === "ios" ? (
-              <PreviewMockup disableTabNavigation />
+              <PreviewMockup disableTabNavigation mainBgImageUrl={imageUploads.mainBg} />
             ) : previewTab === "friends" ? (
               <div className="flex items-start gap-8">
                 <AndroidMockup config={config} previewTab="friends" />
@@ -1785,14 +1941,18 @@ export default function CreatePage() {
                 onChange={set("authorName")}
                 placeholder="크리에이터"
               />
+              <MacInput
+                label="참조 URL"
+                hint="(-kakaotalk-theme-url)"
+                value={config.themeUrl}
+                onChange={set("themeUrl")}
+              />
 
               {/* 다크모드 토글 */}
               <div className="flex items-center justify-between py-2.5" style={{ borderTop: "1px solid rgba(0,0,0,0.06)", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
                 <div>
-                  <div className="text-[13px] font-semibold" style={{color:"#2c2c2e"}}>다크모드</div>
-                  <div className="text-[10px] mt-0.5 font-mono" style={{color:"#aeaeb2"}}>
-                    {os === "ios" ? "-kakaotalk-theme-style: dark" : "theme_style: dark"}
-                  </div>
+                  <div className="text-[13px] font-semibold" style={{color:"#2c2c2e"}}>다크 모드 지원</div>
+                  <div className="text-[10px] mt-0.5 font-mono" style={{color:"#aeaeb2"}}>-kakaotalk-theme-style: 'dark'</div>
                 </div>
                 <button
                   onClick={() => set("darkMode")(!config.darkMode)}
@@ -1802,8 +1962,7 @@ export default function CreatePage() {
                     boxShadow: config.darkMode ? "0 0 0 1px rgba(52,199,89,0.4)" : "0 0 0 1px rgba(0,0,0,0.1)",
                   }}
                 >
-                  <div className="absolute top-[2px] w-[18px] h-[18px] rounded-full bg-white shadow-md transition-all duration-200"
-                    style={{ left: config.darkMode ? "18px" : "2px" }} />
+                  <div className="absolute top-[2px] w-[18px] h-[18px] rounded-full bg-white shadow-md transition-all duration-200" style={{ left: config.darkMode ? "18px" : "2px" }} />
                 </button>
               </div>
             </div>
@@ -1816,9 +1975,9 @@ export default function CreatePage() {
                 </div>
                 <div className="px-4 pb-4 flex flex-col gap-3">
                   <MacInput label="namespace" hint="(build.gradle)" value={config.namespace} onChange={set("namespace")} />
-                  <div className="flex gap-2">
-                    <MacInput label="compileSdk" hint="(권장: 34)" value={config.compileSdk} onChange={set("compileSdk")} type="number" />
-                    <MacInput label="targetSdk" hint="(권장: 34)" value={config.targetSdk} onChange={set("targetSdk")} type="number" />
+                  <div className="flex gap-2 mt-3">
+                    <MacInput label="compileSdk" value={config.compileSdk} onChange={set("compileSdk")} type="number" />
+                    <MacInput label="targetSdk" value={config.targetSdk} onChange={set("targetSdk")} type="number" />
                   </div>
                   <div className="flex gap-1.5 flex-wrap">
                     {["ldpi", "mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi"].map((dpi) => (
@@ -1880,7 +2039,7 @@ ManifestStyle
 {
     -kakaotalk-theme-name: '${config.name}';
     -kakaotalk-theme-version: '${config.version}';
-    -kakaotalk-theme-url: 'http://www.kakao.com';
+    -kakaotalk-theme-url: '${config.themeUrl}';
     -kakaotalk-author-name: '${config.authorName}';
     -kakaotalk-theme-id: '${config.packageId}';${config.darkMode ? "\n    -kakaotalk-theme-style: 'dark';" : ""}
 }
@@ -1933,7 +2092,7 @@ MainViewStyle-Primary
     -ios-paragraph-highlighted-text-color: ${config.chatListHighlightText};
 
     -ios-selected-background-color: ${config.friendsSelectedBg};
-    -ios-selected-background-alpha: 1.0;
+    -ios-selected-background-alpha: ${config.selectedBgAlpha};
 }
 
 MainViewStyle-Secondary
@@ -1944,7 +2103,7 @@ MainViewStyle-Secondary
 SectionTitleStyle-Main
 {
     border-color: ${config.friendsBorderColor};
-    border-alpha: 1.0;
+    border-alpha: ${config.borderAlpha};
 
     -ios-text-color: ${config.descText};
     -ios-text-alpha: 1.0;
@@ -1973,6 +2132,8 @@ BackgroundStyle-ChatRoom
 InputBarStyle-Chat
 {
     background-color: ${config.inputBarBg};
+
+    -ios-button-text-color: ${config.inputBarText};
 
     -ios-send-normal-background-color: ${config.sendBtnBg};
     -ios-send-normal-foreground-color: ${config.sendBtnIcon};
@@ -2039,17 +2200,18 @@ LabelStyle-PasscodeTitle
 
 PasscodeStyle
 {${imageUploads["bullet1Empty"] ? `
-    -ios-bullet-first-image: 'passcodeImgCode01@2x.png';` : ""}${imageUploads["bullet2Empty"] ? `
-    -ios-bullet-second-image: 'passcodeImgCode02@2x.png';` : ""}${imageUploads["bullet3Empty"] ? `
-    -ios-bullet-third-image: 'passcodeImgCode03@2x.png';` : ""}${imageUploads["bullet4Empty"] ? `
-    -ios-bullet-fourth-image: 'passcodeImgCode04@2x.png';` : ""}${imageUploads["bullet1Fill"] ? `
-    -ios-bullet-selected-first-image: 'passcodeImgCode01Selected@2x.png';` : ""}${imageUploads["bullet2Fill"] ? `
-    -ios-bullet-selected-second-image: 'passcodeImgCode02Selected@2x.png';` : ""}${imageUploads["bullet3Fill"] ? `
-    -ios-bullet-selected-third-image: 'passcodeImgCode03Selected@2x.png';` : ""}${imageUploads["bullet4Fill"] ? `
-    -ios-bullet-selected-fourth-image: 'passcodeImgCode04Selected@2x.png';` : ""}
+     -ios-bullet-first-image: 'passcodeImgCode01@2x.png';` : ""}${imageUploads["bullet2Empty"] ? `
+     -ios-bullet-second-image: 'passcodeImgCode02@2x.png';` : ""}${imageUploads["bullet3Empty"] ? `
+     -ios-bullet-third-image: 'passcodeImgCode03@2x.png';` : ""}${imageUploads["bullet4Empty"] ? `
+     -ios-bullet-fourth-image: 'passcodeImgCode04@2x.png';` : ""}${imageUploads["bullet1Fill"] ? `
+     -ios-bullet-selected-first-image: 'passcodeImgCode01Selected@2x.png';` : ""}${imageUploads["bullet2Fill"] ? `
+     -ios-bullet-selected-second-image: 'passcodeImgCode02Selected@2x.png';` : ""}${imageUploads["bullet3Fill"] ? `
+     -ios-bullet-selected-third-image: 'passcodeImgCode03Selected@2x.png';` : ""}${imageUploads["bullet4Fill"] ? `
+     -ios-bullet-selected-fourth-image: 'passcodeImgCode04Selected@2x.png';` : ""}
 
     -ios-keypad-background-color: ${config.passcodeKeypadBg};
     -ios-keypad-text-normal-color: ${config.passcodeKeypadText};
+    ${imageUploads["passcodeKeypadPressed"] ? `-ios-keypad-pressed-image: 'passcodeKeypadPressed.png';` : ""}
 }
 
 

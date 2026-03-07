@@ -65,17 +65,17 @@ export const MoreScreen = React.memo(function MoreScreen({ config }: { config: S
       {/* 1. 상단 헤더 */}
       <header style={{ ...headerBaseStyle, color: global.textColor }}>
         <h2 data-active-element-id="header-title-icon" style={{ margin: 0, fontSize: 17, fontWeight: 400, color: '#3c2a2a' }}>더보기</h2>
-        <div data-active-element-id="header-title-icon" style={iconRowStyle}>
-          <Search size={20} strokeWidth={2.3} />
-          <ScanLine size={20} strokeWidth={2.3} />
-          <Settings size={20} strokeWidth={2.3} />
+        <div data-active-element-id="header-title-icon" style={{ ...iconRowStyle, color: global.textColor }}>
+          <Search size={20} strokeWidth={2.3} color={global.textColor} />
+          <ScanLine size={20} strokeWidth={2.3} color={global.textColor} />
+          <Settings size={20} strokeWidth={2.3} color={global.textColor} />
         </div>
       </header>
 
       {/* 2. 홈 / 지갑 토글 */}
       <div style={{ display: 'flex', gap: 7, padding: '2px 14px 12px 14px' }}>
         <button style={{
-          backgroundColor: '#000000',
+          backgroundColor: global.textColor,
           color: global.backgroundColor,
           borderRadius: 999,
           padding: '5px 12px',

@@ -9,7 +9,7 @@ import { frameStyle } from './preview/styles';
 import { tabScreens, TabBar } from './preview/TabBar';
 import { useThemeStore } from './useThemeStore';
 
-export const PreviewMockup = ({ disableTabNavigation = false }: { disableTabNavigation?: boolean }) => {
+export const PreviewMockup = ({ disableTabNavigation = false, mainBgImageUrl }: { disableTabNavigation?: boolean; mainBgImageUrl?: string }) => {
   const currentScreen = useThemeStore((state) => state.currentScreen);
   const globalStore = useThemeStore((state) => state.global);
   const tabBar = useThemeStore((state) => state.tabBar);
@@ -37,6 +37,7 @@ export const PreviewMockup = ({ disableTabNavigation = false }: { disableTabNavi
     passcodeKeypadText: passcode.keypadTextColor,
     unreadCountColor: '#FF3B30',
     openchatBg: openChatsTab.bannerBackgroundColor,
+    mainBgImageUrl,
   };
 
   const renderScreen = () => {

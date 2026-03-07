@@ -30,6 +30,7 @@ export const PreviewChatRoomMockup = () => {
     passcodeKeypadText: passcode.keypadTextColor,
     unreadCountColor: '#FF3B30',
     openchatBg: openChatsTab.bannerBackgroundColor,
+    mainBgImageUrl: undefined,
   };
   return (
     <div style={{ position: 'relative', width: 368, height: 699 }}>

@@ -44,12 +44,12 @@ export const ShoppingScreen = React.memo(function ShoppingScreen({ config }: { c
       {/* 1. 상단 헤더 */}
       <header style={{ ...headerBaseStyle, color: global.textColor }}>
         <h2 data-active-element-id="header-title-icon" style={{ margin: 0, fontSize: 17, fontWeight: 400, color: '#3c2a2a' }}>쇼핑</h2>
-        <div data-active-element-id="header-title-icon" style={iconRowStyle}>
-          <Search size={20} strokeWidth={2.3} />
+        <div data-active-element-id="header-title-icon" style={{ ...iconRowStyle, color: global.textColor }}>
+          <Search size={20} strokeWidth={2.3} color={global.textColor} />
           <div style={{ position: 'relative' }}>
-            <ShoppingBag size={20} strokeWidth={2.3} />
+            <ShoppingBag size={20} strokeWidth={2.3} color={global.textColor} />
           </div>
-          <Settings size={20} strokeWidth={2.3} />
+          <Settings size={20} strokeWidth={2.3} color={global.textColor} />
         </div>
       </header>
 
@@ -59,7 +59,7 @@ export const ShoppingScreen = React.memo(function ShoppingScreen({ config }: { c
           <button
             key={label}
             style={{
-              backgroundColor: active ? '#000000' : 'transparent',
+              backgroundColor: active ? global.textColor : 'transparent',
               color: active ? global.backgroundColor : global.textColor,
               borderRadius: 999,
               padding: '5px 12px',

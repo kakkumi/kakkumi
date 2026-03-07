@@ -39,6 +39,14 @@ export const MainScreen = React.memo(function MainScreen({ config }: { config: S
     textColor: config.primaryText,
     descriptionColor: config.descText,
   };
+  const backgroundStyle: React.CSSProperties = config.mainBgImageUrl
+    ? {
+        backgroundImage: `url(${config.mainBgImageUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+        backgroundRepeat: 'no-repeat',
+      }
+    : {};
   const chatsTab = {
     headerTitleColor: config.headerText,
     filterChipBg: config.bodyBg,
@@ -53,32 +61,32 @@ export const MainScreen = React.memo(function MainScreen({ config }: { config: S
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, width: '100%', overflow: 'hidden', backgroundColor: global.backgroundColor, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, width: '100%', overflow: 'hidden', backgroundColor: global.backgroundColor, ...backgroundStyle, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
       <header style={{ ...headerBaseStyle, color: chatsTab.headerTitleColor }}>
-        <h2 data-active-element-id="header-title-icon" style={{ margin: 0, fontSize: 17, fontWeight: 400, color: global.textColor }}>채팅</h2>
-        <div data-active-element-id="header-title-icon" style={iconRowStyle}>
-          <Search size={20} strokeWidth={2.3} />
+        <h2 data-active-element-id="header-title-icon" style={{ margin: 0, fontSize: 17, fontWeight: 400, color: chatsTab.headerTitleColor }}>채팅</h2>
+        <div data-active-element-id="header-title-icon" style={{ ...iconRowStyle, color: global.textColor }}>
+          <Search size={20} strokeWidth={2.3} color={global.textColor} />
           <div style={{ position: 'relative', display: 'inline-flex', width: 20, height: 20 }}>
-            <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', clipPath: 'polygon(0% 0%, 62% 0%, 62% 38%, 100% 38%, 100% 100%, 0% 100%)' }}>
+            <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', clipPath: 'polygon(0% 0%, 62% 0%, 62% 38%, 100% 38%, 100% 100%, 0% 100%)', color: global.textColor }}>
               <MessageCircle size={19} strokeWidth={2.3} />
             </div>
-            <span style={{ position: 'absolute', top: -3, right: -3, width: 10, height: 10, borderRadius: '50%', backgroundColor: 'transparent', color: 'currentColor', fontSize: 11, fontWeight: 900, WebkitTextStroke: '0.5px currentColor', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>+</span>
+            <span style={{ position: 'absolute', top: -3, right: -3, width: 10, height: 10, borderRadius: '50%', backgroundColor: 'transparent', color: global.textColor, fontSize: 11, fontWeight: 900, WebkitTextStroke: '0.5px currentColor', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>+</span>
           </div>
-          <Settings size={20} strokeWidth={2.3} />
+          <Settings size={20} strokeWidth={2.3} color={global.textColor} />
         </div>
       </header>
 
       <div style={{ display: 'flex', alignItems: 'center', padding: '2px 14px 12px 14px' }}>
         <div className="chats-scroll" style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: '4px', alignItems: 'center' }}>
           {filterChips.map((chip) => (
-            <button key={chip.label} type="button" style={{ border: chip.isActive ? 'none' : `1px solid ${global.textColor}30`, flexShrink: 0, borderRadius: 999, backgroundColor: chip.isActive ? '#000000' : 'transparent', color: chip.isActive ? '#FFFFFF' : global.textColor, padding: '5px 12px', fontSize: 12, fontWeight: 400, cursor: 'pointer' }}>
+            <button key={chip.label} type="button" style={{ border: chip.isActive ? 'none' : `1px solid ${global.textColor}30`, flexShrink: 0, borderRadius: 999, backgroundColor: chip.isActive ? global.textColor : 'transparent', color: chip.isActive ? global.backgroundColor : global.textColor, padding: '5px 12px', fontSize: 12, fontWeight: 400, cursor: 'pointer' }}>
               {chip.label}
               {chip.count && (
                 <span style={{ backgroundColor: chatsTab.unreadBadgeBg, color: '#FFFFFF', fontSize: 10, fontWeight: 500, minWidth: 16, height: 16, lineHeight: '16px', textAlign: 'center', padding: '0 4px', borderRadius: 999, marginLeft: 2, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{chip.count}</span>
               )}
             </button>
           ))}
-          <div style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: 'transparent', border: '1px solid rgba(150,150,150,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: 'transparent', border: `1px solid ${global.textColor}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Plus size={18} color={global.textColor} strokeWidth={2.5} />
           </div>
         </div>
@@ -88,7 +96,7 @@ export const MainScreen = React.memo(function MainScreen({ config }: { config: S
         <div style={{ padding: '0 14px 12px 14px' }}>
           <div style={{ backgroundColor: '#F5F0E8', borderRadius: 11, padding: '13px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: global.textColor }}>나에게 딱 맞는 테마를 찾아보세요</p>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#3c2a2a' }}>나에게 딱 맞는 테마를 찾아보세요</p>
               <p style={{ margin: '3px 0 0', fontSize: 11, color: global.descriptionColor, opacity: 0.8 }}>테마 구경하기</p>
             </div>
           </div>
@@ -106,16 +114,16 @@ export const MainScreen = React.memo(function MainScreen({ config }: { config: S
                 </div>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    {chat.id === 1 && <span style={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: chatsTab.filterChipActiveBg, color: '#FFFFFF', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 600, flexShrink: 0, lineHeight: 1 }}>나</span>}
+                    {chat.id === 1 && <span style={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: global.textColor, color: global.backgroundColor, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 600, flexShrink: 0, lineHeight: 1 }}>나</span>}
                     <p style={{ margin: 0, color: global.textColor, fontSize: 14, fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{chat.room}</p>
-                    {chat.isPinned && <Pin size={12} color={global.descriptionColor} fill={global.descriptionColor} style={{ opacity: 0.6, flexShrink: 0 }} />}
-                    {chat.isMuted && <BellOff size={13} color={global.descriptionColor} style={{ opacity: 0.6, flexShrink: 0 }} />}
+                    {chat.isPinned && <Pin size={12} color={global.textColor} fill={global.textColor} style={{ opacity: 0.6, flexShrink: 0 }} />}
+                    {chat.isMuted && <BellOff size={13} color={global.textColor} style={{ opacity: 0.6, flexShrink: 0 }} />}
                   </div>
                   <p style={{ margin: '2px 0 0', color: global.descriptionColor, fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: 0.9 }}>{chat.message}</p>
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, marginLeft: 12, flexShrink: 0 }}>
-                <span style={{ color: global.descriptionColor, fontSize: 11, opacity: 0.8 }}>{chat.time}</span>
+                <span style={{ color: global.textColor, fontSize: 11, opacity: 0.8 }}>{chat.time}</span>
                 {chat.unread > 0 ? (
                   <span style={{ minWidth: 20, height: 20, borderRadius: 10, backgroundColor: chatsTab.unreadBadgeBg, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 6px', fontSize: 10, fontWeight: 500 }}>{chat.unread}</span>
                 ) : <div style={{ height: 20 }} />}

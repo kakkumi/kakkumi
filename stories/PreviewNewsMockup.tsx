@@ -4,7 +4,7 @@ import { frameStyle } from './preview/styles';
 import { TabBar } from './preview/TabBar';
 import { useThemeStore } from './useThemeStore';
 
-export const PreviewNewsMockup = ({ disableTabNavigation = false }: { disableTabNavigation?: boolean }) => {
+export const PreviewNewsMockup = ({ disableTabNavigation = false, mainBgImageUrl }: { disableTabNavigation?: boolean; mainBgImageUrl?: string }) => {
   const globalStore = useThemeStore((state) => state.global);
   const tabBar = useThemeStore((state) => state.tabBar);
   const chatRoom = useThemeStore((state) => state.chatRoom);
@@ -31,6 +31,7 @@ export const PreviewNewsMockup = ({ disableTabNavigation = false }: { disableTab
     passcodeKeypadText: passcode.keypadTextColor,
     unreadCountColor: '#FF3B30',
     openchatBg: openChatsTab.bannerBackgroundColor,
+    mainBgImageUrl,
   };
   return (
     <div style={{ position: 'relative', width: 368, height: 699 }}>

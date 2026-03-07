@@ -36,9 +36,9 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { c
   const chatRoom = {
     backgroundColor: config.chatBg,
     myBubbleBg: config.myBubbleBg,
-    myBubbleText: config.primaryText,
+    myBubbleText: '#191919',
     friendBubbleBg: config.otherBubbleBg,
-    friendBubbleText: config.primaryText,
+    friendBubbleText: '#191919',
     inputBarBg: config.inputBarBg,
     sendNormalBg: config.sendBtnBg,
     sendNormalFg: config.headerText,

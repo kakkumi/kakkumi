@@ -72,11 +72,11 @@ export const NewsScreen = React.memo(function NewsScreen({ config }: { config: S
           </div>
           <h2 style={{ margin: 0, fontSize: 17, fontWeight: 400, color: '#3c2a2a' }}>카꾸미</h2>
         </div>
-        <div data-active-element-id="header-title-icon" style={iconRowStyle}>
-          <Search size={20} strokeWidth={2.3} />
-          <UserPlus size={20} strokeWidth={2.3} />
-          <Music size={20} strokeWidth={2.3} />
-          <Settings size={20} strokeWidth={2.3} />
+        <div data-active-element-id="header-title-icon" style={{ ...iconRowStyle, color: global.textColor }}>
+          <Search size={20} strokeWidth={2.3} color={global.textColor} />
+          <UserPlus size={20} strokeWidth={2.3} color={global.textColor} />
+          <Music size={20} strokeWidth={2.3} color={global.textColor} />
+          <Settings size={20} strokeWidth={2.3} color={global.textColor} />
         </div>
       </header>
 
@@ -97,7 +97,7 @@ export const NewsScreen = React.memo(function NewsScreen({ config }: { config: S
         </button>
         <button
           style={{
-            backgroundColor: '#000000',
+            backgroundColor: global.textColor,
             color: global.backgroundColor,
             borderRadius: 999,
             padding: '5px 12px',
@@ -125,7 +125,7 @@ export const NewsScreen = React.memo(function NewsScreen({ config }: { config: S
             }}
           >
             <div>
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: global.textColor }}>크리에이터가 되어 수익을 만들어보세요</p>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#3c2a2a' }}>크리에이터가 되어 수익을 만들어보세요</p>
               <p style={{ margin: '3px 0 0', fontSize: 11, color: global.descriptionColor }}>카꾸미 입점 신청하기</p>
             </div>
           </div>
@@ -142,8 +142,8 @@ export const NewsScreen = React.memo(function NewsScreen({ config }: { config: S
                   </svg>
                 </div>
                 <div>
-                  <p style={{ margin: 0, color: '#3c2a2a', fontSize: 14, fontWeight: 400 }}>서울</p>
-                  <p style={{ margin: '2px 0 0', color: global.descriptionColor, fontSize: 11 }}>8분 전</p>
+                  <p style={{ margin: 0, color: global.textColor, fontSize: 14, fontWeight: 400 }}>서울</p>
+                  <p style={{ margin: '2px 0 0', color: global.textColor, fontSize: 11 }}>8분 전</p>
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
