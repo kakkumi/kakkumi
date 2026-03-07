@@ -86,39 +86,46 @@ export default function Header() {
     return (
         <>
         <header
-            className="sticky top-0 z-50 flex items-center px-6 py-0 shrink-0"
+            className="sticky top-0 z-50 border-b border-black/[0.06] bg-[#f7f7f8]/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-[#f7f7f8]/80"
             style={{
-                background: "#f3f3f3",
-                borderBottom: "1px solid rgba(0,0,0,0.07)",
-                height: 48,
+                boxShadow: "0 1px 0 rgba(255,255,255,0.7) inset",
             }}
         >
-            <Link href="/">
-                <Image src="/카꾸미.png" alt="카꾸미" width={110} height={44} quality={100} unoptimized style={{ objectFit: "contain" }} />
-            </Link>
-            <nav className="flex items-center gap-6 ml-8">
-                {NAV_ITEMS.map(({ href, label }) => {
-                    const active = isActive(href);
-                    const isAdminLink = href === "/admin";
-                    return (
-                        <Link
-                            key={href}
-                            href={href}
-                            onClick={(e) => handleNavClick(e, href)}
-                            className="text-[13px] font-medium transition-opacity hover:opacity-60"
-                            style={{
-                                color: active ? "rgb(255, 149, 0)" : isAdminLink ? "#ff3b30" : "#3a3a3c",
-                                fontWeight: active ? 700 : isAdminLink ? 600 : 500,
-                            }}
-                        >
-                            {label}
-                        </Link>
-                    );
-                })}
-            </nav>
-            <div className="flex items-center gap-6 ml-auto">
-                {role && <NotificationBell />}
-                <AuthStatus />
+            <div className="mx-auto flex h-14 max-w-[1320px] items-center gap-8">
+                <Link
+                    href="/"
+                    className="flex shrink-0 items-center transition-opacity duration-200 hover:opacity-80"
+                    aria-label="카꾸미 홈"
+                >
+                    <Image src="/카꾸미.png" alt="카꾸미" width={110} height={44} quality={100} unoptimized style={{ objectFit: "contain" }} />
+                </Link>
+
+                <nav className="hidden items-center gap-1 md:flex">
+                    {NAV_ITEMS.map(({ href, label }) => {
+                        const active = isActive(href);
+                        const isAdminLink = href === "/admin";
+                        return (
+                            <Link
+                                key={href}
+                                href={href}
+                                onClick={(e) => handleNavClick(e, href)}
+                                className="rounded-lg px-3 py-2 text-[13px] font-medium transition-colors duration-150"
+                                style={{
+                                    color: active ? "#ff9500" : isAdminLink ? "#ff3b30" : "#3a3a3c",
+                                    background: active ? "rgba(255, 149, 0, 0.10)" : "transparent",
+                                    fontWeight: active ? 700 : isAdminLink ? 600 : 500,
+                                }}
+                            >
+                                {label}
+                            </Link>
+                        );
+                    })}
+                </nav>
+
+                <div className="ml-auto flex items-center gap-5">
+                    {role && <NotificationBell />}
+                    <AuthStatus />
+                </div>
             </div>
         </header>
         {loginModal && (
