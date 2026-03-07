@@ -83,10 +83,10 @@ export default function MyThemesPage() {
               </span>
               <Link
                 href="/create"
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-semibold transition-all hover:opacity-85 active:scale-95"
-                style={{ background: "rgb(255,149,0)", color: "#fff" }}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-semibold transition-all hover:opacity-70 active:scale-95"
+                style={{ background: "transparent", color: "rgb(255,149,0)" }}
               >
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgb(255,149,0)" strokeWidth="2.5" strokeLinecap="round">
                   <path d="M12 5v14M5 12h14" />
                 </svg>
                 새 테마 만들기
