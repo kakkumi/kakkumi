@@ -2,12 +2,12 @@ export default function Footer() {
     return (
         <footer
             className="mt-auto px-8 py-5 flex flex-col gap-2"
-            style={{ background: "rgba(236,236,240,0.6)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(0,0,0,0.07)" }}
+            style={{ background: "#f3f3f3", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(0,0,0,0.07)" }}
         >
             <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex flex-col gap-1">
                     <p className="text-[12px]" style={{ color: "#3a3a3c" }}>
-                        주식회사 카꾸미 · 대표자 장환희 · 이메일{" "}
+                        주식회사 카꾸미 · 대표자 김나윤 · 이메일{" "}
                         <a href="mailto:aaa@kakkumi.com" className="hover:underline" style={{ color: "#3a3a3c" }}>
                             aaa@kakkumi.com
                         </a>

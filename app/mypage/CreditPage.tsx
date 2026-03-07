@@ -72,69 +72,86 @@ export default function CreditPage() {
     ];
 
     return (
-        <div className="flex flex-col gap-6">
-            {/* 적립금 현황 */}
-            <div className="flex flex-col gap-3 p-7 rounded-[24px]"
-                style={{ background: "rgba(255,255,255,0.7)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.8)", boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
-                <h3 className="text-[15px] font-bold" style={{ color: "#1c1c1e" }}>보유 적립금</h3>
-                <div className="flex items-end gap-2">
-                    <span className="text-[40px] font-extrabold" style={{ color: "#1c1c1e" }}>
+        <div className="flex flex-col">
+            {/* 섹션 헤더 */}
+            <div className="flex items-end justify-between mb-8">
+                <div>
+                    <p className="text-[11px] font-semibold tracking-[0.12em] uppercase mb-1.5" style={{ color: "#a8a29e" }}>Credits</p>
+                    <h2 className="text-[22px] font-bold" style={{ color: "#1c1917", letterSpacing: "-0.02em" }}>적립금</h2>
+                </div>
+            </div>
+
+            {/* 보유 적립금 */}
+            <div className="pb-8">
+                <div className="flex items-center gap-3 mb-4">
+                    <span className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "#a8a29e" }}>보유 적립금</span>
+                    <div className="flex-1 h-px" style={{ backgroundColor: "#e7e5e4" }} />
+                </div>
+                <div className="flex items-end gap-1.5">
+                    <span className="text-[42px] font-bold" style={{ color: "#1c1917", letterSpacing: "-0.03em", lineHeight: 1 }}>
                         {credit === null ? "..." : credit.toLocaleString()}
                     </span>
-                    <span className="text-[18px] font-semibold mb-1.5" style={{ color: "#8e8e93" }}>원</span>
+                    <span className="text-[16px] font-medium mb-1" style={{ color: "#a8a29e" }}>원</span>
                 </div>
-                <p className="text-[12px]" style={{ color: "#8e8e93" }}>테마 구매 시 적립금으로 결제할 수 있어요.</p>
+                <p className="mt-2 text-[12px]" style={{ color: "#a8a29e" }}>테마 구매 시 적립금으로 결제할 수 있어요.</p>
             </div>
 
             {/* 적립금 이용 안내 */}
-            <div className="flex flex-col gap-3 p-7 rounded-[24px]"
-                style={{ background: "rgba(255,255,255,0.7)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.8)", boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
-                <h3 className="text-[15px] font-bold" style={{ color: "#1c1c1e" }}>적립금 이용 안내</h3>
-                <div className="flex flex-col gap-2">
-                    {NOTICES.map((n, i) => (
-                        <div key={i} className="flex gap-3 px-4 py-3.5 rounded-[14px]"
-                            style={{ background: "rgba(0,0,0,0.025)", border: "1px solid rgba(0,0,0,0.05)" }}>
-                            <span className="text-[18px] shrink-0 mt-0.5">{n.icon}</span>
-                            <div className="flex flex-col gap-0.5">
-                                <p className="text-[13px] font-semibold" style={{ color: "#1c1c1e" }}>{n.title}</p>
-                                <p className="text-[12px] leading-relaxed" style={{ color: "#8e8e93" }}>{n.desc}</p>
+            <div className="py-8" style={{ borderTop: "1px solid #e7e5e4" }}>
+                <div className="flex items-center gap-3 mb-6">
+                    <span className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "#a8a29e" }}>이용 안내</span>
+                    <div className="flex-1 h-px" style={{ backgroundColor: "#e7e5e4" }} />
+                </div>
+                <div className="flex flex-col gap-1">
+                    {NOTICES.map((n, i, arr) => (
+                        <div key={i}>
+                            <div className="flex gap-3 py-3">
+                                <span className="text-[16px] shrink-0 mt-0.5">{n.icon}</span>
+                                <div className="flex flex-col gap-0.5">
+                                    <p className="text-[13px] font-semibold" style={{ color: "#1c1917" }}>{n.title}</p>
+                                    <p className="text-[12px] leading-relaxed" style={{ color: "#78716c" }}>{n.desc}</p>
+                                </div>
                             </div>
+                            {i < arr.length - 1 && <div className="h-px" style={{ background: "#f5f5f4" }} />}
                         </div>
                     ))}
                 </div>
             </div>
 
             {/* 적립금 내역 */}
-            <div className="flex flex-col gap-4 p-7 rounded-[24px]"
-                style={{ background: "rgba(255,255,255,0.7)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.8)", boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
-                <h3 className="text-[15px] font-bold" style={{ color: "#1c1c1e" }}>적립금 내역</h3>
+            <div className="py-8" style={{ borderTop: "1px solid #e7e5e4" }}>
+                <div className="flex items-center gap-3 mb-6">
+                    <span className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "#a8a29e" }}>내역</span>
+                    <div className="flex-1 h-px" style={{ backgroundColor: "#e7e5e4" }} />
+                </div>
                 {history.length === 0 ? (
-                    <div className="flex flex-col items-center gap-2 py-10">
-                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#c8c8cd" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <div className="flex flex-col items-center justify-center py-20 gap-3">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d6d3d1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
                         </svg>
-                        <p className="text-[13px]" style={{ color: "#8e8e93" }}>아직 적립금 내역이 없어요.</p>
+                        <p className="text-[14px]" style={{ color: "#a8a29e" }}>아직 적립금 내역이 없어요.</p>
                     </div>
                 ) : (
-                    <div className="flex flex-col gap-2">
-                        {history.map(h => (
-                            <div key={h.id} className="flex items-center justify-between px-4 py-3 rounded-[14px]"
-                                style={{ background: "rgba(0,0,0,0.03)" }}>
-                                <div className="flex flex-col gap-0.5">
-                                    <span className="text-[13px] font-medium" style={{ color: "#1c1c1e" }}>
-                                        {h.memo ?? TYPE_LABEL[h.type] ?? h.type}
-                                    </span>
-                                    <span className="text-[11px]" style={{ color: "#8e8e93" }}>{formatDate(h.createdAt)}</span>
-                                    {h.expiresAt && h.amount > 0 && (
-                                        <span className="text-[11px]" style={{ color: "#FF9500" }}>
-                                            만료: {formatDate(h.expiresAt)}
+                    <div className="flex flex-col">
+                        {history.map((h, idx) => (
+                            <div key={h.id}>
+                                <div className="flex items-center justify-between py-4">
+                                    <div className="flex flex-col gap-0.5">
+                                        <span className="text-[14px]" style={{ color: "#1c1917", fontWeight: h.amount > 0 ? 500 : 400 }}>
+                                            {h.memo ?? TYPE_LABEL[h.type] ?? h.type}
                                         </span>
-                                    )}
+                                        <span className="text-[12px]" style={{ color: "#a8a29e" }}>{formatDate(h.createdAt)}</span>
+                                        {h.expiresAt && h.amount > 0 && (
+                                            <span className="text-[11px]" style={{ color: "#FF9500" }}>
+                                                만료 {formatDate(h.expiresAt)}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <span className="text-[15px] font-semibold" style={{ color: h.amount > 0 ? "#34c759" : "#ff3b30" }}>
+                                        {h.amount > 0 ? "+" : ""}{h.amount.toLocaleString()}원
+                                    </span>
                                 </div>
-                                <span className="text-[15px] font-bold"
-                                    style={{ color: h.amount > 0 ? "#34c759" : "#ff3b30" }}>
-                                    {h.amount > 0 ? "+" : ""}{h.amount.toLocaleString()}원
-                                </span>
+                                {idx < history.length - 1 && <div className="h-px" style={{ background: "#f5f5f4" }} />}
                             </div>
                         ))}
                     </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, Suspense } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import ThemeVaultTabs from "./ThemeVaultTabs";
@@ -42,7 +42,7 @@ type Props = {
     credit?: number;
 };
 
-export default function MyPageClient({ session, purchasedCount, sidebarMenus, createdAt, credit = 0 }: Props) {
+export default function MyPageClient({ session, purchasedCount: _purchasedCount, sidebarMenus, createdAt, credit: _credit = 0 }: Props) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const menuFromUrl = searchParams.get("menu") ?? "";
@@ -297,76 +297,45 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
     };
 
     return (
-        <div className="flex flex-1 max-w-[1200px] mx-auto w-full px-6 pt-12 pb-20 gap-8">
+        <div className="flex w-full" style={{ maxWidth: 1400, margin: "0 auto" }}>
+
             {/* ── 사이드바 ── */}
-            <aside className="w-[220px] shrink-0 flex flex-col gap-1">
+            <aside className="fixed w-[160px] flex flex-col gap-1 px-5 pt-12" style={{ zIndex: 10 }}>
                 {sidebarMenus.map((group, index) => (
                     <div key={group.category} className="flex flex-col gap-0.5">
-                        <span className="text-[11px] font-bold tracking-[0.15em] uppercase px-3 mb-1" style={{ color: "#8e8e93" }}>
+                        <span className="text-[10.5px] font-bold tracking-[0.15em] uppercase px-2 mb-1" style={{ color: "#8e8e93" }}>
                             {group.category}
                         </span>
-                        {group.items.map((item) => (
-                            <button
-                                key={item.label}
-                                onClick={() => handleMenuClick(item.label)}
-                                className="text-left px-3 py-2 rounded-xl text-[13px] font-medium transition-all"
-                                style={{
-                                    color: item.label === "회원 탈퇴"
-                                        ? (activeMenu === item.label ? "#c0392b" : "#ff3b30")
-                                        : (activeMenu === item.label ? "#FF9500" : "#3a3a3c"),
-                                    background: "transparent",
-                                    fontWeight: activeMenu === item.label ? 700 : 500,
-                                }}
-                            >
-                                {item.label}
-                            </button>
-                        ))}
+                        {group.items.map((item) => {
+                            const isActive = activeMenu === item.label;
+                            const isWithdrawItem = item.label === "회원 탈퇴";
+                            return (
+                                <button
+                                    key={item.label}
+                                    onClick={() => handleMenuClick(item.label)}
+                                    className="text-left px-2 py-[7px] rounded-xl text-[12.5px] font-medium transition-all"
+                                    style={{
+                                        color: isWithdrawItem
+                                            ? (isActive ? "#c0392b" : "#ff3b30")
+                                            : isActive ? "#FF9500" : "#3a3a3c",
+                                        fontWeight: isActive ? 700 : 500,
+                                    }}
+                                >
+                                    {item.label}
+                                </button>
+                            );
+                        })}
                         {index < sidebarMenus.length - 1 && (
-                            <div className="my-3 h-[1px]" style={{ background: "rgba(0,0,0,0.18)" }} />
+                            <div className="my-2.5 h-[1px]" style={{ background: "rgba(0,0,0,0.18)" }} />
                         )}
                     </div>
                 ))}
             </aside>
 
             {/* ── 메인 콘텐츠 ── */}
-            <main className="flex-1 flex flex-col gap-6">
+            <main className="flex-1 flex flex-col min-w-0 px-8 pt-12 pb-24" style={{ marginLeft: 200 }}>
                 {session ? (
                     <>
-                        {/* 프로필 헤더 - 테마/쇼핑/수익 메뉴에서만 표시 */}
-                        {!isSettingsMenu && !isNotifMenu && !isWithdrawMenu && (
-                            <div className="flex items-center gap-5 p-7 rounded-[24px]" style={{ background: "rgba(255,255,255,0.35)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.6)", boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
-                                <div className="w-16 h-16 rounded-full overflow-hidden shrink-0 flex items-center justify-center" style={{ background: "#ffe500", boxShadow: "0 2px 10px rgba(0,0,0,0.1)" }}>
-                                    {session.avatarUrl ? (
-                                        <Image src={session.avatarUrl} alt={session.name ?? "프로필"} width={64} height={64} className="w-full h-full object-cover" unoptimized />
-                                    ) : (
-                                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3A1D1D" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                            <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-                                        </svg>
-                                    )}
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <h2 className="text-[20px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>{displayNickname}</h2>
-                                    <p className="text-[12px]" style={{ color: "#8e8e93" }}>가입일 · {createdAt ? formatKST(createdAt, false) : "-"}</p>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 수치 카드 - 테마/쇼핑/수익 메뉴에서만 표시 */}
-                        {!isSettingsMenu && !isNotifMenu && !isWithdrawMenu && (
-                            <div className="grid grid-cols-3 gap-4">
-                                {[
-                                    { label: "제작한 테마", value: "0개", color: "rgba(255,239,154,0.7)" },
-                                    { label: "구매한 테마", value: `${purchasedCount}개`, color: "rgba(170,189,232,0.6)" },
-                                    { label: "적립금", value: `${credit.toLocaleString()}원`, color: "rgba(212,245,212,0.8)" },
-                                ].map((card) => (
-                                    <div key={card.label} className="flex flex-col gap-2 p-5 rounded-[20px] cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md" style={{ background: card.color, boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}>
-                                        <span className="text-[11px] font-semibold" style={{ color: "rgba(0,0,0,0.45)" }}>{card.label}</span>
-                                        <span className="text-[22px] font-extrabold" style={{ color: "#1c1c1e" }}>{card.value}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
                         {isThemeMenu ? (
                             <ThemeVaultTabs initialTab={themeTab} />
                         ) : isCreditMenu ? (
@@ -379,55 +348,59 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
                             <ReviewablePage />
                         ) : isFollowMenu ? (
                             <>
-                                <div>
-                                    <h1 className="text-[22px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>팔로우</h1>
-                                    <p className="text-[13px] mt-1" style={{ color: "#8e8e93" }}>내가 팔로우한 크리에이터 목록입니다.</p>
+                                {/* 섹션 헤더 */}
+                                <div className="flex items-end justify-between mb-8">
+                                    <div>
+                                        <p className="text-[11px] font-semibold tracking-[0.12em] uppercase mb-1.5" style={{ color: "#a8a29e" }}>Following</p>
+                                        <h2 className="text-[22px] font-bold" style={{ color: "#1c1917", letterSpacing: "-0.02em" }}>팔로우</h2>
+                                    </div>
                                 </div>
-                                <div className="p-7 rounded-[24px] flex flex-col gap-4" style={{ background: "rgba(255,255,255,0.7)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.8)", boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
+                                <p className="text-[13px] mb-8" style={{ color: "#78716c" }}>내가 팔로우한 크리에이터 목록입니다.</p>
+                                <div className="flex flex-col">
                                     {followingLoading ? (
-                                        <div className="flex items-center justify-center py-16">
-                                            <span className="text-[14px]" style={{ color: "#8e8e93" }}>불러오는 중...</span>
+                                        <div className="flex items-center justify-center py-20">
+                                            <span className="text-[14px]" style={{ color: "#a8a29e" }}>불러오는 중...</span>
                                         </div>
                                     ) : followingList.length === 0 ? (
-                                        <div className="flex flex-col items-center justify-center py-16 gap-3">
-                                            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#c8c8cd" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <div className="flex flex-col items-center justify-center py-24 gap-3">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d6d3d1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                                                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                                             </svg>
-                                            <p className="text-[14px]" style={{ color: "#8e8e93" }}>아직 팔로우한 크리에이터가 없어요.</p>
+                                            <p className="text-[14px]" style={{ color: "#a8a29e" }}>아직 팔로우한 크리에이터가 없어요.</p>
                                         </div>
                                     ) : (
                                         followingList.map((user, idx) => (
                                             <div key={user.id}>
-                                                <div className="flex items-center gap-4">
+                                                <div className="flex items-center gap-4 py-4">
                                                     {/* 프로필 이미지 */}
-                                                    <button onClick={() => router.push(`/creator/${user.id}`)} className="shrink-0 w-12 h-12 rounded-full overflow-hidden flex items-center justify-center transition-all hover:opacity-80" style={{ background: "rgba(195,195,195,0.5)" }}>
+                                                    <button onClick={() => router.push(`/creator/${user.id}`)} className="shrink-0 w-10 h-10 rounded-full overflow-hidden flex items-center justify-center transition-all hover:opacity-75" style={{ background: "#e7e5e4" }}>
                                                         {user.avatarUrl ? (
-                                                            <Image src={user.avatarUrl} alt={user.nickname ?? user.name} width={48} height={48} className="w-full h-full object-cover" unoptimized />
+                                                            <Image src={user.avatarUrl} alt={user.nickname ?? user.name} width={40} height={40} className="w-full h-full object-cover" unoptimized />
                                                         ) : (
-                                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#78716c" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                                                                 <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
                                                             </svg>
                                                         )}
                                                     </button>
                                                     {/* 이름 + 테마 수 */}
                                                     <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-                                                        <button onClick={() => router.push(`/creator/${user.id}`)} className="text-left text-[14px] font-bold hover:underline truncate" style={{ color: "#1c1c1e" }}>
+                                                        <button onClick={() => router.push(`/creator/${user.id}`)} className="text-left text-[14px] font-semibold hover:opacity-60 transition-opacity truncate" style={{ color: "#1c1917" }}>
                                                             {user.nickname ?? user.name}
                                                         </button>
-                                                        <span className="text-[12px]" style={{ color: "#8e8e93" }}>테마 {user.themeCount}개</span>
+                                                        <span className="text-[12px]" style={{ color: "#a8a29e" }}>테마 {user.themeCount}개</span>
                                                     </div>
                                                     {/* 언팔로우 버튼 */}
                                                     <button
                                                         onClick={() => handleUnfollow(user.id)}
                                                         disabled={unfollowingId === user.id}
-                                                        className="px-4 py-1.5 rounded-full text-[12px] font-semibold transition-all hover:opacity-70 active:scale-95 disabled:opacity-40 shrink-0"
-                                                        style={{ border: "1px solid rgba(0,0,0,0.15)", color: "#3a3a3c", background: "transparent" }}
+                                                        className="text-[12px] font-medium transition-opacity hover:opacity-50 disabled:opacity-30 shrink-0"
+                                                        style={{ color: "#78716c" }}
                                                     >
                                                         {unfollowingId === user.id ? "처리 중..." : "팔로우 취소"}
                                                     </button>
                                                 </div>
                                                 {idx < followingList.length - 1 && (
-                                                    <div className="mt-4 h-[1px]" style={{ background: "rgba(0,0,0,0.06)" }} />
+                                                    <div className="h-px" style={{ background: "#f5f5f4" }} />
                                                 )}
                                             </div>
                                         ))
@@ -437,236 +410,274 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
                         ) : isSettingsMenu ? (
                             /* ── 회원 정보 ── */
                             <>
-                                <div>
-                                    <h1 className="text-[22px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>회원 정보</h1>
-                                    <p className="text-[13px] mt-1" style={{ color: "#8e8e93" }}>계정 정보를 관리하세요.</p>
+                                <div className="flex items-end justify-between mb-8">
+                                    <div>
+                                        <p className="text-[11px] font-semibold tracking-[0.12em] uppercase mb-1.5" style={{ color: "#a8a29e" }}>Account</p>
+                                        <h2 className="text-[22px] font-bold" style={{ color: "#1c1917", letterSpacing: "-0.02em" }}>회원 정보</h2>
+                                    </div>
                                 </div>
 
-                                {/* 프로필 섹션 */}
-                                <div className="p-7 rounded-[24px] flex flex-col gap-7" style={{ background: "rgba(255,255,255,0.7)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.8)", boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
-                                    {/* 프로필 이미지 */}
-                                    <div className="flex flex-col gap-3">
-                                        <label className="text-[13px] font-bold" style={{ color: "#1c1c1e" }}>
-                                            프로필 이미지 <span className="text-[11px] font-normal" style={{ color: "#8e8e93" }}>(선택)</span>
-                                        </label>
-                                        <div className="flex items-center gap-5">
-                                            <button
-                                                type="button"
-                                                onClick={() => fileInputRef.current?.click()}
-                                                className="relative group w-20 h-20 rounded-full overflow-hidden flex items-center justify-center shrink-0 transition-all hover:opacity-90 active:scale-95"
-                                                style={{ background: avatarPreview ? 'transparent' : 'rgba(195,195,195,0.5)', boxShadow: "0 2px 12px rgba(0,0,0,0.1)" }}
-                                            >
-                                                {avatarPreview ? (
-                                                    <Image src={avatarPreview} alt={displayNickname} width={80} height={80} className="w-full h-full object-cover" unoptimized />
-                                                ) : (
-                                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3A1D1D" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                                        <circle cx="12" cy="8" r="4" />
-                                                        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-                                                    </svg>
-                                                )}
-                                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: "rgba(0,0,0,0.35)" }}>
-                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                                        <polyline points="17 8 12 3 7 8" />
-                                                        <line x1="12" y1="3" x2="12" y2="15" />
-                                                    </svg>
-                                                </div>
-                                            </button>
-                                            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-                                            <div className="flex flex-col gap-2">
-                                                <div className="flex items-center gap-2">
-                                                    <button type="button" onClick={() => fileInputRef.current?.click()} className="px-3 py-1.5 rounded-xl text-[12px] font-semibold transition-all hover:brightness-105 active:scale-95" style={{ background: "rgba(0,0,0,0.06)", color: "#3a3a3c" }}>
-                                                        사진 선택
-                                                    </button>
-                                                    {avatarPreview && avatarPreview !== (session?.avatarUrl ?? null) && (
-                                                        <button type="button" onClick={() => handleAvatarSave(avatarPreview)} disabled={avatarSaving} className="px-3 py-1.5 rounded-xl text-[12px] font-bold transition-all hover:brightness-105 active:scale-95 disabled:opacity-40" style={{ background: "#FF9500", color: "#fff" }}>
+                                {/* 프로필 이미지 */}
+                                <div className="flex flex-col gap-4 pb-8">
+                                    <div className="flex items-center gap-3 mb-1">
+                                        <span className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "#a8a29e" }}>프로필 이미지</span>
+                                        <div className="flex-1 h-px" style={{ backgroundColor: "#e7e5e4" }} />
+                                    </div>
+                                    <div className="flex items-center gap-6">
+                                        <button
+                                            type="button"
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="relative group shrink-0 rounded-full overflow-hidden flex items-center justify-center transition-opacity hover:opacity-80"
+                                            style={{ width: 72, height: 72, background: avatarPreview ? "transparent" : "#e7e5e4" }}
+                                        >
+                                            {avatarPreview ? (
+                                                <Image src={avatarPreview} alt={displayNickname} width={72} height={72} className="w-full h-full object-cover" unoptimized />
+                                            ) : (
+                                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                                    <circle cx="12" cy="8" r="4" />
+                                                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                                                </svg>
+                                            )}
+                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full" style={{ background: "rgba(0,0,0,0.3)" }}>
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                                    <polyline points="17 8 12 3 7 8" />
+                                                    <line x1="12" y1="3" x2="12" y2="15" />
+                                                </svg>
+                                            </div>
+                                        </button>
+                                        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex items-center gap-2">
+                                                <button type="button" onClick={() => fileInputRef.current?.click()} className="text-[12px] font-medium transition-opacity hover:opacity-60" style={{ color: "#78716c" }}>
+                                                    사진 선택
+                                                </button>
+                                                {avatarPreview && avatarPreview !== (session?.avatarUrl ?? null) && (
+                                                    <>
+                                                        <span style={{ color: "#e7e5e4" }}>·</span>
+                                                        <button type="button" onClick={() => handleAvatarSave(avatarPreview)} disabled={avatarSaving} className="text-[12px] font-semibold transition-opacity hover:opacity-60 disabled:opacity-30" style={{ color: "#FF9500" }}>
                                                             {avatarSaving ? "저장 중..." : "저장"}
                                                         </button>
-                                                    )}
-                                                    {(avatarPreview ?? session?.avatarUrl) && (
-                                                        <button type="button" onClick={() => { setAvatarPreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; handleAvatarSave(null); }} disabled={avatarSaving} className="px-3 py-1.5 rounded-xl text-[12px] font-semibold transition-all hover:opacity-70 disabled:opacity-40" style={{ color: "#ff3b30", border: "1px solid rgba(255,59,48,0.3)" }}>
+                                                    </>
+                                                )}
+                                                {(avatarPreview ?? session?.avatarUrl) && (
+                                                    <>
+                                                        <span style={{ color: "#e7e5e4" }}>·</span>
+                                                        <button type="button" onClick={() => { setAvatarPreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; handleAvatarSave(null); }} disabled={avatarSaving} className="text-[12px] font-medium transition-opacity hover:opacity-60 disabled:opacity-30" style={{ color: "#ff3b30" }}>
                                                             사진 제거
                                                         </button>
+                                                    </>
+                                                )}
+                                            </div>
+                                            {avatarSuccess && <p className="text-[11px]" style={{ color: "#34c759" }}>✓ 프로필 사진이 저장되었습니다.</p>}
+                                            {avatarError && <p className="text-[11px]" style={{ color: "#ff3b30" }}>{avatarError}</p>}
+                                            {!avatarSuccess && !avatarError && <p className="text-[11px]" style={{ color: "#a8a29e" }}>JPG, PNG, GIF · 최대 2MB</p>}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 닉네임 */}
+                                <div className="flex flex-col gap-4 py-8" style={{ borderTop: "1px solid #e7e5e4" }}>
+                                    <div className="flex items-center gap-3 mb-1">
+                                        <span className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "#a8a29e" }}>닉네임</span>
+                                        <div className="flex-1 h-px" style={{ backgroundColor: "#e7e5e4" }} />
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex items-center gap-3">
+                                            <div className="relative">
+                                                <input
+                                                    value={nickInput}
+                                                    onChange={(e) => { setNickInput(e.target.value); setNickSuccess(false); setNickCheckStatus("idle"); setNickError(""); }}
+                                                    onKeyDown={(e) => { if (e.key === "Enter") handleNickCheck(); }}
+                                                    maxLength={10}
+                                                    placeholder="닉네임을 입력하세요"
+                                                    className="text-[14px] px-0 py-2 outline-none pr-7 bg-transparent"
+                                                    style={{
+                                                        borderBottom: `1.5px solid ${nickCheckStatus === "available" ? "#34c759" : nickCheckStatus === "taken" || nickError ? "#ff3b30" : "#d6d3d1"}`,
+                                                        color: "#1c1917",
+                                                        width: 220,
+                                                    }}
+                                                />
+                                                <div className="absolute right-0 top-1/2 -translate-y-1/2">
+                                                    {nickCheckStatus === "checking" && <div className="w-3.5 h-3.5 rounded-full border-2 border-black/20 border-t-black/60 animate-spin" />}
+                                                    {nickCheckStatus === "available" && (
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34c759" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+                                                    )}
+                                                    {nickCheckStatus === "taken" && (
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                                                     )}
                                                 </div>
-                                                <div className="flex flex-col gap-0.5">
-                                                    {avatarSuccess && <p className="text-[11px]" style={{ color: "#34c759" }}>✓ 프로필 사진이 저장되었습니다.</p>}
-                                                    {avatarError && <p className="text-[11px]" style={{ color: "#ff3b30" }}>{avatarError}</p>}
-                                                    <p className="text-[11px]" style={{ color: "#8e8e93" }}>JPG, PNG, GIF · 최대 2MB</p>
-                                                </div>
                                             </div>
+                                            <button onClick={handleNickCheck} disabled={nickCheckStatus === "checking" || !nickInput.trim()} className="text-[12px] font-medium transition-opacity hover:opacity-60 disabled:opacity-30" style={{ color: "#4a7bf7" }}>
+                                                {nickCheckStatus === "checking" ? "확인 중..." : "중복 확인"}
+                                            </button>
+                                            <button onClick={handleNickSave} disabled={nickSaving || nickCheckStatus !== "available" || nickInput.trim() === currentNickname} className="text-[12px] font-semibold transition-opacity hover:opacity-60 disabled:opacity-30" style={{ color: "#FF9500" }}>
+                                                {nickSaving ? "저장 중..." : "저장"}
+                                            </button>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <p className="text-[11px]" style={{ color: nickSuccess ? "#34c759" : nickCheckStatus === "available" && !nickError ? "#34c759" : nickError ? "#ff3b30" : "#a8a29e" }}>
+                                                {nickSuccess ? "✓ 닉네임이 저장되었습니다." : nickCheckStatus === "available" && !nickError ? "✓ 사용 가능한 닉네임입니다." : nickError ? nickError : "한글, 영문, 숫자 2~10자 (특수문자 불가, 숫자만 불가)"}
+                                            </p>
+                                            <p className="text-[11px]" style={{ color: "#a8a29e" }}>{nickInput.trim().length} / 10</p>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <div className="h-[1px]" style={{ background: "rgba(0,0,0,0.07)" }} />
-
-                                    {/* 닉네임 */}
-                                    <div className="flex flex-col gap-3">
-                                        <label className="text-[13px] font-bold" style={{ color: "#1c1c1e" }}>닉네임</label>
-                                        <div className="flex flex-col gap-2">
-                                            <div className="flex items-center gap-3">
-                                                <div className="relative">
-                                                    <input
-                                                        value={nickInput}
-                                                        onChange={(e) => { setNickInput(e.target.value); setNickSuccess(false); setNickCheckStatus("idle"); setNickError(""); }}
-                                                        onKeyDown={(e) => { if (e.key === "Enter") handleNickCheck(); }}
-                                                        maxLength={10}
-                                                        placeholder="닉네임을 입력하세요"
-                                                        className="text-[14px] font-medium px-4 py-2.5 rounded-xl outline-none pr-10"
-                                                        style={{ border: `1.5px solid ${nickCheckStatus === "available" ? "#34c759" : nickCheckStatus === "taken" || nickError ? "#ff3b30" : "rgba(0,0,0,0.12)"}`, color: "#1c1c1e", width: 260, background: "rgba(255,255,255,0.8)" }}
-                                                    />
-                                                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                                                        {nickCheckStatus === "checking" && <div className="w-3.5 h-3.5 rounded-full border-2 border-black/20 border-t-black/60 animate-spin" />}
-                                                        {nickCheckStatus === "available" && (
-                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34c759" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
-                                                        )}
-                                                        {nickCheckStatus === "taken" && (
-                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <button onClick={handleNickCheck} disabled={nickCheckStatus === "checking" || !nickInput.trim()} className="px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all hover:brightness-105 active:scale-95 disabled:opacity-40" style={{ background: "rgba(0,0,0,0.06)", color: "#3a3a3c" }}>
-                                                    {nickCheckStatus === "checking" ? "확인 중..." : "중복 확인"}
-                                                </button>
-                                                <button onClick={handleNickSave} disabled={nickSaving || nickCheckStatus !== "available" || nickInput.trim() === currentNickname} className="px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all hover:brightness-105 active:scale-95 disabled:opacity-40" style={{ background: "#FF9500", color: "#fff" }}>
-                                                    {nickSaving ? "저장 중..." : "저장"}
-                                                </button>
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <p className="text-[11px]" style={{ color: nickSuccess ? "#34c759" : nickCheckStatus === "available" && !nickError ? "#34c759" : nickError ? "#ff3b30" : "#8e8e93", minHeight: 16 }}>
-                                                    {nickSuccess ? "✓ 닉네임이 저장되었습니다." : nickCheckStatus === "available" && !nickError ? "✓ 사용 가능한 닉네임입니다." : nickError ? nickError : "한글, 영문, 숫자 2~10자 (특수문자 불가, 숫자만 불가)"}
-                                                </p>
-                                                <p className="text-[11px]" style={{ color: "#8e8e93" }}>{nickInput.trim().length} / 10</p>
-                                            </div>
-                                        </div>
+                                {/* 이메일 */}
+                                <div className="flex flex-col gap-4 py-8" style={{ borderTop: "1px solid #e7e5e4" }}>
+                                    <div className="flex items-center gap-3 mb-1">
+                                        <span className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "#a8a29e" }}>이메일</span>
+                                        <div className="flex-1 h-px" style={{ backgroundColor: "#e7e5e4" }} />
                                     </div>
-
-                                    <div className="h-[1px]" style={{ background: "rgba(0,0,0,0.07)" }} />
-
-                                    {/* 이메일 */}
-                                    <div className="flex flex-col gap-3">
-                                        <label className="text-[13px] font-bold" style={{ color: "#1c1c1e" }}>이메일</label>
-                                        <div className="flex items-center gap-3">
-                                            <div className="text-[14px] px-4 py-2.5 rounded-xl flex-1 max-w-[320px]" style={{ border: "1.5px solid rgba(0,0,0,0.08)", color: session.email ? "#1c1c1e" : "#8e8e93", background: "rgba(0,0,0,0.03)" }}>
-                                                {session.email ?? "이메일 정보 없음"}
-                                            </div>
-                                            {session.email && (
-                                                <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full" style={{ background: "rgba(52,199,89,0.12)", color: "#34c759" }}>인증됨</span>
-                                            )}
-                                        </div>
-                                        <p className="text-[11px]" style={{ color: "#8e8e93" }}>이메일은 카카오 계정과 연동되어 있습니다. 변경을 원하시면 카카오 계정에서 수정해주세요.</p>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-[14px]" style={{ color: session.email ? "#1c1917" : "#a8a29e" }}>
+                                            {session.email ?? "이메일 정보 없음"}
+                                        </span>
+                                        {session.email && (
+                                            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: "rgba(52,199,89,0.1)", color: "#34c759" }}>인증됨</span>
+                                        )}
                                     </div>
+                                    <p className="text-[11px]" style={{ color: "#a8a29e" }}>이메일은 카카오 계정과 연동되어 있습니다. 변경을 원하시면 카카오 계정에서 수정해주세요.</p>
+                                </div>
 
-                                    <div className="h-[1px]" style={{ background: "rgba(0,0,0,0.07)" }} />
-
-                                    {/* 계정 등급 */}
-                                    <div className="flex flex-col gap-3">
-                                        <label className="text-[13px] font-bold" style={{ color: "#1c1c1e" }}>계정 등급</label>
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-[12px] font-semibold px-3 py-1 rounded-full" style={{ background: session.role === "ADMIN" ? "rgba(255,59,48,0.12)" : session.role === "CREATOR" ? "rgba(255,149,0,0.12)" : "rgba(0,122,255,0.12)", color: session.role === "ADMIN" ? "#ff3b30" : session.role === "CREATOR" ? "#FF9500" : "#007aff" }}>
-                                                {session.role === "ADMIN" ? "관리자" : session.role === "CREATOR" ? "크리에이터" : "일반 회원"}
-                                            </span>
-                                        </div>
-                                        <p className="text-[11px]" style={{ color: "#8e8e93" }}>현재 서비스 이용 등급입니다.</p>
+                                {/* 계정 등급 */}
+                                <div className="flex flex-col gap-4 py-8" style={{ borderTop: "1px solid #e7e5e4" }}>
+                                    <div className="flex items-center gap-3 mb-1">
+                                        <span className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "#a8a29e" }}>계정 등급</span>
+                                        <div className="flex-1 h-px" style={{ backgroundColor: "#e7e5e4" }} />
                                     </div>
+                                    <div>
+                                        <span className="text-[12px] font-semibold px-2.5 py-1 rounded-full" style={{ background: session.role === "ADMIN" ? "rgba(255,59,48,0.1)" : session.role === "CREATOR" ? "rgba(255,149,0,0.1)" : "rgba(74,123,247,0.1)", color: session.role === "ADMIN" ? "#ff3b30" : session.role === "CREATOR" ? "#FF9500" : "#4a7bf7" }}>
+                                            {session.role === "ADMIN" ? "관리자" : session.role === "CREATOR" ? "크리에이터" : "일반 회원"}
+                                        </span>
+                                    </div>
+                                    <p className="text-[11px]" style={{ color: "#a8a29e" }}>현재 서비스 이용 등급입니다.</p>
+                                </div>
+
+                                {/* 가입일 */}
+                                <div className="flex flex-col gap-2 pt-8" style={{ borderTop: "1px solid #e7e5e4" }}>
+                                    <div className="flex items-center gap-3 mb-1">
+                                        <span className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "#a8a29e" }}>가입일</span>
+                                        <div className="flex-1 h-px" style={{ backgroundColor: "#e7e5e4" }} />
+                                    </div>
+                                    <span className="text-[14px]" style={{ color: "#78716c" }}>{createdAt ? formatKST(createdAt, false) : "-"}</span>
                                 </div>
                             </>
                         ) : isNotifMenu ? (
                             /* ── 알림 설정 ── */
                             <>
-                                <div className="flex items-end justify-between">
+                                <div className="flex items-end justify-between mb-8">
                                     <div>
-                                        <h1 className="text-[22px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>알림 설정</h1>
-                                        <p className="text-[13px] mt-1" style={{ color: "#8e8e93" }}>받고 싶은 알림을 직접 선택하세요.</p>
+                                        <p className="text-[11px] font-semibold tracking-[0.12em] uppercase mb-1.5" style={{ color: "#a8a29e" }}>Notifications</p>
+                                        <h2 className="text-[22px] font-bold" style={{ color: "#1c1917", letterSpacing: "-0.02em" }}>알림 설정</h2>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        {notifSaveSuccess && <span className="text-[12px] font-medium" style={{ color: "#34c759" }}>✓ 저장되었습니다.</span>}
-                                        <button onClick={handleNotifSaveAll} disabled={notifSaving} className="px-5 py-2.5 rounded-xl text-[13px] font-bold transition-all hover:brightness-105 active:scale-95 disabled:opacity-40" style={{ background: "#FF9500", color: "#fff" }}>
+                                    <div className="flex items-center gap-4 pb-1">
+                                        {notifSaveSuccess && <span className="text-[12px]" style={{ color: "#34c759" }}>✓ 저장되었습니다.</span>}
+                                        <button onClick={handleNotifSaveAll} disabled={notifSaving} className="text-[13px] font-semibold transition-opacity hover:opacity-60 disabled:opacity-30" style={{ color: "#FF9500" }}>
                                             {notifSaving ? "저장 중..." : "변경사항 저장"}
                                         </button>
                                     </div>
                                 </div>
-                                {NOTIFICATION_GROUPS.map((group) => (
-                                    <div key={group.category} className="p-7 rounded-[24px] flex flex-col gap-5" style={{ background: "rgba(255,255,255,0.7)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.8)", boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
-                                        <h3 className="text-[13px] font-bold tracking-[0.08em] uppercase" style={{ color: "#8e8e93" }}>{group.category}</h3>
-                                        <div className="flex flex-col gap-1">
+                                <p className="text-[13px] mb-10" style={{ color: "#78716c" }}>받고 싶은 알림을 직접 선택하세요.</p>
+
+                                {NOTIFICATION_GROUPS.map((group, gi) => (
+                                    <div key={group.category}>
+                                        <div className={`flex items-center gap-3 ${gi > 0 ? "mt-10" : ""} mb-1`}>
+                                            <span className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "#a8a29e" }}>
+                                                {group.category}
+                                            </span>
+                                            <div className="flex-1 h-px" style={{ backgroundColor: "#e7e5e4" }} />
+                                        </div>
+                                        <div className="flex flex-col">
                                             {group.items.map((item, idx) => (
                                                 <div key={item.key}>
-                                                    <div className="flex items-center justify-between py-3">
+                                                    <div className="flex items-center justify-between py-4">
                                                         <div className="flex flex-col gap-0.5">
-                                                            <span className="text-[14px] font-medium" style={{ color: "#1c1c1e" }}>{item.label}</span>
-                                                            <span className="text-[12px]" style={{ color: "#8e8e93" }}>{item.desc}</span>
+                                                            <span className="text-[14px]" style={{ color: "#1c1917", fontWeight: notifSettings[item.key] ? 600 : 400 }}>{item.label}</span>
+                                                            <span className="text-[12px]" style={{ color: "#a8a29e" }}>{item.desc}</span>
                                                         </div>
                                                         <button type="button" onClick={() => toggleNotif(item.key)} className="relative shrink-0 transition-all active:scale-95" style={{ width: 44, height: 24 }} aria-label={notifSettings[item.key] ? "끄기" : "켜기"}>
-                                                            <div className="absolute inset-0 rounded-full transition-colors duration-200" style={{ background: notifSettings[item.key] ? "#FF9500" : "rgba(0,0,0,0.12)" }} />
-                                                            <div className="absolute top-[3px] w-[18px] h-[18px] rounded-full bg-white transition-all duration-200" style={{ left: notifSettings[item.key] ? 23 : 3, boxShadow: "0 1px 4px rgba(0,0,0,0.18)" }} />
+                                                            <div className="absolute inset-0 rounded-full transition-colors duration-200" style={{ background: notifSettings[item.key] ? "#FF9500" : "#e7e5e4" }} />
+                                                            <div className="absolute top-[3px] w-[18px] h-[18px] rounded-full bg-white transition-all duration-200" style={{ left: notifSettings[item.key] ? 23 : 3, boxShadow: "0 1px 3px rgba(0,0,0,0.15)" }} />
                                                         </button>
                                                     </div>
-                                                    {idx < group.items.length - 1 && <div className="h-[1px]" style={{ background: "rgba(0,0,0,0.06)" }} />}
+                                                    {idx < group.items.length - 1 && <div className="h-px" style={{ background: "#f5f5f4" }} />}
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
                                 ))}
-                                <div className="px-5 py-4 rounded-[16px] flex items-start gap-3" style={{ background: "rgba(74,123,247,0.07)", border: "1px solid rgba(74,123,247,0.12)" }}>
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4a7bf7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
+
+                                <div className="mt-12 flex items-start gap-3 pt-8" style={{ borderTop: "1px solid #e7e5e4" }}>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4a7bf7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
                                         <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
                                     </svg>
-                                    <p className="text-[12px] leading-relaxed" style={{ color: "#3a5a8a" }}>알림은 서비스 내 알림으로 제공됩니다. 이메일·푸시 알림은 추후 지원 예정입니다. 법적 필수 공지(이용약관 변경 등)는 설정과 관계없이 발송될 수 있습니다.</p>
+                                    <p className="text-[12px] leading-relaxed" style={{ color: "#78716c" }}>알림은 서비스 내 알림으로 제공됩니다. 이메일·푸시 알림은 추후 지원 예정입니다. 법적 필수 공지(이용약관 변경 등)는 설정과 관계없이 발송될 수 있습니다.</p>
                                 </div>
                             </>
                         ) : isWithdrawMenu ? (
                             /* ── 회원 탈퇴 ── */
                             <>
-                                <div>
-                                    <h1 className="text-[22px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>회원 탈퇴</h1>
-                                    <p className="text-[13px] mt-1" style={{ color: "#8e8e93" }}>탈퇴 전 아래 내용을 꼭 확인해주세요.</p>
+                                <div className="flex items-end justify-between mb-8">
+                                    <div>
+                                        <p className="text-[11px] font-semibold tracking-[0.12em] uppercase mb-1.5" style={{ color: "#a8a29e" }}>Account</p>
+                                        <h2 className="text-[22px] font-bold" style={{ color: "#1c1917", letterSpacing: "-0.02em" }}>회원 탈퇴</h2>
+                                    </div>
                                 </div>
+                                <p className="text-[13px] mb-10" style={{ color: "#78716c" }}>탈퇴 전 아래 내용을 꼭 확인해주세요.</p>
+
                                 {/* 프로필 확인 */}
-                                <div className="flex items-center gap-4 p-5 rounded-[20px]" style={{ background: "rgba(255,255,255,0.7)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.8)", boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
-                                    <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center shrink-0" style={{ background: "#ffe500" }}>
+                                <div className="flex items-center gap-4 py-5" style={{ borderBottom: "1px solid #e7e5e4" }}>
+                                    <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center shrink-0" style={{ background: "#ffe500" }}>
                                         {session.avatarUrl ? (
-                                            <Image src={session.avatarUrl} alt={displayNickname} width={48} height={48} className="w-full h-full object-cover" unoptimized />
+                                            <Image src={session.avatarUrl} alt={displayNickname} width={40} height={40} className="w-full h-full object-cover" unoptimized />
                                         ) : (
-                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3A1D1D" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg>
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3A1D1D" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg>
                                         )}
                                     </div>
-                                    <div>
-                                        <p className="text-[14px] font-bold" style={{ color: "#1c1c1e" }}>{displayNickname}</p>
-                                        <p className="text-[12px]" style={{ color: "#8e8e93" }}>{session.email ?? "이메일 없음"}</p>
+                                    <div className="flex-1">
+                                        <p className="text-[14px] font-semibold" style={{ color: "#1c1917" }}>{displayNickname}</p>
+                                        <p className="text-[12px]" style={{ color: "#a8a29e" }}>{session.email ?? "이메일 없음"}</p>
                                     </div>
-                                    <span className="ml-auto text-[11px] font-semibold px-2.5 py-1 rounded-full" style={{ background: "rgba(255,59,48,0.10)", color: "#ff3b30" }}>탈퇴 예정</span>
+                                    <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full" style={{ background: "rgba(255,59,48,0.08)", color: "#ff3b30" }}>탈퇴 예정</span>
                                 </div>
+
                                 {/* 주의사항 체크리스트 */}
-                                <div className="p-6 rounded-[24px] flex flex-col gap-4" style={{ background: "rgba(255,255,255,0.7)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.8)", boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
-                                    <div className="flex items-center gap-2">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
-                                        <h3 className="text-[14px] font-bold" style={{ color: "#ff3b30" }}>탈퇴 전 반드시 확인하세요</h3>
+                                <div className="mt-8 mb-2">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
+                                        <span className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "#ff3b30" }}>탈퇴 전 반드시 확인하세요</span>
+                                        <div className="flex-1 h-px" style={{ backgroundColor: "rgba(255,59,48,0.15)" }} />
                                     </div>
-                                    <div className="flex flex-col gap-3">
+                                    <div className="flex flex-col gap-1">
                                         {CHECKLIST.map((text, idx) => (
-                                            <button key={idx} type="button" onClick={() => toggleWithdrawCheck(idx)} className="flex items-start gap-3 text-left transition-all hover:opacity-80">
-                                                <div className="shrink-0 w-5 h-5 rounded-md mt-0.5 flex items-center justify-center transition-all" style={{ background: withdrawChecked[idx] ? "#ff3b30" : "transparent", border: `1.5px solid ${withdrawChecked[idx] ? "#ff3b30" : "rgba(0,0,0,0.18)"}` }}>
-                                                    {withdrawChecked[idx] && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>}
+                                            <button key={idx} type="button" onClick={() => toggleWithdrawCheck(idx)} className="flex items-start gap-3 text-left py-3 transition-opacity hover:opacity-70">
+                                                <div className="shrink-0 w-4 h-4 rounded mt-0.5 flex items-center justify-center transition-all" style={{ background: withdrawChecked[idx] ? "#ff3b30" : "transparent", border: `1.5px solid ${withdrawChecked[idx] ? "#ff3b30" : "#d6d3d1"}` }}>
+                                                    {withdrawChecked[idx] && <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>}
                                                 </div>
-                                                <span className="text-[13px] leading-relaxed" style={{ color: "#3a3a3c" }}>{text}</span>
+                                                <span className="text-[13px] leading-relaxed" style={{ color: "#78716c" }}>{text}</span>
                                             </button>
                                         ))}
                                     </div>
-                                    {!withdrawAllChecked && <p className="text-[11px]" style={{ color: "#8e8e93" }}>위 항목을 모두 체크해야 탈퇴를 진행할 수 있습니다.</p>}
+                                    {!withdrawAllChecked && <p className="mt-3 text-[11px]" style={{ color: "#a8a29e" }}>위 항목을 모두 체크해야 탈퇴를 진행할 수 있습니다.</p>}
                                 </div>
+
                                 {/* 확인 문구 입력 */}
-                                <div className="p-6 rounded-[24px] flex flex-col gap-4" style={{ background: withdrawAllChecked ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.4)", backdropFilter: "blur(20px)", border: `1px solid ${withdrawAllChecked ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.5)"}`, boxShadow: "0 4px 24px rgba(0,0,0,0.06)", opacity: withdrawAllChecked ? 1 : 0.5, pointerEvents: withdrawAllChecked ? "auto" : "none" }}>
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-[13px] font-bold" style={{ color: "#1c1c1e" }}>탈퇴 확인</label>
-                                        <p className="text-[12px]" style={{ color: "#8e8e93" }}>아래 입력창에 <span className="font-bold" style={{ color: "#ff3b30" }}>{WITHDRAW_CONFIRM_TEXT}</span> 를 입력하세요.</p>
+                                <div className="mt-8 flex flex-col gap-3" style={{ opacity: withdrawAllChecked ? 1 : 0.4, pointerEvents: withdrawAllChecked ? "auto" : "none" }}>
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <span className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "#a8a29e" }}>탈퇴 확인</span>
+                                        <div className="flex-1 h-px" style={{ backgroundColor: "#e7e5e4" }} />
                                     </div>
-                                    <input type="text" value={withdrawConfirmInput} onChange={(e) => setWithdrawConfirmInput(e.target.value)} placeholder={WITHDRAW_CONFIRM_TEXT} className="w-full px-4 py-3 rounded-xl text-[14px] outline-none" style={{ border: `1.5px solid ${withdrawConfirmMatch ? "#ff3b30" : "rgba(0,0,0,0.12)"}`, background: "rgba(255,255,255,0.9)", color: "#1c1c1e" }} />
+                                    <p className="text-[12px]" style={{ color: "#78716c" }}>아래 입력창에 <span className="font-bold" style={{ color: "#ff3b30" }}>{WITHDRAW_CONFIRM_TEXT}</span> 를 입력하세요.</p>
+                                    <input type="text" value={withdrawConfirmInput} onChange={(e) => setWithdrawConfirmInput(e.target.value)} placeholder={WITHDRAW_CONFIRM_TEXT} className="px-0 py-2.5 text-[14px] outline-none bg-transparent w-full max-w-[280px]" style={{ borderBottom: `1.5px solid ${withdrawConfirmMatch ? "#ff3b30" : "#d6d3d1"}`, color: "#1c1917" }} />
                                 </div>
-                                {withdrawError && <p className="text-[13px] font-medium" style={{ color: "#ff3b30" }}>{withdrawError}</p>}
-                                <div className="flex gap-3">
-                                    <button onClick={() => setActiveMenu("회원 정보")} className="flex-1 py-3.5 rounded-xl text-[14px] font-semibold transition-all hover:opacity-80 active:scale-95" style={{ background: "rgba(0,0,0,0.06)", color: "#3a3a3c" }}>취소</button>
-                                    <button onClick={handleWithdraw} disabled={!canWithdraw} className="flex-1 py-3.5 rounded-xl text-[14px] font-bold transition-all active:scale-95 disabled:opacity-30" style={{ background: canWithdraw ? "#ff3b30" : "rgba(255,59,48,0.3)", color: "#fff", boxShadow: canWithdraw ? "0 4px 16px rgba(255,59,48,0.3)" : "none" }}>
+
+                                {withdrawError && <p className="mt-4 text-[13px]" style={{ color: "#ff3b30" }}>{withdrawError}</p>}
+
+                                <div className="flex gap-3 mt-10">
+                                    <button onClick={() => setActiveMenu("회원 정보")} className="flex-1 py-3 rounded-xl text-[14px] font-medium transition-opacity hover:opacity-60" style={{ border: "1px solid #e7e5e4", color: "#78716c", background: "transparent" }}>취소</button>
+                                    <button onClick={handleWithdraw} disabled={!canWithdraw} className="flex-1 py-3 rounded-xl text-[14px] font-semibold transition-opacity disabled:opacity-30" style={{ background: canWithdraw ? "#ff3b30" : "#ff3b30", color: "#fff" }}>
                                         {withdrawLoading ? "탈퇴 처리 중..." : "탈퇴하기"}
                                     </button>
                                 </div>
@@ -674,18 +685,18 @@ export default function MyPageClient({ session, purchasedCount, sidebarMenus, cr
                         ) : null}
                     </>
                 ) : (
-                    <div className="flex flex-col items-center gap-6 p-12 rounded-[32px]" style={{ background: "rgba(255,255,255,0.7)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.8)", boxShadow: "0 8px 40px rgba(0,0,0,0.08)" }}>
-                        <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "#f5f5f5" }}>
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <div className="flex flex-col items-center justify-center py-32 gap-4">
+                        <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "#f5f5f4" }}>
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                                 <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
                             </svg>
                         </div>
-                        <div className="flex flex-col gap-2 text-center">
-                            <h2 className="text-[22px] font-bold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>로그인이 필요해요</h2>
-                            <p className="text-[14px]" style={{ color: "#8e8e93" }}>마이페이지를 이용하려면 카카오 로그인을 해주세요.</p>
+                        <div className="flex flex-col gap-1.5 text-center">
+                            <h2 className="text-[20px] font-bold" style={{ color: "#1c1917", letterSpacing: "-0.02em" }}>로그인이 필요해요</h2>
+                            <p className="text-[13px]" style={{ color: "#a8a29e" }}>마이페이지를 이용하려면 카카오 로그인을 해주세요.</p>
                         </div>
-                        <a href="/api/auth/kakao">
-                            <button className="px-8 py-3.5 rounded-xl text-[15px] font-bold transition-all active:scale-95 hover:brightness-105" style={{ background: "rgba(255,231,58,0.95)", color: "#3A1D1D", boxShadow: "0 4px 16px rgba(255,200,0,0.3)" }}>
+                        <a href="/api/auth/kakao" className="mt-2">
+                            <button className="px-7 py-3 rounded-xl text-[14px] font-bold transition-opacity hover:opacity-80 active:scale-95" style={{ background: "rgba(255,231,58,0.95)", color: "#3A1D1D" }}>
                                 카카오 로그인
                             </button>
                         </a>

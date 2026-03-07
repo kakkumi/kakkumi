@@ -69,67 +69,71 @@ export default function MyReviewsPage() {
 
     return (
         <>
-            <div>
-                <h1 className="text-[22px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>리뷰</h1>
-                <p className="text-[13px] mt-1" style={{ color: "#8e8e93" }}>내가 작성한 리뷰 목록입니다.</p>
+            {/* 섹션 헤더 */}
+            <div className="flex items-end justify-between mb-8">
+                <div>
+                    <p className="text-[11px] font-semibold tracking-[0.12em] uppercase mb-1.5" style={{ color: "#a8a29e" }}>Reviews</p>
+                    <h2 className="text-[22px] font-bold" style={{ color: "#1c1917", letterSpacing: "-0.02em" }}>리뷰</h2>
+                </div>
             </div>
-            <div className="p-7 rounded-[24px] flex flex-col gap-4"
-                style={{ background: "rgba(255,255,255,0.7)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.8)", boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
+            <p className="text-[13px] mb-8" style={{ color: "#78716c" }}>내가 작성한 리뷰 목록입니다.</p>
+
+            <div className="flex flex-col">
                 {loading ? (
-                    <div className="flex items-center justify-center py-16">
-                        <span className="text-[14px]" style={{ color: "#8e8e93" }}>불러오는 중...</span>
+                    <div className="flex items-center justify-center py-20">
+                        <span className="text-[14px]" style={{ color: "#a8a29e" }}>불러오는 중...</span>
                     </div>
                 ) : reviews.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-16 gap-3">
-                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#c8c8cd" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <div className="flex flex-col items-center justify-center py-24 gap-3">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d6d3d1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                         </svg>
-                        <p className="text-[14px]" style={{ color: "#8e8e93" }}>아직 작성한 리뷰가 없어요.</p>
+                        <p className="text-[14px]" style={{ color: "#a8a29e" }}>아직 작성한 리뷰가 없어요.</p>
                     </div>
                 ) : (
                     reviews.map((review, idx) => (
                         <div key={review.id}>
-                            <div className="flex items-start gap-4">
-                                <Link href={`/store/${review.themeId}`} className="shrink-0 w-14 h-14 rounded-xl overflow-hidden flex items-center justify-center transition-all hover:opacity-80"
-                                    style={{ background: "rgba(0,0,0,0.05)" }}>
+                            <div className="flex items-start gap-4 py-4">
+                                <Link href={`/store/${review.themeId}`} className="shrink-0 w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center transition-opacity hover:opacity-75"
+                                    style={{ background: "#f5f5f4" }}>
                                     {review.thumbnailUrl ? (
-                                        <Image src={review.thumbnailUrl} alt={review.themeTitle} width={56} height={56} className="w-full h-full object-cover" unoptimized />
+                                        <Image src={review.thumbnailUrl} alt={review.themeTitle} width={40} height={40} className="w-full h-full object-cover" unoptimized />
                                     ) : (
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c8c8cd" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                                             <rect x="3" y="3" width="18" height="18" rx="3" />
                                         </svg>
                                     )}
                                 </Link>
                                 <div className="flex flex-col gap-1 flex-1 min-w-0">
-                                    <Link href={`/store/${review.themeId}`} className="text-[14px] font-bold truncate hover:underline" style={{ color: "#1c1c1e" }}>
+                                    <Link href={`/store/${review.themeId}`} className="text-[14px] font-semibold truncate transition-opacity hover:opacity-60" style={{ color: "#1c1917" }}>
                                         {review.themeTitle}
                                     </Link>
                                     <StarRow rating={review.rating} />
                                     {review.content && (
-                                        <p className="text-[13px] leading-relaxed" style={{ color: "#3a3a3c" }}>{review.content}</p>
+                                        <p className="text-[13px] leading-relaxed mt-0.5" style={{ color: "#78716c" }}>{review.content}</p>
                                     )}
                                     {review.images?.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 mt-1">
+                                        <div className="flex flex-wrap gap-2 mt-1.5">
                                             {review.images.map((url, i) => (
-                                                <div key={i} className="relative w-[64px] h-[64px] rounded-lg overflow-hidden" style={{ border: "1px solid rgba(0,0,0,0.08)" }}>
+                                                <div key={i} className="relative w-14 h-14 rounded-xl overflow-hidden" style={{ border: "1px solid #f5f5f4" }}>
                                                     <Image src={url} alt={`리뷰 이미지 ${i + 1}`} fill className="object-cover" unoptimized />
                                                 </div>
                                             ))}
                                         </div>
                                     )}
-                                    <span className="text-[11px]" style={{ color: "#8e8e93" }}>{formatDate(review.createdAt)}</span>
+                                    <span className="text-[11px] mt-0.5" style={{ color: "#a8a29e" }}>{formatDate(review.createdAt)}</span>
                                 </div>
                                 <button
                                     onClick={() => handleDelete(review.themeId)}
                                     disabled={deletingId === review.themeId}
-                                    className="shrink-0 px-3 py-1.5 rounded-xl text-[12px] font-medium transition-all hover:opacity-70 disabled:opacity-40"
-                                    style={{ border: "1px solid rgba(255,59,48,0.3)", color: "#ff3b30" }}
+                                    className="shrink-0 text-[12px] font-medium transition-opacity hover:opacity-50 disabled:opacity-30"
+                                    style={{ color: "#ff3b30" }}
                                 >
                                     {deletingId === review.themeId ? "삭제 중..." : "삭제"}
                                 </button>
                             </div>
                             {idx < reviews.length - 1 && (
-                                <div className="mt-4 h-[1px]" style={{ background: "rgba(0,0,0,0.06)" }} />
+                                <div className="h-px" style={{ background: "#f5f5f4" }} />
                             )}
                         </div>
                     ))

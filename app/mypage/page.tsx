@@ -2,7 +2,6 @@ import { cookies } from "next/headers";
 import { createHmac } from "crypto";
 import { Suspense } from "react";
 import Header from "../components/Header";
-import Footer from "../components/Footer";
 import { prisma } from "@/lib/prisma";
 import MyPageClient from "./MyPageClient";
 
@@ -100,7 +99,6 @@ export default async function MyPage() {
                     credit={credit}
                 />
             </Suspense>
-            <Footer />
         </div>
     );
 }

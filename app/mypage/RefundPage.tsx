@@ -71,95 +71,86 @@ export default function RefundPage() {
         return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
     };
 
-    const CARD_STYLE = {
-        background: "rgba(255,255,255,0.7)",
-        backdropFilter: "blur(20px)",
-        border: "1px solid rgba(255,255,255,0.8)",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
-    };
-
     return (
-        <div className="flex flex-col gap-6">
-            <div>
-                <h1 className="text-[22px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>취소 / 환불 내역</h1>
-                <p className="text-[13px] mt-1" style={{ color: "#8e8e93" }}>구매 후 7일 이내 환불 신청이 가능합니다.</p>
+        <div className="flex flex-col">
+            {/* 섹션 헤더 */}
+            <div className="flex items-end justify-between mb-8">
+                <div>
+                    <p className="text-[11px] font-semibold tracking-[0.12em] uppercase mb-1.5" style={{ color: "#a8a29e" }}>Orders</p>
+                    <h2 className="text-[22px] font-bold" style={{ color: "#1c1917", letterSpacing: "-0.02em" }}>취소 / 환불 내역</h2>
+                </div>
             </div>
+            <p className="text-[13px] mb-8" style={{ color: "#78716c" }}>구매 후 {REFUND_ALLOWED_DAYS}일 이내 환불 신청이 가능합니다.</p>
 
             {/* 환불 안내 */}
-            <div className="flex items-start gap-3 px-5 py-4 rounded-[16px]" style={{ background: "rgba(255,149,0,0.07)", border: "1px solid rgba(255,149,0,0.15)" }}>
-                <span className="text-[16px] shrink-0">💡</span>
-                <div className="flex flex-col gap-1">
-                    <p className="text-[13px] font-semibold" style={{ color: "#c97000" }}>환불 안내</p>
-                    <ul className="text-[12px] leading-relaxed list-disc list-inside flex flex-col gap-0.5" style={{ color: "#8e8e93" }}>
-                        <li>구매 후 <strong>{REFUND_ALLOWED_DAYS}일 이내</strong>만 환불 신청 가능합니다.</li>
-                        <li>환불 금액은 <strong>적립금</strong>으로 즉시 지급됩니다.</li>
-                        <li>무료 테마는 환불 대상이 아닙니다.</li>
-                        <li>환불된 적립금의 유효기간은 지급일로부터 {CREDIT_EXPIRY_DAYS}일입니다.</li>
-                    </ul>
-                </div>
+            <div className="flex items-start gap-3 mb-8 pt-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4a7bf7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
+                    <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <ul className="text-[12px] leading-relaxed flex flex-col gap-0.5" style={{ color: "#78716c" }}>
+                    <li>구매 후 <strong>{REFUND_ALLOWED_DAYS}일 이내</strong>만 환불 신청 가능합니다.</li>
+                    <li>환불 금액은 <strong>적립금</strong>으로 즉시 지급됩니다.</li>
+                    <li>무료 테마는 환불 대상이 아닙니다.</li>
+                    <li>환불된 적립금의 유효기간은 지급일로부터 {CREDIT_EXPIRY_DAYS}일입니다.</li>
+                </ul>
             </div>
 
             {/* 성공/에러 메시지 */}
             {success && (
-                <div className="px-5 py-3 rounded-[14px] flex items-center gap-2" style={{ background: "rgba(52,199,89,0.1)", border: "1px solid rgba(52,199,89,0.2)" }}>
-                    <span className="text-[14px]">✅</span>
-                    <p className="text-[13px] font-medium" style={{ color: "#34c759" }}>{success}</p>
-                </div>
+                <p className="text-[13px] mb-4" style={{ color: "#34c759" }}>✓ {success}</p>
             )}
             {error && (
-                <div className="px-5 py-3 rounded-[14px] flex items-center gap-2" style={{ background: "rgba(255,59,48,0.08)", border: "1px solid rgba(255,59,48,0.2)" }}>
-                    <span className="text-[14px]">⚠️</span>
-                    <p className="text-[13px] font-medium" style={{ color: "#ff3b30" }}>{error}</p>
-                </div>
+                <p className="text-[13px] mb-4" style={{ color: "#ff3b30" }}>{error}</p>
             )}
 
             {/* 주문 목록 */}
-            <div className="flex flex-col gap-3 p-7 rounded-[24px]" style={CARD_STYLE}>
-                <h3 className="text-[15px] font-bold" style={{ color: "#1c1c1e" }}>주문 내역</h3>
+            <div className="flex items-center gap-3 mb-4">
+                <span className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "#a8a29e" }}>주문 내역</span>
+                <div className="flex-1 h-px" style={{ backgroundColor: "#e7e5e4" }} />
+            </div>
 
-                {loading ? (
-                    <div className="flex items-center justify-center py-10">
-                        <div className="w-5 h-5 rounded-full border-2 border-black/20 border-t-black/60 animate-spin" />
-                    </div>
-                ) : purchases.length === 0 ? (
-                    <div className="flex flex-col items-center gap-2 py-10">
-                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#c8c8cd" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
-                        </svg>
-                        <p className="text-[13px]" style={{ color: "#8e8e93" }}>구매 내역이 없습니다.</p>
-                    </div>
-                ) : (
-                    <div className="flex flex-col gap-3">
-                        {purchases.map(p => {
-                            const statusStyle = STATUS_LABEL[p.status] ?? { label: p.status, color: "#8e8e93", bg: "rgba(0,0,0,0.06)" };
-                            const isSelected = selectedId === p.id;
-                            return (
-                                <div key={p.id} className="flex flex-col rounded-[16px] overflow-hidden" style={{ border: "1px solid rgba(0,0,0,0.07)" }}>
-                                    <div className="flex items-center justify-between px-5 py-4" style={{ background: "rgba(0,0,0,0.02)" }}>
-                                        <div className="flex flex-col gap-1">
-                                            <p className="text-[14px] font-semibold" style={{ color: "#1c1c1e" }}>{p.themeTitle}</p>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-[12px]" style={{ color: "#8e8e93" }}>{formatDate(p.createdAt)}</span>
-                                                <span className="text-[12px] font-bold" style={{ color: "#1c1c1e" }}>
+            {loading ? (
+                <div className="flex items-center justify-center py-20">
+                    <span className="text-[14px]" style={{ color: "#a8a29e" }}>불러오는 중...</span>
+                </div>
+            ) : purchases.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-3">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d6d3d1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+                    </svg>
+                    <p className="text-[14px]" style={{ color: "#a8a29e" }}>구매 내역이 없습니다.</p>
+                </div>
+            ) : (
+                <div className="flex flex-col">
+                    {purchases.map((p, idx) => {
+                        const statusStyle = STATUS_LABEL[p.status] ?? { label: p.status, color: "#a8a29e", bg: "rgba(0,0,0,0.06)" };
+                        const isSelected = selectedId === p.id;
+                        return (
+                            <div key={p.id}>
+                                <div className="py-4">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                                            <p className="text-[14px] font-semibold truncate" style={{ color: "#1c1917" }}>{p.themeTitle}</p>
+                                            <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                                                <span className="text-[12px]" style={{ color: "#a8a29e" }}>{formatDate(p.createdAt)}</span>
+                                                <span className="text-[12px] font-semibold" style={{ color: "#1c1917" }}>
                                                     {p.amount === 0 ? "무료" : `${p.amount.toLocaleString()}원`}
                                                 </span>
-                                                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: statusStyle.bg, color: statusStyle.color }}>
+                                                <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: statusStyle.bg, color: statusStyle.color }}>
                                                     {statusStyle.label}
                                                 </span>
                                             </div>
                                             {p.status === "REFUNDED" && p.refundedAt && (
-                                                <p className="text-[11px]" style={{ color: "#8e8e93" }}>
-                                                    환불일: {formatDate(p.refundedAt)}
-                                                    {p.refundReason && ` · ${p.refundReason}`}
+                                                <p className="text-[11px] mt-0.5" style={{ color: "#a8a29e" }}>
+                                                    환불일 {formatDate(p.refundedAt)}{p.refundReason && ` · ${p.refundReason}`}
                                                 </p>
                                             )}
                                         </div>
-
                                         {p.canRefund && p.status === "COMPLETED" && (
                                             <button
                                                 onClick={() => { setSelectedId(isSelected ? null : p.id); setError(""); setSuccess(""); }}
-                                                className="px-4 py-2 rounded-[10px] text-[12px] font-semibold transition-all hover:brightness-95 active:scale-95 shrink-0"
-                                                style={{ background: isSelected ? "rgba(255,59,48,0.12)" : "rgba(0,0,0,0.06)", color: isSelected ? "#ff3b30" : "#3a3a3c" }}
+                                                className="text-[12px] font-medium transition-opacity hover:opacity-50 shrink-0"
+                                                style={{ color: isSelected ? "#ff3b30" : "#78716c" }}
                                             >
                                                 {isSelected ? "취소" : "환불 신청"}
                                             </button>
@@ -168,47 +159,51 @@ export default function RefundPage() {
 
                                     {/* 환불 신청 폼 */}
                                     {isSelected && (
-                                        <div className="px-5 py-4 flex flex-col gap-3" style={{ background: "rgba(255,59,48,0.03)", borderTop: "1px solid rgba(255,59,48,0.1)" }}>
-                                            <p className="text-[12px] font-semibold" style={{ color: "#ff3b30" }}>환불 신청</p>
+                                        <div className="mt-4 flex flex-col gap-3 pl-0">
+                                            <div className="flex items-center gap-3 mb-1">
+                                                <span className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "#ff3b30" }}>환불 신청</span>
+                                                <div className="flex-1 h-px" style={{ backgroundColor: "rgba(255,59,48,0.15)" }} />
+                                            </div>
                                             <div className="flex flex-col gap-1.5">
-                                                <label className="text-[12px]" style={{ color: "#8e8e93" }}>환불 사유 (선택)</label>
+                                                <label className="text-[12px]" style={{ color: "#a8a29e" }}>환불 사유 (선택)</label>
                                                 <textarea
                                                     value={reason}
                                                     onChange={e => setReason(e.target.value)}
                                                     placeholder="환불 사유를 입력해주세요."
                                                     rows={2}
-                                                    className="w-full px-4 py-3 rounded-[10px] text-[13px] outline-none resize-none"
-                                                    style={{ border: "1.5px solid rgba(0,0,0,0.1)", background: "#fff", color: "#1c1c1e" }}
+                                                    className="w-full px-0 py-2 text-[13px] outline-none resize-none bg-transparent"
+                                                    style={{ borderBottom: "1.5px solid #d6d3d1", color: "#1c1917" }}
                                                 />
                                             </div>
-                                            <div className="flex gap-2">
+                                            <p className="text-[11px]" style={{ color: "#a8a29e" }}>
+                                                환불 금액 {p.amount.toLocaleString()}원이 적립금으로 즉시 지급됩니다.
+                                            </p>
+                                            <div className="flex gap-3">
                                                 <button
                                                     onClick={() => { setSelectedId(null); setReason(""); }}
-                                                    className="flex-1 py-2.5 rounded-[10px] text-[13px] font-semibold transition-all hover:opacity-70"
-                                                    style={{ background: "rgba(0,0,0,0.06)", color: "#3a3a3c" }}
+                                                    className="text-[13px] font-medium transition-opacity hover:opacity-50"
+                                                    style={{ color: "#78716c" }}
                                                 >
                                                     취소
                                                 </button>
                                                 <button
                                                     onClick={() => handleRefund(p.id)}
                                                     disabled={refundingId === p.id}
-                                                    className="flex-1 py-2.5 rounded-[10px] text-[13px] font-bold transition-all hover:brightness-95 active:scale-95 disabled:opacity-40"
-                                                    style={{ background: "#ff3b30", color: "#fff" }}
+                                                    className="text-[13px] font-semibold transition-opacity hover:opacity-60 disabled:opacity-30"
+                                                    style={{ color: "#ff3b30" }}
                                                 >
                                                     {refundingId === p.id ? "처리 중..." : `${p.amount.toLocaleString()}원 환불 신청`}
                                                 </button>
                                             </div>
-                                            <p className="text-[11px]" style={{ color: "#8e8e93" }}>
-                                                ※ 환불 금액 {p.amount.toLocaleString()}원이 적립금으로 즉시 지급됩니다.
-                                            </p>
                                         </div>
                                     )}
                                 </div>
-                            );
-                        })}
-                    </div>
-                )}
-            </div>
+                                {idx < purchases.length - 1 && <div className="h-px" style={{ background: "#f5f5f4" }} />}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
         </div>
     );
 }
