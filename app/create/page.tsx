@@ -148,20 +148,21 @@ function ColorRow({ label, value, onChange, tooltip }: ColorRowProps) {
   return (
     <div
       data-setting-item="true"
-      className="flex items-center justify-between gap-2 py-2.5 px-2 rounded-lg hover:bg-black/[0.03] transition-colors"
+      className="flex items-center justify-between gap-2 py-2 px-1 transition-colors group"
+      style={{ borderBottom: "1px solid rgba(0,0,0,0.045)" }}
     >
       <div className="flex items-center gap-1.5 min-w-0">
-        <span className="text-[13px] truncate" style={{color:"#706765"}}>{label}</span>
+        <span className="text-[13px] truncate" style={{color:"#4a4a4a"}}>{label}</span>
         {tooltip && (
-          <div className="group relative">
-            <span className="text-[11px] cursor-help" style={{color:"#706765"}}>?</span>
-            <div className="absolute left-4 top-0 z-50 hidden group-hover:block text-[11px] rounded-lg px-2.5 py-1.5 w-44 leading-snug glass shadow-xl" style={{color:"#706765"}}>
+          <div className="group/tip relative">
+            <span className="text-[10px] w-4 h-4 rounded-full inline-flex items-center justify-center cursor-help transition-colors" style={{color:"#b0b0b0", background:"rgba(0,0,0,0.05)"}}>?</span>
+            <div className="absolute left-5 top-0 z-50 hidden group-hover/tip:block text-[11px] rounded-xl px-3 py-2 w-48 leading-snug shadow-2xl" style={{background:"rgba(30,30,32,0.92)", color:"rgba(255,255,255,0.88)", backdropFilter:"blur(12px)"}}>
               {tooltip}
             </div>
           </div>
         )}
       </div>
-      <div className="flex items-center gap-1.5 shrink-0">
+      <div className="flex items-center gap-2 shrink-0">
         <label className="relative cursor-pointer">
           <input
             type="color"
@@ -170,15 +171,16 @@ function ColorRow({ label, value, onChange, tooltip }: ColorRowProps) {
             className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
           />
           <div
-            className="w-6 h-6 rounded-md border border-black/10 shadow-sm"
-            style={{ backgroundColor: value }}
+            className="w-7 h-7 rounded-lg shadow-sm transition-transform group-hover:scale-105"
+            style={{ backgroundColor: value, border: "1.5px solid rgba(0,0,0,0.12)", boxShadow: "0 1px 4px rgba(0,0,0,0.12)" }}
           />
         </label>
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-[72px] text-[11px] rounded-md px-1.5 py-1 font-mono glass-input"
+          className="w-[76px] text-[11px] rounded-lg px-2 py-1.5 font-mono"
+          style={{background:"rgba(0,0,0,0.04)", border:"1px solid rgba(0,0,0,0.08)", color:"#3a3a3c", outline:"none"}}
           maxLength={7}
         />
       </div>
@@ -189,7 +191,8 @@ function ColorRow({ label, value, onChange, tooltip }: ColorRowProps) {
 /* ── 섹션 타이틀 ── */
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[12px] font-semibold uppercase tracking-widest mt-6 mb-2 px-2" style={{color:"#706765"}}>
+    <div className="text-[10px] font-bold uppercase tracking-[0.15em] mt-8 mb-3 px-1 flex items-center gap-2" style={{color:"rgb(74, 123, 247)"}}>
+      <span className="inline-block w-1 h-1 rounded-full" style={{background:"rgb(74, 123, 247)"}} />
       {children}
     </div>
   );
@@ -202,28 +205,30 @@ function ImageUploadRow({ label, tooltip, imgKey, imageUploads, onUpload }: {
   onUpload: (key: string, file: File) => void;
 }) {
   return (
-    <div data-setting-item="true" className="mb-3 rounded-lg px-2 py-1">
-      <div className="flex items-center gap-1.5 mb-1.5">
-        <span className="text-[13px]" style={{color:"#706765"}}>{label}</span>
-        <div className="group relative">
-          <span className="text-[11px] cursor-help" style={{color:"#706765"}}>?</span>
-          <div className="absolute left-4 top-0 z-50 hidden group-hover:block text-[11px] rounded-lg px-2.5 py-1.5 w-44 leading-snug glass shadow-xl" style={{ color: "#706765" }}>
-            {tooltip}
+    <div data-setting-item="true" className="py-2 px-1" style={{ borderBottom: "1px solid rgba(0,0,0,0.045)" }}>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[13px]" style={{color:"#4a4a4a"}}>{label}</span>
+          <div className="group/tip relative">
+            <span className="text-[10px] w-4 h-4 rounded-full inline-flex items-center justify-center cursor-help" style={{color:"#b0b0b0", background:"rgba(0,0,0,0.05)"}}>?</span>
+            <div className="absolute left-5 top-0 z-50 hidden group-hover/tip:block text-[11px] rounded-xl px-3 py-2 w-48 leading-snug shadow-2xl" style={{background:"rgba(30,30,32,0.92)", color:"rgba(255,255,255,0.88)", backdropFilter:"blur(12px)"}}>
+              {tooltip}
+            </div>
           </div>
         </div>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden shrink-0 transition-transform hover:scale-105"
+            style={{ background: imageUploads[imgKey] ? "transparent" : "rgba(0,0,0,0.04)", border: "1.5px dashed rgba(0,0,0,0.15)" }}>
+            {imageUploads[imgKey]
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img src={imageUploads[imgKey]} alt={label} className="w-full h-full object-cover rounded-lg" />
+              : <span className="text-[16px] leading-none" style={{color:"rgba(0,0,0,0.25)"}}>+</span>}
+          </div>
+          <input type="file" accept="image/*" className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(imgKey, f); }} />
+          <span className="text-[11px]" style={{color:"#8e8e93"}}>업로드</span>
+        </label>
       </div>
-      <label className="flex items-center gap-2 cursor-pointer">
-        <div className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden shrink-0 glass"
-          style={{ border: "1px solid rgba(0,0,0,0.08)" }}>
-          {imageUploads[imgKey]
-            // eslint-disable-next-line @next/next/no-img-element
-            ? <img src={imageUploads[imgKey]} alt={label} className="w-full h-full object-cover" />
-            : <span className="text-lg" style={{color:"#706765"}}>+</span>}
-        </div>
-        <input type="file" accept="image/*" className="hidden"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(imgKey, f); }} />
-        <span className="text-[12px]" style={{color:"#706765"}}>클릭하여 업로드</span>
-      </label>
     </div>
   );
 }
@@ -341,27 +346,30 @@ function Accordion({ title, badge, children, autoOpenSignal, isSelected = false,
         data-setting-key={settingKey}
         data-accordion-header="true"
         onClick={() => toggle()}
-        className="w-full sticky top-0 z-10 flex items-center justify-between px-2 py-3 transition-colors"
+        className="w-full sticky top-0 z-10 flex items-center justify-between px-1 py-2.5 transition-colors"
         style={{
           position: "sticky",
           top: stickyTop,
           zIndex: stickyZIndex,
-          background: isSelected ? "rgba(255,255,255,0.98)" : "rgba(255,255,255,0.92)",
-          boxShadow: isSelected ? "0 0 0 1px rgba(0,0,0,0.12) inset" : "none",
+          background: isSelected ? "rgba(74,123,247,0.06)" : "rgba(247,247,249,0.97)",
+          borderBottom: isSelected ? "1px solid rgba(74,123,247,0.2)" : open ? "1px solid rgba(0,0,0,0.07)" : "1px solid transparent",
           backdropFilter: "blur(6px)",
           WebkitBackdropFilter: "blur(6px)",
         }}
       >
         <div className="flex items-center gap-2">
-          <span className="text-[14px] font-semibold" style={{color:"#706765"}}>{title}</span>
+          <span
+            className="text-[13px] font-semibold"
+            style={{color: isSelected ? "rgb(74, 123, 247)" : "#2c2c2e"}}
+          >{title}</span>
           {badge && (
-            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
-              style={{ background: "rgba(0,0,0,0.06)", color: "#636366" }}>{badge}</span>
+            <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-md font-mono"
+              style={{ background: "rgba(0,0,0,0.05)", color: "#8e8e93", letterSpacing: "0.02em" }}>{badge}</span>
           )}
         </div>
-        <span className="text-[11px] transition-transform duration-200" style={{ color:"#706765", display: "inline-block", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>▼</span>
+        <span className="text-[9px] transition-transform duration-200" style={{ color: isSelected ? "rgb(74, 123, 247)" : "#aaa", display: "inline-block", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>▼</span>
       </button>
-      {open && <div className="px-2 pb-3 pt-1 mb-1">{children}</div>}
+      {open && <div className="px-1 pb-3 pt-1">{children}</div>}
     </div>
   );
 }
@@ -385,10 +393,10 @@ function MacInput({
   readOnly?: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-1">
-      <label className="text-[11px] font-semibold" style={{color:"#706765"}}>
+    <div className="flex flex-col gap-1.5">
+      <label className="text-[11px] font-semibold tracking-wide" style={{color:"#6e6e73"}}>
         {label}
-        {hint && <span className="ml-1 font-normal" style={{color:"#706765"}}>{hint}</span>}
+        {hint && <span className="ml-1 font-normal font-mono text-[10px]" style={{color:"#aeaeb2"}}>{hint}</span>}
       </label>
       <input
         type={type}
@@ -396,7 +404,14 @@ function MacInput({
         onChange={(e) => !readOnly && onChange(e.target.value)}
         placeholder={placeholder}
         readOnly={readOnly}
-        className={`rounded-lg px-3 py-1.5 text-[13px] glass-input${readOnly ? " opacity-60 cursor-default select-none" : ""}`}
+        className={`rounded-xl px-3 py-2 text-[13px]${readOnly ? " opacity-50 cursor-default select-none" : ""}`}
+        style={{
+          background: readOnly ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.85)",
+          border: "1px solid rgba(0,0,0,0.1)",
+          color: "#2c2c2e",
+          outline: "none",
+          transition: "border-color 0.15s, box-shadow 0.15s",
+        }}
       />
     </div>
   );
@@ -1087,27 +1102,23 @@ export default function CreatePage() {
   };
 
   return (
-   <div
+    <div
       className="h-screen overflow-hidden flex flex-col"
       onMouseDownCapture={(event) => {
         const target = event.target as HTMLElement | null;
-
         const activeElementTarget = target?.closest("[data-active-element-id]") as HTMLElement | null;
         if (activeElementTarget) {
           const activeId = activeElementTarget.getAttribute("data-active-element-id");
           if (activeId === "header-title-icon") {
             setActiveElementId("header-title-icon");
             setSelectedSettingKey("header-title-icon-color");
-
             const currentSelected = document.querySelectorAll('[data-active-element-id][data-active-selected="true"]');
             currentSelected.forEach((item) => item.removeAttribute("data-active-selected"));
-
             const sameElements = document.querySelectorAll('[data-active-element-id="header-title-icon"]');
             sameElements.forEach((item) => item.setAttribute("data-active-selected", "true"));
             return;
           }
         }
-
         const settingKey = target?.closest("[data-setting-key]")?.getAttribute("data-setting-key") ?? null;
         if (settingKey) {
           const settingToActiveMap: Record<string, string> = {
@@ -1118,30 +1129,23 @@ export default function CreatePage() {
             "tab-shopping": "tabBar-shopping",
             "tab-more": "tabBar-more",
           };
-
           const mappedActiveId = settingToActiveMap[settingKey] ?? null;
           if (mappedActiveId) {
             setActiveElementId(mappedActiveId as Parameters<typeof setActiveElementId>[0]);
           } else if (activeElementId !== null) {
             setActiveElementId(null);
           }
-
           const currentSelected = document.querySelectorAll('[data-active-element-id][data-active-selected="true"]');
           currentSelected.forEach((item) => item.removeAttribute("data-active-selected"));
-
           if (mappedActiveId === "header-title-icon") {
             const sameElements = document.querySelectorAll('[data-active-element-id="header-title-icon"]');
             sameElements.forEach((item) => item.setAttribute("data-active-selected", "true"));
           }
-
           setSelectedSettingKey(settingKey);
           return;
         }
-
         if (target?.closest('[data-keep-active-element="true"]')) return;
-        if (activeElementId !== null) {
-          setActiveElementId(null);
-        }
+        if (activeElementId !== null) { setActiveElementId(null); }
         const currentSelected = document.querySelectorAll('[data-active-element-id][data-active-selected="true"]');
         currentSelected.forEach((item) => item.removeAttribute("data-active-selected"));
         setSelectedSettingKey(null);
@@ -1151,15 +1155,118 @@ export default function CreatePage() {
       {/* ── 공통 헤더 ── */}
       <Header />
 
-      <div className="flex flex-1" style={{ height: "calc(100vh - 48px)" }}>
+      {/* ── 서브 툴바 ── */}
+      <div
+        className="flex items-center justify-between px-6 shrink-0"
+        style={{
+          height: 48,
+          background: "rgba(255,255,255,0.88)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          borderBottom: "1px solid rgba(0,0,0,0.07)",
+        }}
+      >
+        {/* 왼쪽: 테마명 */}
+        <div className="flex items-center gap-3">
+          <span className="text-[13px] font-semibold" style={{ color: "#1c1c1e" }}>{config.name}</span>
+          <span className="text-[11px] font-mono px-2 py-0.5 rounded-md" style={{ background: "rgba(0,0,0,0.05)", color: "#8e8e93" }}>v{config.version}</span>
+        </div>
 
-        {/* ── 좌측 사이드바 ── */}
-        <aside ref={leftAsideRef} className="w-80 overflow-y-auto mac-scroll shrink-0" style={{ background: "rgba(255,255,255,0.25)", backdropFilter: "blur(20px) saturate(180%)", WebkitBackdropFilter: "blur(20px) saturate(180%)", borderRight: "1px solid rgba(255,255,255,0.35)" }}>
-          <div className="p-4 pt-4">
+        {/* 가운데: 탭 프리뷰 선택 */}
+        <div className="flex items-center gap-0.5 rounded-full px-1 py-1" style={{ background: "rgba(0,0,0,0.05)" }}>
+          {(["friends","chat","openchat","shopping","more"] as PreviewTab[]).map((tab) => {
+            const labels: Record<PreviewTab, string> = { friends:"친구", chat:"채팅", openchat:"오픈채팅", shopping:"쇼핑", more:"더보기", passcode:"암호" };
+            return (
+              <button key={tab} onClick={() => setPreviewTab(tab)}
+                className="px-3.5 py-1 text-[12px] font-semibold transition-all rounded-full"
+                style={{
+                  color: previewTab === tab ? "#fff" : "#6b6b6b",
+                  background: previewTab === tab ? "rgb(255,149,0)" : "transparent",
+                  boxShadow: previewTab === tab ? "0 1px 6px rgba(255,149,0,0.35)" : "none",
+                  whiteSpace: "nowrap",
+                }}
+              >{labels[tab]}</button>
+            );
+          })}
+          <div className="w-px h-3.5 mx-0.5 self-center" style={{ background: "rgba(0,0,0,0.1)" }} />
+          <button onClick={() => setPreviewTab(previewTab === "passcode" ? "friends" : "passcode")}
+            className="px-3.5 py-1 text-[12px] font-semibold transition-all rounded-full"
+            style={{
+              color: previewTab === "passcode" ? "#fff" : "#6b6b6b",
+              background: previewTab === "passcode" ? "rgb(255,149,0)" : "transparent",
+              boxShadow: previewTab === "passcode" ? "0 1px 6px rgba(255,149,0,0.35)" : "none",
+              whiteSpace: "nowrap",
+            }}
+          >암호</button>
+        </div>
 
-            {/* ══ 공통 설정 — 항상 표시 ══ */}
-            <div className="text-[12px] font-bold uppercase tracking-widest mb-3 px-2" style={{color:"#000000"}}>공통 설정</div>
+        {/* 오른쪽: OS + 버튼들 */}
+        <div className="flex items-center gap-3">
+          {/* OS 토글 */}
+          <div className="flex items-center rounded-full p-0.5" style={{ background: "rgba(0,0,0,0.07)" }}>
+            {(["ios","android"] as OS[]).map((o) => (
+              <button key={o} onClick={() => setOs(o)}
+                className="px-4 py-1 text-[12px] font-semibold transition-all rounded-full"
+                style={{
+                  color: os === o ? "#fff" : "#8e8e93",
+                  background: os === o ? "rgb(74,123,247)" : "transparent",
+                  boxShadow: os === o ? "0 1px 4px rgba(74,123,247,0.35)" : "none",
+                }}
+              >{o === "ios" ? "iOS" : "Android"}</button>
+            ))}
+          </div>
 
+          {/* 설정 버튼 */}
+          <button onClick={() => setRightSidebarOpen((v) => !v)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all"
+            style={{
+              color: rightSidebarOpen ? "rgb(74,123,247)" : "#6e6e73",
+              background: rightSidebarOpen ? "rgba(74,123,247,0.1)" : "rgba(0,0,0,0.05)",
+              border: rightSidebarOpen ? "1px solid rgba(74,123,247,0.2)" : "1px solid transparent",
+            }}
+          >
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+              <circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.6"/>
+              <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+            </svg>
+            설정
+          </button>
+
+          {/* 다운로드 버튼 */}
+          <button onClick={handleDownload}
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[12px] font-bold transition-all active:scale-95"
+            style={{
+              background: "rgb(255,149,0)",
+              color: "#fff",
+              boxShadow: "0 2px 8px rgba(255,149,0,0.35)",
+            }}
+          >
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+              <path d="M8 2v8M5 7l3 3 3-3M2 12h12" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            {os === "ios" ? ".ktheme 저장" : "APK 빌드"}
+          </button>
+        </div>
+      </div>
+
+      {/* ── 바디 ── */}
+      <div className="flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 96px)" }}>
+
+        {/* ── 좌측 설정 패널 ── */}
+        <aside
+          ref={leftAsideRef}
+          className="w-64 overflow-y-auto mac-scroll shrink-0 flex flex-col"
+          style={{
+            background: "rgba(252,252,254,0.96)",
+            borderRight: "1px solid rgba(0,0,0,0.07)",
+          }}
+        >
+          {/* 패널 상단: 공통 설정 레이블 */}
+          <div className="px-5 pt-5 pb-2 shrink-0">
+            <p className="text-[10px] font-bold tracking-[0.14em] uppercase" style={{ color: "rgb(74,123,247)" }}>공통 설정</p>
+          </div>
+
+          <div className="px-3 pb-2">
             <Accordion title="배경 · 바디" badge="MainViewStyle">
               <ColorRow label="배경색" value={config.bodyBg} onChange={set("bodyBg")} tooltip="background-color — MainViewStyle" />
               <ImageUploadRow label="배경 이미지" tooltip="mainBgImage.png (상단/센터 크롭)" imgKey="mainBg" imageUploads={imageUploads} onUpload={handleImageUpload} />
@@ -1186,75 +1293,28 @@ export default function CreatePage() {
               <ColorRow label="일반 아이콘" value={config.tabBarIcon} onChange={set("tabBarIcon")} tooltip="각 탭 -normal 아이콘 컬러" />
               <ColorRow label="선택 아이콘" value={config.tabBarSelectedIcon} onChange={set("tabBarSelectedIcon")} tooltip="각 탭 -selected 아이콘 컬러" />
               <ImageUploadRow label="탭바 배경 이미지" tooltip="maintabBgImage.png" imgKey="tabBg" imageUploads={imageUploads} onUpload={handleImageUpload} />
-              <div className="mt-3 mb-1 text-[11px] font-semibold px-1" style={{ color: "#706765" }}>
+              <div className="mt-2 mb-1.5 text-[10px] font-bold px-1 tracking-wide" style={{ color: "rgb(74,123,247)" }}>
                 탭 아이콘 이미지 (전체)
               </div>
               {[
-                {
-                  label: "친구",
-                  settingKey: "tab-friends",
-                  normalKey: "tabFriendsNormal",
-                  selectedKey: "tabFriendsSelected",
-                  normalTooltip: "-ios-friends-normal-icon-image",
-                  selectedTooltip: "-ios-friends-selected-icon-image",
-                },
-                {
-                  label: "채팅",
-                  settingKey: "tab-chat",
-                  normalKey: "tabChatNormal",
-                  selectedKey: "tabChatSelected",
-                  normalTooltip: "-ios-chats-normal-icon-image",
-                  selectedTooltip: "-ios-chats-selected-icon-image",
-                },
-                {
-                  label: "오픈채팅",
-                  settingKey: "tab-openchat",
-                  normalKey: "tabOpenNormal",
-                  selectedKey: "tabOpenSelected",
-                  normalTooltip: "-ios-openchats-normal-icon-image",
-                  selectedTooltip: "-ios-openchats-selected-icon-image",
-                },
-                {
-                  label: "쇼핑",
-                  settingKey: "tab-shopping",
-                  normalKey: "tabShopNormal",
-                  selectedKey: "tabShopSelected",
-                  normalTooltip: "-ios-shopping-normal-icon-image",
-                  selectedTooltip: "-ios-shopping-selected-icon-image",
-                },
-                {
-                  label: "더보기",
-                  settingKey: "tab-more",
-                  normalKey: "tabMoreNormal",
-                  selectedKey: "tabMoreSelected",
-                  normalTooltip: "-ios-more-normal-icon-image",
-                  selectedTooltip: "-ios-more-selected-icon-image",
-                },
+                { label: "친구", settingKey: "tab-friends", normalKey: "tabFriendsNormal", selectedKey: "tabFriendsSelected", normalTooltip: "-ios-friends-normal-icon-image", selectedTooltip: "-ios-friends-selected-icon-image" },
+                { label: "채팅", settingKey: "tab-chat", normalKey: "tabChatNormal", selectedKey: "tabChatSelected", normalTooltip: "-ios-chats-normal-icon-image", selectedTooltip: "-ios-chats-selected-icon-image" },
+                { label: "오픈채팅", settingKey: "tab-openchat", normalKey: "tabOpenNormal", selectedKey: "tabOpenSelected", normalTooltip: "-ios-openchats-normal-icon-image", selectedTooltip: "-ios-openchats-selected-icon-image" },
+                { label: "쇼핑", settingKey: "tab-shopping", normalKey: "tabShopNormal", selectedKey: "tabShopSelected", normalTooltip: "-ios-shopping-normal-icon-image", selectedTooltip: "-ios-shopping-selected-icon-image" },
+                { label: "더보기", settingKey: "tab-more", normalKey: "tabMoreNormal", selectedKey: "tabMoreSelected", normalTooltip: "-ios-more-normal-icon-image", selectedTooltip: "-ios-more-selected-icon-image" },
               ].map((item) => (
                 <div
                   key={item.label}
                   data-setting-key={item.settingKey}
-                  className="rounded-lg px-2 py-2 mb-2 transition-colors"
+                  className="rounded-xl px-2 py-2 mb-1.5 transition-colors"
                   style={{
-                    background: selectedSettingKey === item.settingKey ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.45)",
-                    border: selectedSettingKey === item.settingKey ? "1px solid rgba(0,0,0,0.14)" : "1px solid rgba(0,0,0,0.06)",
+                    background: selectedSettingKey === item.settingKey ? "rgba(74,123,247,0.07)" : "transparent",
+                    borderLeft: selectedSettingKey === item.settingKey ? "2px solid rgba(74,123,247,0.5)" : "2px solid transparent",
                   }}
                 >
-                  <div className="text-[12px] font-semibold mb-1" style={{ color: "#706765" }}>{item.label}</div>
-                  <ImageUploadRow
-                    label={`${item.label} 탭 일반`}
-                    tooltip={item.normalTooltip}
-                    imgKey={item.normalKey}
-                    imageUploads={imageUploads}
-                    onUpload={handleImageUpload}
-                  />
-                  <ImageUploadRow
-                    label={`${item.label} 탭 선택`}
-                    tooltip={item.selectedTooltip}
-                    imgKey={item.selectedKey}
-                    imageUploads={imageUploads}
-                    onUpload={handleImageUpload}
-                  />
+                  <div className="text-[11px] font-semibold mb-1 px-1" style={{ color: selectedSettingKey === item.settingKey ? "rgb(74,123,247)" : "#6e6e73" }}>{item.label}</div>
+                  <ImageUploadRow label={`${item.label} 탭 일반`} tooltip={item.normalTooltip} imgKey={item.normalKey} imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ImageUploadRow label={`${item.label} 탭 선택`} tooltip={item.selectedTooltip} imgKey={item.selectedKey} imageUploads={imageUploads} onUpload={handleImageUpload} />
                 </div>
               ))}
             </Accordion>
@@ -1263,31 +1323,35 @@ export default function CreatePage() {
               <ImageUploadRow label="기본 프로필 이미지" tooltip="profileImg01.png" imgKey="defaultProfile" imageUploads={imageUploads} onUpload={handleImageUpload} />
               <ImageUploadRow label="앱 아이콘 (162×162)" tooltip="commonIcoTheme.png — 테마 목록 아이콘" imgKey="icon" imageUploads={imageUploads} onUpload={handleImageUpload} />
             </Accordion>
+          </div>
 
-            {/* ══ 탭별 전용 설정 ══ */}
-            {previewTab !== "passcode" && (
-              <div className="text-[12px] font-bold uppercase tracking-widest mt-6 mb-3 px-2" style={{color:"#000000"}}>
+          {/* 탭별 설정 구분선 */}
+          {previewTab !== "passcode" && (
+            <div className="px-5 pt-4 pb-2 shrink-0" style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
+              <p className="text-[10px] font-bold tracking-[0.14em] uppercase" style={{ color: "rgb(74,123,247)" }}>
                 {previewTab === "friends" && "친구 탭 설정"}
                 {previewTab === "chat" && "채팅 탭 설정"}
                 {previewTab === "openchat" && "오픈채팅 탭 설정"}
                 {previewTab === "shopping" && "쇼핑 탭 설정"}
                 {previewTab === "more" && "더보기 탭 설정"}
-              </div>
-            )}
+              </p>
+            </div>
+          )}
+          {previewTab === "passcode" && (
+            <div className="px-5 pt-4 pb-2 shrink-0" style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
+              <p className="text-[10px] font-bold tracking-[0.14em] uppercase" style={{ color: "rgb(74,123,247)" }}>암호 설정</p>
+            </div>
+          )}
 
-            {/* 친구 탭 */}
+          <div className="px-3 pb-6">
             {previewTab === "friends" && (
-              <>
-                <Accordion title="친구 목록" badge="FriendsStyle">
-                  <ColorRow label="이름 텍스트" value={config.friendsNameText} onChange={set("friendsNameText")} tooltip="-ios-text-color (친구 이름)" />
-                  <ColorRow label="상태메시지 텍스트" value={config.descText} onChange={set("descText")} tooltip="-ios-description-text-color (상태 메시지, 생일 섹션)" />
-                  <ColorRow label="구분선 색" value={config.friendsBorderColor} onChange={set("friendsBorderColor")} tooltip="border-color (리스트 구분선)" />
-                  <ColorRow label="선택 시 배경" value={config.friendsSelectedBg} onChange={set("friendsSelectedBg")} tooltip="-ios-selected-background-color (친구 클릭 시)" />
-                </Accordion>
-              </>
+              <Accordion title="친구 목록" badge="FriendsStyle">
+                <ColorRow label="이름 텍스트" value={config.friendsNameText} onChange={set("friendsNameText")} tooltip="-ios-text-color (친구 이름)" />
+                <ColorRow label="상태메시지 텍스트" value={config.descText} onChange={set("descText")} tooltip="-ios-description-text-color (상태 메시지, 생일 섹션)" />
+                <ColorRow label="구분선 색" value={config.friendsBorderColor} onChange={set("friendsBorderColor")} tooltip="border-color (리스트 구분선)" />
+                <ColorRow label="선택 시 배경" value={config.friendsSelectedBg} onChange={set("friendsSelectedBg")} tooltip="-ios-selected-background-color (친구 클릭 시)" />
+              </Accordion>
             )}
-
-            {/* 채팅 탭 */}
             {previewTab === "chat" && (
               <>
                 <Accordion title="채팅 목록" badge="ChatsStyle">
@@ -1307,43 +1371,33 @@ export default function CreatePage() {
                   <ColorRow label="입력 필드 배경" value={config.inputFieldBg} onChange={set("inputFieldBg")} tooltip="-ios-button-normal-background-color" />
                 </Accordion>
                 <Accordion title="말풍선" badge="MessageStyle">
-                  <div className="text-[12px] px-1 mb-1" style={{color:"#706765"}}>보낸 메시지 (Send)</div>
+                  <div className="text-[11px] px-1 mb-1 font-semibold" style={{color:"#6e6e73"}}>보낸 메시지 (Send)</div>
                   <ColorRow label="배경색" value={config.myBubbleBg} onChange={set("myBubbleBg")} tooltip="BubbleSend01/02.png 대체색" />
                   <ColorRow label="텍스트" value={config.myBubbleText} onChange={set("myBubbleText")} tooltip="-ios-text-color (send)" />
                   <ImageUploadRow label="말풍선 이미지 1" tooltip="BubbleSend01.png" imgKey="bubbleSend1" imageUploads={imageUploads} onUpload={handleImageUpload} />
                   <ImageUploadRow label="말풍선 이미지 2" tooltip="BubbleSend02.png (연속)" imgKey="bubbleSend2" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <div className="text-[12px] px-1 mt-2 mb-1" style={{color:"#706765"}}>받은 메시지 (Receive)</div>
+                  <div className="text-[11px] px-1 mt-3 mb-1 font-semibold" style={{color:"#6e6e73"}}>받은 메시지 (Receive)</div>
                   <ColorRow label="배경색" value={config.otherBubbleBg} onChange={set("otherBubbleBg")} tooltip="BubbleReceive01/02.png 대체색" />
                   <ColorRow label="텍스트" value={config.otherBubbleText} onChange={set("otherBubbleText")} tooltip="-ios-text-color (receive)" />
                   <ImageUploadRow label="말풍선 이미지 1" tooltip="BubbleReceive01.png" imgKey="bubbleReceive1" imageUploads={imageUploads} onUpload={handleImageUpload} />
                   <ImageUploadRow label="말풍선 이미지 2" tooltip="BubbleReceive02.png (연속)" imgKey="bubbleReceive2" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <div className="text-[12px] px-1 mt-2 mb-1" style={{color:"#706765"}}>공통</div>
+                  <div className="text-[11px] px-1 mt-3 mb-1 font-semibold" style={{color:"#6e6e73"}}>공통</div>
                   <ColorRow label="안읽은 숫자 색" value={config.unreadCountColor} onChange={set("unreadCountColor")} tooltip="-ios-unread-text-color" />
                 </Accordion>
               </>
             )}
-
-            {/* 오픈채팅 탭 */}
             {previewTab === "openchat" && (
-              <>
-                <Accordion title="오픈채팅 스타일" badge="OpenChatStyle">
-                  <ColorRow label="바디 배경색" value={config.openchatBg} onChange={set("openchatBg")} tooltip="background-color (오픈채팅 바디)" />
-                  <ColorRow label="타이틀 · 본문 텍스트" value={config.openchatText} onChange={set("openchatText")} tooltip="-ios-text-color (커뮤니티 타이틀, 피드 본문)" />
-                </Accordion>
-              </>
+              <Accordion title="오픈채팅 스타일" badge="OpenChatStyle">
+                <ColorRow label="바디 배경색" value={config.openchatBg} onChange={set("openchatBg")} tooltip="background-color (오픈채팅 바디)" />
+                <ColorRow label="타이틀 · 본문 텍스트" value={config.openchatText} onChange={set("openchatText")} tooltip="-ios-text-color (커뮤니티 타이틀, 피드 본문)" />
+              </Accordion>
             )}
-
-            {/* 쇼핑 탭 */}
             {previewTab === "shopping" && (
-              <>
-                <Accordion title="쇼핑 스타일" badge="ShoppingStyle">
-                  <ColorRow label="배경색" value={config.shoppingBg} onChange={set("shoppingBg")} tooltip="background-color (쇼핑 메인)" />
-                  <ColorRow label="상품명 · 정보 텍스트" value={config.shoppingText} onChange={set("shoppingText")} tooltip="-ios-text-color (상품명, 정보)" />
-                </Accordion>
-              </>
+              <Accordion title="쇼핑 스타일" badge="ShoppingStyle">
+                <ColorRow label="배경색" value={config.shoppingBg} onChange={set("shoppingBg")} tooltip="background-color (쇼핑 메인)" />
+                <ColorRow label="상품명 · 정보 텍스트" value={config.shoppingText} onChange={set("shoppingText")} tooltip="-ios-text-color (상품명, 정보)" />
+              </Accordion>
             )}
-
-            {/* 더보기 탭 */}
             {previewTab === "more" && (
               <>
                 <Accordion title="더보기 스타일" badge="MoreStyle">
@@ -1357,12 +1411,8 @@ export default function CreatePage() {
                 </Accordion>
               </>
             )}
-
-            {/* ══ 암호 설정 — passcode 탭일 때만 표시 ══ */}
             {previewTab === "passcode" && (
               <>
-                <div className="text-[12px] font-bold uppercase tracking-widest mt-6 mb-3 px-2" style={{color:"#000000"}}>암호 설정</div>
-
                 <Accordion title="암호화면 스타일" badge="PasscodeStyle">
                   <ColorRow label="배경색" value={config.passcodeBg} onChange={set("passcodeBg")} tooltip="background-color — PasscodeStyle" />
                   <ColorRow label="안내 텍스트 색" value={config.passcodeTitleText} onChange={set("passcodeTitleText")} tooltip="-ios-text-color (비밀번호 입력 안내)" />
@@ -1370,297 +1420,164 @@ export default function CreatePage() {
                   <ColorRow label="키패드 텍스트" value={config.passcodeKeypadText} onChange={set("passcodeKeypadText")} tooltip="-ios-keypad-text-normal-color" />
                   <ImageUploadRow label="배경 이미지" tooltip="passcodeBgImage.png" imgKey="passcodeBgImg" imageUploads={imageUploads} onUpload={handleImageUpload} />
                 </Accordion>
-
                 <Accordion title="불릿 이미지" badge="Bullet (8종)">
-                  <div className="text-[12px] px-1 mb-1" style={{color:"#706765"}}>미입력 (4종)</div>
+                  <div className="text-[11px] px-1 mb-1 font-semibold" style={{color:"#6e6e73"}}>미입력 (4종)</div>
                   {["bullet1Empty","bullet2Empty","bullet3Empty","bullet4Empty"].map((k, i) => (
                     <ImageUploadRow key={k} label={`불릿 ${i+1} (미입력)`} tooltip={`-ios-bullet-${["first","second","third","fourth"][i]}-image`} imgKey={k} imageUploads={imageUploads} onUpload={handleImageUpload} />
                   ))}
-                  <div className="text-[12px] px-1 mt-2 mb-1" style={{color:"#706765"}}>입력 시 (4종)</div>
+                  <div className="text-[11px] px-1 mt-3 mb-1 font-semibold" style={{color:"#6e6e73"}}>입력 시 (4종)</div>
                   {["bullet1Fill","bullet2Fill","bullet3Fill","bullet4Fill"].map((k, i) => (
                     <ImageUploadRow key={k} label={`불릿 ${i+1} (입력)`} tooltip={`-ios-bullet-${["first","second","third","fourth"][i]}-selected-image`} imgKey={k} imageUploads={imageUploads} onUpload={handleImageUpload} />
                   ))}
                 </Accordion>
               </>
             )}
-
           </div>
         </aside>
 
         {/* ── 중앙 프리뷰 ── */}
-          <main className="flex-1 flex flex-row items-start justify-center gap-4 overflow-hidden pt-2 pb-8">
-          {/* 프리뷰 콘텐츠 */}
-          <div className="flex flex-col items-center gap-4">
-          {/* OS 토글 */}
-          <div className="flex items-center border-b border-black/10">
-            {(["ios", "android"] as OS[]).map((o) => (
-              <button
-                key={o}
-                onClick={() => setOs(o)}
-                className="px-6 py-2 text-[13px] font-medium transition-all relative"
-                style={{
-                  color: os === o ? "#1c1c1e" : "#8e8e93",
-                  borderBottom: os === o ? "2px solid #1c1c1e" : "2px solid transparent",
-                  marginBottom: "-1px",
-                }}
-              >
-                {o === "ios" ? "iOS" : "Android"}
-              </button>
-            ))}
-          </div>
-
-          {/* 목업 */}
-          <div className="transition-all duration-300 ease-out mt-2">
+        <main className="flex-1 flex items-center justify-center overflow-hidden">
+          <div className="transition-all duration-300 ease-out">
             {os === "ios" && previewTab === "friends" ? (
-              <div className="flex items-start gap-6">
-                <div>
-                  <PreviewMockup disableTabNavigation />
-                </div>
-                <div>
-                  <PreviewNewsMockup disableTabNavigation />
-                </div>
+              <div className="flex items-start gap-8">
+                <PreviewMockup disableTabNavigation />
+                <PreviewNewsMockup disableTabNavigation />
               </div>
             ) : os === "ios" && previewTab === "chat" ? (
-              <div className="flex items-start gap-6">
-                <div>
-                  <PreviewMockup disableTabNavigation />
-                </div>
-                <div>
-                  <PreviewChatRoomMockup />
-                </div>
+              <div className="flex items-start gap-8">
+                <PreviewMockup disableTabNavigation />
+                <PreviewChatRoomMockup />
               </div>
             ) : os === "ios" ? (
               <PreviewMockup disableTabNavigation />
             ) : previewTab === "friends" ? (
               <div className="flex items-start gap-8">
-                <div className="flex flex-col items-center">
-                  <AndroidMockup config={config} previewTab="friends" />
-                </div>
-                <div className="flex flex-col items-center">
-                  <AndroidFriendsProfileMockup config={config} />
-                </div>
+                <AndroidMockup config={config} previewTab="friends" />
+                <AndroidFriendsProfileMockup config={config} />
               </div>
             ) : previewTab === "chat" ? (
               <div className="flex items-start gap-8">
-                <div className="flex flex-col items-center">
-                  <AndroidMockup config={config} previewTab="chat" />
-                </div>
-                <div className="flex flex-col items-center">
-                  <AndroidChatRoomMockup config={config} />
-                </div>
+                <AndroidMockup config={config} previewTab="chat" />
+                <AndroidChatRoomMockup config={config} />
               </div>
             ) : (
               <AndroidMockup config={config} previewTab={previewTab} />
             )}
           </div>
-
-          {/* 프리뷰 탭 */}
-          <div className="flex items-center border-b border-black/10">
-            {(["friends", "chat", "openchat", "shopping", "more"] as PreviewTab[]).map((tab) => {
-              const labels: Record<PreviewTab, string> = {
-                friends: "친구",
-                chat: "채팅",
-                openchat: "오픈채팅",
-                shopping: "쇼핑",
-                more: "더보기",
-                passcode: "암호",
-              };
-              return (
-                <button
-                  key={tab}
-                  onClick={() => { setPreviewTab(tab); }}
-                  className="px-7 py-2 text-[13px] font-semibold transition-all"
-                  style={{
-                    color: previewTab === tab ? "#1c1c1e" : "#6b6b6b",
-                    borderBottom: previewTab === tab ? "2px solid #1c1c1e" : "2px solid transparent",
-                    marginBottom: "-1px",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {labels[tab]}
-                </button>
-              );
-            })}
-            <div className="w-px h-4 mx-1 self-center" style={{ backgroundColor: "rgba(0,0,0,0.12)" }} />
-            <button
-              onClick={() => { setPreviewTab(previewTab === "passcode" ? "friends" : "passcode"); }}
-              className="px-7 py-2 text-[13px] font-semibold transition-all"
-              style={{
-                color: previewTab === "passcode" ? "#1c1c1e" : "#6b6b6b",
-                borderBottom: previewTab === "passcode" ? "2px solid #1c1c1e" : "2px solid transparent",
-                marginBottom: "-1px",
-                whiteSpace: "nowrap",
-              }}
-            >
-              암호
-            </button>
-          </div>
-          </div>{/* end 프리뷰 콘텐츠 */}
-
-          {/* 오른쪽 버튼 패널 */}
-          <div className="flex flex-row gap-2 pt-10 shrink-0 ml-16">
-            {/* 다운로드 버튼 */}
-            <button
-              onClick={handleDownload}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold transition-all active:scale-95"
-              style={{
-                background: "rgba(255,229,0,0.9)",
-                color: "#3A1D1D",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.15), 0 1px 0 rgba(255,255,255,0.5) inset",
-              }}
-            >
-              {os === "ios" ? "⬇ .ktheme" : "⬇ APK 빌드"}
-            </button>
-            {/* 설정 버튼 */}
-            <button
-              onClick={() => setRightSidebarOpen((v) => !v)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold transition-all active:scale-95"
-              style={{
-                background: rightSidebarOpen ? "rgba(0,0,0,0.12)" : "rgba(0,0,0,0.06)",
-                color: "#3a3a3c",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-              }}
-            >
-              ⚙ 설정
-            </button>
-          </div>
         </main>
 
-        {/* ── 우측 사이드바 ── */}
+        {/* ── 우측 설정 패널 (슬라이드) ── */}
         {rightSidebarOpen && (
-        <aside
-          className="w-80 overflow-y-auto mac-scroll shrink-0"
-          style={{
-            background: "rgba(248, 248, 250, 0.78)",
-            backdropFilter: "blur(40px) saturate(200%)",
-            WebkitBackdropFilter: "blur(40px) saturate(200%)",
-            borderLeft: "1px solid rgba(0,0,0,0.06)",
-            boxShadow: "-1px 0 0 rgba(255,255,255,0.6) inset",
-          }}
-        >
-          <div className="p-3.5 flex flex-col gap-3">
-            <SectionTitle>기본 정보</SectionTitle>
+          <aside
+            className="w-64 overflow-y-auto mac-scroll shrink-0"
+            style={{
+              background: "rgba(252,252,254,0.96)",
+              borderLeft: "1px solid rgba(0,0,0,0.07)",
+            }}
+          >
+            <div className="px-5 pt-5 pb-2 shrink-0">
+              <p className="text-[10px] font-bold tracking-[0.14em] uppercase" style={{ color: "rgb(74,123,247)" }}>테마 정보</p>
+            </div>
+            <div className="px-4 pb-2 flex flex-col gap-4">
+              <MacInput label="테마 이름" value={config.name} onChange={set("name")} placeholder="나의 테마" />
+              <MacInput
+                label="버전"
+                hint={os === "ios" ? "(-kakaotalk-theme-version)" : "(versionName)"}
+                value={config.version}
+                onChange={set("version")}
+                placeholder="1.0.0"
+                readOnly={true}
+              />
+              <MacInput
+                label="패키지 ID"
+                hint={os === "ios" ? "(-kakaotalk-theme-id)" : "(namespace)"}
+                value={config.packageId}
+                onChange={set("packageId")}
+                placeholder="com.kakao.talk.theme.id"
+              />
+              <MacInput
+                label="크리에이터 이름"
+                hint="(-kakaotalk-author-name)"
+                value={config.authorName}
+                onChange={set("authorName")}
+                placeholder="크리에이터"
+              />
 
-            <MacInput label="테마 이름" value={config.name} onChange={set("name")} placeholder="나의 테마" />
-            <MacInput
-              label="버전"
-              hint={os === "ios" ? "(-kakaotalk-theme-version)" : "(versionName)"}
-              value={config.version}
-              onChange={set("version")}
-              placeholder="1.0.0"
-              readOnly={true}
-            />
-            <MacInput
-              label="패키지 ID"
-              hint={os === "ios" ? "(-kakaotalk-theme-id)" : "(namespace)"}
-              value={config.packageId}
-              onChange={set("packageId")}
-              placeholder="com.kakao.talk.theme.id"
-            />
-            <MacInput
-              label="크리에이터 이름"
-              hint="(-kakaotalk-author-name)"
-              value={config.authorName}
-              onChange={set("authorName")}
-              placeholder="크리에이터"
-            />
-
-            {/* 다크모드 토글 */}
-            <div
-              className="flex items-center justify-between rounded-xl px-3 py-2.5 glass"
-            >
-              <div>
-                <div className="text-[12px] font-semibold text-[#1c1c1e]">다크모드</div>
-                <div className="text-[10px] text-[#8e8e93] mt-0.5">
-                  {os === "ios" ? "-kakaotalk-theme-style: dark" : "theme_style: dark"}
+              {/* 다크모드 토글 */}
+              <div className="flex items-center justify-between py-2.5" style={{ borderTop: "1px solid rgba(0,0,0,0.06)", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+                <div>
+                  <div className="text-[13px] font-semibold" style={{color:"#2c2c2e"}}>다크모드</div>
+                  <div className="text-[10px] mt-0.5 font-mono" style={{color:"#aeaeb2"}}>
+                    {os === "ios" ? "-kakaotalk-theme-style: dark" : "theme_style: dark"}
+                  </div>
                 </div>
+                <button
+                  onClick={() => set("darkMode")(!config.darkMode)}
+                  className="w-[38px] h-[22px] rounded-full relative transition-all duration-200 shrink-0"
+                  style={{
+                    backgroundColor: config.darkMode ? "#34c759" : "rgba(0,0,0,0.15)",
+                    boxShadow: config.darkMode ? "0 0 0 1px rgba(52,199,89,0.4)" : "0 0 0 1px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <div className="absolute top-[2px] w-[18px] h-[18px] rounded-full bg-white shadow-md transition-all duration-200"
+                    style={{ left: config.darkMode ? "18px" : "2px" }} />
+                </button>
               </div>
-              <button
-                onClick={() => set("darkMode")(!config.darkMode)}
-                className="w-[38px] h-[22px] rounded-full relative transition-all duration-200 shrink-0"
-                style={{
-                  backgroundColor: config.darkMode ? "#34c759" : "rgba(0,0,0,0.15)",
-                  boxShadow: config.darkMode
-                    ? "0 0 0 1px rgba(52,199,89,0.4), 0 1px 3px rgba(0,0,0,0.2)"
-                    : "0 0 0 1px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.1)",
-                }}
-              >
-                <div
-                  className="absolute top-[2px] w-[18px] h-[18px] rounded-full bg-white shadow-md transition-all duration-200"
-                  style={{ left: config.darkMode ? "18px" : "2px" }}
-                />
-              </button>
             </div>
 
             {/* Android 전용 */}
             {os === "android" && (
               <>
-                <SectionTitle>Android 빌드 설정</SectionTitle>
-                <MacInput
-                  label="namespace"
-                  hint="(build.gradle)"
-                  value={config.namespace}
-                  onChange={set("namespace")}
-                />
-                <div className="flex gap-2">
-                  <MacInput label="compileSdk" hint="(권장: 34)" value={config.compileSdk} onChange={set("compileSdk")} type="number" />
-                  <MacInput label="targetSdk" hint="(권장: 34)" value={config.targetSdk} onChange={set("targetSdk")} type="number" />
+                <div className="px-5 pt-4 pb-2" style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
+                  <p className="text-[10px] font-bold tracking-[0.14em] uppercase" style={{ color: "rgb(74,123,247)" }}>Android 빌드 설정</p>
                 </div>
-                <div className="flex gap-1.5 flex-wrap mt-1">
-                  {["ldpi", "mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi"].map((dpi) => (
-                    <span
-                      key={dpi}
-                      className="text-[10px] rounded-full px-2 py-0.5"
-                      style={{
-                        background: "rgba(52,199,89,0.12)",
-                        color: "#1a7a32",
-                        border: "1px solid rgba(52,199,89,0.2)",
-                      }}
-                    >
-                      {dpi}
-                    </span>
-                  ))}
+                <div className="px-4 pb-4 flex flex-col gap-3">
+                  <MacInput label="namespace" hint="(build.gradle)" value={config.namespace} onChange={set("namespace")} />
+                  <div className="flex gap-2">
+                    <MacInput label="compileSdk" hint="(권장: 34)" value={config.compileSdk} onChange={set("compileSdk")} type="number" />
+                    <MacInput label="targetSdk" hint="(권장: 34)" value={config.targetSdk} onChange={set("targetSdk")} type="number" />
+                  </div>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {["ldpi", "mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi"].map((dpi) => (
+                      <span key={dpi} className="text-[10px] rounded-full px-2 py-0.5 font-mono"
+                        style={{ background: "rgba(74,123,247,0.1)", color: "rgb(74,123,247)", border: "1px solid rgba(74,123,247,0.2)" }}>
+                        {dpi}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-[10px] leading-relaxed" style={{color:"#8e8e93"}}>
+                    각 해상도 폴더에 대응하는 이미지를 업로드하세요. xhdpi 기준 제작 권장.
+                  </p>
                 </div>
-                <p className="text-[10px] text-[#8e8e93] leading-relaxed">
-                  각 해상도 폴더에 대응하는 이미지를 업로드하세요. xhdpi 기준 제작 권장.
-                </p>
               </>
             )}
 
             {/* iOS 가이드 */}
             {os === "ios" && (
               <>
-                <SectionTitle>iOS 가이드</SectionTitle>
-                <div
-                  className="rounded-xl p-3 flex flex-col gap-2"
-                  style={{
-                    background: "rgba(255,229,0,0.12)",
-                    border: "1px solid rgba(255,210,0,0.3)",
-                  }}
-                >
+                <div className="px-5 pt-4 pb-2" style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
+                  <p className="text-[10px] font-bold tracking-[0.14em] uppercase" style={{ color: "rgb(74,123,247)" }}>iOS 가이드</p>
+                </div>
+                <div className="px-4 pb-6 flex flex-col gap-2">
                   {[
                     "📦 Images 폴더 + CSS를 ZIP 압축 후 확장자를 .ktheme로 변경",
                     "🖼 이미지는 2배수(@2x) 기준으로 제작",
                     "⚠️ 이미지가 컬러보다 우선 적용됩니다",
                     "📐 인셋(Inset)은 1배수 기준 수치 사용",
                   ].map((text, i) => (
-                    <p key={i} className="text-[10px] leading-relaxed" style={{ color: "#7a5800" }}>
-                      {text}
-                    </p>
+                    <p key={i} className="text-[11px] leading-relaxed" style={{ color: "#8a5200" }}>{text}</p>
                   ))}
                 </div>
               </>
             )}
-
-
-          </div>
-        </aside>
+          </aside>
         )}
       </div>
+
       <style jsx global>{`
         [data-active-element-id][data-active-selected="true"] {
-          background: rgba(0, 0, 0, 0.05);
-          box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+          background: rgba(74, 123, 247, 0.08);
+          box-shadow: inset 0 0 0 1.5px rgba(74, 123, 247, 0.35);
           border-radius: 10px;
         }
       `}</style>
