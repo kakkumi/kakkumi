@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, startTransition } from "react";
+import JSZip from "jszip";
 import Header from "../components/Header";
 
 import { PreviewNewsMockup } from "../../stories/PreviewNewsMockup";
@@ -1110,20 +1111,116 @@ export default function CreatePage() {
     setImageUploads((prev) => ({ ...prev, [key]: url }));
   };
 
-  const handleDownload = () => {
-    const filename =
-      os === "ios"
-        ? `${config.name.replace(/\s/g, "_")}.ktheme`
-        : `${config.name.replace(/\s/g, "_")}.apk`;
-    const content =
-      os === "ios"
-        ? generateCSS(config)
-        : `// Android APK 빌드 시뮬레이션\n// namespace: ${config.namespace}\n// compileSdk: ${config.compileSdk}\n// targetSdk: ${config.targetSdk}`;
-    const blob = new Blob([content], { type: "text/plain" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    a.click();
+  const handleDownload = async () => {
+    if (os === "ios") {
+      // iOS: CSS 내용을 .ktheme 파일로 다운로드
+      const filename = `${config.name.replace(/\s/g, "_")}.ktheme`;
+      const content = generateCSS(config);
+      const blob = new Blob([content], { type: "text/plain" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+    } else {
+      // Android: 테마 구조를 ZIP으로 다운로드
+      const zip = new JSZip();
+      const themeName = config.name.replace(/\s/g, "_");
+
+      // colors.xml 생성
+      const colorsXml = `<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <color name="tab_bar_background">${config.tabBarBg}</color>
+  <color name="tab_icon_normal">${config.tabBarIcon}</color>
+  <color name="tab_icon_selected">${config.tabBarSelectedIcon}</color>
+  <color name="header_background">${config.headerBg}</color>
+  <color name="header_text">${config.headerText}</color>
+  <color name="body_background">${config.bodyBg}</color>
+  <color name="primary_text">${config.primaryText}</color>
+  <color name="desc_text">${config.descText}</color>
+  <color name="chat_background">${config.chatBg}</color>
+  <color name="input_bar_background">${config.inputBarBg}</color>
+  <color name="send_button_background">${config.sendBtnBg}</color>
+  <color name="send_button_icon">${config.sendBtnIcon}</color>
+  <color name="my_bubble_background">${config.myBubbleBg}</color>
+  <color name="my_bubble_text">${config.myBubbleText}</color>
+  <color name="other_bubble_background">${config.otherBubbleBg}</color>
+  <color name="other_bubble_text">${config.otherBubbleText}</color>
+  <color name="unread_count">${config.unreadCountColor}</color>
+  <color name="passcode_background">${config.passcodeBg}</color>
+  <color name="passcode_title_text">${config.passcodeTitleText}</color>
+  <color name="passcode_keypad_background">${config.passcodeKeypadBg}</color>
+  <color name="passcode_keypad_text">${config.passcodeKeypadText}</color>
+</resources>`;
+
+      // theme.xml 생성
+      const themeXml = `<?xml version="1.0" encoding="utf-8"?>
+<theme>
+  <name>${config.name}</name>
+  <version>${config.version}</version>
+  <namespace>${config.namespace}</namespace>
+  <compileSdk>${config.compileSdk}</compileSdk>
+  <targetSdk>${config.targetSdk}</targetSdk>
+  <author>${config.authorName}</author>
+  <style>${config.darkMode ? "dark" : "light"}</style>
+</theme>`;
+
+      // README.txt 생성
+      const readmeTxt = `카카오톡 Android 테마 패키지
+===========================
+테마 이름: ${config.name}
+버전: ${config.version}
+제작자: ${config.authorName}
+패키지: ${config.namespace}
+
+폴더 구조:
+  res/values/colors.xml  - 색상 정의
+  res/drawable-xhdpi/    - 이미지 리소스 (xhdpi 기준)
+  theme.xml              - 테마 메타데이터
+
+적용 방법:
+1. 이 ZIP 파일의 내용을 Android 테마 프로젝트에 복사하세요.
+2. res/drawable-xhdpi/ 폴더에 이미지를 추가하세요.
+3. 빌드 후 .apk 파일로 배포하세요.
+
+권장 이미지 규격: xhdpi 기준 제작
+`;
+
+      zip.file("theme.xml", themeXml);
+      zip.file("res/values/colors.xml", colorsXml);
+      zip.file("README.txt", readmeTxt);
+      zip.file("res/drawable-xhdpi/.gitkeep", "");
+
+      // 업로드된 이미지가 있으면 포함
+      const imageKeyMap: Record<string, string> = {
+        mainBg: "res/drawable-xhdpi/mainBgImage.png",
+        tabBg: "res/drawable-xhdpi/maintabBgImage.png",
+        chatroomBg: "res/drawable-xhdpi/chatroomBgImage.png",
+        defaultProfile: "res/drawable-xhdpi/profileImg01.png",
+        icon: "res/drawable-xhdpi/commonIcoTheme.png",
+        bubbleSend1: "res/drawable-xhdpi/BubbleSend01.png",
+        bubbleSend2: "res/drawable-xhdpi/BubbleSend02.png",
+        bubbleReceive1: "res/drawable-xhdpi/BubbleReceive01.png",
+        bubbleReceive2: "res/drawable-xhdpi/BubbleReceive02.png",
+        passcodeBgImg: "res/drawable-xhdpi/passcodeBgImage.png",
+      };
+
+      const imagePromises = Object.entries(imageKeyMap)
+        .filter(([key]) => imageUploads[key])
+        .map(async ([key, zipPath]) => {
+          const dataUrl = imageUploads[key];
+          const res = await fetch(dataUrl);
+          const blob = await res.blob();
+          zip.file(zipPath, blob);
+        });
+
+      await Promise.all(imagePromises);
+
+      const content = await zip.generateAsync({ type: "blob" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(content);
+      a.download = `${themeName}_android.zip`;
+      a.click();
+    }
   };
 
   return (
@@ -1287,7 +1384,7 @@ export default function CreatePage() {
           </button>
 
           {/* 다운로드 버튼 */}
-          <button onClick={handleDownload}
+          <button onClick={() => void handleDownload()}
             className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[12px] font-bold transition-all active:scale-95"
             style={{
               background: "rgb(255,149,0)",
@@ -1298,7 +1395,7 @@ export default function CreatePage() {
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
               <path d="M8 2v8M5 7l3 3 3-3M2 12h12" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            {os === "ios" ? ".ktheme 저장" : "APK 빌드"}
+            {os === "ios" ? ".ktheme 저장" : ".zip 저장"}
           </button>
         </div>
       </div>
