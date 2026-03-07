@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 const BASE_NAV_ITEMS = [
     { href: "/store", label: "테마 스토어" },
     { href: "/create", label: "테마 만들기" },
+    { href: "/my-themes", label: "내 테마" },
     { href: "/support", label: "고객센터" },
 ];
 
@@ -23,9 +24,10 @@ function getNavItems(role: string | null) {
         return [
             BASE_NAV_ITEMS[0],
             BASE_NAV_ITEMS[1],
+            BASE_NAV_ITEMS[2],
             CREATOR_APPLY,
             THEME_REGISTER,
-            BASE_NAV_ITEMS[2],
+            BASE_NAV_ITEMS[3],
             ADMIN_PAGE,
         ];
     }
@@ -33,16 +35,18 @@ function getNavItems(role: string | null) {
         return [
             BASE_NAV_ITEMS[0],
             BASE_NAV_ITEMS[1],
-            THEME_REGISTER,
             BASE_NAV_ITEMS[2],
+            THEME_REGISTER,
+            BASE_NAV_ITEMS[3],
         ];
     }
     // USER 또는 비로그인
     return [
         BASE_NAV_ITEMS[0],
         BASE_NAV_ITEMS[1],
-        CREATOR_APPLY,
         BASE_NAV_ITEMS[2],
+        CREATOR_APPLY,
+        BASE_NAV_ITEMS[3],
     ];
 }
 

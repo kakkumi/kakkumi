@@ -1080,6 +1080,29 @@ export default function CreatePage() {
   const set = (key: keyof ThemeConfig) => (value: string | boolean) =>
     setConfig((prev) => ({ ...prev, [key]: value }));
 
+  const [saveToast, setSaveToast] = useState<"idle" | "saving" | "saved">("idle");
+
+  const handleSaveTheme = () => {
+    setSaveToast("saving");
+    try {
+      const raw = localStorage.getItem("kakkumi_my_themes");
+      const existing: { id: string; name: string; savedAt: string; previewImageUrl: string | null; os: "ios" | "android" }[] = raw ? JSON.parse(raw) : [];
+      const newTheme = {
+        id: crypto.randomUUID(),
+        name: config.name,
+        savedAt: new Date().toISOString(),
+        previewImageUrl: imageUploads["mainBg"] ?? null,
+        os,
+      };
+      const updated = [newTheme, ...existing];
+      localStorage.setItem("kakkumi_my_themes", JSON.stringify(updated));
+      setSaveToast("saved");
+      setTimeout(() => setSaveToast("idle"), 2200);
+    } catch {
+      setSaveToast("idle");
+    }
+  };
+
   const handleImageUpload = (key: string, file: File) => {
     const url = URL.createObjectURL(file);
     setImageUploads((prev) => ({ ...prev, [key]: url }));
@@ -1230,6 +1253,35 @@ export default function CreatePage() {
               <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
             </svg>
             설정
+          </button>
+
+          {/* 내 테마에 저장 버튼 */}
+          <button onClick={handleSaveTheme}
+            disabled={saveToast === "saving"}
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[12px] font-bold transition-all active:scale-95 disabled:opacity-60"
+            style={{
+              background: saveToast === "saved" ? "rgb(52,199,89)" : "rgba(74,123,247,1)",
+              color: "#fff",
+              boxShadow: saveToast === "saved" ? "0 2px 8px rgba(52,199,89,0.35)" : "0 2px 8px rgba(74,123,247,0.3)",
+            }}
+          >
+            {saveToast === "saved" ? (
+              <>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M20 6L9 17l-5-5"/>
+                </svg>
+                저장됨
+              </>
+            ) : (
+              <>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
+                  <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                  <polyline points="17 21 17 13 7 13 7 21"/>
+                  <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                내 테마에 저장
+              </>
+            )}
           </button>
 
           {/* 다운로드 버튼 */}
