@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { formatKST } from "@/lib/date";
@@ -231,7 +232,9 @@ const STATUS_LABEL: Record<string, { label: string; bg: string; color: string }>
 };
 
 export default function SupportPage() {
-    const [activeTab, setActiveTab] = useState<Tab>("faq");
+    const searchParams = useSearchParams();
+    const tabParam = searchParams.get("tab") as Tab | null;
+    const [activeTab, setActiveTab] = useState<Tab>(tabParam ?? "faq");
     const [faqCategory, setFaqCategory] = useState<FaqCategory>("전체");
     const [openFaqs, setOpenFaqs] = useState<Set<number>>(new Set());
     const [faqSearch, setFaqSearch] = useState("");

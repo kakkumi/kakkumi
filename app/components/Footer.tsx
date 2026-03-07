@@ -19,7 +19,7 @@ export default function Footer() {
                 <div className="flex items-center gap-5">
                     <Link href="/terms" className="text-[12px] hover:underline" style={{ color: "#6b6b6b" }}>이용약관</Link>
                     <Link href="/privacy" className="text-[12px] hover:underline" style={{ color: "#6b6b6b" }}>개인정보처리방침</Link>
-                    <Link href="/support" className="text-[12px] hover:underline" style={{ color: "#6b6b6b" }}>문의</Link>
+                    <Link href="/support?tab=contact" className="text-[12px] hover:underline" style={{ color: "#6b6b6b" }}>문의</Link>
                     <a href="https://instagram.com/kakkumi" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b6b6b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                             <rect x="2" y="2" width="20" height="20" rx="5" />
@@ -32,5 +32,6 @@ export default function Footer() {
         </footer>
     );
 }
+
 
 
