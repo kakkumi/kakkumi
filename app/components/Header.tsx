@@ -80,6 +80,9 @@ export default function Header() {
         if (href === "/store") {
             return pathname === "/store" || (pathname.startsWith("/store") && pathname !== "/store/register" && !pathname.startsWith("/store/register"));
         }
+        if (href === "/mypage") {
+            return pathname === "/mypage" || pathname.startsWith("/mypage/");
+        }
         return pathname === href || pathname.startsWith(href + "/");
     };
 
@@ -112,7 +115,7 @@ export default function Header() {
                                 className="rounded-lg px-3 py-2 text-[13px] font-medium transition-colors duration-150"
                                 style={{
                                     color: active ? "#ff9500" : isAdminLink ? "#ff3b30" : "#3a3a3c",
-                                    background: active ? "rgba(255, 149, 0, 0.10)" : "transparent",
+                                    background: "transparent",
                                     fontWeight: active ? 700 : isAdminLink ? 600 : 500,
                                 }}
                             >
@@ -124,7 +127,7 @@ export default function Header() {
 
                 <div className="ml-auto flex items-center gap-5">
                     {role && <NotificationBell />}
-                    <AuthStatus />
+                    <AuthStatus myPageColor={isActive("/mypage") ? "#ff9500" : undefined} />
                 </div>
             </div>
         </header>

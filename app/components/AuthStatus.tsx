@@ -17,7 +17,11 @@ type SessionResponse = {
     session: SessionData | null;
 };
 
-export default function AuthStatus() {
+type AuthStatusProps = {
+    myPageColor?: string;
+};
+
+export default function AuthStatus({ myPageColor }: AuthStatusProps) {
     const [session, setSession] = useState<SessionData | null>(null);
     const [loaded, setLoaded] = useState(false);
 
@@ -72,7 +76,7 @@ export default function AuthStatus() {
             <Link
                 href="/mypage"
                 className="text-[13px] font-semibold transition-opacity hover:opacity-70"
-                style={{ color: "#3A1D1D" }}
+                style={{ color: myPageColor ?? "#3A1D1D" }}
             >
                 마이페이지
             </Link>
