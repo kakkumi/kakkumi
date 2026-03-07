@@ -58,7 +58,7 @@ export const MoreScreen = React.memo(function MoreScreen({ config }: { config: S
         minHeight: 0,
         width: '100%',
         overflow: 'hidden',
-        backgroundColor: global.backgroundColor,
+        backgroundColor: config.mainBgImageUrl ? 'transparent' : global.backgroundColor,
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       }}
     >
@@ -134,7 +134,7 @@ export const MoreScreen = React.memo(function MoreScreen({ config }: { config: S
             gridTemplateColumns: 'repeat(4, 1fr)',
             rowGap: 16,
             columnGap: 8,
-            backgroundColor: '#f5f5f5',
+            backgroundColor: `${global.textColor}0F`,
             borderRadius: 14,
             padding: '14px 8px',
           }}>
@@ -153,7 +153,7 @@ export const MoreScreen = React.memo(function MoreScreen({ config }: { config: S
 
           {/* 페이지네이션 닷 */}
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6, marginTop: 14 }}>
-            <div style={{ width: 14, height: 6, borderRadius: 3, backgroundColor: '#0A7BFF' }} />
+            <div style={{ width: 14, height: 6, borderRadius: 3, backgroundColor: global.textColor }} />
             <div style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: `${global.textColor}40` }} />
             <div style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: `${global.textColor}30` }} />
           </div>

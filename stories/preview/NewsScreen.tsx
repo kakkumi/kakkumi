@@ -50,7 +50,7 @@ export const NewsScreen = React.memo(function NewsScreen({ config }: { config: S
         minHeight: 0,
         width: '100%',
         overflow: 'hidden',
-        backgroundColor: global.backgroundColor,
+        backgroundColor: config.mainBgImageUrl ? 'transparent' : global.backgroundColor,
         fontFamily: 'sans-serif',
       }}
     >

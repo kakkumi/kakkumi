@@ -41,7 +41,7 @@ export const OpenChatsScreen = React.memo(function OpenChatsScreen({ config }: {
         minHeight: 0,
         width: '100%',
         overflow: 'hidden',
-        backgroundColor: global.backgroundColor,
+        backgroundColor: config.mainBgImageUrl ? 'transparent' : global.backgroundColor,
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       }}
     >

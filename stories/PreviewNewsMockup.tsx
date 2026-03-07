@@ -60,7 +60,16 @@ export const PreviewNewsMockup = ({ disableTabNavigation = false, mainBgImageUrl
           }}
         />
 
-        <section style={frameStyle}>
+        <section style={{
+          ...frameStyle,
+          ...(mainBgImageUrl ? {
+            backgroundImage: `url(${mainBgImageUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center top',
+            backgroundRepeat: 'no-repeat',
+            backgroundColor: 'transparent',
+          } : {}),
+        }}>
           <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
             <NewsScreen config={screenConfig} />
           </div>

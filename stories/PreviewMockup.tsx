@@ -82,7 +82,16 @@ export const PreviewMockup = ({ disableTabNavigation = false, mainBgImageUrl }: 
           }}
         />
 
-        <section style={frameStyle}>
+        <section style={{
+          ...frameStyle,
+          ...(mainBgImageUrl ? {
+            backgroundImage: `url(${mainBgImageUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center top',
+            backgroundRepeat: 'no-repeat',
+            backgroundColor: 'transparent',
+          } : {}),
+        }}>
           <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>{renderScreen()}</div>
           {showTabBar ? <TabBar disabled={disableTabNavigation} /> : null}
         </section>

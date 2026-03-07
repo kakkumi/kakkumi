@@ -37,12 +37,12 @@ export const ShoppingScreen = React.memo(function ShoppingScreen({ config }: { c
         flex: 1,
         minHeight: 0,
         width: '100%',
-        backgroundColor: global.backgroundColor,
+        backgroundColor: config.mainBgImageUrl ? 'transparent' : global.backgroundColor,
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       }}
     >
       {/* 1. 상단 헤더 */}
-      <header style={{ ...headerBaseStyle, color: global.textColor }}>
+      <header style={{ ...headerBaseStyle, color: global.textColor, backgroundColor: global.backgroundColor }}>
         <h2 data-active-element-id="header-title-icon" style={{ margin: 0, fontSize: 17, fontWeight: 400, color: '#3c2a2a' }}>쇼핑</h2>
         <div data-active-element-id="header-title-icon" style={{ ...iconRowStyle, color: global.textColor }}>
           <Search size={20} strokeWidth={2.3} color={global.textColor} />
@@ -54,7 +54,7 @@ export const ShoppingScreen = React.memo(function ShoppingScreen({ config }: { c
       </header>
 
       {/* 2. 상단 탭 칩 메뉴 */}
-      <div style={{ display: 'flex', gap: 7, padding: '2px 14px 4px 14px' }}>
+      <div style={{ display: 'flex', gap: 7, padding: '2px 14px 4px 14px', backgroundColor: global.backgroundColor }}>
         {[{ label: '홈', active: true }, { label: '랭킹', active: false }].map(({ label, active }) => (
           <button
             key={label}

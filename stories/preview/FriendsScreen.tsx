@@ -107,10 +107,7 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
   };
   const backgroundStyle: React.CSSProperties = config.mainBgImageUrl
     ? {
-        backgroundImage: `url(${config.mainBgImageUrl})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center top',
-        backgroundRepeat: 'no-repeat',
+        backgroundColor: 'transparent',
       }
     : {};
 

@@ -276,6 +276,15 @@ const ImageUploadRow = memo(function ImageUploadRow({ label, tooltip, imgKey, im
   onUpload: (key: string, file: File) => void;
   onRemove?: (key: string) => void;
 }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleRemove = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (inputRef.current) inputRef.current.value = "";
+    onRemove?.(imgKey);
+  };
+
   return (
     <div data-setting-item="true" className="py-2 px-1" style={{ borderBottom: "1px solid rgba(0,0,0,0.045)" }}>
       <div className="flex items-center justify-between gap-2">
@@ -288,28 +297,38 @@ const ImageUploadRow = memo(function ImageUploadRow({ label, tooltip, imgKey, im
             </div>
           </div>
         </div>
-        <label className="flex items-center gap-2 cursor-pointer">
+        <div className="flex items-center gap-2">
           {imageUploads[imgKey] && onRemove ? (
             <button
               type="button"
-              onClick={() => onRemove(imgKey)}
+              onClick={handleRemove}
               className="text-[11px]"
               style={{ color: "#ff3b30" }}
             >
               삭제
             </button>
           ) : null}
-          <div className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden shrink-0 transition-transform hover:scale-105"
-            style={{ background: imageUploads[imgKey] ? "transparent" : "rgba(0,0,0,0.04)", border: "1.5px dashed rgba(0,0,0,0.15)" }}>
-            {imageUploads[imgKey]
-              // eslint-disable-next-line @next/next/no-img-element
-              ? <img src={imageUploads[imgKey]} alt={label} className="w-full h-full object-cover rounded-lg" />
-              : <span className="text-[16px] leading-none" style={{color:"rgba(0,0,0,0.25)"}}>+</span>}
-          </div>
-          <input type="file" accept="image/*" className="hidden"
-            onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(imgKey, f); }} />
-          <span className="text-[11px]" style={{color:"#8e8e93"}}>업로드</span>
-        </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden shrink-0 transition-transform hover:scale-105"
+              style={{ background: imageUploads[imgKey] ? "transparent" : "rgba(0,0,0,0.04)", border: "1.5px dashed rgba(0,0,0,0.15)" }}>
+              {imageUploads[imgKey]
+                // eslint-disable-next-line @next/next/no-img-element
+                ? <img src={imageUploads[imgKey]} alt={label} className="w-full h-full object-cover rounded-lg" />
+                : <span className="text-[16px] leading-none" style={{color:"rgba(0,0,0,0.25)"}}>+</span>}
+            </div>
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) onUpload(imgKey, f);
+                e.target.value = "";
+              }}
+            />
+          </label>
+        </div>
       </div>
     </div>
   );

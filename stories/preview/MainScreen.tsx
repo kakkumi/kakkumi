@@ -41,10 +41,7 @@ export const MainScreen = React.memo(function MainScreen({ config }: { config: S
   };
   const backgroundStyle: React.CSSProperties = config.mainBgImageUrl
     ? {
-        backgroundImage: `url(${config.mainBgImageUrl})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center top',
-        backgroundRepeat: 'no-repeat',
+        backgroundColor: 'transparent',
       }
     : {};
   const chatsTab = {
