@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 // GET /api/my-themes
 export async function GET() {
@@ -25,15 +26,17 @@ export async function GET() {
     return NextResponse.json({ themes });
 }
 
-// POST /api/my-themes  { name, os, previewImageUrl? }
+// POST /api/my-themes  { name, os, previewImageUrl?, configJson?, imageData? }
 export async function POST(req: NextRequest) {
     const session = await getServerSession();
     if (!session?.dbId) return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
 
-    const { name, os, previewImageUrl } = await req.json() as {
+    const { name, os, previewImageUrl, configJson, imageData } = await req.json() as {
         name: string;
         os: string;
         previewImageUrl?: string | null;
+        configJson?: Record<string, unknown> | null;
+        imageData?: Record<string, string> | null;
     };
 
     if (!name?.trim()) return NextResponse.json({ error: "테마 이름을 입력해주세요." }, { status: 400 });
@@ -44,6 +47,8 @@ export async function POST(req: NextRequest) {
             name: name.trim(),
             os,
             previewImageUrl: previewImageUrl ?? null,
+            configJson: configJson === null ? Prisma.DbNull : configJson === undefined ? undefined : (configJson as Prisma.InputJsonValue),
+            imageData: imageData === null ? Prisma.DbNull : imageData === undefined ? undefined : (imageData as Prisma.InputJsonValue),
         },
     });
 

@@ -1,7 +1,36 @@
 import { ChatRoomScreen } from './preview/ChatRoomScreen';
+import { ScreenThemeConfig } from './preview/FriendsScreen';
 import { frameStyle } from './preview/styles';
+import { useThemeStore } from './useThemeStore';
 
 export const PreviewChatRoomMockup = () => {
+  const globalStore = useThemeStore((state) => state.global);
+  const tabBar = useThemeStore((state) => state.tabBar);
+  const chatRoom = useThemeStore((state) => state.chatRoom);
+  const passcode = useThemeStore((state) => state.passcode);
+  const openChatsTab = useThemeStore((state) => state.openChatsTab);
+
+  const screenConfig: ScreenThemeConfig = {
+    bodyBg: globalStore.bodyBg,
+    headerBg: globalStore.headerBg,
+    headerText: globalStore.headerText,
+    primaryText: globalStore.primaryText,
+    descText: globalStore.descText,
+    tabBarBg: tabBar.backgroundColor,
+    tabBarIcon: tabBar.inactiveIconColor,
+    tabBarSelectedIcon: tabBar.activeIconColor,
+    friendsSelectedBg: globalStore.bodyBg,
+    chatBg: chatRoom.backgroundColor,
+    otherBubbleBg: chatRoom.friendBubbleBg,
+    myBubbleBg: chatRoom.myBubbleBg,
+    inputBarBg: chatRoom.inputBarBg,
+    sendBtnBg: chatRoom.sendButtonBg,
+    passcodeBg: passcode.backgroundColor,
+    passcodeTitleText: passcode.titleColor,
+    passcodeKeypadText: passcode.keypadTextColor,
+    unreadCountColor: '#FF3B30',
+    openchatBg: openChatsTab.bannerBackgroundColor,
+  };
   return (
     <div style={{ position: 'relative', width: 368, height: 699 }}>
       <div
@@ -31,7 +60,7 @@ export const PreviewChatRoomMockup = () => {
 
         <section style={frameStyle}>
           <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
-            <ChatRoomScreen />
+            <ChatRoomScreen config={screenConfig} />
           </div>
         </section>
       </div>

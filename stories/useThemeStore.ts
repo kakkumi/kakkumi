@@ -21,6 +21,13 @@ export type ActiveElementId =
 type ThemeState = {
   currentScreen: ScreenType;
   activeElementId: ActiveElementId;
+  global: {
+    bodyBg: string;
+    headerBg: string;
+    headerText: string;
+    primaryText: string;
+    descText: string;
+  };
   tabBar: {
     activeIconColor: string;
     inactiveIconColor: string;
@@ -50,38 +57,55 @@ type ThemeState = {
   };
   setCurrentScreen: (screen: ScreenType) => void;
   setActiveElementId: (id: ActiveElementId) => void;
+  setTheme: (partial: Partial<Omit<ThemeState, 'setCurrentScreen' | 'setActiveElementId' | 'setTheme'>>) => void;
 };
 
 export const useThemeStore = create<ThemeState>((set) => ({
   currentScreen: 'CHATS',
   activeElementId: null,
+  global: {
+    bodyBg: '#F5F5F5',
+    headerBg: '#FEE500',
+    headerText: '#3A1D1D',
+    primaryText: '#191919',
+    descText: '#9E9E9E',
+  },
   tabBar: {
-    activeIconColor: '#664242',
-    inactiveIconColor: '#B39898',
-    backgroundColor: '#f6f6f6',
+    activeIconColor: '#3A1D1D',
+    inactiveIconColor: '#9E9E9E',
+    backgroundColor: '#FFFFFF',
   },
   friendsTab: {
-    updateSectionBg: '#FFE7E7',
+    updateSectionBg: '#F2F2F7',
   },
   chatsTab: {
-    filterChipBg: '#FCE1E1',
-    unreadBadgeBg: '#FF5D5D',
+    filterChipBg: '#F5F5F5',
+    unreadBadgeBg: '#FF3B30',
   },
   openChatsTab: {
-    bannerBackgroundColor: '#FFD2D2',
+    bannerBackgroundColor: '#F5F5F5',
   },
   chatRoom: {
-    backgroundColor: '#DCEEFF',
+    backgroundColor: '#B2C7D9',
     friendBubbleBg: '#FFFFFF',
-    myBubbleBg: '#FFE066',
+    myBubbleBg: '#FEE500',
     inputBarBg: '#FFFFFF',
-    sendButtonBg: '#FF7F7F',
+    sendButtonBg: '#FEE500',
   },
   passcode: {
-    backgroundColor: '#FFDEDE',
-    titleColor: '#664242',
-    keypadTextColor: '#664242',
+    backgroundColor: '#F5F5F5',
+    titleColor: '#191919',
+    keypadTextColor: '#191919',
   },
   setCurrentScreen: (screen) => set({ currentScreen: screen }),
   setActiveElementId: (id) => set({ activeElementId: id }),
+  setTheme: (partial) => set((state) => ({
+    global: partial.global ?? state.global,
+    tabBar: partial.tabBar ?? state.tabBar,
+    friendsTab: partial.friendsTab ?? state.friendsTab,
+    chatsTab: partial.chatsTab ?? state.chatsTab,
+    openChatsTab: partial.openChatsTab ?? state.openChatsTab,
+    chatRoom: partial.chatRoom ?? state.chatRoom,
+    passcode: partial.passcode ?? state.passcode,
+  })),
 }));

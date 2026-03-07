@@ -2,6 +2,7 @@ import React from 'react';
 import { Search, Settings, MoreHorizontal, MessageCircle } from 'lucide-react';
 import { TiWeatherPartlySunny } from 'react-icons/ti';
 import { BsAirplane } from 'react-icons/bs';
+import { ScreenThemeConfig } from './FriendsScreen';
 
 // --- 외부 파일 의존성 제거 (미리보기를 위한 통합 모의 데이터 및 스타일) ---
 const headerBaseStyle: React.CSSProperties = {
@@ -18,35 +19,18 @@ const iconRowStyle: React.CSSProperties = {
   alignItems: 'center',
 };
 
-// Zustand Store Mock (Apeach 테마 컬러 적용)
-interface OpenChatsThemeState {
-  themeConfig: {
-    global: { backgroundColor: string; textColor: string; descriptionColor: string };
-    openChatsTab: { headerTitleColor: string; bannerBackgroundColor: string };
-  };
-}
-
-const useThemeStore = (selector: (state: OpenChatsThemeState) => OpenChatsThemeState['themeConfig']) => {
-  const state: OpenChatsThemeState = {
-    themeConfig: {
-      global: {
-        backgroundColor: '#FFFFFF',
-        textColor: '#664242',
-        descriptionColor: '#805959',
-      },
-      openChatsTab: {
-        headerTitleColor: '#664242',
-        bannerBackgroundColor: 'rgba(255, 255, 255, 0.6)',
-      }
-    }
-  };
-  return selector(state);
-};
 // -------------------------------------------------------------------------
 
-export const OpenChatsScreen = () => {
-  const themeConfig = useThemeStore((state: OpenChatsThemeState) => state.themeConfig);
-  const { global, openChatsTab } = themeConfig;
+export const OpenChatsScreen = React.memo(function OpenChatsScreen({ config }: { config: ScreenThemeConfig }) {
+  const global = {
+    backgroundColor: config.bodyBg,
+    textColor: config.primaryText,
+    descriptionColor: config.descText,
+  };
+  const openChatsTab = {
+    headerTitleColor: config.headerText,
+    bannerBackgroundColor: config.openchatBg,
+  };
 
   return (
     <div
@@ -467,4 +451,4 @@ export const OpenChatsScreen = () => {
       `}</style>
     </div>
   );
-};
+});

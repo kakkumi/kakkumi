@@ -2,8 +2,9 @@ import React from 'react';
 import { 
   Search, ScanLine, Settings, Gift, Package, Percent, Smile, 
   MonitorPlay, Shirt, ShoppingBag, UserCircle, Calendar, 
-  Gamepad2, CalendarClock, ChevronRight, MapPin, Sun, Cloud
+  Gamepad2, CalendarClock, Cloud
 } from 'lucide-react';
+import { ScreenThemeConfig } from './FriendsScreen';
 
 // --- 외부 파일 의존성 제거 (미리보기를 위한 통합 모의 데이터 및 스타일) ---
 const headerBaseStyle: React.CSSProperties = {
@@ -20,34 +21,17 @@ const iconRowStyle: React.CSSProperties = {
   alignItems: 'center',
 };
 
-// Zustand Store Mock (Apeach 테마 컬러 적용)
-interface ThemeState {
-  themeConfig: {
-    global: { backgroundColor: string; textColor: string; descriptionColor: string };
-    chatsTab: { filterChipBg: string };
-  };
-}
-
-const useThemeStore = (selector: (state: ThemeState) => ThemeState['themeConfig']) => {
-  const state: ThemeState = {
-    themeConfig: {
-      global: {
-        backgroundColor: '#FFFFFF',
-        textColor: '#664242',
-        descriptionColor: '#805959',
-      },
-      chatsTab: {
-        filterChipBg: 'rgba(255, 255, 255, 0.4)',
-      }
-    }
-  };
-  return selector(state);
-};
 // -------------------------------------------------------------------------
 
-export const MoreScreen = () => {
-  const themeConfig = useThemeStore((state) => state.themeConfig);
-  const { global, chatsTab } = themeConfig;
+export const MoreScreen = React.memo(function MoreScreen({ config }: { config: ScreenThemeConfig }) {
+  const global = {
+    backgroundColor: config.bodyBg,
+    textColor: config.primaryText,
+    descriptionColor: config.descText,
+  };
+  const chatsTab = {
+    filterChipBg: `${config.bodyBg}99`,
+  };
 
   // 그리드 메뉴 데이터
   const gridMenus = [
@@ -194,4 +178,4 @@ export const MoreScreen = () => {
       </div>
     </div>
   );
-};
+});

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, startTransition } from "react";
+import { useEffect, useRef, useState, startTransition, useMemo, memo } from "react";
 import JSZip from "jszip";
 import Header from "../components/Header";
 
@@ -145,7 +145,42 @@ interface ColorRowProps {
   tooltip?: string;
 }
 
-function ColorRow({ label, value, onChange, tooltip }: ColorRowProps) {
+const ColorRow = memo(function ColorRow({ label, value, onChange, tooltip }: ColorRowProps) {
+  const [draftValue, setDraftValue] = useState(value);
+  const frameRef = useRef<number | null>(null);
+  const pendingValueRef = useRef(value);
+
+  useEffect(() => {
+    setDraftValue(value);
+    pendingValueRef.current = value;
+  }, [value]);
+
+  useEffect(() => {
+    return () => {
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+      }
+    };
+  }, []);
+
+  const scheduleColorCommit = (nextValue: string) => {
+    pendingValueRef.current = nextValue;
+    if (frameRef.current !== null) return;
+
+    frameRef.current = requestAnimationFrame(() => {
+      frameRef.current = null;
+      onChange(pendingValueRef.current);
+    });
+  };
+
+  const commitColorNow = () => {
+    if (frameRef.current !== null) {
+      cancelAnimationFrame(frameRef.current);
+      frameRef.current = null;
+    }
+    onChange(pendingValueRef.current);
+  };
+
   return (
     <div
       data-setting-item="true"
@@ -167,19 +202,29 @@ function ColorRow({ label, value, onChange, tooltip }: ColorRowProps) {
         <label className="relative cursor-pointer">
           <input
             type="color"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
+            value={draftValue}
+            onChange={(e) => {
+              const nextValue = e.target.value;
+              setDraftValue(nextValue);
+              scheduleColorCommit(nextValue);
+            }}
+            onBlur={commitColorNow}
             className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
           />
           <div
             className="w-7 h-7 rounded-lg shadow-sm transition-transform group-hover:scale-105"
-            style={{ backgroundColor: value, border: "1.5px solid rgba(0,0,0,0.12)", boxShadow: "0 1px 4px rgba(0,0,0,0.12)" }}
+            style={{ backgroundColor: draftValue, border: "1.5px solid rgba(0,0,0,0.12)", boxShadow: "0 1px 4px rgba(0,0,0,0.12)" }}
           />
         </label>
         <input
           type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
+          value={draftValue}
+          onChange={(e) => {
+            const nextValue = e.target.value;
+            setDraftValue(nextValue);
+            pendingValueRef.current = nextValue;
+            onChange(nextValue);
+          }}
           className="w-[76px] text-[11px] rounded-lg px-2 py-1.5 font-mono"
           style={{background:"rgba(0,0,0,0.04)", border:"1px solid rgba(0,0,0,0.08)", color:"#3a3a3c", outline:"none"}}
           maxLength={7}
@@ -187,7 +232,7 @@ function ColorRow({ label, value, onChange, tooltip }: ColorRowProps) {
       </div>
     </div>
   );
-}
+});
 
 /* ── 섹션 타이틀 ── */
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -200,7 +245,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 /* ── 이미지 업로드 행 ── */
-function ImageUploadRow({ label, tooltip, imgKey, imageUploads, onUpload }: {
+const ImageUploadRow = memo(function ImageUploadRow({ label, tooltip, imgKey, imageUploads, onUpload }: {
   label: string; tooltip: string; imgKey: string;
   imageUploads: Record<string, string>;
   onUpload: (key: string, file: File) => void;
@@ -232,7 +277,7 @@ function ImageUploadRow({ label, tooltip, imgKey, imageUploads, onUpload }: {
       </div>
     </div>
   );
-}
+});
 
 /* ── 아코디언 패널 ── */
 function Accordion({ title, badge, children, autoOpenSignal, isSelected = false, settingKey }: {
@@ -796,20 +841,8 @@ function IOSFriendsProfileMockup({ config }: { config: ThemeConfig }) {
           <span className="font-bold text-[15px] flex-1" style={{ color: config.headerText }}>친구</span>
         </div>
         <div className="absolute left-0 right-0 overflow-y-auto overflow-x-hidden"
-          style={{ top: 84, bottom: 64, backgroundColor: config.bodyBg }}>
+          style={{ top: 84, bottom: 0, backgroundColor: config.bodyBg }}>
           <IOSMockupFriendsList config={config} />
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 h-16 flex items-center justify-around rounded-b-[35px] border-t"
-          style={{ backgroundColor: config.tabBarBg, borderColor: `${config.primaryText}12` }}>
-          {(["friends","chat","openchat","shopping","more"] as PreviewTab[]).map((key) => {
-              const active = key === "friends";
-                const color = active ? config.tabBarSelectedIcon : config.tabBarIcon;
-                return (
-                  <div key={key} className="flex flex-col items-center gap-0.5 pt-1">
-                    <TabIcon tab={key} active={active} color={color} />
-                  </div>
-                );
-          })}
         </div>
       </div>
       <div className="absolute right-[-6px] top-24 w-1 h-12 bg-zinc-700 rounded-r-md" />
@@ -833,7 +866,7 @@ function AndroidFriendsProfileMockup({ config }: { config: ThemeConfig }) {
           style={{ top: 0, bottom: 0 }}>
           <section style={{ ...frameStyle, borderRadius: 23, border: 'none', boxShadow: 'none' }}>
             <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
-              <NewsScreen />
+              <NewsScreen config={{ bodyBg: config.bodyBg, headerBg: config.headerBg, headerText: config.headerText, primaryText: config.primaryText, descText: config.descText, tabBarBg: config.tabBarBg, tabBarIcon: config.tabBarIcon, tabBarSelectedIcon: config.tabBarSelectedIcon, friendsSelectedBg: config.friendsSelectedBg, chatBg: config.chatBg, otherBubbleBg: config.otherBubbleBg, myBubbleBg: config.myBubbleBg, inputBarBg: config.inputBarBg, sendBtnBg: config.sendBtnBg, passcodeBg: config.passcodeBg, passcodeTitleText: config.passcodeTitleText, passcodeKeypadText: config.passcodeKeypadText, unreadCountColor: config.unreadCountColor, openchatBg: config.openchatBg }} />
             </div>
             <TabBar disabled />
           </section>
@@ -949,7 +982,7 @@ function AndroidChatRoomMockup({ config }: { config: ThemeConfig }) {
           style={{ top: 0, bottom: 0 }}>
           <section style={{ ...frameStyle, borderRadius: 23, border: 'none', boxShadow: 'none' }}>
             <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
-              <ChatRoomScreen />
+              <ChatRoomScreen config={{ bodyBg: config.bodyBg, headerBg: config.headerBg, headerText: config.headerText, primaryText: config.primaryText, descText: config.descText, tabBarBg: config.tabBarBg, tabBarIcon: config.tabBarIcon, tabBarSelectedIcon: config.tabBarSelectedIcon, friendsSelectedBg: config.friendsSelectedBg, chatBg: config.chatBg, otherBubbleBg: config.otherBubbleBg, myBubbleBg: config.myBubbleBg, inputBarBg: config.inputBarBg, sendBtnBg: config.sendBtnBg, passcodeBg: config.passcodeBg, passcodeTitleText: config.passcodeTitleText, passcodeKeypadText: config.passcodeKeypadText, unreadCountColor: config.unreadCountColor, openchatBg: config.openchatBg }} />
             </div>
           </section>
         </div>
@@ -960,22 +993,43 @@ function AndroidChatRoomMockup({ config }: { config: ThemeConfig }) {
 }
 
 function AndroidMockup({ config, previewTab }: { config: ThemeConfig; previewTab: PreviewTab }) {
+  const screenConfig = useMemo(() => ({
+    bodyBg: config.bodyBg,
+    headerBg: config.headerBg,
+    headerText: config.headerText,
+    primaryText: config.primaryText,
+    descText: config.descText,
+    tabBarBg: config.tabBarBg,
+    tabBarIcon: config.tabBarIcon,
+    tabBarSelectedIcon: config.tabBarSelectedIcon,
+    friendsSelectedBg: config.friendsSelectedBg,
+    chatBg: config.chatBg,
+    otherBubbleBg: config.otherBubbleBg,
+    myBubbleBg: config.myBubbleBg,
+    inputBarBg: config.inputBarBg,
+    sendBtnBg: config.sendBtnBg,
+    passcodeBg: config.passcodeBg,
+    passcodeTitleText: config.passcodeTitleText,
+    passcodeKeypadText: config.passcodeKeypadText,
+    unreadCountColor: config.unreadCountColor,
+    openchatBg: config.openchatBg,
+  }), [
+    config.bodyBg, config.headerBg, config.headerText, config.primaryText, config.descText,
+    config.tabBarBg, config.tabBarIcon, config.tabBarSelectedIcon, config.friendsSelectedBg,
+    config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg,
+    config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText,
+    config.unreadCountColor, config.openchatBg,
+  ]);
+
   const renderScreen = () => {
     switch (previewTab) {
-      case "friends":
-        return <FriendsScreen />;
-      case "chat":
-        return <MainScreen />;
-      case "openchat":
-        return <OpenChatsScreen />;
-      case "shopping":
-        return <ShoppingScreen />;
-      case "more":
-        return <MoreScreen />;
-      case "passcode":
-        return <PasscodeScreen />;
-      default:
-        return <MainScreen />;
+      case "friends": return <FriendsScreen config={screenConfig} />;
+      case "chat": return <MainScreen config={screenConfig} />;
+      case "openchat": return <OpenChatsScreen config={screenConfig} />;
+      case "shopping": return <ShoppingScreen config={screenConfig} />;
+      case "more": return <MoreScreen config={screenConfig} />;
+      case "passcode": return <PasscodeScreen config={screenConfig} />;
+      default: return <MainScreen config={screenConfig} />;
     }
   };
 
@@ -1020,6 +1074,18 @@ export default function CreatePage() {
   const setCurrentScreen = usePreviewThemeStore((state) => state.setCurrentScreen);
   const activeElementId = usePreviewThemeStore((state) => state.activeElementId);
   const setActiveElementId = usePreviewThemeStore((state) => state.setActiveElementId);
+  const setTheme = usePreviewThemeStore((state) => state.setTheme);
+
+  // TabBar 컴포넌트는 store를 참조하므로 탭바 색상만 동기화
+  useEffect(() => {
+    setTheme({
+      tabBar: {
+        activeIconColor: config.tabBarSelectedIcon,
+        inactiveIconColor: config.tabBarIcon,
+        backgroundColor: config.tabBarBg,
+      },
+    });
+  }, [config.tabBarBg, config.tabBarIcon, config.tabBarSelectedIcon, setTheme]);
 
   useEffect(() => {
     const screenMap: Record<PreviewTab, ScreenType> = {
@@ -1086,6 +1152,26 @@ export default function CreatePage() {
   const handleSaveTheme = async () => {
     setSaveToast("saving");
     try {
+      // 이미지 objectURL → base64 변환
+      const imageDataMap: Record<string, string> = {};
+      await Promise.all(
+        Object.entries(imageUploads).map(async ([key, url]) => {
+          try {
+            const res = await fetch(url);
+            const blob = await res.blob();
+            const base64 = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
+            imageDataMap[key] = base64;
+          } catch {
+            // 변환 실패한 이미지는 건너뜀
+          }
+        })
+      );
+
       const res = await fetch("/api/my-themes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1093,6 +1179,8 @@ export default function CreatePage() {
           name: config.name,
           os,
           previewImageUrl: imageUploads["mainBg"] ?? null,
+          configJson: config,
+          imageData: imageDataMap,
         }),
       });
       if (res.ok) {
@@ -1113,13 +1201,61 @@ export default function CreatePage() {
 
   const handleDownload = async () => {
     if (os === "ios") {
-      // iOS: CSS 내용을 .ktheme 파일로 다운로드
-      const filename = `${config.name.replace(/\s/g, "_")}.ktheme`;
-      const content = generateCSS(config);
-      const blob = new Blob([content], { type: "text/plain" });
+      // iOS: KakaoTalkTheme.css + Images/ 구조를 ZIP으로 묶어 .ktheme로 저장
+      const zip = new JSZip();
+      const themeName = config.name.replace(/\s/g, "_");
+
+      // CSS 생성
+      zip.file("KakaoTalkTheme.css", generateCSS(config, imageUploads));
+
+      // 업로드된 이미지를 Images/ 폴더에 포함
+      const imageFileMap: Record<string, string> = {
+        mainBg: "mainBgImage@2x.png",
+        tabBg: "maintabBgImage@2x.png",
+        chatroomBg: "chatroomBgImage@2x.png",
+        defaultProfile: "profileImg01@2x.png",
+        icon: "commonIcoTheme.png",
+        tabFriendsNormal: "maintabIcoFriends@2x.png",
+        tabFriendsSelected: "maintabIcoFriendsSelected@2x.png",
+        tabChatNormal: "maintabIcoChats@2x.png",
+        tabChatSelected: "maintabIcoChatsSelected@2x.png",
+        tabOpenNormal: "maintabIcoNow@2x.png",
+        tabOpenSelected: "maintabIcoNowSelected@2x.png",
+        tabShopNormal: "maintabIcoShopping@2x.png",
+        tabShopSelected: "maintabIcoShoppingSelected@2x.png",
+        tabMoreNormal: "maintabIcoMore@2x.png",
+        tabMoreSelected: "maintabIcoMoreSelected@2x.png",
+        bubbleSend1: "chatroomBubbleSend01@2x.png",
+        bubbleSend2: "chatroomBubbleSend02@2x.png",
+        bubbleReceive1: "chatroomBubbleReceive01@2x.png",
+        bubbleReceive2: "chatroomBubbleReceive02@2x.png",
+        passcodeBgImg: "passcodeBgImage@2x.png",
+        bullet1Empty: "passcodeImgCode01@2x.png",
+        bullet2Empty: "passcodeImgCode02@2x.png",
+        bullet3Empty: "passcodeImgCode03@2x.png",
+        bullet4Empty: "passcodeImgCode04@2x.png",
+        bullet1Fill: "passcodeImgCode01Selected@2x.png",
+        bullet2Fill: "passcodeImgCode02Selected@2x.png",
+        bullet3Fill: "passcodeImgCode03Selected@2x.png",
+        bullet4Fill: "passcodeImgCode04Selected@2x.png",
+      };
+
+      const imgPromises = Object.entries(imageFileMap)
+        .filter(([key]) => imageUploads[key])
+        .map(async ([key, filename]) => {
+          try {
+            const res = await fetch(imageUploads[key]);
+            const blob = await res.blob();
+            zip.file(`Images/${filename}`, blob);
+          } catch { /* skip */ }
+        });
+
+      await Promise.all(imgPromises);
+
+      const content = await zip.generateAsync({ type: "blob" });
       const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = filename;
+      a.href = URL.createObjectURL(content);
+      a.download = `${themeName}.ktheme`;
       a.click();
     } else {
       // Android: 테마 구조를 ZIP으로 다운로드
@@ -1152,7 +1288,6 @@ export default function CreatePage() {
   <color name="passcode_keypad_text">${config.passcodeKeypadText}</color>
 </resources>`;
 
-      // theme.xml 생성
       const themeXml = `<?xml version="1.0" encoding="utf-8"?>
 <theme>
   <name>${config.name}</name>
@@ -1164,7 +1299,6 @@ export default function CreatePage() {
   <style>${config.darkMode ? "dark" : "light"}</style>
 </theme>`;
 
-      // README.txt 생성
       const readmeTxt = `카카오톡 Android 테마 패키지
 ===========================
 테마 이름: ${config.name}
@@ -1190,7 +1324,6 @@ export default function CreatePage() {
       zip.file("README.txt", readmeTxt);
       zip.file("res/drawable-xhdpi/.gitkeep", "");
 
-      // 업로드된 이미지가 있으면 포함
       const imageKeyMap: Record<string, string> = {
         mainBg: "res/drawable-xhdpi/mainBgImage.png",
         tabBg: "res/drawable-xhdpi/maintabBgImage.png",
@@ -1207,8 +1340,7 @@ export default function CreatePage() {
       const imagePromises = Object.entries(imageKeyMap)
         .filter(([key]) => imageUploads[key])
         .map(async ([key, zipPath]) => {
-          const dataUrl = imageUploads[key];
-          const res = await fetch(dataUrl);
+          const res = await fetch(imageUploads[key]);
           const blob = await res.blob();
           zip.file(zipPath, blob);
         });
@@ -1736,44 +1868,209 @@ export default function CreatePage() {
   );
 }
 
-function generateCSS(config: ThemeConfig): string {
-  return `/* KakaoTalkTheme.css */
--kakaotalk-theme-name: '${config.name}';
--kakaotalk-theme-version: '${config.version}';
--kakaotalk-theme-id: '${config.packageId}';
--kakaotalk-author-name: '${config.authorName}';
--kakaotalk-theme-url: 'http://www.kakao.com';
-${config.darkMode ? "-kakaotalk-theme-style: 'dark';" : "/* light mode */"}
+function generateCSS(config: ThemeConfig, imageUploads: Record<string, string> = {}): string {
+  const img = (key: string, filename: string) =>
+    imageUploads[key] ? `\n    -ios-background-image: '${filename}';` : "";
 
-TabBarStyle {
-  background-color: ${config.tabBarBg};
-  -ios-icon-normal-color: ${config.tabBarIcon};
-  -ios-icon-selected-color: ${config.tabBarSelectedIcon};
+  return `/*
+ Manifest
+ */
+
+ManifestStyle
+{
+    -kakaotalk-theme-name: '${config.name}';
+    -kakaotalk-theme-version: '${config.version}';
+    -kakaotalk-theme-url: 'http://www.kakao.com';
+    -kakaotalk-author-name: '${config.authorName}';
+    -kakaotalk-theme-id: '${config.packageId}';${config.darkMode ? "\n    -kakaotalk-theme-style: 'dark';" : ""}
 }
-HeaderStyle {
-  background-color: ${config.headerBg};
-  -ios-text-color: ${config.headerText};
+
+
+/*
+ TabBar Style
+ */
+
+TabBarStyle-Main
+{
+    background-color: ${config.tabBarBg};${img("tabBg", "maintabBgImage@2x.png")}
+    ${imageUploads["tabFriendsNormal"] ? `-ios-friends-normal-icon-image: 'maintabIcoFriends@2x.png';` : ""}
+    ${imageUploads["tabFriendsSelected"] ? `-ios-friends-selected-icon-image: 'maintabIcoFriendsSelected@2x.png';` : ""}
+    ${imageUploads["tabChatNormal"] ? `-ios-chats-normal-icon-image: 'maintabIcoChats@2x.png';` : ""}
+    ${imageUploads["tabChatSelected"] ? `-ios-chats-selected-icon-image: 'maintabIcoChatsSelected@2x.png';` : ""}
+    ${imageUploads["tabOpenNormal"] ? `-ios-now-normal-icon-image: 'maintabIcoNow@2x.png';` : ""}
+    ${imageUploads["tabOpenSelected"] ? `-ios-now-selected-icon-image: 'maintabIcoNowSelected@2x.png';` : ""}
+    ${imageUploads["tabShopNormal"] ? `-ios-shopping-normal-icon-image: 'maintabIcoShopping@2x.png';` : ""}
+    ${imageUploads["tabShopSelected"] ? `-ios-shopping-selected-icon-image: 'maintabIcoShoppingSelected@2x.png';` : ""}
+    ${imageUploads["tabMoreNormal"] ? `-ios-more-normal-icon-image: 'maintabIcoMore@2x.png';` : ""}
+    ${imageUploads["tabMoreSelected"] ? `-ios-more-selected-icon-image: 'maintabIcoMoreSelected@2x.png';` : ""}
+    -ios-icon-normal-color: ${config.tabBarIcon};
+    -ios-icon-selected-color: ${config.tabBarSelectedIcon};
 }
-MainViewStyle {
-  background-color: ${config.bodyBg};
-  -ios-primary-text-color: ${config.primaryText};
-  -ios-description-text-color: ${config.descText};
+
+
+/*
+ MainView Style
+ */
+
+HeaderStyle-Main
+{
+    -ios-text-color: ${config.headerText};
+    -ios-tab-text-color: ${config.descText};
+    -ios-tab-highlighted-text-color: ${config.headerText};
 }
-ChatRoomStyle {
-  background-color: ${config.chatBg};
+
+MainViewStyle-Primary
+{
+    background-color: ${config.bodyBg};${img("mainBg", "mainBgImage@2x.png")}
+
+    -ios-text-color: ${config.primaryText};
+    -ios-highlighted-text-color: ${config.primaryText};
+
+    -ios-description-text-color: ${config.descText};
+    -ios-description-highlighted-text-color: ${config.descText};
+
+    -ios-paragraph-text-color: ${config.chatListLastMsgText};
+    -ios-paragraph-highlighted-text-color: ${config.chatListHighlightText};
+
+    -ios-selected-background-color: ${config.friendsSelectedBg};
+    -ios-selected-background-alpha: 1.0;
 }
-InputBarStyle {
-  background-color: ${config.inputBarBg};
-  -ios-send-normal-background-color: ${config.sendBtnBg};
-  -ios-send-normal-foreground-color: ${config.sendBtnIcon};
+
+MainViewStyle-Secondary
+{
+    background-color: ${config.bodyBg};
 }
-MessageSendStyle {
-  -ios-background-color: ${config.myBubbleBg};
-  -ios-text-color: ${config.myBubbleText};
+
+SectionTitleStyle-Main
+{
+    border-color: ${config.friendsBorderColor};
+    border-alpha: 1.0;
+
+    -ios-text-color: ${config.descText};
+    -ios-text-alpha: 1.0;
 }
-MessageReceiveStyle {
-  -ios-background-color: ${config.otherBubbleBg};
-  -ios-text-color: ${config.otherBubbleText};
-}`;
+
+
+/*
+ DefaultProfile Style
+*/
+
+DefaultProfileStyle
+{${imageUploads["defaultProfile"] ? `
+    -ios-profile-images: 'profileImg01@2x.png';` : ""}
+}
+
+
+/*
+ ChatRoom Style
+ */
+
+BackgroundStyle-ChatRoom
+{
+    background-color: ${config.chatBg};${img("chatroomBg", "chatroomBgImage@2x.png")}
+}
+
+InputBarStyle-Chat
+{
+    background-color: ${config.inputBarBg};
+
+    -ios-send-normal-background-color: ${config.sendBtnBg};
+    -ios-send-normal-foreground-color: ${config.sendBtnIcon};
+
+    -ios-send-highlighted-background-color: ${config.sendBtnBg};
+    -ios-send-highlighted-foreground-color: ${config.sendBtnIcon};
+
+    -ios-button-normal-foreground-color: ${config.menuBtnColor};
+    -ios-button-highlighted-foreground-color: ${config.menuBtnColor};
+
+    -ios-button-normal-background-color: ${config.inputFieldBg};
+    -ios-button-normal-background-alpha: 1.0;
+}
+
+
+/*
+ Message Style
+ */
+
+MessageCellStyle-Send
+{${imageUploads["bubbleSend1"] ? `
+    -ios-background-image: 'chatroomBubbleSend01@2x.png' 17px 17px;
+    -ios-selected-background-image: 'chatroomBubbleSend01@2x.png' 17px 17px;` : ""}${imageUploads["bubbleSend2"] ? `
+    -ios-group-background-image: 'chatroomBubbleSend02@2x.png' 17px 17px;
+    -ios-group-selected-background-image: 'chatroomBubbleSend02@2x.png' 17px 17px;` : ""}
+    -ios-title-edgeinsets: 10px 11px 7px 17px;
+    -ios-group-title-edgeinsets: 10px 11px 7px 17px;
+
+    -ios-background-color: ${config.myBubbleBg};
+    -ios-text-color: ${config.myBubbleText};
+    -ios-selected-text-color: ${config.myBubbleText};
+    -ios-unread-text-color: ${config.unreadCountColor};
+}
+
+MessageCellStyle-Receive
+{${imageUploads["bubbleReceive1"] ? `
+    -ios-background-image: 'chatroomBubbleReceive01@2x.png' 22px 17px;
+    -ios-selected-background-image: 'chatroomBubbleReceive01@2x.png' 22px 17px;` : ""}${imageUploads["bubbleReceive2"] ? `
+    -ios-group-background-image: 'chatroomBubbleReceive02@2x.png' 22px 17px;
+    -ios-group-selected-background-image: 'chatroomBubbleReceive02@2x.png' 22px 17px;` : ""}
+    -ios-title-edgeinsets: 10px 17px 7px 11px;
+    -ios-group-title-edgeinsets: 10px 17px 7px 11px;
+
+    -ios-background-color: ${config.otherBubbleBg};
+    -ios-text-color: ${config.otherBubbleText};
+    -ios-selected-text-color: ${config.otherBubbleText};
+    -ios-unread-text-color: ${config.unreadCountColor};
+}
+
+
+/*
+ Passcode Style
+ */
+
+BackgroundStyle-Passcode
+{
+    background-color: ${config.passcodeBg};${img("passcodeBgImg", "passcodeBgImage@2x.png")}
+}
+
+LabelStyle-PasscodeTitle
+{
+    -ios-text-color: ${config.passcodeTitleText};
+}
+
+PasscodeStyle
+{${imageUploads["bullet1Empty"] ? `
+    -ios-bullet-first-image: 'passcodeImgCode01@2x.png';` : ""}${imageUploads["bullet2Empty"] ? `
+    -ios-bullet-second-image: 'passcodeImgCode02@2x.png';` : ""}${imageUploads["bullet3Empty"] ? `
+    -ios-bullet-third-image: 'passcodeImgCode03@2x.png';` : ""}${imageUploads["bullet4Empty"] ? `
+    -ios-bullet-fourth-image: 'passcodeImgCode04@2x.png';` : ""}${imageUploads["bullet1Fill"] ? `
+    -ios-bullet-selected-first-image: 'passcodeImgCode01Selected@2x.png';` : ""}${imageUploads["bullet2Fill"] ? `
+    -ios-bullet-selected-second-image: 'passcodeImgCode02Selected@2x.png';` : ""}${imageUploads["bullet3Fill"] ? `
+    -ios-bullet-selected-third-image: 'passcodeImgCode03Selected@2x.png';` : ""}${imageUploads["bullet4Fill"] ? `
+    -ios-bullet-selected-fourth-image: 'passcodeImgCode04Selected@2x.png';` : ""}
+
+    -ios-keypad-background-color: ${config.passcodeKeypadBg};
+    -ios-keypad-text-normal-color: ${config.passcodeKeypadText};
+}
+
+
+/*
+ Message Notification Bar Style
+ */
+
+BackgroundStyle-MessageNotificationBar
+{
+    background-color: ${config.notifBannerBg};
+}
+
+LabelStyle-MessageNotificationBarName
+{
+    -ios-text-color: ${config.notifBannerText};
+}
+
+LabelStyle-MessageNotificationBarMessage
+{
+    -ios-text-color: ${config.notifBannerText};
+}
+`;
 }
 

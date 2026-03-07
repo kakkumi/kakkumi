@@ -9,6 +9,7 @@ import {
   Settings,
   UserPlus,
 } from 'lucide-react';
+import { ScreenThemeConfig } from './FriendsScreen';
 
 const headerBaseStyle: React.CSSProperties = {
   display: 'flex',
@@ -32,36 +33,13 @@ const avatarStyle: React.CSSProperties = {
   fontSize: '15px',
 };
 
-interface ThemeState {
-  themeConfig: {
-    global: { backgroundColor: string; textColor: string; descriptionColor: string };
-    friendsTab: { headerTitleColor: string };
-    chatsTab: { filterChipBg: string };
+export const NewsScreen = React.memo(function NewsScreen({ config }: { config: ScreenThemeConfig }) {
+  const global = {
+    backgroundColor: config.bodyBg,
+    textColor: config.primaryText,
+    descriptionColor: config.descText,
   };
-}
-
-const useThemeStore = (selector: (state: ThemeState) => ThemeState['themeConfig']) => {
-  const state: ThemeState = {
-    themeConfig: {
-      global: {
-        backgroundColor: '#FFFFFF',
-        textColor: '#664242',
-        descriptionColor: '#805959',
-      },
-      friendsTab: {
-        headerTitleColor: '#664242',
-      },
-      chatsTab: {
-        filterChipBg: '#F66C6C',
-      },
-    },
-  };
-  return selector(state);
-};
-
-export const NewsScreen = () => {
-  const themeConfig = useThemeStore((state) => state.themeConfig);
-  const { global, friendsTab } = themeConfig;
+  const friendsTab = { headerTitleColor: config.headerText };
 
   return (
     <div
@@ -215,4 +193,4 @@ export const NewsScreen = () => {
       `}</style>
     </div>
   );
-};
+});

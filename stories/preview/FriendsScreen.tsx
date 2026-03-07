@@ -74,41 +74,36 @@ const avatarStyle: React.CSSProperties = {
   fontSize: '15px',
 };
 
-// Zustand Store Mock (Apeach 테마 컬러 적용)
-interface ThemeState {
-  themeConfig: {
-    global: { backgroundColor: string; textColor: string; descriptionColor: string };
-    friendsTab: { headerTitleColor: string; headerIconColor: string; profileNameColor: string; updateSectionBg: string };
-    chatsTab: { filterChipBg: string };
-  };
-}
-
-const useThemeStore = (selector: (state: ThemeState) => ThemeState['themeConfig']) => {
-  const state: ThemeState = {
-    themeConfig: {
-      global: {
-        backgroundColor: '#FFFFFF',
-        textColor: '#664242',
-        descriptionColor: '#805959',
-      },
-      friendsTab: {
-        headerTitleColor: '#664242',
-        headerIconColor: '#664242',
-        profileNameColor: '#664242',
-        updateSectionBg: '#F66C6C',
-      },
-      chatsTab: {
-        filterChipBg: '#FFFFFF',
-      }
-    }
-  };
-  return selector(state);
-};
 // -------------------------------------------------------------------------
 
-export const FriendsScreen = () => {
-  const themeConfig = useThemeStore((state) => state.themeConfig);
-  const { global, friendsTab } = themeConfig;
+export interface ScreenThemeConfig {
+  bodyBg: string;
+  headerBg: string;
+  headerText: string;
+  primaryText: string;
+  descText: string;
+  tabBarBg: string;
+  tabBarIcon: string;
+  tabBarSelectedIcon: string;
+  friendsSelectedBg: string;
+  chatBg: string;
+  otherBubbleBg: string;
+  myBubbleBg: string;
+  inputBarBg: string;
+  sendBtnBg: string;
+  passcodeBg: string;
+  passcodeTitleText: string;
+  passcodeKeypadText: string;
+  unreadCountColor: string;
+  openchatBg: string;
+}
+
+export const FriendsScreen = React.memo(function FriendsScreen({ config }: { config: ScreenThemeConfig }) {
+  const global = {
+    backgroundColor: config.bodyBg,
+    textColor: config.primaryText,
+    descriptionColor: config.descText,
+  };
 
   return (
     <div
@@ -124,7 +119,7 @@ export const FriendsScreen = () => {
     >
       
       {/* 1. 상단 헤더 */}
-      <header style={{ ...headerBaseStyle, color: friendsTab.headerTitleColor }}>
+      <header style={{ ...headerBaseStyle, color: global.textColor }}>
         <div data-active-element-id="header-title-icon" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div
             style={{
@@ -362,4 +357,4 @@ export const FriendsScreen = () => {
       `}</style>
     </div>
   );
-};
+});

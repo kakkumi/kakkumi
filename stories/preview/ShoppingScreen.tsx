@@ -3,6 +3,7 @@ import {
   Search, ShoppingBag, Settings, Info,
   Gift, Percent, Package, Receipt
 } from 'lucide-react';
+import { ScreenThemeConfig } from './FriendsScreen';
 
 // --- 외부 파일 의존성 제거 (미리보기를 위한 통합 모의 데이터 및 스타일) ---
 const headerBaseStyle: React.CSSProperties = {
@@ -19,34 +20,14 @@ const iconRowStyle: React.CSSProperties = {
   alignItems: 'center',
 };
 
-// Zustand Store Mock (Apeach 테마 컬러 적용)
-interface ThemeState {
-  themeConfig: {
-    global: {
-      backgroundColor: string;
-      textColor: string;
-      descriptionColor: string;
-    };
-  };
-}
-
-const useThemeStore = (selector: (state: ThemeState) => ThemeState['themeConfig']) => {
-  const state: ThemeState = {
-    themeConfig: {
-      global: {
-        backgroundColor: '#FFFFFF',
-        textColor: '#664242',
-        descriptionColor: '#805959',
-      }
-    }
-  };
-  return selector(state);
-};
 // -------------------------------------------------------------------------
 
-export const ShoppingScreen = () => {
-  const themeConfig = useThemeStore((state) => state.themeConfig);
-  const { global } = themeConfig;
+export const ShoppingScreen = React.memo(function ShoppingScreen({ config }: { config: ScreenThemeConfig }) {
+  const global = {
+    backgroundColor: config.bodyBg,
+    textColor: config.primaryText,
+    descriptionColor: config.descText,
+  };
 
   return (
     <div
@@ -232,4 +213,4 @@ export const ShoppingScreen = () => {
 
     </div>
   );
-};
+});

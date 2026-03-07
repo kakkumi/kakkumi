@@ -1,5 +1,6 @@
 import React from 'react';
 import { Menu, Search, Smile, Plus } from 'lucide-react';
+import { ScreenThemeConfig } from './FriendsScreen';
 
 const headerBaseStyle: React.CSSProperties = {
   display: 'flex',
@@ -31,41 +32,25 @@ const members = [
   { name: '강릉', color: '#D4E09B' },
 ];
 
-interface ThemeState {
-  themeConfig: {
-    global: { backgroundColor: string; textColor: string; descriptionColor: string };
-    chatRoom: {
-      backgroundColor: string;
-      myBubbleBg: string; myBubbleText: string;
-      friendBubbleBg: string; friendBubbleText: string;
-      inputBarBg: string; sendNormalBg: string; sendNormalFg: string;
-      menuButtonFg: string; menuButtonBg: string;
-      unreadTextColor: string;
-    };
+export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { config: ScreenThemeConfig }) {
+  const chatRoom = {
+    backgroundColor: config.chatBg,
+    myBubbleBg: config.myBubbleBg,
+    myBubbleText: config.primaryText,
+    friendBubbleBg: config.otherBubbleBg,
+    friendBubbleText: config.primaryText,
+    inputBarBg: config.inputBarBg,
+    sendNormalBg: config.sendBtnBg,
+    sendNormalFg: config.headerText,
+    menuButtonFg: config.tabBarSelectedIcon,
+    menuButtonBg: 'rgba(0,0,0,0.04)',
+    unreadTextColor: config.tabBarSelectedIcon,
   };
-}
-
-// Zustand Store Mock
-const useThemeStore = (selector: (state: ThemeState) => ThemeState['themeConfig']) => {
-  const state = {
-    themeConfig: {
-      global: { backgroundColor: '#FFFFFF', textColor: '#664242', descriptionColor: '#4D4D4D' },
-      chatRoom: {
-        backgroundColor: '#A8BEC9',
-        myBubbleBg: '#fee500', myBubbleText: '#4D4D4D',
-        friendBubbleBg: '#FFFFFF', friendBubbleText: '#4D4D4D',
-        inputBarBg: '#f6f6f6', sendNormalBg: '#FFD700', sendNormalFg: '#FFFFFF',
-        menuButtonFg: '#E86464', menuButtonBg: 'rgba(0,0,0,0.04)',
-        unreadTextColor: '#FF7F7F',
-      },
-    },
+  const global = {
+    backgroundColor: config.bodyBg,
+    textColor: config.primaryText,
+    descriptionColor: config.descText,
   };
-  return selector(state);
-};
-
-export const ChatRoomScreen = () => {
-  const themeConfig = useThemeStore((state) => state.themeConfig);
-  const { chatRoom, global } = themeConfig;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, width: '100%', overflow: 'hidden', backgroundColor: chatRoom.backgroundColor, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', position: 'relative' }}>
@@ -199,4 +184,4 @@ export const ChatRoomScreen = () => {
       `}</style>
     </div>
   );
-};
+});

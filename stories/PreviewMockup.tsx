@@ -1,5 +1,5 @@
 import { ChatRoomScreen } from './preview/ChatRoomScreen';
-import { FriendsScreen } from './preview/FriendsScreen';
+import { FriendsScreen, ScreenThemeConfig } from './preview/FriendsScreen';
 import { MainScreen } from './preview/MainScreen';
 import { MoreScreen } from './preview/MoreScreen';
 import { OpenChatsScreen } from './preview/OpenChatsScreen';
@@ -11,25 +11,44 @@ import { useThemeStore } from './useThemeStore';
 
 export const PreviewMockup = ({ disableTabNavigation = false }: { disableTabNavigation?: boolean }) => {
   const currentScreen = useThemeStore((state) => state.currentScreen);
+  const globalStore = useThemeStore((state) => state.global);
+  const tabBar = useThemeStore((state) => state.tabBar);
+  const chatRoom = useThemeStore((state) => state.chatRoom);
+  const passcode = useThemeStore((state) => state.passcode);
+  const openChatsTab = useThemeStore((state) => state.openChatsTab);
+
+  const screenConfig: ScreenThemeConfig = {
+    bodyBg: globalStore.bodyBg,
+    headerBg: globalStore.headerBg,
+    headerText: globalStore.headerText,
+    primaryText: globalStore.primaryText,
+    descText: globalStore.descText,
+    tabBarBg: tabBar.backgroundColor,
+    tabBarIcon: tabBar.inactiveIconColor,
+    tabBarSelectedIcon: tabBar.activeIconColor,
+    friendsSelectedBg: globalStore.bodyBg,
+    chatBg: chatRoom.backgroundColor,
+    otherBubbleBg: chatRoom.friendBubbleBg,
+    myBubbleBg: chatRoom.myBubbleBg,
+    inputBarBg: chatRoom.inputBarBg,
+    sendBtnBg: chatRoom.sendButtonBg,
+    passcodeBg: passcode.backgroundColor,
+    passcodeTitleText: passcode.titleColor,
+    passcodeKeypadText: passcode.keypadTextColor,
+    unreadCountColor: '#FF3B30',
+    openchatBg: openChatsTab.bannerBackgroundColor,
+  };
 
   const renderScreen = () => {
     switch (currentScreen) {
-      case 'FRIENDS':
-        return <FriendsScreen />;
-      case 'CHATS':
-        return <MainScreen />;
-      case 'OPENCHATS':
-        return <OpenChatsScreen />;
-      case 'SHOPPING':
-        return <ShoppingScreen />;
-      case 'MORE':
-        return <MoreScreen />;
-      case 'CHATROOM':
-        return <ChatRoomScreen />;
-      case 'PASSCODE':
-        return <PasscodeScreen />;
-      default:
-        return <MainScreen />;
+      case 'FRIENDS':   return <FriendsScreen config={screenConfig} />;
+      case 'CHATS':     return <MainScreen config={screenConfig} />;
+      case 'OPENCHATS': return <OpenChatsScreen config={screenConfig} />;
+      case 'SHOPPING':  return <ShoppingScreen config={screenConfig} />;
+      case 'MORE':      return <MoreScreen config={screenConfig} />;
+      case 'CHATROOM':  return <ChatRoomScreen config={screenConfig} />;
+      case 'PASSCODE':  return <PasscodeScreen config={screenConfig} />;
+      default:          return <MainScreen config={screenConfig} />;
     }
   };
 

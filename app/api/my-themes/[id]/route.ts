@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
-// PATCH /api/my-themes/[id]  { trashed?, folderId?, name? }
+// PATCH /api/my-themes/[id]  { trashed?, folderId?, name?, configJson?, imageData? }
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const session = await getServerSession();
     if (!session?.dbId) return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
@@ -13,6 +14,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         folderId?: string | null;
         name?: string;
         duplicate?: boolean;
+        configJson?: Record<string, unknown> | null;
+        imageData?: Record<string, string> | null;
     };
 
     const theme = await prisma.myTheme.findUnique({ where: { id } });
@@ -29,6 +32,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
                 os: theme.os,
                 previewImageUrl: theme.previewImageUrl,
                 folderId: theme.folderId,
+                configJson: theme.configJson ?? undefined,
+                imageData: theme.imageData ?? undefined,
             },
         });
         return NextResponse.json({ theme: copy });
@@ -38,10 +43,20 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         where: { id },
         data: {
             ...(body.name !== undefined && { name: body.name }),
-            ...(body.folderId !== undefined && { folderId: body.folderId }),
+            ...(body.folderId !== undefined && { folderId: body.folderId ?? null }),
             ...(body.trashed !== undefined && {
                 trashed: body.trashed,
                 trashedAt: body.trashed ? new Date() : null,
+            }),
+            ...(body.configJson !== undefined && {
+                configJson: body.configJson === null
+                    ? Prisma.DbNull
+                    : (body.configJson as Prisma.InputJsonValue),
+            }),
+            ...(body.imageData !== undefined && {
+                imageData: body.imageData === null
+                    ? Prisma.DbNull
+                    : (body.imageData as Prisma.InputJsonValue),
             }),
         },
     });

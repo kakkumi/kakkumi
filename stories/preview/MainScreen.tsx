@@ -1,7 +1,7 @@
 import React from 'react';
 import { MessageCircle, Search, Settings, Plus, BellOff, Pin } from 'lucide-react';
+import { ScreenThemeConfig } from './FriendsScreen';
 
-// --- 외부 파일 의존성 제거 (미리보기를 위한 통합 모의 데이터 및 스타일) ---
 const chats = [
   { id: 1, type: 'single', room: '카꾸미', message: '오늘의 장보기 목록', time: '오후 9:42', unread: 0, isPinned: true, isMuted: false, avatars: ['🍑'], color: '#FEE500' },
   { id: 2, type: 'single', room: '부산', message: '오늘 하루도 수고했어 잘 자', time: '오후 11:31', unread: 0, isPinned: false, isMuted: false, avatars: ['🌊'], color: '#A2C5FF' },
@@ -33,282 +33,101 @@ const listItemBaseStyle: React.CSSProperties = {
   padding: '7px 16px',
 };
 
-interface ThemeState {
-  themeConfig: {
-    global: { backgroundColor: string; textColor: string; descriptionColor: string };
-    chatsTab: {
-      headerTitleColor: string;
-      filterChipBg: string;
-      filterChipActiveBg: string;
-      filterChipTextColor: string;
-      unreadBadgeBg: string;
-    };
+export const MainScreen = React.memo(function MainScreen({ config }: { config: ScreenThemeConfig }) {
+  const global = {
+    backgroundColor: config.bodyBg,
+    textColor: config.primaryText,
+    descriptionColor: config.descText,
   };
-}
-
-// Zustand Store Mock (Apeach 테마 컬러 적용)
-const useThemeStore = (selector: (state: ThemeState) => ThemeState['themeConfig']) => {
-  const state = {
-    themeConfig: {
-      global: {
-        backgroundColor: '#FFFFFF',
-        textColor: '#664242',
-        descriptionColor: '#805959',
-      },
-      chatsTab: {
-        headerTitleColor: '#664242',
-        filterChipBg: 'rgba(255, 255, 255, 0.6)', // 비활성 칩 및 배너의 반투명 흰색
-        filterChipActiveBg: '#664242', // 활성 칩 짙은 배경
-        filterChipTextColor: '#FFDEDE', // 활성 칩 글자색 (연분홍)
-        unreadBadgeBg: '#ff6507',
-      }
-    }
+  const chatsTab = {
+    headerTitleColor: config.headerText,
+    filterChipBg: config.bodyBg,
+    filterChipActiveBg: config.tabBarSelectedIcon,
+    filterChipTextColor: config.bodyBg,
+    unreadBadgeBg: config.unreadCountColor,
   };
-  return selector(state);
-};
-// -------------------------------------------------------------------------
 
-export const MainScreen = () => {
-  const themeConfig = useThemeStore((state: ThemeState) => state.themeConfig);
-  const { global, chatsTab } = themeConfig;
-
-  // 상단 필터 칩 더미 데이터 (스크린샷 100% 고증)
   const filterChips = [
     { label: '전체', count: null, isActive: true },
     { label: '안읽음', count: 40, isActive: false },
   ];
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        flex: 1,
-        minHeight: 0,
-        width: '100%',
-        overflow: 'hidden',
-        backgroundColor: global.backgroundColor,
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      }}
-    >
-      {/* 1. 상단 헤더 */}
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, width: '100%', overflow: 'hidden', backgroundColor: global.backgroundColor, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
       <header style={{ ...headerBaseStyle, color: chatsTab.headerTitleColor }}>
-        <h2 data-active-element-id="header-title-icon" style={{ margin: 0, fontSize: 17, fontWeight: 400, color: '#3c2a2a' }}>채팅</h2>
+        <h2 data-active-element-id="header-title-icon" style={{ margin: 0, fontSize: 17, fontWeight: 400, color: global.textColor }}>채팅</h2>
         <div data-active-element-id="header-title-icon" style={iconRowStyle}>
           <Search size={20} strokeWidth={2.3} />
           <div style={{ position: 'relative', display: 'inline-flex', width: 20, height: 20 }}>
-            <div style={{
-              position: 'absolute',
-              inset: 0,
-              overflow: 'hidden',
-              clipPath: 'polygon(0% 0%, 62% 0%, 62% 38%, 100% 38%, 100% 100%, 0% 100%)',
-            }}>
+            <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', clipPath: 'polygon(0% 0%, 62% 0%, 62% 38%, 100% 38%, 100% 100%, 0% 100%)' }}>
               <MessageCircle size={19} strokeWidth={2.3} />
             </div>
-            <span style={{
-              position: 'absolute',
-              top: -3,
-              right: -3,
-              width: 10,
-              height: 10,
-              borderRadius: '50%',
-              backgroundColor: 'transparent',
-              color: 'currentColor',
-              fontSize: 11,
-              fontWeight: 900,
-              WebkitTextStroke: '0.5px currentColor',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              lineHeight: 1,
-            }}>+</span>
+            <span style={{ position: 'absolute', top: -3, right: -3, width: 10, height: 10, borderRadius: '50%', backgroundColor: 'transparent', color: 'currentColor', fontSize: 11, fontWeight: 900, WebkitTextStroke: '0.5px currentColor', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>+</span>
           </div>
           <Settings size={20} strokeWidth={2.3} />
         </div>
       </header>
 
-      {/* 2. 필터 칩 영역 */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          padding: '2px 14px 12px 14px',
-        }}
-      >
+      <div style={{ display: 'flex', alignItems: 'center', padding: '2px 14px 12px 14px' }}>
         <div className="chats-scroll" style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: '4px', alignItems: 'center' }}>
           {filterChips.map((chip) => (
-            <button
-              key={chip.label}
-              type="button"
-              style={{
-                border: chip.isActive ? 'none' : `1px solid ${global.textColor}30`,
-                flexShrink: 0,
-                borderRadius: 999,
-                backgroundColor: chip.isActive ? '#000000' : 'transparent',
-                color: chip.isActive ? '#FFFFFF' : global.textColor,
-                padding: '5px 12px',
-                fontSize: 12,
-                fontWeight: 400,
-                cursor: 'pointer',
-              }}
-            >
+            <button key={chip.label} type="button" style={{ border: chip.isActive ? 'none' : `1px solid ${global.textColor}30`, flexShrink: 0, borderRadius: 999, backgroundColor: chip.isActive ? '#000000' : 'transparent', color: chip.isActive ? '#FFFFFF' : global.textColor, padding: '5px 12px', fontSize: 12, fontWeight: 400, cursor: 'pointer' }}>
               {chip.label}
               {chip.count && (
-                <span style={{
-                  backgroundColor: chatsTab.unreadBadgeBg,
-                  color: '#FFFFFF',
-                  fontSize: 10,
-                  fontWeight: 500,
-                  minWidth: 16,
-                  height: 16,
-                  lineHeight: '16px',
-                  textAlign: 'center',
-                  padding: '0 4px',
-                  borderRadius: 999,
-                  marginLeft: 2,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  {chip.count}
-                </span>
+                <span style={{ backgroundColor: chatsTab.unreadBadgeBg, color: '#FFFFFF', fontSize: 10, fontWeight: 500, minWidth: 16, height: 16, lineHeight: '16px', textAlign: 'center', padding: '0 4px', borderRadius: 999, marginLeft: 2, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{chip.count}</span>
               )}
             </button>
           ))}
-          <div style={{ 
-            width: 32,
-            height: 32,
-            borderRadius: 16,
-            backgroundColor: 'transparent',
-            border: '1px solid rgba(150, 150, 150, 0.4)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}>
+          <div style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: 'transparent', border: '1px solid rgba(150,150,150,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Plus size={18} color={global.textColor} strokeWidth={2.5} />
           </div>
         </div>
       </div>
 
       <div style={{ flex: 1, minHeight: 0 }}>
-        {/* 3. 상단 배너 영역 */}
         <div style={{ padding: '0 14px 12px 14px' }}>
-        <div style={{
-          backgroundColor: '#F5F0E8',
-          borderRadius: 11,
-          padding: '13px 15px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}>
-          <div>
-            <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: global.textColor }}>
-              나에게 딱 맞는 테마를 찾아보세요
-            </p>
-            <p style={{ margin: '3px 0 0', fontSize: 11, color: global.descriptionColor, opacity: 0.8 }}>
-              테마 구경하기
-            </p>
+          <div style={{ backgroundColor: '#F5F0E8', borderRadius: 11, padding: '13px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: global.textColor }}>나에게 딱 맞는 테마를 찾아보세요</p>
+              <p style={{ margin: '3px 0 0', fontSize: 11, color: global.descriptionColor, opacity: 0.8 }}>테마 구경하기</p>
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* 4. 채팅방 리스트 영역 */}
         <section>
-        {chats.map((chat) => (
-          <article key={chat.id} style={listItemBaseStyle}>
-            <div style={{ display: 'flex', gap: 14, alignItems: 'center', minWidth: 0, flex: 1 }}>
-              
-              {/* 프사 영역 */}
-              <div style={{ width: 46, height: 46, position: 'relative', flexShrink: 0 }}>
-                <div style={{ width: '100%', height: '100%', borderRadius: 17, backgroundColor: chat.id === 1 ? 'transparent' : chat.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 21 }}>
-                  {chat.id === 1 ? chat.avatars[0] : (
-                    <svg width="23" height="23" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="12" cy="7" r="5" fill="rgba(120,120,120,0.55)"/>
-                      <path d="M5 21 Q4 21 4 20 Q4 13 12 13 Q20 13 20 20 Q20 21 19 21 Z" fill="rgba(120,120,120,0.55)"/>
-                    </svg>
-                  )}
+          {chats.map((chat) => (
+            <article key={chat.id} style={listItemBaseStyle}>
+              <div style={{ display: 'flex', gap: 14, alignItems: 'center', minWidth: 0, flex: 1 }}>
+                <div style={{ width: 46, height: 46, position: 'relative', flexShrink: 0 }}>
+                  <div style={{ width: '100%', height: '100%', borderRadius: 17, backgroundColor: chat.id === 1 ? 'transparent' : chat.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 21 }}>
+                    {chat.id === 1 ? chat.avatars[0] : (
+                      <svg width="23" height="23" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="7" r="5" fill="rgba(120,120,120,0.55)"/><path d="M5 21 Q4 21 4 20 Q4 13 12 13 Q20 13 20 20 Q20 21 19 21 Z" fill="rgba(120,120,120,0.55)"/></svg>
+                    )}
+                  </div>
+                </div>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {chat.id === 1 && <span style={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: chatsTab.filterChipActiveBg, color: '#FFFFFF', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 600, flexShrink: 0, lineHeight: 1 }}>나</span>}
+                    <p style={{ margin: 0, color: global.textColor, fontSize: 14, fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{chat.room}</p>
+                    {chat.isPinned && <Pin size={12} color={global.descriptionColor} fill={global.descriptionColor} style={{ opacity: 0.6, flexShrink: 0 }} />}
+                    {chat.isMuted && <BellOff size={13} color={global.descriptionColor} style={{ opacity: 0.6, flexShrink: 0 }} />}
+                  </div>
+                  <p style={{ margin: '2px 0 0', color: global.descriptionColor, fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: 0.9 }}>{chat.message}</p>
                 </div>
               </div>
-              
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  {chat.id === 1 && (
-                    <span
-                      style={{
-                        width: 14,
-                        height: 14,
-                        borderRadius: '50%',
-                        backgroundColor: chatsTab.filterChipActiveBg,
-                        color: '#FFFFFF',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 8,
-                        fontWeight: 600,
-                        flexShrink: 0,
-                        lineHeight: 1,
-                      }}
-                    >
-                      나
-                    </span>
-                  )}
-                  <p style={{ margin: 0, color: '#3c2a2a', fontSize: 14, fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {chat.room}
-                  </p>
-                  {chat.isPinned && <Pin size={12} color={global.descriptionColor} fill={global.descriptionColor} style={{ opacity: 0.6, flexShrink: 0 }} />}
-                  {/* 알림 음소거 아이콘 */}
-                  {chat.isMuted && <BellOff size={13} color={global.descriptionColor} style={{ opacity: 0.6, flexShrink: 0 }} />}
-                </div>
-                <p
-                  style={{
-                    margin: '2px 0 0',
-                    color: '#3c2a2a',
-                    fontSize: 12,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    opacity: 0.9
-                  }}
-                >
-                  {chat.message}
-                </p>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, marginLeft: 12, flexShrink: 0 }}>
+                <span style={{ color: global.descriptionColor, fontSize: 11, opacity: 0.8 }}>{chat.time}</span>
+                {chat.unread > 0 ? (
+                  <span style={{ minWidth: 20, height: 20, borderRadius: 10, backgroundColor: chatsTab.unreadBadgeBg, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 6px', fontSize: 10, fontWeight: 500 }}>{chat.unread}</span>
+                ) : <div style={{ height: 20 }} />}
               </div>
-            </div>
-
-            {/* 시간 및 안읽음 뱃지 */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, marginLeft: 12, flexShrink: 0 }}>
-              <span style={{ color: global.descriptionColor, fontSize: 11, opacity: 0.8 }}>{chat.time}</span>
-              {chat.unread > 0 ? (
-                <span
-                  style={{
-                    minWidth: 20,
-                    height: 20,
-                    borderRadius: 10,
-                    backgroundColor: chatsTab.unreadBadgeBg,
-                    color: '#fff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '0 6px',
-                    fontSize: 10,
-                    fontWeight: 500,
-                  }}
-                >
-                  {chat.unread}
-                </span>
-              ) : <div style={{ height: 20 }} />}
-            </div>
-          </article>
-        ))}
+            </article>
+          ))}
         </section>
       </div>
 
-      <style jsx>{`
-        .chats-scroll::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
+      <style jsx>{`.chats-scroll::-webkit-scrollbar { display: none; }`}</style>
     </div>
   );
-};
+});
+
+

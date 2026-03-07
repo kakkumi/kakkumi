@@ -1,39 +1,15 @@
 import React from 'react';
 import { Delete } from 'lucide-react';
+import { ScreenThemeConfig } from './FriendsScreen';
 
-// Zustand Store Mock (Apeach 테마 컬러 적용)
-interface ThemeState {
-  themeConfig: {
-    global: { backgroundColor: string };
-    passcode: {
-      backgroundColor: string;
-      titleColor: string;
-      keypadBackgroundColor: string;
-      keypadTextColor: string;
-      keypadPressedColor: string;
-    };
+export const PasscodeScreen = React.memo(function PasscodeScreen({ config }: { config: ScreenThemeConfig }) {
+  const passcode = {
+    backgroundColor: config.passcodeBg,
+    titleColor: config.passcodeTitleText,
+    keypadBackgroundColor: config.bodyBg,
+    keypadTextColor: config.passcodeKeypadText,
+    keypadPressedColor: `${config.passcodeKeypadText}22`,
   };
-}
-
-const useThemeStore = (selector: (state: ThemeState) => ThemeState['themeConfig']) => {
-  const state: ThemeState = {
-    themeConfig: {
-      global: { backgroundColor: '#FFFFFF' },
-      passcode: {
-        backgroundColor: '#FFFFFF',
-        titleColor: '#664242',
-        keypadBackgroundColor: '#FFF2F2',
-        keypadTextColor: '#664242',
-        keypadPressedColor: 'rgba(246, 108, 108, 0.15)',
-      }
-    }
-  };
-  return selector(state);
-};
-
-export const PasscodeScreen = () => {
-  const themeConfig = useThemeStore((state) => state.themeConfig);
-  const { passcode } = themeConfig;
 
   return (
     <div
@@ -44,7 +20,7 @@ export const PasscodeScreen = () => {
         minHeight: 0,
         width: '100%',
         overflow: 'hidden',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: passcode.backgroundColor,
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         position: 'relative',
       }}
@@ -61,7 +37,7 @@ export const PasscodeScreen = () => {
           color: passcode.titleColor,
           zIndex: 1,
           paddingBottom: 20,
-          backgroundColor: '#FFFFFF',
+          backgroundColor: passcode.backgroundColor,
         }}
       >
         <h2 style={{ margin: 0, fontSize: 21, fontWeight: 400, color: '#3c2a2a' }}>암호 입력</h2>
@@ -81,7 +57,7 @@ export const PasscodeScreen = () => {
         style={{
           flex: '0 0 40%',
           minHeight: 0,
-          backgroundColor: '#FFFFFF',
+          backgroundColor: passcode.keypadBackgroundColor,
           borderTopLeftRadius: 24, // 스크린샷 5번 파란 박스의 둥근 모서리 느낌
           borderTopRightRadius: 24,
           padding: '24px 20px 10px 20px',
@@ -148,4 +124,4 @@ export const PasscodeScreen = () => {
       </section>
     </div>
   );
-};
+});
