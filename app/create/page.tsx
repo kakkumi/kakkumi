@@ -39,7 +39,6 @@ interface ThemeConfig {
   weatherIconColor: string;
   gameText: string;
   gameDescText: string;
-  bottomBannerBg: string;
   // ── 헤더 ──
   headerTabText: string;
   headerTabHighlightText: string;
@@ -134,11 +133,11 @@ const defaultConfig: ThemeConfig = {
   weatherIconColor: "#191919",
   gameText: "#191919",
   gameDescText: "#9E9E9E",
-  bottomBannerBg: "#FFFFFF",
   // 헤더
   headerTabText: "#9E9E9E",
   headerTabHighlightText: "#3A1D1D",
   // 공통 "#FFFFFF",
+  tabBarBg: "#FFFFFF",
   tabBarIcon: "#9E9E9E",
   tabBarSelectedIcon: "#3A1D1D",
   headerBg: "#FEE500",
@@ -227,7 +226,9 @@ const ColorRow = memo(function ColorRow({ label, value, onChange, tooltip, disab
   const pendingValueRef = useRef(value ?? '#000000');
 
   useEffect(() => {
-    setDraftValue(value ?? '#000000');
+    startTransition(() => {
+      setDraftValue(value ?? '#000000');
+    });
     pendingValueRef.current = value ?? '#000000';
   }, [value]);
 
@@ -1824,7 +1825,7 @@ export default function CreatePage() {
                   <div className="flex items-center justify-between py-2.5 px-1">
                     <div>
                       <div className="text-[13px] font-semibold" style={{color:"#2c2c2e"}}>다크 모드 지원</div>
-                      <div className="text-[10px] mt-0.5 font-mono" style={{color:"#aeaeb2"}}>-kakaotalk-theme-style: 'dark'</div>
+                      <div className="text-[10px] mt-0.5 font-mono" style={{color:"#aeaeb2"}}>-kakaotalk-theme-style: &apos;dark&apos;</div>
                     </div>
                     <button
                       onClick={() => set("darkMode")(!config.darkMode)}
@@ -2120,7 +2121,7 @@ export default function CreatePage() {
               <div className="flex items-center justify-between py-2.5" style={{ borderTop: "1px solid rgba(0,0,0,0.06)", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
                 <div>
                   <div className="text-[13px] font-semibold" style={{color:"#2c2c2e"}}>다크 모드 지원</div>
-                  <div className="text-[10px] mt-0.5 font-mono" style={{color:"#aeaeb2"}}>-kakaotalk-theme-style: 'dark'</div>
+                  <div className="text-[10px] mt-0.5 font-mono" style={{color:"#aeaeb2"}}>-kakaotalk-theme-style: &apos;dark&apos;</div>
                 </div>
                 <button
                   onClick={() => set("darkMode")(!config.darkMode)}
