@@ -1815,14 +1815,13 @@ export default function CreatePage() {
                 </Accordion>
                 <Accordion title="목록 텍스트" badge="MainViewStyle">
                   <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={set("primaryText")} tooltip="-ios-text-color" />
-                  <ColorRow label="이름 프레스" value={config.chatListHighlightText} onChange={set("chatListHighlightText")} tooltip="-ios-highlighted-text-color" />
-                  <ColorRow label="마지막 메시지" value={config.chatListLastMsgText} onChange={set("chatListLastMsgText")} tooltip="-ios-paragraph-text-color" />
-                  <ColorRow label="마지막 메시지 프레스" value={config.chatListHighlightText} onChange={set("chatListHighlightText")} tooltip="-ios-paragraph-highlighted-text-color" />
+                  <ColorRow label="이름 프레스" value={config.chatListHighlightText} onChange={(v) => { set("chatListHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-highlighted-text-color" />
+                  <ColorRow label="마지막 메시지" value={config.chatListLastMsgText} onChange={(v) => { set("chatListLastMsgText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-text-color" />
+                  <ColorRow label="마지막 메시지 프레스" value={config.chatListHighlightText} onChange={(v) => { set("chatListHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-highlighted-text-color" />
                 </Accordion>
                 <Accordion title="목록 배경 / 칩 / 버튼" badge="MainViewStyle">
                   <ColorRow label="선택 배경" value={config.friendsSelectedBg} onChange={set("friendsSelectedBg")} tooltip="-ios-selected-background-color" />
                   <MacInput label="선택 배경 투명도" hint="(-ios-selected-background-alpha)" value={config.selectedBgAlpha} onChange={set("selectedBgAlpha")} />
-                  <ColorRow label="칩 선택 텍스트" value={config.headerText} onChange={set("headerText")} tooltip="-ios-text-color" />
                 </Accordion>
                 <Accordion title="섹션 / 보더" badge="MainViewStyle">
                   <ColorRow label="섹션 타이틀" value={config.descText} onChange={set("descText")} tooltip="-ios-description-text-color" />
