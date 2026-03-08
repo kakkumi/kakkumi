@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Header from "../components/Header";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export type SavedTheme = {
   id: string;
@@ -486,6 +487,7 @@ function ThemeCard({ theme, isTrash, onTrash, onRestore, onPermanentDelete, onDu
   onDuplicate: (id: string) => void;
   onMoveRequest: (id: string) => void;
 }) {
+  const router = useRouter();
   const [hover, setHover] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -525,11 +527,13 @@ function ThemeCard({ theme, isTrash, onTrash, onRestore, onPermanentDelete, onDu
     >
       {/* 미리보기 */}
       <div
+        onClick={() => { if (!isTrash && !menuOpen) router.push(`/create?id=${theme.id}`); }}
         className="w-full rounded-2xl overflow-hidden transition-transform duration-300"
         style={{
           aspectRatio: "9/16",
           background: "rgba(0,0,0,0.05)",
           transform: hover ? "translateY(-3px)" : "translateY(0)",
+          cursor: isTrash ? "default" : "pointer",
         }}
       >
         {theme.previewImageUrl ? (

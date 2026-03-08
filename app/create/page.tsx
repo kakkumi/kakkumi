@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, startTransition, useMemo, memo } from "react";
+import { useEffect, useRef, useState, startTransition, useMemo, memo, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import JSZip from "jszip";
 import Header from "../components/Header";
+import { useAutoSave } from "./useAutoSave";
 
 import { PreviewNewsMockup } from "../../stories/PreviewNewsMockup";
 import { PreviewChatRoomMockup } from "../../stories/PreviewChatRoomMockup";
@@ -173,10 +175,8 @@ const ColorRow = memo(function ColorRow({ label, value, onChange, tooltip, disab
   const frameRef = useRef<number | null>(null);
   const pendingValueRef = useRef(value);
 
-  useLayoutEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
     setDraftValue(value);
-    /* eslint-enable react-hooks/set-state-in-effect */
     pendingValueRef.current = value;
   }, [value]);
 
@@ -1139,6 +1139,9 @@ const editorCategories: { key: EditorCategory; label: string; badge: string }[] 
 ];
 
 export default function CreatePage() {
+  const searchParams = useSearchParams();
+  const themeIdParam = searchParams.get("id");
+
   const leftAsideRef = useRef<HTMLElement | null>(null);
   const [os, setOs] = useState<OS>("ios");
   const [config, setConfig] = useState<ThemeConfig>(defaultConfig);
@@ -1147,10 +1150,78 @@ export default function CreatePage() {
   const [imageUploads, setImageUploads] = useState<Record<string, string>>({});
   const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
   const [selectedSettingKey, setSelectedSettingKey] = useState<string | null>(null);
+  const [themeLoaded, setThemeLoaded] = useState(false);
   const setCurrentScreen = usePreviewThemeStore((state) => state.setCurrentScreen);
   const activeElementId = usePreviewThemeStore((state) => state.activeElementId);
   const setActiveElementId = usePreviewThemeStore((state) => state.setActiveElementId);
   const setTheme = usePreviewThemeStore((state) => state.setTheme);
+
+  // ── URL ?id= 로 저장된 테마 불러오기 ──
+  const loadThemeById = useCallback(async (id: string) => {
+    try {
+      const res = await fetch(`/api/my-themes/${id}`);
+      if (!res.ok) return;
+      const data = await res.json() as {
+        theme: {
+          id: string;
+          os: string;
+          configJson: Record<string, unknown> | null;
+          imageData: Record<string, string> | null;
+        };
+      };
+      const { theme } = data;
+
+      // OS 복원
+      if (theme.os === "ios" || theme.os === "android") {
+        setOs(theme.os);
+      }
+
+      // configJson 복원
+      if (theme.configJson) {
+        setConfig((prev) => ({
+          ...prev,
+          ...(theme.configJson as Partial<ThemeConfig>),
+        }));
+      }
+
+      // imageData(base64) 복원 → objectURL로 변환
+      if (theme.imageData) {
+        const restoredImages: Record<string, string> = {};
+        for (const [key, base64] of Object.entries(theme.imageData)) {
+          try {
+            const res2 = await fetch(base64);
+            const blob = await res2.blob();
+            restoredImages[key] = URL.createObjectURL(blob);
+          } catch {
+            // 변환 실패 무시
+          }
+        }
+        setImageUploads(restoredImages);
+      }
+
+      // localStorage에 themeId 저장 (자동저장 연속성)
+      localStorage.setItem("kakkumi_draft_theme_id", id);
+      setThemeLoaded(true);
+    } catch {
+      setThemeLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (themeIdParam) {
+      void loadThemeById(themeIdParam);
+    } else {
+      setThemeLoaded(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [themeIdParam]);
+
+  // ── 자동저장 훅 ──
+  const { status: autoSaveStatus, triggerDebounce, triggerImmediate } = useAutoSave({
+    config,
+    os,
+    imageUploads,
+  });
 
   // TabBar 컴포넌트는 store를 참조하므로 탭바 색상만 동기화
   useEffect(() => {
@@ -1261,59 +1332,15 @@ export default function CreatePage() {
     };
   }, [selectedSettingKey]);
 
-  const set = (key: keyof ThemeConfig) => (value: string | boolean) =>
+  const set = (key: keyof ThemeConfig) => (value: string | boolean) => {
     setConfig((prev) => ({ ...prev, [key]: value }));
-
-  const [saveToast, setSaveToast] = useState<"idle" | "saving" | "saved">("idle");
-
-  const handleSaveTheme = async () => {
-    setSaveToast("saving");
-    try {
-      // 이미지 objectURL → base64 변환
-      const imageDataMap: Record<string, string> = {};
-      await Promise.all(
-        Object.entries(imageUploads).map(async ([key, url]) => {
-          try {
-            const res = await fetch(url);
-            const blob = await res.blob();
-            const base64 = await new Promise<string>((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(reader.result as string);
-              reader.onerror = reject;
-              reader.readAsDataURL(blob);
-            });
-            imageDataMap[key] = base64;
-          } catch {
-            // 변환 실패한 이미지는 건너뜀
-          }
-        })
-      );
-
-      const res = await fetch("/api/my-themes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: config.name,
-          os,
-          previewImageUrl: imageUploads["mainBg"] ?? null,
-          configJson: config,
-           imageData: imageDataMap,
-         }),
-       });
-      if (res.ok) {
-        setSaveToast("saved");
-        setTimeout(() => setSaveToast("idle"), 2200);
-      } else {
-        setSaveToast("idle");
-      }
-    } catch {
-      setSaveToast("idle");
-    }
+    triggerDebounce();
   };
 
   const handleImageUpload = (key: string, file: File) => {
     const url = URL.createObjectURL(file);
     setImageUploads((prev) => ({ ...prev, [key]: url }));
+    triggerImmediate();
   };
 
   const handleImageRemove = (key: string) => {
@@ -1322,6 +1349,7 @@ export default function CreatePage() {
       delete next[key];
       return next;
     });
+    triggerImmediate();
   };
 
   const handleDownload = async () => {
@@ -1480,6 +1508,22 @@ export default function CreatePage() {
     }
   };
 
+  if (!themeLoaded) {
+    return (
+      <div className="h-screen flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3">
+            <svg className="animate-spin" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgb(74,123,247)" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M21 12a9 9 0 11-6.219-8.56"/>
+            </svg>
+            <span className="text-[13px]" style={{ color: "#8e8e93" }}>테마 불러오는 중...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="h-screen overflow-hidden flex flex-col"
@@ -1611,34 +1655,45 @@ export default function CreatePage() {
             설정
           </button>
 
-          {/* 내 테마에 저장 버튼 */}
-          <button onClick={handleSaveTheme}
-            disabled={saveToast === "saving"}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[12px] font-bold transition-all active:scale-95 disabled:opacity-60"
+          {/* 자동저장 상태 표시 */}
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium"
             style={{
-              background: saveToast === "saved" ? "rgb(52,199,89)" : "rgba(74,123,247,1)",
-              color: "#fff",
-              boxShadow: saveToast === "saved" ? "0 2px 8px rgba(52,199,89,0.35)" : "0 2px 8px rgba(74,123,247,0.3)",
+              background: autoSaveStatus === "saved" ? "rgba(52,199,89,0.1)"
+                : autoSaveStatus === "saving" ? "rgba(74,123,247,0.08)"
+                : autoSaveStatus === "offline" ? "rgba(255,59,48,0.08)"
+                : "rgba(0,0,0,0.04)",
+              color: autoSaveStatus === "saved" ? "rgb(52,199,89)"
+                : autoSaveStatus === "saving" ? "rgb(74,123,247)"
+                : autoSaveStatus === "offline" ? "rgb(255,59,48)"
+                : "#8e8e93",
+              border: `1px solid ${autoSaveStatus === "saved" ? "rgba(52,199,89,0.2)"
+                : autoSaveStatus === "saving" ? "rgba(74,123,247,0.15)"
+                : autoSaveStatus === "offline" ? "rgba(255,59,48,0.2)"
+                : "transparent"}`,
+              minWidth: 140,
+              justifyContent: "center",
             }}
           >
-            {saveToast === "saved" ? (
-              <>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
-                  <path d="M20 6L9 17l-5-5"/>
-                </svg>
-                저장됨
-              </>
-            ) : (
-              <>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
-                  <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
-                  <polyline points="17 21 17 13 7 13 7 21"/>
-                  <polyline points="7 3 7 8 15 8"/>
-                </svg>
-                내 테마에 저장
-              </>
+            {autoSaveStatus === "saving" && (
+              <svg className="animate-spin" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <path d="M21 12a9 9 0 11-6.219-8.56"/>
+              </svg>
             )}
-          </button>
+            {autoSaveStatus === "saved" && (
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <path d="M20 6L9 17l-5-5"/>
+              </svg>
+            )}
+            {autoSaveStatus === "offline" && (
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0119 12.55M5 12.55a10.94 10.94 0 015.17-2.39M10.71 5.05A16 16 0 0122.56 9M1.42 9a15.91 15.91 0 014.7-2.88M8.53 16.11a6 6 0 016.95 0M12 20h.01"/>
+              </svg>
+            )}
+            {autoSaveStatus === "saving" ? "저장 중..."
+              : autoSaveStatus === "saved" ? "모든 변경 사항 저장됨"
+              : autoSaveStatus === "offline" ? "오프라인 상태입니다"
+              : "자동 저장 대기 중"}
+          </div>
 
           {/* 다운로드 버튼 */}
           <button onClick={() => void handleDownload()}
@@ -1656,6 +1711,19 @@ export default function CreatePage() {
           </button>
         </div>
       </div>
+
+      {/* ── 오프라인 배너 ── */}
+      {autoSaveStatus === "offline" && (
+        <div
+          className="flex items-center justify-center gap-2 py-1.5 text-[12px] font-medium shrink-0"
+          style={{ background: "rgba(255,59,48,0.08)", borderBottom: "1px solid rgba(255,59,48,0.15)", color: "rgb(255,59,48)" }}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0119 12.55M5 12.55a10.94 10.94 0 015.17-2.39M10.71 5.05A16 16 0 0122.56 9M1.42 9a15.91 15.91 0 014.7-2.88M8.53 16.11a6 6 0 016.95 0M12 20h.01"/>
+          </svg>
+          오프라인 상태입니다. 연결 시 자동 저장됩니다.
+        </div>
+      )}
 
       {/* ── 바디 ── */}
       <div className="flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 96px)" }}>
@@ -1708,7 +1776,7 @@ export default function CreatePage() {
                   <div className="flex items-center justify-between py-2.5 px-1">
                     <div>
                       <div className="text-[13px] font-semibold" style={{color:"#2c2c2e"}}>다크 모드 지원</div>
-                      <div className="text-[10px] mt-0.5 font-mono" style={{color:"#aeaeb2"}}>-kakaotalk-theme-style: &apos;dark&apos;</div>
+                      <div className="text-[10px] mt-0.5 font-mono" style={{color:"#aeaeb2"}}>-kakaotalk-theme-style: 'dark'</div>
                     </div>
                     <button
                       onClick={() => set("darkMode")(!config.darkMode)}
@@ -1973,7 +2041,7 @@ export default function CreatePage() {
               <div className="flex items-center justify-between py-2.5" style={{ borderTop: "1px solid rgba(0,0,0,0.06)", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
                 <div>
                   <div className="text-[13px] font-semibold" style={{color:"#2c2c2e"}}>다크 모드 지원</div>
-                  <div className="text-[10px] mt-0.5 font-mono" style={{color:"#aeaeb2"}}>-kakaotalk-theme-style: &apos;dark&apos;</div>
+                  <div className="text-[10px] mt-0.5 font-mono" style={{color:"#aeaeb2"}}>-kakaotalk-theme-style: 'dark'</div>
                 </div>
                 <button
                   onClick={() => set("darkMode")(!config.darkMode)}

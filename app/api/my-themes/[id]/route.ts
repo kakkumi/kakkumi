@@ -3,6 +3,21 @@ import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
+// GET /api/my-themes/[id]
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const session = await getServerSession();
+    if (!session?.dbId) return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
+
+    const { id } = await params;
+
+    const theme = await prisma.myTheme.findUnique({ where: { id } });
+    if (!theme || theme.userId !== session.dbId) {
+        return NextResponse.json({ error: "권한이 없습니다." }, { status: 403 });
+    }
+
+    return NextResponse.json({ theme });
+}
+
 // PATCH /api/my-themes/[id]  { trashed?, folderId?, name?, configJson?, imageData? }
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const session = await getServerSession();
