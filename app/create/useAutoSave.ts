@@ -25,6 +25,8 @@ interface AutoSaveReturn {
   triggerDebounce: () => void;
   /** 이미지 업로드 / 색상 픽커 종료 시 즉시 저장 트리거 */
   triggerImmediate: () => void;
+  /** 초기화 후 다음 렌더(ref 업데이트)에서 즉시 저장 */
+  triggerImmediateAfterReset: () => void;
 }
 
 export function useAutoSave<T extends object>({
@@ -202,6 +204,22 @@ export function useAutoSave<T extends object>({
     doSave();
   }, [doSave]);
 
+  // 초기화 후 다음 렌더(ref 업데이트 완료) 시점에 저장
+  const pendingResetSave = useRef(false);
+  const triggerImmediateAfterReset = useCallback(() => {
+    pendingResetSave.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!pendingResetSave.current) return;
+    pendingResetSave.current = false;
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+      debounceTimer.current = null;
+    }
+    void doSave();
+  }, [config, imageUploads, doSave]);
+
   // 언마운트 시 타이머 정리
   useEffect(() => {
     return () => {
@@ -209,5 +227,5 @@ export function useAutoSave<T extends object>({
     };
   }, []);
 
-  return { status, themeId, triggerDebounce, triggerImmediate };
+  return { status, themeId, triggerDebounce, triggerImmediate, triggerImmediateAfterReset };
 }
