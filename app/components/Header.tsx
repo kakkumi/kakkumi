@@ -5,7 +5,7 @@ import Link from "next/link";
 import AuthStatus from "./AuthStatus";
 import NotificationBell from "./NotificationBell";
 import LoginRequiredModal from "./LoginRequiredModal";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const BASE_NAV_ITEMS = [
@@ -52,6 +52,9 @@ function getNavItems(role: string | null) {
 
 export default function Header() {
     const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const isEditingTheme = pathname === "/create" && !!searchParams.get("id");
+
     const [role, setRole] = useState<string | null>(null);
     const [sessionLoaded, setSessionLoaded] = useState(false);
     const [loginModal, setLoginModal] = useState<string | null>(null);
@@ -111,6 +114,21 @@ export default function Header() {
                     {NAV_ITEMS.map(({ href, label }) => {
                         const active = isActive(href);
                         const isAdminLink = href === "/admin";
+
+                        // /create 활성 상태일 때: 편집 중이면 "테마 편집하기"(클릭 불가), 아니면 "새 테마 만들기"(클릭 불가)
+                        if (href === "/create" && active) {
+                            const displayLabel = isEditingTheme ? "테마 편집하기" : label;
+                            return (
+                                <span
+                                    key={href}
+                                    className="rounded-lg px-3 py-2 text-[13px] cursor-default select-none"
+                                    style={{ color: "#ff9500", fontWeight: 700 }}
+                                >
+                                    {displayLabel}
+                                </span>
+                            );
+                        }
+
                         return (
                             <Link
                                 key={href}
