@@ -1178,21 +1178,19 @@ function AndroidMockup({ config, previewTab }: { config: ThemeConfig; previewTab
 type PreviewTab = "friends" | "chat" | "openchat" | "shopping" | "more" | "passcode";
 type EditorCategory =
   | "manifest"
-  | "main-view"
+  | "friends-tab"
+  | "chat-tab"
+  | "chatroom"
   | "tabbar"
-  | "chat-input"
-  | "message"
-  | "features"
-  | "passcode-notification";
+  | "extra";
 
-const editorCategories: { key: EditorCategory; label: string; badge: string }[] = [
-  { key: "manifest", label: "1. 테마 정보 및 기본 설정", badge: "ManifestStyle" },
-  { key: "main-view", label: "2. 메인 화면 공통", badge: "MainViewStyle" },
-  { key: "tabbar", label: "3. 하단 탭바", badge: "TabbarStyle" },
-  { key: "chat-input", label: "4. 채팅방 UI", badge: "InputBarStyle-Chat" },
-  { key: "message", label: "5. 메시지 스타일", badge: "MessageCellStyle" },
-  { key: "features", label: "6. 부가 기능 스타일", badge: "Features & Profile" },
-  { key: "passcode-notification", label: "7. 잠금화면 및 배너", badge: "Passcode / NotificationBar" },
+const editorCategories: { key: EditorCategory; label: string }[] = [
+  { key: "manifest",    label: "테마 정보" },
+  { key: "friends-tab", label: "친구탭" },
+  { key: "chat-tab",    label: "채팅탭" },
+  { key: "chatroom",    label: "채팅방" },
+  { key: "tabbar",      label: "하단 탭바" },
+  { key: "extra",       label: "부가" },
 ];
 
 export default function CreatePage() {
@@ -1855,39 +1853,105 @@ export default function CreatePage() {
               </>
             )}
 
-            {activeEditorCategory === "main-view" && (
+            {activeEditorCategory === "friends-tab" && (
               <>
-                <Accordion title="헤더" badge="HeaderStyle-Main">
-                  <ColorRow label="탭 텍스트" value={config.headerTabText} onChange={set("headerTabText")} tooltip="-ios-tab-text-color" />
-                  <ColorRow label="탭 선택 텍스트" value={config.headerTabHighlightText} onChange={set("headerTabHighlightText")} tooltip="-ios-tab-highlighted-text-color" />
-                </Accordion>
                 <Accordion title="배경" badge="MainViewStyle">
                   <ColorRow label="배경색" value={config.bodyBg} onChange={set("bodyBg")} tooltip="background-color" />
                   <ImageUploadRow label="배경 이미지" tooltip="mainBgImage.png" imgKey="mainBg" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
                 </Accordion>
+                <Accordion title="헤더" badge="HeaderStyle-Main">
+                  <ColorRow label="탭 텍스트" value={config.headerTabText} onChange={set("headerTabText")} tooltip="-ios-tab-text-color" />
+                  <ColorRow label="탭 선택 텍스트" value={config.headerTabHighlightText} onChange={set("headerTabHighlightText")} tooltip="-ios-tab-highlighted-text-color" />
+                </Accordion>
                 <Accordion title="목록 텍스트" badge="MainViewStyle">
-                  <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={set("primaryText")} tooltip="-ios-text-color" />
-                  <ColorRow label="이름 프레스" value={config.chatListHighlightText} onChange={(v) => { set("chatListHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-highlighted-text-color" />
+                  <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={(v) => { set("primaryText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-text-color" />
+                  <ColorRow label="이름 프레스" value={config.chatListHighlightText} onChange={(v) => { set("chatListHighlightText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-highlighted-text-color" />
                   <ColorRow label="상태메시지" value={config.descText} onChange={(v) => { set("descText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-description-text-color" />
-                  <ColorRow label="상태메시지 프레스" value={config.descHighlightText} onChange={set("descHighlightText")} tooltip="-ios-description-highlighted-text-color" />
-                  <ColorRow label="마지막 메시지" value={config.chatListLastMsgText} onChange={(v) => { set("chatListLastMsgText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-text-color" />
-                  <ColorRow label="마지막 메시지 프레스" value={config.chatListLastMsgHighlightText} onChange={(v) => { set("chatListLastMsgHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-highlighted-text-color" />
+                  <ColorRow label="상태메시지 프레스" value={config.descHighlightText} onChange={(v) => { set("descHighlightText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-description-highlighted-text-color" />
                 </Accordion>
                 <Accordion title="목록 셀 배경" badge="MainViewStyle">
-                  <ColorRow label="셀 배경색" value={config.friendsNormalBgColor} onChange={set("friendsNormalBgColor")} tooltip="-ios-normal-background-color" />
+                  <ColorRow label="셀 배경색" value={config.friendsNormalBgColor} onChange={(v) => { set("friendsNormalBgColor")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-normal-background-color" />
                   <MacInput label="셀 배경 투명도" hint="(-ios-normal-background-alpha)" value={config.friendsNormalBgAlpha} onChange={set("friendsNormalBgAlpha")} />
-                  <ColorRow label="선택 배경" value={config.friendsSelectedBg} onChange={set("friendsSelectedBg")} tooltip="-ios-selected-background-color" />
+                  <ColorRow label="선택 배경" value={config.friendsSelectedBg} onChange={(v) => { set("friendsSelectedBg")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-selected-background-color" />
                   <MacInput label="선택 배경 투명도" hint="(-ios-selected-background-alpha)" value={config.selectedBgAlpha} onChange={set("selectedBgAlpha")} />
                 </Accordion>
                 <Accordion title="섹션 / 보더" badge="SectionTitleStyle-Main">
                   <ColorRow label="섹션 타이틀" value={config.descText} onChange={(v) => { set("descText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-text-color" />
                   <MacInput label="섹션 타이틀 투명도" hint="(-ios-text-alpha)" value={config.sectionTitleTextAlpha} onChange={set("sectionTitleTextAlpha")} />
-                  <ColorRow label="보더 컬러" value={config.friendsBorderColor} onChange={set("friendsBorderColor")} tooltip="border-color" />
+                  <ColorRow label="보더 컬러" value={config.friendsBorderColor} onChange={(v) => { set("friendsBorderColor")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="border-color" />
                   <MacInput label="보더 투명도" hint="(border-alpha)" value={config.borderAlpha} onChange={set("borderAlpha")} />
                 </Accordion>
                 <Accordion title="기능 버튼" badge="FeatureStyle-Primary / ButtonStyle-AddFriend">
-                  <ColorRow label="기능 텍스트 컬러" value={config.featurePrimaryText} onChange={set("featurePrimaryText")} tooltip="-ios-text-color (FeatureStyle-Primary)" />
+                  <ColorRow label="기능 텍스트 컬러" value={config.featurePrimaryText} onChange={(v) => { set("featurePrimaryText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-text-color (FeatureStyle-Primary)" />
                   <ImageUploadRow label="친구추가 버튼 이미지" tooltip="findBtnAddFriend.png" imgKey="btnAddFriend" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                </Accordion>
+              </>
+            )}
+
+            {activeEditorCategory === "chat-tab" && (
+              <>
+                <Accordion title="배경" badge="MainViewStyle">
+                  <ColorRow label="배경색" value={config.bodyBg} onChange={set("bodyBg")} tooltip="background-color" />
+                </Accordion>
+                <Accordion title="목록 텍스트" badge="MainViewStyle">
+                  <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={(v) => { set("primaryText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-text-color" />
+                  <ColorRow label="이름 프레스" value={config.chatListHighlightText} onChange={(v) => { set("chatListHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-highlighted-text-color" />
+                  <ColorRow label="마지막 메시지" value={config.chatListLastMsgText} onChange={(v) => { set("chatListLastMsgText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-text-color" />
+                  <ColorRow label="마지막 메시지 프레스" value={config.chatListLastMsgHighlightText} onChange={(v) => { set("chatListLastMsgHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-highlighted-text-color" />
+                </Accordion>
+                <Accordion title="목록 셀 배경" badge="MainViewStyle">
+                  <ColorRow label="선택 배경" value={config.friendsSelectedBg} onChange={(v) => { set("friendsSelectedBg")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-selected-background-color" />
+                  <MacInput label="선택 배경 투명도" hint="(-ios-selected-background-alpha)" value={config.selectedBgAlpha} onChange={set("selectedBgAlpha")} />
+                </Accordion>
+              </>
+            )}
+
+            {activeEditorCategory === "chatroom" && (
+              <>
+                <Accordion title="채팅방 배경" badge="BackgroundStyle-ChatRoom">
+                  <ColorRow label="배경 컬러" value={config.chatBg} onChange={set("chatBg")} tooltip="background-color" />
+                  <ImageUploadRow label="배경 이미지" tooltip="chatroomBgImage.png" imgKey="chatroomBg" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                </Accordion>
+                <Accordion title="인풋바" badge="InputBarStyle-Chat">
+                  <ColorRow label="배경 컬러" value={config.inputBarBg} onChange={set("inputBarBg")} tooltip="background-color" />
+                  <ColorRow label="텍스트 컬러" value={config.inputBarText} onChange={set("inputBarText")} tooltip="-ios-button-text-color" />
+                </Accordion>
+                <Accordion title="메뉴 버튼" badge="InputBarStyle-Chat">
+                  <ColorRow label="아이콘 컬러" value={config.menuBtnColor} onChange={set("menuBtnColor")} tooltip="-ios-button-normal-foreground-color" />
+                  <ColorRow label="프레스 컬러" value={config.menuBtnHighlightColor} onChange={set("menuBtnHighlightColor")} tooltip="-ios-button-highlighted-foreground-color" />
+                  <ColorRow label="배경 컬러" value={config.inputFieldBg} onChange={set("inputFieldBg")} tooltip="-ios-button-normal-background-color" />
+                  <MacInput label="배경 투명도" hint="(-ios-button-normal-background-alpha)" value={config.menuBtnNormalBgAlpha} onChange={set("menuBtnNormalBgAlpha")} />
+                </Accordion>
+                <Accordion title="전송 버튼" badge="InputBarStyle-Chat">
+                  <ColorRow label="기본 배경" value={config.sendBtnBg} onChange={set("sendBtnBg")} tooltip="-ios-send-normal-background-color" />
+                  <ColorRow label="프레스 배경" value={config.sendBtnHighlightBg} onChange={set("sendBtnHighlightBg")} tooltip="-ios-send-highlighted-background-color" />
+                  <ColorRow label="기본 아이콘" value={config.sendBtnIcon} onChange={set("sendBtnIcon")} tooltip="-ios-send-normal-foreground-color" />
+                  <ColorRow label="프레스 아이콘" value={config.sendBtnHighlightIcon} onChange={set("sendBtnHighlightIcon")} tooltip="-ios-send-highlighted-foreground-color" />
+                </Accordion>
+                <Accordion title="보낸 메시지" badge="MessageCellStyle-Send">
+                  <ImageUploadRow label="첫 번째 배경 이미지" tooltip="chatroomBubbleSend01.png" imgKey="bubbleSend1" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ImageUploadRow label="첫 번째 선택 이미지" tooltip="chatroomBubbleSend01Selected.png" imgKey="bubbleSend1Selected" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ImageUploadRow label="연속 배경 이미지" tooltip="chatroomBubbleSend02.png" imgKey="bubbleSend2" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ImageUploadRow label="연속 선택 이미지" tooltip="chatroomBubbleSend02Selected.png" imgKey="bubbleSend2Selected" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ColorRow label="텍스트" value={config.myBubbleText} onChange={set("myBubbleText")} tooltip="-ios-text-color" />
+                  <ColorRow label="선택 텍스트" value={config.myBubbleSelectedText} onChange={set("myBubbleSelectedText")} tooltip="-ios-selected-text-color" />
+                  <ColorRow label="안읽음 텍스트" value={config.myBubbleUnreadText} onChange={set("myBubbleUnreadText")} tooltip="-ios-unread-text-color" />
+                  <MacInput label="첫 메시지 인셋" hint="-ios-title-edgeinsets" value="10px 11px 7px 17px" onChange={() => {}} readOnly={true} />
+                  <MacInput label="연속 메시지 인셋" hint="-ios-group-title-edgeinsets" value="10px 11px 7px 17px" onChange={() => {}} readOnly={true} />
+                </Accordion>
+                <Accordion title="받은 메시지" badge="MessageCellStyle-Receive">
+                  <ImageUploadRow label="첫 번째 배경 이미지" tooltip="chatroomBubbleReceive01.png" imgKey="bubbleReceive1" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ImageUploadRow label="첫 번째 선택 이미지" tooltip="chatroomBubbleReceive01Selected.png" imgKey="bubbleReceive1Selected" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ImageUploadRow label="연속 배경 이미지" tooltip="chatroomBubbleReceive02.png" imgKey="bubbleReceive2" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ImageUploadRow label="연속 선택 이미지" tooltip="chatroomBubbleReceive02Selected.png" imgKey="bubbleReceive2Selected" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ColorRow label="텍스트" value={config.otherBubbleText} onChange={set("otherBubbleText")} tooltip="-ios-text-color" />
+                  <ColorRow label="선택 텍스트" value={config.otherBubbleSelectedText} onChange={set("otherBubbleSelectedText")} tooltip="-ios-selected-text-color" />
+                  <ColorRow label="안읽음 텍스트" value={config.otherBubbleUnreadText} onChange={set("otherBubbleUnreadText")} tooltip="-ios-unread-text-color" />
+                  <MacInput label="첫 메시지 인셋" hint="-ios-title-edgeinsets" value="10px 17px 7px 11px" onChange={() => {}} readOnly={true} />
+                  <MacInput label="연속 메시지 인셋" hint="-ios-group-title-edgeinsets" value="10px 17px 7px 11px" onChange={() => {}} readOnly={true} />
+                </Accordion>
+                <Accordion title="공통" badge="MessageCellStyle">
+                  <ColorRow label="안읽은 숫자 컬러" value={config.unreadCountColor} onChange={set("unreadCountColor")} tooltip="-ios-unread-text-color" />
                 </Accordion>
               </>
             )}
@@ -1919,86 +1983,26 @@ export default function CreatePage() {
               </>
             )}
 
-            {activeEditorCategory === "chat-input" && (
+            {activeEditorCategory === "extra" && (
               <>
-                <Accordion title="채팅방 배경" badge="InputBarStyle-Chat">
-                  <ColorRow label="배경 컬러" value={config.chatBg} onChange={set("chatBg")} tooltip="background-color" />
-                  <ImageUploadRow label="배경 이미지" tooltip="chatroomBgImage.png" imgKey="chatroomBg" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                </Accordion>
-                <Accordion title="인풋바" badge="InputBarStyle-Chat">
-                  <ColorRow label="배경 컬러" value={config.inputBarBg} onChange={set("inputBarBg")} tooltip="background-color" />
-                  <ColorRow label="텍스트 컬러" value={config.inputBarText} onChange={set("inputBarText")} tooltip="-ios-button-text-color" />
-                </Accordion>
-                <Accordion title="메뉴 버튼" badge="InputBarStyle-Chat">
-                  <ColorRow label="아이콘 컬러" value={config.menuBtnColor} onChange={set("menuBtnColor")} tooltip="-ios-button-normal-foreground-color" />
-                  <ColorRow label="프레스 컬러" value={config.menuBtnHighlightColor} onChange={set("menuBtnHighlightColor")} tooltip="-ios-button-highlighted-foreground-color" />
-                  <ColorRow label="배경 컬러" value={config.inputFieldBg} onChange={set("inputFieldBg")} tooltip="-ios-button-normal-background-color" />
-                  <MacInput label="배경 투명도" hint="(-ios-button-normal-background-alpha)" value={config.menuBtnNormalBgAlpha} onChange={set("menuBtnNormalBgAlpha")} />
-                </Accordion>
-                <Accordion title="전송 버튼" badge="InputBarStyle-Chat">
-                  <ColorRow label="기본 배경" value={config.sendBtnBg} onChange={set("sendBtnBg")} tooltip="-ios-send-normal-background-color" />
-                  <ColorRow label="프레스 배경" value={config.sendBtnHighlightBg} onChange={set("sendBtnHighlightBg")} tooltip="-ios-send-highlighted-background-color" />
-                  <ColorRow label="기본 아이콘" value={config.sendBtnIcon} onChange={set("sendBtnIcon")} tooltip="-ios-send-normal-foreground-color" />
-                  <ColorRow label="프레스 아이콘" value={config.sendBtnHighlightIcon} onChange={set("sendBtnHighlightIcon")} tooltip="-ios-send-highlighted-foreground-color" />
-                </Accordion>
-              </>
-            )}
-
-            {activeEditorCategory === "message" && (
-              <>
-                <Accordion title="보낸 메시지" badge="MessageCellStyle-Send">
-                  <ImageUploadRow label="첫 번째 배경 이미지" tooltip="chatroomBubbleSend01.png" imgKey="bubbleSend1" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ImageUploadRow label="첫 번째 선택 이미지" tooltip="chatroomBubbleSend01Selected.png" imgKey="bubbleSend1Selected" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ImageUploadRow label="연속 배경 이미지" tooltip="chatroomBubbleSend02.png" imgKey="bubbleSend2" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ImageUploadRow label="연속 선택 이미지" tooltip="chatroomBubbleSend02Selected.png" imgKey="bubbleSend2Selected" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ColorRow label="텍스트" value={config.myBubbleText} onChange={set("myBubbleText")} tooltip="-ios-text-color" />
-                  <ColorRow label="선택 텍스트" value={config.myBubbleSelectedText} onChange={set("myBubbleSelectedText")} tooltip="-ios-selected-text-color" />
-                  <ColorRow label="안읽음 텍스트" value={config.myBubbleUnreadText} onChange={set("myBubbleUnreadText")} tooltip="-ios-unread-text-color" />
-                  <MacInput label="첫 메시지 인셋" hint="-ios-title-edgeinsets" value="10px 11px 7px 17px" onChange={() => {}} readOnly={true} />
-                  <MacInput label="연속 메시지 인셋" hint="-ios-group-title-edgeinsets" value="10px 11px 7px 17px" onChange={() => {}} readOnly={true} />
-                </Accordion>
-                <Accordion title="받은 메시지" badge="MessageCellStyle-Receive">
-                  <ImageUploadRow label="첫 번째 배경 이미지" tooltip="chatroomBubbleReceive01.png" imgKey="bubbleReceive1" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ImageUploadRow label="첫 번째 선택 이미지" tooltip="chatroomBubbleReceive01Selected.png" imgKey="bubbleReceive1Selected" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ImageUploadRow label="연속 배경 이미지" tooltip="chatroomBubbleReceive02.png" imgKey="bubbleReceive2" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ImageUploadRow label="연속 선택 이미지" tooltip="chatroomBubbleReceive02Selected.png" imgKey="bubbleReceive2Selected" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ColorRow label="텍스트" value={config.otherBubbleText} onChange={set("otherBubbleText")} tooltip="-ios-text-color" />
-                  <ColorRow label="선택 텍스트" value={config.otherBubbleSelectedText} onChange={set("otherBubbleSelectedText")} tooltip="-ios-selected-text-color" />
-                  <ColorRow label="안읽음 텍스트" value={config.otherBubbleUnreadText} onChange={set("otherBubbleUnreadText")} tooltip="-ios-unread-text-color" />
-                  <MacInput label="첫 메시지 인셋" hint="-ios-title-edgeinsets" value="10px 17px 7px 11px" onChange={() => {}} readOnly={true} />
-                  <MacInput label="연속 메시지 인셋" hint="-ios-group-title-edgeinsets" value="10px 17px 7px 11px" onChange={() => {}} readOnly={true} />
-                </Accordion>
-                <Accordion title="공통" badge="MessageCellStyle">
-                  <ColorRow label="안읽은 숫자 컬러" value={config.unreadCountColor} onChange={set("unreadCountColor")} tooltip="-ios-unread-text-color" />
-                </Accordion>
-              </>
-            )}
-
-            {activeEditorCategory === "features" && (
-              <>
-                <Accordion title="기본 프로필" badge="Features & Profile">
+                <Accordion title="기본 프로필" badge="DefaultProfileStyle">
                   <ImageUploadRow label="기본 프로필 이미지" tooltip="profileImg01.png" imgKey="defaultProfile" imageUploads={imageUploads} onUpload={handleImageUpload} />
                 </Accordion>
-                <Accordion title="더보기 / 그리드" badge="Features & Profile">
+                <Accordion title="더보기 / 그리드" badge="FeatureStyle">
                   <ColorRow label="상단 탭 텍스트" value={config.moreTabText} onChange={set("moreTabText")} tooltip="-ios-tab-text-color" />
                   <ColorRow label="서비스 버튼 컬러" value={config.moreServiceText} onChange={set("moreServiceText")} tooltip="-ios-text-color" />
                 </Accordion>
-                <Accordion title="날씨" badge="Features & Profile">
+                <Accordion title="날씨" badge="FeatureStyle">
                   <ColorRow label="위치 / 온도 텍스트" value={config.weatherText} onChange={set("weatherText")} tooltip="-ios-text-color" />
                   <ColorRow label="미세먼지 텍스트" value={config.weatherDescText} onChange={set("weatherDescText")} tooltip="-ios-description-text-color" />
                   <ColorRow label="GPS 아이콘 / 보더" value={config.weatherIconColor} onChange={set("weatherIconColor")} tooltip="-ios-text-color" />
                 </Accordion>
-                <Accordion title="게임" badge="Features & Profile">
+                <Accordion title="게임" badge="FeatureStyle">
                   <ColorRow label="타이틀 / 공지 텍스트" value={config.gameText} onChange={set("gameText")} tooltip="-ios-text-color" />
                   <ColorRow label="부가정보 텍스트" value={config.gameDescText} onChange={set("gameDescText")} tooltip="-ios-description-text-color" />
                   <ColorRow label="보더 컬러" value={config.friendsBorderColor} onChange={set("friendsBorderColor")} tooltip="border-color" />
                   <MacInput label="보더 알파" hint="border-alpha" value={config.borderAlpha} onChange={set("borderAlpha")} />
                 </Accordion>
-              </>
-            )}
-
-            {activeEditorCategory === "passcode-notification" && (
-              <>
                 <Accordion title="잠금화면" badge="PasscodeStyle">
                   <ColorRow label="배경색" value={config.passcodeBg} onChange={set("passcodeBg")} tooltip="background-color" />
                   <ImageUploadRow label="배경 이미지" tooltip="passcodeBgImage.png" imgKey="passcodeBgImg" imageUploads={imageUploads} onUpload={handleImageUpload} />
