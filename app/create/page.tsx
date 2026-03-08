@@ -1211,6 +1211,9 @@ export default function CreatePage() {
     if (themeIdParam) {
       void loadThemeById(themeIdParam);
     } else {
+      // 새 테마 만들기: 이전 draft ID 초기화해서 새 테마로 저장되게 함
+      localStorage.removeItem("kakkumi_draft_theme_id");
+      localStorage.removeItem("kakkumi_draft");
       setThemeLoaded(true);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1221,6 +1224,7 @@ export default function CreatePage() {
     config,
     os,
     imageUploads,
+    initialThemeId: themeIdParam ?? null,
   });
 
   // TabBar 컴포넌트는 store를 참조하므로 탭바 색상만 동기화

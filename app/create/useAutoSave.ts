@@ -12,7 +12,11 @@ interface AutoSaveOptions<T> {
   config: T;
   os: string;
   imageUploads: Record<string, string>;
+  /** 기존 테마 편집 시 테마 ID, 새 테마면 null */
+  initialThemeId?: string | null;
 }
+
+// ...existing code...
 
 interface AutoSaveReturn {
   status: AutoSaveStatus;
@@ -27,12 +31,11 @@ export function useAutoSave<T extends object>({
   config,
   os,
   imageUploads,
+  initialThemeId = null,
 }: AutoSaveOptions<T>): AutoSaveReturn {
   const [status, setStatus] = useState<AutoSaveStatus>("idle");
-  const [themeId, setThemeId] = useState<string | null>(() => {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem(LS_THEME_ID_KEY) ?? null;
-  });
+  const [themeId, setThemeId] = useState<string | null>(initialThemeId);
+  const themeIdRef = useRef<string | null>(initialThemeId);
 
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isSaving = useRef(false);
@@ -105,7 +108,7 @@ export function useAutoSave<T extends object>({
       const currentConfig = configRef.current as Record<string, unknown>;
       const imageData = await convertImages();
 
-      const currentThemeId = localStorage.getItem(LS_THEME_ID_KEY);
+      const currentThemeId = themeIdRef.current;
 
       if (currentThemeId) {
         // 기존 테마 업데이트
@@ -145,6 +148,7 @@ export function useAutoSave<T extends object>({
           const data = await res.json() as { theme: { id: string } };
           const newId = data.theme.id;
           localStorage.setItem(LS_THEME_ID_KEY, newId);
+          themeIdRef.current = newId;
           startTransition(() => {
             setThemeId(newId);
             setStatus("saved");
