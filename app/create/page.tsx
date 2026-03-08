@@ -436,6 +436,48 @@ function MacInput({
   type?: string;
   readOnly?: boolean;
 }) {
+  if (type === "slider") {
+    const numVal = parseFloat(value) || 0;
+    return (
+      <div className="flex flex-col px-2.5 py-1 mb-1.5 w-full">
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] font-medium text-gray-500">{label}</span>
+            {hint && (
+              <div className="group/tip relative flex items-center">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                <div className="absolute left-0 bottom-6 z-50 hidden group-hover/tip:block text-[11px] rounded-lg px-3 py-2 w-max max-w-[200px] leading-snug shadow-xl ring-1 ring-black/5 bg-white text-gray-800">
+                  {hint}
+                  <div className="absolute left-1.5 -bottom-1 w-2 h-2 bg-white rotate-45 transform border-b border-r border-gray-100"></div>
+                </div>
+              </div>
+            )}
+          </div>
+          <span className="text-[11px] font-mono text-gray-400">{numVal.toFixed(1)}</span>
+        </div>
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.1"
+          value={numVal}
+          onChange={(e) => onChange(parseFloat(e.target.value).toFixed(1))}
+          disabled={readOnly}
+          className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-orange-400"
+          style={{ background: `linear-gradient(to right, rgb(251,146,60) ${numVal * 100}%, #e5e7eb ${numVal * 100}%)` }}
+        />
+        <div className="flex justify-between mt-1">
+          <span className="text-[9px] text-gray-300">0.0</span>
+          <span className="text-[9px] text-gray-300">1.0</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col px-2.5 py-0.5 group mb-1.5 w-full">
       <label className="text-[11px] font-medium text-gray-500 mb-0.5 transition-colors group-focus-within:text-orange-500 flex items-center gap-1.5">
@@ -1823,14 +1865,14 @@ export default function CreatePage() {
                   <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={(v) => { set("primaryText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-text-color" />
                   <ColorRow label="친구칩 (상태메시지)" value={config.friendsListDescText} onChange={(v) => { set("friendsListDescText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-description-text-color" />
                   <ColorRow label="친구칩 리스트 Pressed" value={config.friendsSelectedBg} onChange={(v) => { set("friendsSelectedBg")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-selected-background-color" />
-                  <MacInput label="선택 배경 투명도" hint="(-ios-selected-background-alpha)" value={config.selectedBgAlpha} onChange={set("selectedBgAlpha")} />
+                  <MacInput label="선택 배경 투명도" hint="(-ios-selected-background-alpha)" value={config.selectedBgAlpha} onChange={set("selectedBgAlpha")} type="slider" />
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="섹션 / 보더" badge="SectionTitleStyle-Main">
                   <ColorRow label="섹션 타이틀" value={config.descText} onChange={(v) => { set("descText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-text-color" />
-                  <MacInput label="섹션 타이틀 투명도" hint="(-ios-text-alpha)" value={config.sectionTitleTextAlpha} onChange={set("sectionTitleTextAlpha")} />
+                  <MacInput label="섹션 타이틀 투명도" hint="(-ios-text-alpha)" value={config.sectionTitleTextAlpha} onChange={set("sectionTitleTextAlpha")} type="slider" />
                   <ColorRow label="보더 컬러" value={config.friendsBorderColor} onChange={(v) => { set("friendsBorderColor")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="border-color" />
-                  <MacInput label="보더 투명도" hint="(border-alpha)" value={config.borderAlpha} onChange={set("borderAlpha")} />
+                  <MacInput label="보더 투명도" hint="(border-alpha)" value={config.borderAlpha} onChange={set("borderAlpha")} type="slider" />
                 </Accordion>
               </>
             )}
@@ -1852,9 +1894,9 @@ export default function CreatePage() {
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="목록 셀 배경" badge="MainViewStyle">
                   <ColorRow label="셀 배경색" value={config.friendsNormalBgColor} onChange={(v) => { set("friendsNormalBgColor")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-normal-background-color" />
-                  <MacInput label="셀 배경 투명도" hint="(-ios-normal-background-alpha)" value={config.friendsNormalBgAlpha} onChange={set("friendsNormalBgAlpha")} />
+                  <MacInput label="셀 배경 투명도" hint="(-ios-normal-background-alpha)" value={config.friendsNormalBgAlpha} onChange={set("friendsNormalBgAlpha")} type="slider" />
                   <ColorRow label="선택 배경" value={config.friendsSelectedBg} onChange={(v) => { set("friendsSelectedBg")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-selected-background-color" />
-                  <MacInput label="선택 배경 투명도" hint="(-ios-selected-background-alpha)" value={config.selectedBgAlpha} onChange={set("selectedBgAlpha")} />
+                  <MacInput label="선택 배경 투명도" hint="(-ios-selected-background-alpha)" value={config.selectedBgAlpha} onChange={set("selectedBgAlpha")} type="slider" />
                 </Accordion>
               </>
             )}
@@ -1875,7 +1917,7 @@ export default function CreatePage() {
                   <ColorRow label="아이콘 컬러" value={config.menuBtnColor} onChange={set("menuBtnColor")} tooltip="-ios-button-normal-foreground-color" />
                   <ColorRow label="프레스 컬러" value={config.menuBtnHighlightColor} onChange={set("menuBtnHighlightColor")} tooltip="-ios-button-highlighted-foreground-color" />
                   <ColorRow label="배경 컬러" value={config.inputFieldBg} onChange={set("inputFieldBg")} tooltip="-ios-button-normal-background-color" />
-                  <MacInput label="배경 투명도" hint="(-ios-button-normal-background-alpha)" value={config.menuBtnNormalBgAlpha} onChange={set("menuBtnNormalBgAlpha")} />
+                  <MacInput label="배경 투명도" hint="(-ios-button-normal-background-alpha)" value={config.menuBtnNormalBgAlpha} onChange={set("menuBtnNormalBgAlpha")} type="slider" />
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="전송 버튼" badge="InputBarStyle-Chat">
