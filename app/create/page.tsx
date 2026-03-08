@@ -1788,28 +1788,33 @@ export default function CreatePage() {
                   <ColorRow label="배경색" value={config.bodyBg} onChange={set("bodyBg")} tooltip="background-color" />
                   <ImageUploadRow label="배경 이미지" tooltip="mainBgImage.png" imgKey="mainBg" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
                 </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="헤더" badge="HeaderStyle-Main">
                   <ColorRow label="탭 텍스트" value={config.headerTabText} onChange={set("headerTabText")} tooltip="-ios-tab-text-color" />
                   <ColorRow label="탭 선택 텍스트" value={config.headerTabHighlightText} onChange={set("headerTabHighlightText")} tooltip="-ios-tab-highlighted-text-color" />
                 </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="목록 텍스트" badge="MainViewStyle">
                   <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={(v) => { set("primaryText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-text-color" />
                   <ColorRow label="이름 프레스" value={config.chatListHighlightText} onChange={(v) => { set("chatListHighlightText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-highlighted-text-color" />
                   <ColorRow label="상태메시지" value={config.descText} onChange={(v) => { set("descText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-description-text-color" />
                   <ColorRow label="상태메시지 프레스" value={config.descHighlightText} onChange={(v) => { set("descHighlightText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-description-highlighted-text-color" />
                 </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="목록 셀 배경" badge="MainViewStyle">
                   <ColorRow label="셀 배경색" value={config.friendsNormalBgColor} onChange={(v) => { set("friendsNormalBgColor")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-normal-background-color" />
                   <MacInput label="셀 배경 투명도" hint="(-ios-normal-background-alpha)" value={config.friendsNormalBgAlpha} onChange={set("friendsNormalBgAlpha")} />
                   <ColorRow label="선택 배경" value={config.friendsSelectedBg} onChange={(v) => { set("friendsSelectedBg")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-selected-background-color" />
                   <MacInput label="선택 배경 투명도" hint="(-ios-selected-background-alpha)" value={config.selectedBgAlpha} onChange={set("selectedBgAlpha")} />
                 </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="섹션 / 보더" badge="SectionTitleStyle-Main">
                   <ColorRow label="섹션 타이틀" value={config.descText} onChange={(v) => { set("descText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-text-color" />
                   <MacInput label="섹션 타이틀 투명도" hint="(-ios-text-alpha)" value={config.sectionTitleTextAlpha} onChange={set("sectionTitleTextAlpha")} />
                   <ColorRow label="보더 컬러" value={config.friendsBorderColor} onChange={(v) => { set("friendsBorderColor")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="border-color" />
                   <MacInput label="보더 투명도" hint="(border-alpha)" value={config.borderAlpha} onChange={set("borderAlpha")} />
                 </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="기능 버튼" badge="FeatureStyle-Primary / ButtonStyle-AddFriend">
                   <ColorRow label="기능 텍스트 컬러" value={config.featurePrimaryText} onChange={(v) => { set("featurePrimaryText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-text-color (FeatureStyle-Primary)" />
                   <ImageUploadRow label="친구추가 버튼 이미지" tooltip="findBtnAddFriend.png" imgKey="btnAddFriend" imageUploads={imageUploads} onUpload={handleImageUpload} />
@@ -1822,12 +1827,14 @@ export default function CreatePage() {
                 <Accordion title="배경" badge="MainViewStyle">
                   <ColorRow label="배경색" value={config.bodyBg} onChange={set("bodyBg")} tooltip="background-color" />
                 </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="목록 텍스트" badge="MainViewStyle">
                   <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={(v) => { set("primaryText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-text-color" />
                   <ColorRow label="이름 프레스" value={config.chatListHighlightText} onChange={(v) => { set("chatListHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-highlighted-text-color" />
                   <ColorRow label="마지막 메시지" value={config.chatListLastMsgText} onChange={(v) => { set("chatListLastMsgText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-text-color" />
                   <ColorRow label="마지막 메시지 프레스" value={config.chatListLastMsgHighlightText} onChange={(v) => { set("chatListLastMsgHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-highlighted-text-color" />
                 </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="목록 셀 배경" badge="MainViewStyle">
                   <ColorRow label="선택 배경" value={config.friendsSelectedBg} onChange={(v) => { set("friendsSelectedBg")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-selected-background-color" />
                   <MacInput label="선택 배경 투명도" hint="(-ios-selected-background-alpha)" value={config.selectedBgAlpha} onChange={set("selectedBgAlpha")} />
@@ -1841,22 +1848,26 @@ export default function CreatePage() {
                   <ColorRow label="배경 컬러" value={config.chatBg} onChange={set("chatBg")} tooltip="background-color" />
                   <ImageUploadRow label="배경 이미지" tooltip="chatroomBgImage.png" imgKey="chatroomBg" imageUploads={imageUploads} onUpload={handleImageUpload} />
                 </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="인풋바" badge="InputBarStyle-Chat">
                   <ColorRow label="배경 컬러" value={config.inputBarBg} onChange={set("inputBarBg")} tooltip="background-color" />
                   <ColorRow label="텍스트 컬러" value={config.inputBarText} onChange={set("inputBarText")} tooltip="-ios-button-text-color" />
                 </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="메뉴 버튼" badge="InputBarStyle-Chat">
                   <ColorRow label="아이콘 컬러" value={config.menuBtnColor} onChange={set("menuBtnColor")} tooltip="-ios-button-normal-foreground-color" />
                   <ColorRow label="프레스 컬러" value={config.menuBtnHighlightColor} onChange={set("menuBtnHighlightColor")} tooltip="-ios-button-highlighted-foreground-color" />
                   <ColorRow label="배경 컬러" value={config.inputFieldBg} onChange={set("inputFieldBg")} tooltip="-ios-button-normal-background-color" />
                   <MacInput label="배경 투명도" hint="(-ios-button-normal-background-alpha)" value={config.menuBtnNormalBgAlpha} onChange={set("menuBtnNormalBgAlpha")} />
                 </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="전송 버튼" badge="InputBarStyle-Chat">
                   <ColorRow label="기본 배경" value={config.sendBtnBg} onChange={set("sendBtnBg")} tooltip="-ios-send-normal-background-color" />
                   <ColorRow label="프레스 배경" value={config.sendBtnHighlightBg} onChange={set("sendBtnHighlightBg")} tooltip="-ios-send-highlighted-background-color" />
                   <ColorRow label="기본 아이콘" value={config.sendBtnIcon} onChange={set("sendBtnIcon")} tooltip="-ios-send-normal-foreground-color" />
                   <ColorRow label="프레스 아이콘" value={config.sendBtnHighlightIcon} onChange={set("sendBtnHighlightIcon")} tooltip="-ios-send-highlighted-foreground-color" />
                 </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="보낸 메시지" badge="MessageCellStyle-Send">
                   <ImageUploadRow label="첫 번째 배경 이미지" tooltip="chatroomBubbleSend01.png" imgKey="bubbleSend1" imageUploads={imageUploads} onUpload={handleImageUpload} />
                   <ImageUploadRow label="첫 번째 선택 이미지" tooltip="chatroomBubbleSend01Selected.png" imgKey="bubbleSend1Selected" imageUploads={imageUploads} onUpload={handleImageUpload} />
@@ -1868,6 +1879,7 @@ export default function CreatePage() {
                   <MacInput label="첫 메시지 인셋" hint="-ios-title-edgeinsets" value="10px 11px 7px 17px" onChange={() => {}} readOnly={true} />
                   <MacInput label="연속 메시지 인셋" hint="-ios-group-title-edgeinsets" value="10px 11px 7px 17px" onChange={() => {}} readOnly={true} />
                 </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="받은 메시지" badge="MessageCellStyle-Receive">
                   <ImageUploadRow label="첫 번째 배경 이미지" tooltip="chatroomBubbleReceive01.png" imgKey="bubbleReceive1" imageUploads={imageUploads} onUpload={handleImageUpload} />
                   <ImageUploadRow label="첫 번째 선택 이미지" tooltip="chatroomBubbleReceive01Selected.png" imgKey="bubbleReceive1Selected" imageUploads={imageUploads} onUpload={handleImageUpload} />
@@ -1879,6 +1891,7 @@ export default function CreatePage() {
                   <MacInput label="첫 메시지 인셋" hint="-ios-title-edgeinsets" value="10px 17px 7px 11px" onChange={() => {}} readOnly={true} />
                   <MacInput label="연속 메시지 인셋" hint="-ios-group-title-edgeinsets" value="10px 17px 7px 11px" onChange={() => {}} readOnly={true} />
                 </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="공통" badge="MessageCellStyle">
                   <ColorRow label="안읽은 숫자 컬러" value={config.unreadCountColor} onChange={set("unreadCountColor")} tooltip="-ios-unread-text-color" />
                 </Accordion>
@@ -1892,6 +1905,7 @@ export default function CreatePage() {
                   <ImageUploadRow label="배경 이미지" tooltip="maintabBgImage.png" imgKey="tabBg" imageUploads={imageUploads} onUpload={handleImageUpload} />
                   <ColorRow label="숏폼 배경 컬러" value={config.tabBarBg} onChange={set("tabBarBg")} tooltip="숏폼 전용 background-color" />
                 </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="탭 아이콘" badge="TabbarStyle">
                   <ColorRow label="일반 아이콘 컬러" value={config.tabBarIcon} onChange={set("tabBarIcon")} tooltip="일반 아이콘 컬러" />
                   <ColorRow label="선택 아이콘 컬러" value={config.tabBarSelectedIcon} onChange={set("tabBarSelectedIcon")} tooltip="선택 아이콘 컬러" />
@@ -1918,11 +1932,13 @@ export default function CreatePage() {
                   <ColorRow label="상단 탭 텍스트" value={config.moreTabText} onChange={set("moreTabText")} tooltip="-ios-tab-text-color" />
                   <ColorRow label="서비스 버튼 컬러" value={config.moreServiceText} onChange={set("moreServiceText")} tooltip="-ios-text-color" />
                 </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="날씨" badge="FeatureStyle">
                   <ColorRow label="위치 / 온도 텍스트" value={config.weatherText} onChange={set("weatherText")} tooltip="-ios-text-color" />
                   <ColorRow label="미세먼지 텍스트" value={config.weatherDescText} onChange={set("weatherDescText")} tooltip="-ios-description-text-color" />
                   <ColorRow label="GPS 아이콘 / 보더" value={config.weatherIconColor} onChange={set("weatherIconColor")} tooltip="-ios-text-color" />
                 </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="게임" badge="FeatureStyle">
                   <ColorRow label="타이틀 / 공지 텍스트" value={config.gameText} onChange={set("gameText")} tooltip="-ios-text-color" />
                   <ColorRow label="부가정보 텍스트" value={config.gameDescText} onChange={set("gameDescText")} tooltip="-ios-description-text-color" />
@@ -1939,6 +1955,7 @@ export default function CreatePage() {
                   <ImageUploadRow label="배경 이미지" tooltip="passcodeBgImage.png" imgKey="passcodeBgImg" imageUploads={imageUploads} onUpload={handleImageUpload} />
                   <ColorRow label="타이틀 컬러" value={config.passcodeTitleText} onChange={set("passcodeTitleText")} tooltip="-ios-text-color" />
                 </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="불릿 이미지" badge="PasscodeStyle">
                   <div className="text-[11px] px-1 mb-1 font-semibold" style={{color:"#6e6e73"}}>일반</div>
                   {["bullet1Empty","bullet2Empty","bullet3Empty","bullet4Empty"].map((k, i) => (
@@ -1949,6 +1966,7 @@ export default function CreatePage() {
                     <ImageUploadRow key={k} label={`선택 불릿 ${i+1}`} tooltip={`passcodeImgCode0${i+1}Selected.png`} imgKey={k} imageUploads={imageUploads} onUpload={handleImageUpload} />
                   ))}
                 </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="키패드" badge="PasscodeStyle">
                   <ColorRow label="배경색" value={config.passcodeKeypadBg} onChange={set("passcodeKeypadBg")} tooltip="-ios-keypad-background-color" />
                   <ColorRow label="숫자 컬러" value={config.passcodeKeypadText} onChange={set("passcodeKeypadText")} tooltip="-ios-keypad-text-normal-color" />
@@ -1962,16 +1980,19 @@ export default function CreatePage() {
                 <Accordion title="기본 프로필" badge="DefaultProfileStyle">
                   <ImageUploadRow label="기본 프로필 이미지" tooltip="profileImg01.png" imgKey="defaultProfile" imageUploads={imageUploads} onUpload={handleImageUpload} />
                 </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="알림 배너" badge="BackgroundStyle-MessageNotificationBar">
                   <ColorRow label="배경색" value={config.notifBannerBg} onChange={set("notifBannerBg")} tooltip="background-color" />
                   <ColorRow label="이름 컬러" value={config.notifBannerNameText} onChange={set("notifBannerNameText")} tooltip="-ios-text-color (LabelStyle-MessageNotificationBarName)" />
                   <ColorRow label="메시지 컬러" value={config.notifBannerMsgText} onChange={set("notifBannerMsgText")} tooltip="-ios-text-color (LabelStyle-MessageNotificationBarMessage)" />
                 </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="다이렉트 쉐어" badge="BackgroundStyle-DirectShareBar">
                   <ColorRow label="배경색" value={config.directShareBg} onChange={set("directShareBg")} tooltip="background-color" />
                   <ColorRow label="이름 컬러" value={config.directShareNameText} onChange={set("directShareNameText")} tooltip="-ios-text-color (LabelStyle-DirectShareBarName)" />
                   <ColorRow label="메시지 컬러" value={config.directShareMsgText} onChange={set("directShareMsgText")} tooltip="-ios-text-color (LabelStyle-DirectShareBarMessage)" />
                 </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="하단 배너" badge="BottomBannerStyle">
                   <ColorRow label="배경 컬러 (다크)" value={config.bottomBannerBg} onChange={set("bottomBannerBg")} tooltip="background-color (BottomBannerStyle)" />
                   <ColorRow label="배경 컬러 (라이트)" value={config.bottomBannerLightBg} onChange={set("bottomBannerLightBg")} tooltip="background-color (BottomBannerStyle-Light)" />
