@@ -261,15 +261,15 @@ const ColorRow = memo(function ColorRow({ label, value, onChange, tooltip, disab
   return (
     <div
       data-setting-item="true"
-      className="flex items-center justify-between gap-3 py-2 px-3 group transition-all duration-200 hover:bg-gray-50 rounded-lg w-full"
+      className="flex items-center justify-between gap-3 py-1.5 px-2.5 group transition-all duration-200 hover:bg-gray-50 rounded-lg w-full"
       style={{ opacity: disabled ? 0.5 : 1 }}
     >
       <div className="flex flex-col gap-0.5 flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
-          <span className="text-[13px] font-medium text-gray-500">{label}</span>
+          <span className="text-[12px] font-medium text-gray-500">{label}</span>
           {tooltip && (
             <div className="group/tip relative flex items-center">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
                 <circle cx="12" cy="12" r="10"></circle>
                 <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
                 <line x1="12" y1="17" x2="12.01" y2="17"></line>
@@ -297,11 +297,11 @@ const ColorRow = memo(function ColorRow({ label, value, onChange, tooltip, disab
             className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
           />
           <div
-            className="w-6 h-6 rounded-full shadow-sm transition-all duration-200 group-hover/picker:scale-110 ring-1 ring-black/5"
+            className="w-5 h-5 rounded-full shadow-sm transition-all duration-200 group-hover/picker:scale-110 ring-1 ring-black/5"
             style={{ backgroundColor: draftValue }}
           />
         </label>
-        <div className="text-[12px] font-mono text-gray-400 w-[60px] text-right uppercase tracking-wide">
+        <div className="text-[11px] font-mono text-gray-400 w-[56px] text-right uppercase tracking-wide">
           {draftValue}
         </div>
       </div>
@@ -326,13 +326,13 @@ const ImageUploadRow = memo(function ImageUploadRow({ label, tooltip, imgKey, im
   };
 
   return (
-    <div data-setting-item="true" className="py-2 px-3 transition-all duration-200 hover:bg-gray-50 rounded-lg w-full group">
+    <div data-setting-item="true" className="py-1.5 px-2.5 transition-all duration-200 hover:bg-gray-50 rounded-lg w-full group">
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5">
           <div className="flex items-center gap-2">
-            <span className="text-[13px] font-medium text-gray-500">{label}</span>
+            <span className="text-[12px] font-medium text-gray-500">{label}</span>
           </div>
-          <span className="text-[10px] text-gray-400 font-mono tracking-tight">{tooltip.replace('.png', '')}</span>
+          <span className="text-[9px] text-gray-400 font-mono tracking-tight">{tooltip.replace('.png', '')}</span>
         </div>
 
         <div className="flex items-center gap-3">
@@ -340,17 +340,17 @@ const ImageUploadRow = memo(function ImageUploadRow({ label, tooltip, imgKey, im
             <button
               type="button"
               onClick={handleRemove}
-              className="text-[10px] text-red-500 hover:text-red-600 font-medium px-2 py-1 bg-red-50 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+              className="text-[9px] text-red-500 hover:text-red-600 font-medium px-2 py-0.5 bg-red-50 rounded-md transition-colors opacity-0 group-hover:opacity-100"
             >
               삭제
             </button>
           )}
           <label className="flex items-center cursor-pointer relative">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden shrink-0 transition-all duration-200 bg-gray-100 border border-transparent hover:border-orange-200 hover:bg-white hover:shadow-sm">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden shrink-0 transition-all duration-200 bg-gray-100 border border-transparent hover:border-orange-200 hover:bg-white hover:shadow-sm">
               {imageUploads[imgKey]
                 // eslint-disable-next-line @next/next/no-img-element
                 ? <img src={imageUploads[imgKey]} alt={label} className="w-full h-full object-cover" />
-                : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgb(200, 200, 200)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-colors hover:stroke-orange-400">
+                : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgb(200, 200, 200)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-colors hover:stroke-orange-400">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                     <polyline points="17 8 12 3 7 8"></polyline>
                     <line x1="12" y1="3" x2="12" y2="15"></line>
@@ -388,18 +388,18 @@ function Accordion({
 }) {
   return (
     <div
-      className="flex flex-col mb-6 animate-in fade-in slide-in-from-bottom-2 duration-300 w-full"
+      className="flex flex-col mb-4 animate-in fade-in slide-in-from-bottom-2 duration-300 w-full"
       data-setting-key={settingKey}
     >
-      <div className="pb-2 px-3 flex items-center justify-between">
-        <span className="text-[14px] font-bold text-gray-800 tracking-tight leading-none">{title}</span>
+      <div className="pb-1.5 px-3 flex items-center justify-between">
+        <span className="text-[13px] font-bold text-gray-800 tracking-tight leading-none">{title}</span>
         {badge && (
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 tracking-wide">
+          <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 tracking-wide">
             {badge.split('-')[0]}
           </span>
         )}
       </div>
-      <div className="flex flex-col gap-1">{children}</div>
+      <div className="flex flex-col gap-0.5">{children}</div>
     </div>
   );
 }
@@ -423,10 +423,10 @@ function MacInput({
   readOnly?: boolean;
 }) {
   return (
-    <div className="flex flex-col px-3 py-1 group mb-2 w-full">
-      <label className="text-[12px] font-medium text-gray-500 mb-1 transition-colors group-focus-within:text-orange-500 flex items-center justify-between">
+    <div className="flex flex-col px-2.5 py-0.5 group mb-1.5 w-full">
+      <label className="text-[11px] font-medium text-gray-500 mb-0.5 transition-colors group-focus-within:text-orange-500 flex items-center justify-between">
         {label}
-        {hint && <span className="text-[10px] font-mono text-gray-400 font-normal">{hint}</span>}
+        {hint && <span className="text-[9px] font-mono text-gray-400 font-normal">{hint}</span>}
       </label>
       <input
         type={type}
@@ -434,7 +434,7 @@ function MacInput({
         onChange={(e) => !readOnly && onChange(e.target.value)}
         placeholder={placeholder}
         readOnly={readOnly}
-        className={`w-full bg-transparent border-b border-gray-200 py-2 text-[14px] transition-all
+        className={`w-full bg-transparent border-b border-gray-200 py-1.5 text-[12.5px] transition-all
           ${readOnly ? "text-gray-400 cursor-default" : "text-gray-800 focus:border-orange-500 focus:bg-orange-50/10"}
           placeholder-gray-300 outline-none rounded-t-sm`}
       />
