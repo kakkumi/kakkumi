@@ -40,6 +40,9 @@ interface ThemeConfig {
   gameText: string;
   gameDescText: string;
   bottomBannerBg: string;
+  // ── 헤더 ──
+  headerTabText: string;
+  headerTabHighlightText: string;
   // ── 공통 ──
   tabBarBg: string;
   tabBarIcon: string;
@@ -53,6 +56,11 @@ interface ThemeConfig {
   friendsNameText: string;
   friendsBorderColor: string;
   friendsSelectedBg: string;
+  friendsNormalBgColor: string;
+  friendsNormalBgAlpha: string;
+  descHighlightText: string;
+  sectionTitleTextAlpha: string;
+  featurePrimaryText: string;
   // ── 채팅 탭 ──
   chatListNameText: string;
   chatListLastMsgText: string;
@@ -73,12 +81,20 @@ interface ThemeConfig {
   sendBtnBg: string;
   sendBtnIcon: string;
   menuBtnColor: string;
+  menuBtnHighlightColor: string;
+  menuBtnNormalBgAlpha: string;
   inputFieldBg: string;
   myBubbleBg: string;
   myBubbleText: string;
+  myBubbleSelectedText: string;
+  myBubbleUnreadText: string;
   otherBubbleBg: string;
   otherBubbleText: string;
+  otherBubbleSelectedText: string;
+  otherBubbleUnreadText: string;
   unreadCountColor: string;
+  sendBtnHighlightBg: string;
+  sendBtnHighlightIcon: string;
   // ── 암호화면 ──
   passcodeBg: string;
   passcodeTitleText: string;
@@ -86,7 +102,16 @@ interface ThemeConfig {
   passcodeKeypadText: string;
   // ── 알림 배너 ──
   notifBannerBg: string;
+  notifBannerNameText: string;
+  notifBannerMsgText: string;
+  // ── 다이렉트 쉐어 ──
+  directShareBg: string;
+  directShareNameText: string;
+  directShareMsgText: string;
+  // ── 하단 배너 ──
   notifBannerText: string;
+  bottomBannerBg: string;
+  bottomBannerLightBg: string;
   // Android 전용
   compileSdk: string;
   targetSdk: string;
@@ -110,8 +135,10 @@ const defaultConfig: ThemeConfig = {
   gameText: "#191919",
   gameDescText: "#9E9E9E",
   bottomBannerBg: "#FFFFFF",
-  // 공통
-  tabBarBg: "#FFFFFF",
+  // 헤더
+  headerTabText: "#9E9E9E",
+  headerTabHighlightText: "#3A1D1D",
+  // 공통 "#FFFFFF",
   tabBarIcon: "#9E9E9E",
   tabBarSelectedIcon: "#3A1D1D",
   headerBg: "#FEE500",
@@ -123,6 +150,11 @@ const defaultConfig: ThemeConfig = {
   friendsNameText: "#191919",
   friendsBorderColor: "#E5E5EA",
   friendsSelectedBg: "#F2F2F7",
+  friendsNormalBgColor: "#F5F5F5",
+  friendsNormalBgAlpha: "0.0",
+  descHighlightText: "#3A1D1D",
+  sectionTitleTextAlpha: "1.0",
+  featurePrimaryText: "#9E9E9E",
   // 채팅 탭
   chatListNameText: "#191919",
   chatListLastMsgText: "#9E9E9E",
@@ -143,12 +175,20 @@ const defaultConfig: ThemeConfig = {
   sendBtnBg: "#FEE500",
   sendBtnIcon: "#3A1D1D",
   menuBtnColor: "#9E9E9E",
+  menuBtnHighlightColor: "#6E6E73",
+  menuBtnNormalBgAlpha: "0.04",
   inputFieldBg: "#F2F2F7",
   myBubbleBg: "#FEE500",
   myBubbleText: "#191919",
+  myBubbleSelectedText: "#191919",
+  myBubbleUnreadText: "#FF3B30",
   otherBubbleBg: "#FFFFFF",
   otherBubbleText: "#191919",
+  otherBubbleSelectedText: "#191919",
+  otherBubbleUnreadText: "#FF3B30",
   unreadCountColor: "#FF3B30",
+  sendBtnHighlightBg: "#E6CE00",
+  sendBtnHighlightIcon: "#3A1D1D",
   // 암호화면
   passcodeBg: "#F5F5F5",
   passcodeTitleText: "#191919",
@@ -156,7 +196,16 @@ const defaultConfig: ThemeConfig = {
   passcodeKeypadText: "#191919",
   // 알림 배너
   notifBannerBg: "#FFFFFF",
+  notifBannerNameText: "#191919",
+  notifBannerMsgText: "#9E9E9E",
+  // 다이렉트 쉐어
+  directShareBg: "#FFFFFF",
+  directShareNameText: "#191919",
+  directShareMsgText: "#9E9E9E",
+  // 하단 배너
   notifBannerText: "#191919",
+  bottomBannerBg: "#FFFFFF",
+  bottomBannerLightBg: "#FFFFFF",
   // Android
   compileSdk: "34",
   targetSdk: "34",
@@ -1808,22 +1857,37 @@ export default function CreatePage() {
 
             {activeEditorCategory === "main-view" && (
               <>
+                <Accordion title="헤더" badge="HeaderStyle-Main">
+                  <ColorRow label="탭 텍스트" value={config.headerTabText} onChange={set("headerTabText")} tooltip="-ios-tab-text-color" />
+                  <ColorRow label="탭 선택 텍스트" value={config.headerTabHighlightText} onChange={set("headerTabHighlightText")} tooltip="-ios-tab-highlighted-text-color" />
+                </Accordion>
                 <Accordion title="배경" badge="MainViewStyle">
                   <ColorRow label="배경색" value={config.bodyBg} onChange={set("bodyBg")} tooltip="background-color" />
                   <ImageUploadRow label="배경 이미지" tooltip="mainBgImage.png" imgKey="mainBg" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
                 </Accordion>
                 <Accordion title="목록 텍스트" badge="MainViewStyle">
                   <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={set("primaryText")} tooltip="-ios-text-color" />
-                  <ColorRow label="마지막 메시지" value={config.chatListLastMsgText} onChange={(v) => { set("chatListLastMsgText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-text-color" />
                   <ColorRow label="이름 프레스" value={config.chatListHighlightText} onChange={(v) => { set("chatListHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-highlighted-text-color" />
+                  <ColorRow label="상태메시지" value={config.descText} onChange={(v) => { set("descText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-description-text-color" />
+                  <ColorRow label="상태메시지 프레스" value={config.descHighlightText} onChange={set("descHighlightText")} tooltip="-ios-description-highlighted-text-color" />
+                  <ColorRow label="마지막 메시지" value={config.chatListLastMsgText} onChange={(v) => { set("chatListLastMsgText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-text-color" />
                   <ColorRow label="마지막 메시지 프레스" value={config.chatListLastMsgHighlightText} onChange={(v) => { set("chatListLastMsgHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-highlighted-text-color" />
+                </Accordion>
+                <Accordion title="목록 셀 배경" badge="MainViewStyle">
+                  <ColorRow label="셀 배경색" value={config.friendsNormalBgColor} onChange={set("friendsNormalBgColor")} tooltip="-ios-normal-background-color" />
+                  <MacInput label="셀 배경 투명도" hint="(-ios-normal-background-alpha)" value={config.friendsNormalBgAlpha} onChange={set("friendsNormalBgAlpha")} />
                   <ColorRow label="선택 배경" value={config.friendsSelectedBg} onChange={set("friendsSelectedBg")} tooltip="-ios-selected-background-color" />
                   <MacInput label="선택 배경 투명도" hint="(-ios-selected-background-alpha)" value={config.selectedBgAlpha} onChange={set("selectedBgAlpha")} />
                 </Accordion>
-                <Accordion title="섹션 / 보더" badge="MainViewStyle">
-                  <ColorRow label="섹션 타이틀" value={config.descText} onChange={(v) => { set("descText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-description-text-color" />
+                <Accordion title="섹션 / 보더" badge="SectionTitleStyle-Main">
+                  <ColorRow label="섹션 타이틀" value={config.descText} onChange={(v) => { set("descText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-text-color" />
+                  <MacInput label="섹션 타이틀 투명도" hint="(-ios-text-alpha)" value={config.sectionTitleTextAlpha} onChange={set("sectionTitleTextAlpha")} />
                   <ColorRow label="보더 컬러" value={config.friendsBorderColor} onChange={set("friendsBorderColor")} tooltip="border-color" />
                   <MacInput label="보더 투명도" hint="(border-alpha)" value={config.borderAlpha} onChange={set("borderAlpha")} />
+                </Accordion>
+                <Accordion title="기능 버튼" badge="FeatureStyle-Primary / ButtonStyle-AddFriend">
+                  <ColorRow label="기능 텍스트 컬러" value={config.featurePrimaryText} onChange={set("featurePrimaryText")} tooltip="-ios-text-color (FeatureStyle-Primary)" />
+                  <ImageUploadRow label="친구추가 버튼 이미지" tooltip="findBtnAddFriend.png" imgKey="btnAddFriend" imageUploads={imageUploads} onUpload={handleImageUpload} />
                 </Accordion>
               </>
             )}
@@ -1867,14 +1931,15 @@ export default function CreatePage() {
                 </Accordion>
                 <Accordion title="메뉴 버튼" badge="InputBarStyle-Chat">
                   <ColorRow label="아이콘 컬러" value={config.menuBtnColor} onChange={set("menuBtnColor")} tooltip="-ios-button-normal-foreground-color" />
-                  <ColorRow label="프레스 컬러" value={config.menuBtnColor} onChange={set("menuBtnColor")} tooltip="-ios-button-highlighted-foreground-color" />
+                  <ColorRow label="프레스 컬러" value={config.menuBtnHighlightColor} onChange={set("menuBtnHighlightColor")} tooltip="-ios-button-highlighted-foreground-color" />
                   <ColorRow label="배경 컬러" value={config.inputFieldBg} onChange={set("inputFieldBg")} tooltip="-ios-button-normal-background-color" />
+                  <MacInput label="배경 투명도" hint="(-ios-button-normal-background-alpha)" value={config.menuBtnNormalBgAlpha} onChange={set("menuBtnNormalBgAlpha")} />
                 </Accordion>
                 <Accordion title="전송 버튼" badge="InputBarStyle-Chat">
                   <ColorRow label="기본 배경" value={config.sendBtnBg} onChange={set("sendBtnBg")} tooltip="-ios-send-normal-background-color" />
-                  <ColorRow label="프레스 배경" value={config.sendBtnBg} onChange={set("sendBtnBg")} tooltip="-ios-send-highlighted-background-color" />
+                  <ColorRow label="프레스 배경" value={config.sendBtnHighlightBg} onChange={set("sendBtnHighlightBg")} tooltip="-ios-send-highlighted-background-color" />
                   <ColorRow label="기본 아이콘" value={config.sendBtnIcon} onChange={set("sendBtnIcon")} tooltip="-ios-send-normal-foreground-color" />
-                  <ColorRow label="프레스 아이콘" value={config.sendBtnIcon} onChange={set("sendBtnIcon")} tooltip="-ios-send-highlighted-foreground-color" />
+                  <ColorRow label="프레스 아이콘" value={config.sendBtnHighlightIcon} onChange={set("sendBtnHighlightIcon")} tooltip="-ios-send-highlighted-foreground-color" />
                 </Accordion>
               </>
             )}
@@ -1883,17 +1948,23 @@ export default function CreatePage() {
               <>
                 <Accordion title="보낸 메시지" badge="MessageCellStyle-Send">
                   <ImageUploadRow label="첫 번째 배경 이미지" tooltip="chatroomBubbleSend01.png" imgKey="bubbleSend1" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ImageUploadRow label="첫 번째 선택 이미지" tooltip="chatroomBubbleSend01Selected.png" imgKey="bubbleSend1Selected" imageUploads={imageUploads} onUpload={handleImageUpload} />
                   <ImageUploadRow label="연속 배경 이미지" tooltip="chatroomBubbleSend02.png" imgKey="bubbleSend2" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ImageUploadRow label="연속 선택 이미지" tooltip="chatroomBubbleSend02Selected.png" imgKey="bubbleSend2Selected" imageUploads={imageUploads} onUpload={handleImageUpload} />
                   <ColorRow label="텍스트" value={config.myBubbleText} onChange={set("myBubbleText")} tooltip="-ios-text-color" />
-                  <ColorRow label="선택 텍스트" value={config.myBubbleText} onChange={set("myBubbleText")} tooltip="-ios-selected-text-color" />
+                  <ColorRow label="선택 텍스트" value={config.myBubbleSelectedText} onChange={set("myBubbleSelectedText")} tooltip="-ios-selected-text-color" />
+                  <ColorRow label="안읽음 텍스트" value={config.myBubbleUnreadText} onChange={set("myBubbleUnreadText")} tooltip="-ios-unread-text-color" />
                   <MacInput label="첫 메시지 인셋" hint="-ios-title-edgeinsets" value="10px 11px 7px 17px" onChange={() => {}} readOnly={true} />
                   <MacInput label="연속 메시지 인셋" hint="-ios-group-title-edgeinsets" value="10px 11px 7px 17px" onChange={() => {}} readOnly={true} />
                 </Accordion>
                 <Accordion title="받은 메시지" badge="MessageCellStyle-Receive">
                   <ImageUploadRow label="첫 번째 배경 이미지" tooltip="chatroomBubbleReceive01.png" imgKey="bubbleReceive1" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ImageUploadRow label="첫 번째 선택 이미지" tooltip="chatroomBubbleReceive01Selected.png" imgKey="bubbleReceive1Selected" imageUploads={imageUploads} onUpload={handleImageUpload} />
                   <ImageUploadRow label="연속 배경 이미지" tooltip="chatroomBubbleReceive02.png" imgKey="bubbleReceive2" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ImageUploadRow label="연속 선택 이미지" tooltip="chatroomBubbleReceive02Selected.png" imgKey="bubbleReceive2Selected" imageUploads={imageUploads} onUpload={handleImageUpload} />
                   <ColorRow label="텍스트" value={config.otherBubbleText} onChange={set("otherBubbleText")} tooltip="-ios-text-color" />
-                  <ColorRow label="선택 텍스트" value={config.otherBubbleText} onChange={set("otherBubbleText")} tooltip="-ios-selected-text-color" />
+                  <ColorRow label="선택 텍스트" value={config.otherBubbleSelectedText} onChange={set("otherBubbleSelectedText")} tooltip="-ios-selected-text-color" />
+                  <ColorRow label="안읽음 텍스트" value={config.otherBubbleUnreadText} onChange={set("otherBubbleUnreadText")} tooltip="-ios-unread-text-color" />
                   <MacInput label="첫 메시지 인셋" hint="-ios-title-edgeinsets" value="10px 17px 7px 11px" onChange={() => {}} readOnly={true} />
                   <MacInput label="연속 메시지 인셋" hint="-ios-group-title-edgeinsets" value="10px 17px 7px 11px" onChange={() => {}} readOnly={true} />
                 </Accordion>
@@ -1948,13 +2019,19 @@ export default function CreatePage() {
                   <ColorRow label="숫자 컬러" value={config.passcodeKeypadText} onChange={set("passcodeKeypadText")} tooltip="-ios-keypad-text-normal-color" />
                   <ImageUploadRow label="프레스 이미지" tooltip="passcodeKeypadPressed.png" imgKey="passcodeKeypadPressed" imageUploads={imageUploads} onUpload={handleImageUpload} />
                 </Accordion>
-                <Accordion title="알림 배너" badge="NotificationBar">
+                <Accordion title="알림 배너" badge="BackgroundStyle-MessageNotificationBar">
                   <ColorRow label="배경색" value={config.notifBannerBg} onChange={set("notifBannerBg")} tooltip="background-color" />
-                  <ColorRow label="이름 컬러" value={config.notifBannerText} onChange={set("notifBannerText")} tooltip="-ios-text-color" />
-                  <ColorRow label="메시지 컬러" value={config.notifBannerText} onChange={set("notifBannerText")} tooltip="-ios-text-color" />
+                  <ColorRow label="이름 컬러" value={config.notifBannerNameText} onChange={set("notifBannerNameText")} tooltip="-ios-text-color (LabelStyle-MessageNotificationBarName)" />
+                  <ColorRow label="메시지 컬러" value={config.notifBannerMsgText} onChange={set("notifBannerMsgText")} tooltip="-ios-text-color (LabelStyle-MessageNotificationBarMessage)" />
                 </Accordion>
-                <Accordion title="하단 배너" badge="NotificationBar">
-                  <ColorRow label="배경 컬러" value={config.bottomBannerBg} onChange={set("bottomBannerBg")} tooltip="background-color" />
+                <Accordion title="다이렉트 쉐어" badge="BackgroundStyle-DirectShareBar">
+                  <ColorRow label="배경색" value={config.directShareBg} onChange={set("directShareBg")} tooltip="background-color" />
+                  <ColorRow label="이름 컬러" value={config.directShareNameText} onChange={set("directShareNameText")} tooltip="-ios-text-color (LabelStyle-DirectShareBarName)" />
+                  <ColorRow label="메시지 컬러" value={config.directShareMsgText} onChange={set("directShareMsgText")} tooltip="-ios-text-color (LabelStyle-DirectShareBarMessage)" />
+                </Accordion>
+                <Accordion title="하단 배너" badge="BottomBannerStyle">
+                  <ColorRow label="배경 컬러 (다크)" value={config.bottomBannerBg} onChange={set("bottomBannerBg")} tooltip="background-color (BottomBannerStyle)" />
+                  <ColorRow label="배경 컬러 (라이트)" value={config.bottomBannerLightBg} onChange={set("bottomBannerLightBg")} tooltip="background-color (BottomBannerStyle-Light)" />
                 </Accordion>
               </>
             )}
@@ -2202,8 +2279,8 @@ TabBarStyle-Main
 HeaderStyle-Main
 {
     -ios-text-color: ${config.headerText};
-    -ios-tab-text-color: ${config.descText};
-    -ios-tab-highlighted-text-color: ${config.headerText};
+    -ios-tab-text-color: ${config.headerTabText};
+    -ios-tab-highlighted-text-color: ${config.headerTabHighlightText};
 }
 
 MainViewStyle-Primary
@@ -2211,13 +2288,16 @@ MainViewStyle-Primary
     background-color: ${config.bodyBg};${img("mainBg", "mainBgImage@2x.png")}
 
     -ios-text-color: ${config.primaryText};
-    -ios-highlighted-text-color: ${config.primaryText};
+    -ios-highlighted-text-color: ${config.chatListHighlightText};
 
     -ios-description-text-color: ${config.descText};
-    -ios-description-highlighted-text-color: ${config.descText};
+    -ios-description-highlighted-text-color: ${config.descHighlightText};
 
     -ios-paragraph-text-color: ${config.chatListLastMsgText};
-    -ios-paragraph-highlighted-text-color: ${config.chatListHighlightText};
+    -ios-paragraph-highlighted-text-color: ${config.chatListLastMsgHighlightText};
+
+    -ios-normal-background-color: ${config.friendsNormalBgColor};
+    -ios-normal-background-alpha: ${config.friendsNormalBgAlpha};
 
     -ios-selected-background-color: ${config.friendsSelectedBg};
     -ios-selected-background-alpha: ${config.selectedBgAlpha};
@@ -2234,7 +2314,7 @@ SectionTitleStyle-Main
     border-alpha: ${config.borderAlpha};
 
     -ios-text-color: ${config.descText};
-    -ios-text-alpha: 1.0;
+    -ios-text-alpha: ${config.sectionTitleTextAlpha};
 }
 
 
@@ -2247,6 +2327,20 @@ DefaultProfileStyle
     -ios-profile-images: 'profileImg01@2x.png';` : ""}
 }
 
+
+/*
+ Feature Style
+ */
+
+FeatureStyle-Primary
+{
+    -ios-text-color: ${config.featurePrimaryText};
+}
+
+${imageUploads["btnAddFriend"] ? `ButtonStyle-AddFriend
+{
+    -ios-image: 'findBtnAddFriend@2x.png';
+}` : ""}
 
 /*
  ChatRoom Style
@@ -2266,14 +2360,14 @@ InputBarStyle-Chat
     -ios-send-normal-background-color: ${config.sendBtnBg};
     -ios-send-normal-foreground-color: ${config.sendBtnIcon};
 
-    -ios-send-highlighted-background-color: ${config.sendBtnBg};
-    -ios-send-highlighted-foreground-color: ${config.sendBtnIcon};
+    -ios-send-highlighted-background-color: ${config.sendBtnHighlightBg};
+    -ios-send-highlighted-foreground-color: ${config.sendBtnHighlightIcon};
 
     -ios-button-normal-foreground-color: ${config.menuBtnColor};
-    -ios-button-highlighted-foreground-color: ${config.menuBtnColor};
+    -ios-button-highlighted-foreground-color: ${config.menuBtnHighlightColor};
 
     -ios-button-normal-background-color: ${config.inputFieldBg};
-    -ios-button-normal-background-alpha: 1.0;
+    -ios-button-normal-background-alpha: ${config.menuBtnNormalBgAlpha};
 }
 
 
@@ -2283,32 +2377,32 @@ InputBarStyle-Chat
 
 MessageCellStyle-Send
 {${imageUploads["bubbleSend1"] ? `
-    -ios-background-image: 'chatroomBubbleSend01@2x.png' 17px 17px;
-    -ios-selected-background-image: 'chatroomBubbleSend01@2x.png' 17px 17px;` : ""}${imageUploads["bubbleSend2"] ? `
-    -ios-group-background-image: 'chatroomBubbleSend02@2x.png' 17px 17px;
-    -ios-group-selected-background-image: 'chatroomBubbleSend02@2x.png' 17px 17px;` : ""}
+    -ios-background-image: 'chatroomBubbleSend01@2x.png' 17px 17px;` : ""}${imageUploads["bubbleSend1Selected"] ? `
+    -ios-selected-background-image: 'chatroomBubbleSend01Selected@2x.png' 17px 17px;` : ""}${imageUploads["bubbleSend2"] ? `
+    -ios-group-background-image: 'chatroomBubbleSend02@2x.png' 17px 17px;` : ""}${imageUploads["bubbleSend2Selected"] ? `
+    -ios-group-selected-background-image: 'chatroomBubbleSend02Selected@2x.png' 17px 17px;` : ""}
     -ios-title-edgeinsets: 10px 11px 7px 17px;
     -ios-group-title-edgeinsets: 10px 11px 7px 17px;
 
     -ios-background-color: ${config.myBubbleBg};
     -ios-text-color: ${config.myBubbleText};
-    -ios-selected-text-color: ${config.myBubbleText};
-    -ios-unread-text-color: ${config.unreadCountColor};
+    -ios-selected-text-color: ${config.myBubbleSelectedText};
+    -ios-unread-text-color: ${config.myBubbleUnreadText};
 }
 
 MessageCellStyle-Receive
 {${imageUploads["bubbleReceive1"] ? `
-    -ios-background-image: 'chatroomBubbleReceive01@2x.png' 22px 17px;
-    -ios-selected-background-image: 'chatroomBubbleReceive01@2x.png' 22px 17px;` : ""}${imageUploads["bubbleReceive2"] ? `
-    -ios-group-background-image: 'chatroomBubbleReceive02@2x.png' 22px 17px;
-    -ios-group-selected-background-image: 'chatroomBubbleReceive02@2x.png' 22px 17px;` : ""}
+    -ios-background-image: 'chatroomBubbleReceive01@2x.png' 22px 17px;` : ""}${imageUploads["bubbleReceive1Selected"] ? `
+    -ios-selected-background-image: 'chatroomBubbleReceive01Selected@2x.png' 22px 17px;` : ""}${imageUploads["bubbleReceive2"] ? `
+    -ios-group-background-image: 'chatroomBubbleReceive02@2x.png' 22px 17px;` : ""}${imageUploads["bubbleReceive2Selected"] ? `
+    -ios-group-selected-background-image: 'chatroomBubbleReceive02Selected@2x.png' 22px 17px;` : ""}
     -ios-title-edgeinsets: 10px 17px 7px 11px;
     -ios-group-title-edgeinsets: 10px 17px 7px 11px;
 
     -ios-background-color: ${config.otherBubbleBg};
     -ios-text-color: ${config.otherBubbleText};
-    -ios-selected-text-color: ${config.otherBubbleText};
-    -ios-unread-text-color: ${config.unreadCountColor};
+    -ios-selected-text-color: ${config.otherBubbleSelectedText};
+    -ios-unread-text-color: ${config.otherBubbleUnreadText};
 }
 
 
@@ -2339,7 +2433,7 @@ PasscodeStyle
 
     -ios-keypad-background-color: ${config.passcodeKeypadBg};
     -ios-keypad-text-normal-color: ${config.passcodeKeypadText};
-    ${imageUploads["passcodeKeypadPressed"] ? `-ios-keypad-pressed-image: 'passcodeKeypadPressed.png';` : ""}
+    ${imageUploads["passcodeKeypadPressed"] ? `-ios-keypad-number-highlighted-image: 'passcodeKeypadPressed.png';` : ""}
 }
 
 
@@ -2354,12 +2448,45 @@ BackgroundStyle-MessageNotificationBar
 
 LabelStyle-MessageNotificationBarName
 {
-    -ios-text-color: ${config.notifBannerText};
+    -ios-text-color: ${config.notifBannerNameText};
 }
 
 LabelStyle-MessageNotificationBarMessage
 {
-    -ios-text-color: ${config.notifBannerText};
+    -ios-text-color: ${config.notifBannerMsgText};
+}
+
+
+/*
+ Direct Share
+*/
+
+BackgroundStyle-DirectShareBar
+{
+    background-color: ${config.directShareBg};
+}
+
+LabelStyle-DirectShareBarName
+{
+    -ios-text-color: ${config.directShareNameText};
+}
+
+LabelStyle-DirectShareBarMessage
+{
+    -ios-text-color: ${config.directShareMsgText};
+}
+
+
+/*
+ BottomBanner Style
+ */
+
+BottomBannerStyle {
+    background-color: ${config.bottomBannerBg};
+}
+
+BottomBannerStyle-Light {
+    background-color: ${config.bottomBannerLightBg};
 }
 `;
 }
