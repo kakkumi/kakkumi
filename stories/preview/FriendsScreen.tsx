@@ -223,7 +223,6 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
                   <div style={{
                     width: 44, height: 44, borderRadius: 18, backgroundColor: friend.color,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    border: `2px solid ${global.backgroundColor}`
                   }}>
                     <span style={{ fontSize: 18 }}>
                       {personSVG}
