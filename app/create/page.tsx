@@ -1053,7 +1053,9 @@ type EditorCategory =
   | "chat-tab"
   | "chatroom"
   | "tabbar"
-  | "extra";
+  | "more-tab"
+  | "passcode"
+  | "notification";
 
 const editorCategories: { key: EditorCategory; label: string }[] = [
   { key: "manifest",    label: "테마 정보" },
@@ -1061,7 +1063,9 @@ const editorCategories: { key: EditorCategory; label: string }[] = [
   { key: "chat-tab",    label: "채팅탭" },
   { key: "chatroom",    label: "채팅방" },
   { key: "tabbar",      label: "하단 탭바" },
-  { key: "extra",       label: "부가" },
+  { key: "more-tab",    label: "더보기탭" },
+  { key: "passcode",    label: "잠금화면" },
+  { key: "notification", label: "알림/배너" },
 ];
 
 export default function CreatePage() {
@@ -1649,27 +1653,46 @@ export default function CreatePage() {
 
         {/* ── 좌측 카테고리 패널 ── */}
         <aside
-          className="w-44 shrink-0 flex flex-col pt-6 px-3"
+          className="shrink-0 flex flex-col bg-white"
           style={{
-            borderRight: "1px solid rgba(0,0,0,0.07)",
+            width: 168,
+            minWidth: 168,
+            borderRight: "1px solid rgba(0,0,0,0.06)",
           }}
         >
-          <p className="text-[10px] font-bold tracking-[0.14em] uppercase px-2 mb-3" style={{ color: "rgb(74,123,247)" }}>편집 카테고리</p>
-          <div className="flex flex-col gap-0.5">
-            {editorCategories.map((category) => (
-              <button
-                key={category.key}
-                type="button"
-                onClick={() => setActiveEditorCategory(category.key)}
-                className="w-full text-left px-2 py-[7px] rounded-xl text-[12.5px] font-medium transition-all"
-                style={{
-                  color: activeEditorCategory === category.key ? "rgb(74,123,247)" : "#3a3a3c",
-                  fontWeight: activeEditorCategory === category.key ? 700 : 500,
-                }}
-              >
-                {category.label}
-              </button>
-            ))}
+          <div className="pt-5 pb-3 px-4">
+            <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-gray-400">편집 메뉴</p>
+          </div>
+          <div className="flex flex-col px-2 gap-0.5 overflow-y-auto flex-1">
+            {editorCategories.map((category, idx) => {
+              const isActive = activeEditorCategory === category.key;
+              const separatorBefore = idx === 5; // 더보기탭 앞 구분선
+              return (
+                <div key={category.key}>
+                  {separatorBefore && (
+                    <div className="mx-3 my-2 h-px bg-gray-100" />
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setActiveEditorCategory(category.key)}
+                    className="w-full text-left px-3 py-2 rounded-lg text-[12.5px] transition-all duration-150 flex items-center gap-2"
+                    style={{
+                      color: isActive ? "rgb(255, 149, 0)" : "#6b6b6b",
+                      backgroundColor: isActive ? "rgba(255, 149, 0, 0.07)" : "transparent",
+                      fontWeight: isActive ? 700 : 500,
+                    }}
+                  >
+                    {isActive && (
+                      <span
+                        className="w-1 h-1 rounded-full shrink-0"
+                        style={{ backgroundColor: "rgb(255, 149, 0)" }}
+                      />
+                    )}
+                    <span className={isActive ? "" : "pl-[9px]"}>{category.label}</span>
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </aside>
 
@@ -1727,20 +1750,20 @@ export default function CreatePage() {
                   <MacInput label="참조 URL" hint="(-kakaotalk-theme-url)" value={config.themeUrl} onChange={set("themeUrl")} />
                 </Accordion>
                 <Accordion title="시스템 스타일" badge="ManifestStyle">
-                  <div className="flex items-center justify-between py-2.5 px-1">
+                  <div className="flex items-center justify-between py-2.5 px-2.5">
                     <div>
-                      <div className="text-[13px] font-semibold" style={{color:"#2c2c2e"}}>다크 모드 지원</div>
-                      <div className="text-[10px] mt-0.5 font-mono" style={{color:"#aeaeb2"}}>-kakaotalk-theme-style: &apos;dark&apos;</div>
+                      <div className="text-[12.5px] font-semibold text-gray-800">다크 모드 지원</div>
+                      <div className="text-[10px] mt-0.5 font-mono text-gray-400">-kakaotalk-theme-style: &apos;dark&apos;</div>
                     </div>
                     <button
                       onClick={() => set("darkMode")(!config.darkMode)}
-                      className="w-[38px] h-[22px] rounded-full relative transition-all duration-200 shrink-0"
+                      className="w-[36px] h-[20px] rounded-full relative transition-all duration-200 shrink-0"
                       style={{
                         backgroundColor: config.darkMode ? "#34c759" : "rgba(0,0,0,0.15)",
                         boxShadow: config.darkMode ? "0 0 0 1px rgba(52,199,89,0.4)" : "0 0 0 1px rgba(0,0,0,0.1)",
                       }}
                     >
-                      <div className="absolute top-[2px] w-[18px] h-[18px] rounded-full bg-white shadow-md transition-all duration-200" style={{ left: config.darkMode ? "18px" : "2px" }} />
+                      <div className="absolute top-[2px] w-[16px] h-[16px] rounded-full bg-white shadow-md transition-all duration-200" style={{ left: config.darkMode ? "18px" : "2px" }} />
                     </button>
                   </div>
                 </Accordion>
@@ -1889,11 +1912,8 @@ export default function CreatePage() {
               </>
             )}
 
-            {activeEditorCategory === "extra" && (
+            {activeEditorCategory === "more-tab" && (
               <>
-                <Accordion title="기본 프로필" badge="DefaultProfileStyle">
-                  <ImageUploadRow label="기본 프로필 이미지" tooltip="profileImg01.png" imgKey="defaultProfile" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                </Accordion>
                 <Accordion title="더보기 / 그리드" badge="FeatureStyle">
                   <ColorRow label="상단 탭 텍스트" value={config.moreTabText} onChange={set("moreTabText")} tooltip="-ios-tab-text-color" />
                   <ColorRow label="서비스 버튼 컬러" value={config.moreServiceText} onChange={set("moreServiceText")} tooltip="-ios-text-color" />
@@ -1909,6 +1929,11 @@ export default function CreatePage() {
                   <ColorRow label="보더 컬러" value={config.friendsBorderColor} onChange={set("friendsBorderColor")} tooltip="border-color" />
                   <MacInput label="보더 알파" hint="border-alpha" value={config.borderAlpha} onChange={set("borderAlpha")} />
                 </Accordion>
+              </>
+            )}
+
+            {activeEditorCategory === "passcode" && (
+              <>
                 <Accordion title="잠금화면" badge="PasscodeStyle">
                   <ColorRow label="배경색" value={config.passcodeBg} onChange={set("passcodeBg")} tooltip="background-color" />
                   <ImageUploadRow label="배경 이미지" tooltip="passcodeBgImage.png" imgKey="passcodeBgImg" imageUploads={imageUploads} onUpload={handleImageUpload} />
@@ -1928,6 +1953,14 @@ export default function CreatePage() {
                   <ColorRow label="배경색" value={config.passcodeKeypadBg} onChange={set("passcodeKeypadBg")} tooltip="-ios-keypad-background-color" />
                   <ColorRow label="숫자 컬러" value={config.passcodeKeypadText} onChange={set("passcodeKeypadText")} tooltip="-ios-keypad-text-normal-color" />
                   <ImageUploadRow label="프레스 이미지" tooltip="passcodeKeypadPressed.png" imgKey="passcodeKeypadPressed" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                </Accordion>
+              </>
+            )}
+
+            {activeEditorCategory === "notification" && (
+              <>
+                <Accordion title="기본 프로필" badge="DefaultProfileStyle">
+                  <ImageUploadRow label="기본 프로필 이미지" tooltip="profileImg01.png" imgKey="defaultProfile" imageUploads={imageUploads} onUpload={handleImageUpload} />
                 </Accordion>
                 <Accordion title="알림 배너" badge="BackgroundStyle-MessageNotificationBar">
                   <ColorRow label="배경색" value={config.notifBannerBg} onChange={set("notifBannerBg")} tooltip="background-color" />
