@@ -1639,22 +1639,6 @@ export default function CreatePage() {
             ))}
           </div>
 
-          {/* 설정 버튼 */}
-          <button onClick={() => setRightSidebarOpen((v) => !v)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all"
-            style={{
-              color: rightSidebarOpen ? "rgb(74,123,247)" : "#6e6e73",
-              background: rightSidebarOpen ? "rgba(74,123,247,0.1)" : "rgba(0,0,0,0.05)",
-              border: rightSidebarOpen ? "1px solid rgba(74,123,247,0.2)" : "1px solid transparent",
-            }}
-          >
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-              <circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.6"/>
-              <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-            </svg>
-            설정
-          </button>
-
           {/* 자동저장 상태 표시 */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium"
             style={{
