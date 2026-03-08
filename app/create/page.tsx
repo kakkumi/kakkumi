@@ -333,8 +333,20 @@ const ImageUploadRow = memo(function ImageUploadRow({ label, tooltip, imgKey, im
         <div className="flex flex-col gap-0.5">
           <div className="flex items-center gap-2">
             <span className="text-[12px] font-medium text-gray-500">{label}</span>
+            {tooltip && (
+              <div className="group/tip relative flex items-center">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                <div className="absolute left-0 bottom-6 z-50 hidden group-hover/tip:block text-[11px] rounded-lg px-3 py-2 w-max max-w-[200px] leading-snug shadow-xl ring-1 ring-black/5 bg-white text-gray-800">
+                  {tooltip}
+                  <div className="absolute left-1.5 -bottom-1 w-2 h-2 bg-white rotate-45 transform border-b border-r border-gray-100"></div>
+                </div>
+              </div>
+            )}
           </div>
-          <span className="text-[9px] text-gray-400 font-mono tracking-tight">{tooltip.replace('.png', '')}</span>
         </div>
 
         <div className="flex items-center gap-3">
@@ -426,9 +438,21 @@ function MacInput({
 }) {
   return (
     <div className="flex flex-col px-2.5 py-0.5 group mb-1.5 w-full">
-      <label className="text-[11px] font-medium text-gray-500 mb-0.5 transition-colors group-focus-within:text-orange-500 flex items-center justify-between">
+      <label className="text-[11px] font-medium text-gray-500 mb-0.5 transition-colors group-focus-within:text-orange-500 flex items-center gap-1.5">
         {label}
-        {hint && <span className="text-[9px] font-mono text-gray-400 font-normal">{hint}</span>}
+        {hint && (
+          <div className="group/tip relative flex items-center">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <div className="absolute left-0 bottom-6 z-50 hidden group-hover/tip:block text-[11px] rounded-lg px-3 py-2 w-max max-w-[200px] leading-snug shadow-xl ring-1 ring-black/5 bg-white text-gray-800">
+              {hint}
+              <div className="absolute left-1.5 -bottom-1 w-2 h-2 bg-white rotate-45 transform border-b border-r border-gray-100"></div>
+            </div>
+          </div>
+        )}
       </label>
       <input
         type={type}
@@ -1798,6 +1822,8 @@ export default function CreatePage() {
                 <Accordion title="목록 텍스트" badge="MainViewStyle">
                   <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={(v) => { set("primaryText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-text-color" />
                   <ColorRow label="친구칩 (상태메시지)" value={config.friendsListDescText} onChange={(v) => { set("friendsListDescText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-description-text-color" />
+                  <ColorRow label="친구칩 리스트 Pressed" value={config.friendsSelectedBg} onChange={(v) => { set("friendsSelectedBg")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-selected-background-color" />
+                  <MacInput label="선택 배경 투명도" hint="(-ios-selected-background-alpha)" value={config.selectedBgAlpha} onChange={set("selectedBgAlpha")} />
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="섹션 / 보더" badge="SectionTitleStyle-Main">
@@ -1805,11 +1831,6 @@ export default function CreatePage() {
                   <MacInput label="섹션 타이틀 투명도" hint="(-ios-text-alpha)" value={config.sectionTitleTextAlpha} onChange={set("sectionTitleTextAlpha")} />
                   <ColorRow label="보더 컬러" value={config.friendsBorderColor} onChange={(v) => { set("friendsBorderColor")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="border-color" />
                   <MacInput label="보더 투명도" hint="(border-alpha)" value={config.borderAlpha} onChange={set("borderAlpha")} />
-                </Accordion>
-                <hr className="border-t border-gray-300 mx-2 mb-4" />
-                <Accordion title="기능 버튼" badge="FeatureStyle-Primary / ButtonStyle-AddFriend">
-                  <ColorRow label="기능 텍스트 컬러" value={config.featurePrimaryText} onChange={(v) => { set("featurePrimaryText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-text-color (FeatureStyle-Primary)" />
-                  <ImageUploadRow label="친구추가 버튼 이미지" tooltip="findBtnAddFriend.png" imgKey="btnAddFriend" imageUploads={imageUploads} onUpload={handleImageUpload} />
                 </Accordion>
               </>
             )}
