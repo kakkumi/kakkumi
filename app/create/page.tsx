@@ -8,6 +8,7 @@ import { useAutoSave } from "./useAutoSave";
 
 import { PreviewNewsMockup } from "../../stories/PreviewNewsMockup";
 import { PreviewChatRoomMockup } from "../../stories/PreviewChatRoomMockup";
+import { PreviewChatRoomInputMockup } from "../../stories/PreviewChatRoomInputMockup";
 import { PreviewMockup } from "../../stories/PreviewMockup";
 import { ChatRoomScreen } from "../../stories/preview/ChatRoomScreen";
 import { FriendsScreen } from "../../stories/preview/FriendsScreen";
@@ -1807,6 +1808,7 @@ export default function CreatePage() {
               <div className="flex items-start gap-8">
                 <PreviewMockup disableTabNavigation mainBgImageUrl={imageUploads.mainBg} />
                 <PreviewChatRoomMockup />
+                <PreviewChatRoomInputMockup />
               </div>
             ) : os === "ios" ? (
               <PreviewMockup disableTabNavigation mainBgImageUrl={imageUploads.mainBg} />
@@ -1972,53 +1974,7 @@ export default function CreatePage() {
                     </div>
                   </div>
                 </Accordion>
-                <hr className="border-t border-gray-300 mx-2 mb-4" />
-                <Accordion title="인풋바" badge="InputBarStyle-Chat">
-                  <ColorRow label="배경 컬러" value={config.inputBarBg} onChange={set("inputBarBg")} tooltip="background-color" />
-                  <ColorRow label="텍스트 컬러" value={config.inputBarText} onChange={set("inputBarText")} tooltip="-ios-button-text-color" />
-                </Accordion>
-                <hr className="border-t border-gray-300 mx-2 mb-4" />
-                <Accordion title="메뉴 버튼" badge="InputBarStyle-Chat">
-                  <ColorRow label="아이콘 컬러" value={config.menuBtnColor} onChange={set("menuBtnColor")} tooltip="-ios-button-normal-foreground-color" />
-                  <ColorRow label="프레스 컬러" value={config.menuBtnHighlightColor} onChange={set("menuBtnHighlightColor")} tooltip="-ios-button-highlighted-foreground-color" />
-                  <ColorRow label="배경 컬러" value={config.inputFieldBg} onChange={set("inputFieldBg")} tooltip="-ios-button-normal-background-color" />
-                  <MacInput label="배경 투명도" hint="(-ios-button-normal-background-alpha)" value={config.menuBtnNormalBgAlpha} onChange={set("menuBtnNormalBgAlpha")} type="slider" />
-                </Accordion>
-                <hr className="border-t border-gray-300 mx-2 mb-4" />
-                <Accordion title="전송 버튼" badge="InputBarStyle-Chat">
-                  <ColorRow label="기본 배경" value={config.sendBtnBg} onChange={set("sendBtnBg")} tooltip="-ios-send-normal-background-color" />
-                  <ColorRow label="프레스 배경" value={config.sendBtnHighlightBg} onChange={set("sendBtnHighlightBg")} tooltip="-ios-send-highlighted-background-color" />
-                  <ColorRow label="기본 아이콘" value={config.sendBtnIcon} onChange={set("sendBtnIcon")} tooltip="-ios-send-normal-foreground-color" />
-                  <ColorRow label="프레스 아이콘" value={config.sendBtnHighlightIcon} onChange={set("sendBtnHighlightIcon")} tooltip="-ios-send-highlighted-foreground-color" />
-                </Accordion>
-                <hr className="border-t border-gray-300 mx-2 mb-4" />
-                <Accordion title="보낸 메시지" badge="MessageCellStyle-Send">
-                  <ImageUploadRow label="첫 번째 배경 이미지" tooltip="chatroomBubbleSend01.png" imgKey="bubbleSend1" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ImageUploadRow label="첫 번째 선택 이미지" tooltip="chatroomBubbleSend01Selected.png" imgKey="bubbleSend1Selected" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ImageUploadRow label="연속 배경 이미지" tooltip="chatroomBubbleSend02.png" imgKey="bubbleSend2" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ImageUploadRow label="연속 선택 이미지" tooltip="chatroomBubbleSend02Selected.png" imgKey="bubbleSend2Selected" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ColorRow label="텍스트" value={config.myBubbleText} onChange={set("myBubbleText")} tooltip="-ios-text-color" />
-                  <ColorRow label="선택 텍스트" value={config.myBubbleSelectedText} onChange={set("myBubbleSelectedText")} tooltip="-ios-selected-text-color" />
-                  <ColorRow label="안읽음 텍스트" value={config.myBubbleUnreadText} onChange={set("myBubbleUnreadText")} tooltip="-ios-unread-text-color" />
-                  <MacInput label="첫 메시지 인셋" hint="-ios-title-edgeinsets" value="10px 11px 7px 17px" onChange={() => {}} readOnly={true} />
-                  <MacInput label="연속 메시지 인셋" hint="-ios-group-title-edgeinsets" value="10px 11px 7px 17px" onChange={() => {}} readOnly={true} />
-                </Accordion>
-                <hr className="border-t border-gray-300 mx-2 mb-4" />
-                <Accordion title="받은 메시지" badge="MessageCellStyle-Receive">
-                  <ImageUploadRow label="첫 번째 배경 이미지" tooltip="chatroomBubbleReceive01.png" imgKey="bubbleReceive1" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ImageUploadRow label="첫 번째 선택 이미지" tooltip="chatroomBubbleReceive01Selected.png" imgKey="bubbleReceive1Selected" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ImageUploadRow label="연속 배경 이미지" tooltip="chatroomBubbleReceive02.png" imgKey="bubbleReceive2" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ImageUploadRow label="연속 선택 이미지" tooltip="chatroomBubbleReceive02Selected.png" imgKey="bubbleReceive2Selected" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ColorRow label="텍스트" value={config.otherBubbleText} onChange={set("otherBubbleText")} tooltip="-ios-text-color" />
-                  <ColorRow label="선택 텍스트" value={config.otherBubbleSelectedText} onChange={set("otherBubbleSelectedText")} tooltip="-ios-selected-text-color" />
-                  <ColorRow label="안읽음 텍스트" value={config.otherBubbleUnreadText} onChange={set("otherBubbleUnreadText")} tooltip="-ios-unread-text-color" />
-                  <MacInput label="첫 메시지 인셋" hint="-ios-title-edgeinsets" value="10px 17px 7px 11px" onChange={() => {}} readOnly={true} />
-                  <MacInput label="연속 메시지 인셋" hint="-ios-group-title-edgeinsets" value="10px 17px 7px 11px" onChange={() => {}} readOnly={true} />
-                </Accordion>
-                <hr className="border-t border-gray-300 mx-2 mb-4" />
-                <Accordion title="공통" badge="MessageCellStyle">
-                  <ColorRow label="안읽은 숫자 컬러" value={config.unreadCountColor} onChange={set("unreadCountColor")} tooltip="-ios-unread-text-color" />
-                </Accordion>
+
               </>
             )}
 
