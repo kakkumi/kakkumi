@@ -1881,13 +1881,6 @@ export default function CreatePage() {
                   <ColorRow label="친구칩 리스트 Pressed" value={config.friendsSelectedBg} onChange={(v) => { set("friendsSelectedBg")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-selected-background-color" />
                   <MacInput label="선택 배경 투명도" hint="(-ios-selected-background-alpha)" value={config.selectedBgAlpha} onChange={set("selectedBgAlpha")} type="slider" />
                 </Accordion>
-                <hr className="border-t border-gray-300 mx-2 mb-4" />
-                <Accordion title="섹션 / 보더" badge="SectionTitleStyle-Main">
-                  <ColorRow label="섹션 타이틀" value={config.descText} onChange={(v) => { set("descText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-text-color" />
-                  <MacInput label="섹션 타이틀 투명도" hint="(-ios-text-alpha)" value={config.sectionTitleTextAlpha} onChange={set("sectionTitleTextAlpha")} type="slider" />
-                  <ColorRow label="보더 컬러" value={config.friendsBorderColor} onChange={(v) => { set("friendsBorderColor")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="border-color" />
-                  <MacInput label="보더 투명도" hint="(border-alpha)" value={config.borderAlpha} onChange={set("borderAlpha")} type="slider" />
-                </Accordion>
               </>
             )}
 
