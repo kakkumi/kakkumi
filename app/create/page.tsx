@@ -1907,20 +1907,30 @@ export default function CreatePage() {
                   </div>
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
-                <Accordion title="목록 텍스트" badge="MainViewStyle">
+                <Accordion title="목록 텍스트" badge="MainViewStyle-Primary">
                   <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={(v) => { set("primaryText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-text-color" />
+                  <div className="px-2.5 pb-1 flex items-center gap-1.5">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                    <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>친구탭과 공유되는 값입니다</span>
+                  </div>
                   <ColorRow label="이름 프레스" value={config.chatListHighlightText} onChange={(v) => { set("chatListHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-highlighted-text-color" />
-                  <ColorRow label="상태메시지" value={config.descText} onChange={(v) => { set("descText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-description-text-color" />
-                  <ColorRow label="상태메시지 프레스" value={config.descHighlightText} onChange={(v) => { set("descHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-description-highlighted-text-color" />
                   <ColorRow label="마지막 메시지" value={config.chatListLastMsgText} onChange={(v) => { set("chatListLastMsgText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-text-color" />
                   <ColorRow label="마지막 메시지 프레스" value={config.chatListLastMsgHighlightText} onChange={(v) => { set("chatListLastMsgHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-highlighted-text-color" />
-                </Accordion>
-                <hr className="border-t border-gray-300 mx-2 mb-4" />
-                <Accordion title="목록 셀 배경" badge="MainViewStyle">
-                  <ColorRow label="셀 배경색" value={config.friendsNormalBgColor} onChange={(v) => { set("friendsNormalBgColor")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-normal-background-color" />
-                  <MacInput label="셀 배경 투명도" hint="(-ios-normal-background-alpha)" value={config.friendsNormalBgAlpha} onChange={set("friendsNormalBgAlpha")} type="slider" />
+                  <ColorRow label="상태메시지" value={config.descText} onChange={(v) => { set("descText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-text-color" />
+                  <div className="px-2.5 pb-1 flex items-center gap-1.5">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                    <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>친구탭과 공유되는 값입니다</span>
+                  </div>
                   <ColorRow label="선택 배경" value={config.friendsSelectedBg} onChange={(v) => { set("friendsSelectedBg")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-selected-background-color" />
+                  <div className="px-2.5 pb-1 flex items-center gap-1.5">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                    <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>친구탭과 공유되는 값입니다</span>
+                  </div>
                   <MacInput label="선택 배경 투명도" hint="(-ios-selected-background-alpha)" value={config.selectedBgAlpha} onChange={set("selectedBgAlpha")} type="slider" />
+                  <div className="px-2.5 pb-1 flex items-center gap-1.5">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                    <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>친구탭과 공유되는 값입니다</span>
+                  </div>
                 </Accordion>
               </>
             )}
