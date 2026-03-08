@@ -119,7 +119,7 @@ export const MainScreen = React.memo(function MainScreen({ config }: { config: S
               : 'transparent';
 
             return (
-            <article key={chat.id} style={{ ...listItemBaseStyle, backgroundColor: itemBg }}>
+            <article key={chat.id} style={{ ...listItemBaseStyle, backgroundColor: itemBg, ...(isSelected ? { margin: '0 3px', padding: '7px 13px', borderRadius: 20 } : {}) }}>
               <div style={{ display: 'flex', gap: 14, alignItems: 'center', minWidth: 0, flex: 1 }}>
                 <div style={{ width: 46, height: 46, position: 'relative', flexShrink: 0 }}>
                   <div style={{ width: '100%', height: '100%', borderRadius: 17, backgroundColor: chat.id === 1 ? 'transparent' : chat.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 21 }}>
