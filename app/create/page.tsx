@@ -1289,6 +1289,20 @@ export default function CreatePage() {
   }, [config, setTheme]);
 
   useEffect(() => {
+    setTheme({
+      chatRoom: {
+        backgroundColor: config.chatBg,
+        friendBubbleBg: config.otherBubbleBg,
+        myBubbleBg: config.myBubbleBg,
+        inputBarBg: config.inputBarBg,
+        sendButtonBg: config.sendBtnBg,
+        bgImageUrl: imageUploads['chatroomBg'] ?? '',
+      },
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imageUploads]);
+
+  useEffect(() => {
     const screenMap: Record<PreviewTab, ScreenType> = {
       friends: "FRIENDS",
       chat: "CHATS",
@@ -1940,7 +1954,25 @@ export default function CreatePage() {
               <>
                 <Accordion title="채팅방 배경" badge="BackgroundStyle-ChatRoom">
                   <ColorRow label="배경 컬러" value={config.chatBg} onChange={set("chatBg")} tooltip="background-color" />
-                  <ImageUploadRow label="배경 이미지" tooltip="chatroomBgImage.png" imgKey="chatroomBg" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <ImageUploadRow label="배경 이미지" tooltip="-ios-background-image" imgKey="chatroomBg" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                  <div className="px-2.5 pb-1 flex flex-col gap-1">
+                    <div className="flex items-start gap-1.5">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                      <span className="text-[10px] leading-snug" style={{ color: 'rgb(251,146,60)' }}>배경 이미지 없음 → 배경 컬러만 보임</span>
+                    </div>
+                    <div className="flex items-start gap-1.5">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                      <span className="text-[10px] leading-snug" style={{ color: 'rgb(251,146,60)' }}>배경 이미지 있음 → 이미지가 컬러 위에 표시됨</span>
+                    </div>
+                    <div className="flex items-start gap-1.5">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                      <span className="text-[10px] leading-snug" style={{ color: 'rgb(251,146,60)' }}>불투명 PNG → 배경 컬러 완전히 가려짐</span>
+                    </div>
+                    <div className="flex items-start gap-1.5">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                      <span className="text-[10px] leading-snug" style={{ color: 'rgb(251,146,60)' }}>투명 PNG → 투명 부분에 배경 컬러가 비침</span>
+                    </div>
+                  </div>
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="인풋바" badge="InputBarStyle-Chat">

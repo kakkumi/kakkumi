@@ -58,6 +58,7 @@ type ThemeState = {
     myBubbleBg: string;
     inputBarBg: string;
     sendButtonBg: string;
+    bgImageUrl?: string;
   };
   passcode: {
     backgroundColor: string;
@@ -109,6 +110,7 @@ export const useThemeStore = create<ThemeState>((set) => ({
     myBubbleBg: '#FEE500',
     inputBarBg: '#FFFFFF',
     sendButtonBg: '#FEE500',
+    bgImageUrl: '',
   },
   passcode: {
     backgroundColor: '#F5F5F5',

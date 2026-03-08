@@ -53,7 +53,15 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { c
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, width: '100%', overflow: 'hidden', backgroundColor: chatRoom.backgroundColor, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', position: 'relative' }}>
+    <div style={{
+      display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, width: '100%', overflow: 'hidden',
+      backgroundColor: chatRoom.backgroundColor,
+      backgroundImage: config.chatroomBgImageUrl ? `url(${config.chatroomBgImageUrl})` : undefined,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      position: 'relative',
+    }}>
 
       {/* 헤더 */}
       <header style={{ ...headerBaseStyle, color: '#191919' }}>

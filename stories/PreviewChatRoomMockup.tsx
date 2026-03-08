@@ -31,6 +31,7 @@ export const PreviewChatRoomMockup = () => {
     unreadCountColor: '#FF3B30',
     openchatBg: openChatsTab.bannerBackgroundColor,
     mainBgImageUrl: undefined,
+    chatroomBgImageUrl: chatRoom.bgImageUrl || undefined,
   };
   return (
     <div style={{ position: 'relative', width: 368, height: 699 }}>
