@@ -102,6 +102,7 @@ export interface ScreenThemeConfig {
   chatListLastMsgPressColor?: string;
   chatListSelectedBg?: string;
   chatListSelectedBgAlpha?: string;
+  friendsListDescText?: string;
 }
 
 export const FriendsScreen = React.memo(function FriendsScreen({ config }: { config: ScreenThemeConfig }) {
@@ -109,6 +110,7 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
     backgroundColor: config.bodyBg,
     textColor: config.primaryText,
     descriptionColor: config.descText,
+    listDescColor: config.friendsListDescText ?? config.descText,
   };
   const backgroundStyle: React.CSSProperties = config.mainBgImageUrl
     ? {
@@ -200,7 +202,7 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
               <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#3c2a2a' }}>
                 크리에이터가 되어 수익을 만들어보세요
               </p>
-              <p style={{ margin: '3px 0 0', fontSize: 11, color: global.descriptionColor, opacity: 0.8 }}>
+              <p style={{ margin: '3px 0 0', fontSize: 11, color: 'rgb(120,100,80)' }}>
                 카꾸미 입점 신청하기
               </p>
             </div>
@@ -239,7 +241,7 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
                     <div style={{
                       position: 'absolute', top: -2, left: -2, width: 5, height: 5,
                       backgroundColor: '#f61010', borderRadius: '50%',
-                      border: `1px solid ${global.backgroundColor}`
+                      border: '1px solid #f61010'
                     }} />
                   )}
                   
@@ -257,7 +259,7 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
                 border: `1px solid ${global.textColor}40`,
                 marginTop: 2,
               }}>
-                <ArrowRight size={13} color={global.descriptionColor} />
+                <ArrowRight size={13} color={global.listDescColor} />
               </div>
               <span style={{ fontSize: 11, color: global.textColor, marginTop: 8 }}>소식 더보기</span>
             </div>
@@ -297,7 +299,7 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
                       <path d="M3 14 Q5 12 7 14 Q9 12 11 14 Q13 12 15 14 Q17 12 19 14 Q21 12 21 14" stroke="#fff" strokeWidth="1.2" fill="none"/>
                     </svg>
                   </div>
-                  <p style={{ margin: '2px 0 0', color: global.descriptionColor, fontSize: 11, opacity: 0.8 }}>{friend.message}</p>
+                  <p style={{ margin: '2px 0 0', color: global.listDescColor, fontSize: 11, opacity: 0.8 }}>{friend.message}</p>
                 </div>
               </div>
               {/* 선물하기 버튼 - 스크린샷과 동일한 타원형 */}
@@ -322,9 +324,9 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
               width: 'auto',
               padding: '4px 12px',
               backgroundColor: 'transparent',
-              border: `1px solid ${global.descriptionColor}60`,
+              border: `1px solid ${global.listDescColor}60`,
               borderRadius: 999,
-              color: global.descriptionColor,
+              color: global.listDescColor,
               fontSize: 12,
               fontWeight: 500,
               display: 'inline-flex', 
@@ -352,7 +354,10 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
                   {personSVG}
                 </div>
                 <div>
-                  <p style={{ margin: 0, color: global.textColor, fontSize: 14, fontWeight: 400 }}>{friend.name}</p>
+                  <p style={{ margin: friend.id === 2 ? '0 0 1px' : '0', color: global.textColor, fontSize: 14, fontWeight: 400 }}>{friend.name}</p>
+                  {friend.id === 2 && (
+                    <p style={{ margin: 0, color: global.listDescColor, fontSize: 11, opacity: 0.8 }}>안녕하세요</p>
+                  )}
                 </div>
               </div>
             </article>

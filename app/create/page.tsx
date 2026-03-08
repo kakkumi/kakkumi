@@ -58,6 +58,7 @@ interface ThemeConfig {
   friendsNormalBgColor: string;
   friendsNormalBgAlpha: string;
   descHighlightText: string;
+  friendsListDescText: string;
   sectionTitleTextAlpha: string;
   featurePrimaryText: string;
   // ── 채팅 탭 ──
@@ -152,6 +153,7 @@ const defaultConfig: ThemeConfig = {
   friendsNormalBgColor: "#F5F5F5",
   friendsNormalBgAlpha: "0.0",
   descHighlightText: "#3A1D1D",
+  friendsListDescText: "#9E9E9E",
   sectionTitleTextAlpha: "1.0",
   featurePrimaryText: "#9E9E9E",
   // 채팅 탭
@@ -1168,6 +1170,10 @@ export default function CreatePage() {
         primaryText: config.primaryText,
         descText: config.descText,
       },
+      friendsTab: {
+        updateSectionBg: '#F2F2F7',
+        listDescTextColor: config.friendsListDescText,
+      },
       tabBar: {
         activeIconColor: config.tabBarSelectedIcon,
         inactiveIconColor: config.tabBarIcon,
@@ -1789,23 +1795,9 @@ export default function CreatePage() {
                   <ImageUploadRow label="배경 이미지" tooltip="mainBgImage.png" imgKey="mainBg" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
-                <Accordion title="헤더" badge="HeaderStyle-Main">
-                  <ColorRow label="탭 텍스트" value={config.headerTabText} onChange={set("headerTabText")} tooltip="-ios-tab-text-color" />
-                  <ColorRow label="탭 선택 텍스트" value={config.headerTabHighlightText} onChange={set("headerTabHighlightText")} tooltip="-ios-tab-highlighted-text-color" />
-                </Accordion>
-                <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="목록 텍스트" badge="MainViewStyle">
                   <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={(v) => { set("primaryText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-text-color" />
-                  <ColorRow label="이름 프레스" value={config.chatListHighlightText} onChange={(v) => { set("chatListHighlightText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-highlighted-text-color" />
-                  <ColorRow label="상태메시지" value={config.descText} onChange={(v) => { set("descText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-description-text-color" />
-                  <ColorRow label="상태메시지 프레스" value={config.descHighlightText} onChange={(v) => { set("descHighlightText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-description-highlighted-text-color" />
-                </Accordion>
-                <hr className="border-t border-gray-300 mx-2 mb-4" />
-                <Accordion title="목록 셀 배경" badge="MainViewStyle">
-                  <ColorRow label="셀 배경색" value={config.friendsNormalBgColor} onChange={(v) => { set("friendsNormalBgColor")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-normal-background-color" />
-                  <MacInput label="셀 배경 투명도" hint="(-ios-normal-background-alpha)" value={config.friendsNormalBgAlpha} onChange={set("friendsNormalBgAlpha")} />
-                  <ColorRow label="선택 배경" value={config.friendsSelectedBg} onChange={(v) => { set("friendsSelectedBg")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-selected-background-color" />
-                  <MacInput label="선택 배경 투명도" hint="(-ios-selected-background-alpha)" value={config.selectedBgAlpha} onChange={set("selectedBgAlpha")} />
+                  <ColorRow label="친구칩 (상태메시지)" value={config.friendsListDescText} onChange={(v) => { set("friendsListDescText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-description-text-color" />
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="섹션 / 보더" badge="SectionTitleStyle-Main">
@@ -1831,11 +1823,15 @@ export default function CreatePage() {
                 <Accordion title="목록 텍스트" badge="MainViewStyle">
                   <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={(v) => { set("primaryText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-text-color" />
                   <ColorRow label="이름 프레스" value={config.chatListHighlightText} onChange={(v) => { set("chatListHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-highlighted-text-color" />
+                  <ColorRow label="상태메시지" value={config.descText} onChange={(v) => { set("descText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-description-text-color" />
+                  <ColorRow label="상태메시지 프레스" value={config.descHighlightText} onChange={(v) => { set("descHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-description-highlighted-text-color" />
                   <ColorRow label="마지막 메시지" value={config.chatListLastMsgText} onChange={(v) => { set("chatListLastMsgText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-text-color" />
                   <ColorRow label="마지막 메시지 프레스" value={config.chatListLastMsgHighlightText} onChange={(v) => { set("chatListLastMsgHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-highlighted-text-color" />
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="목록 셀 배경" badge="MainViewStyle">
+                  <ColorRow label="셀 배경색" value={config.friendsNormalBgColor} onChange={(v) => { set("friendsNormalBgColor")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-normal-background-color" />
+                  <MacInput label="셀 배경 투명도" hint="(-ios-normal-background-alpha)" value={config.friendsNormalBgAlpha} onChange={set("friendsNormalBgAlpha")} />
                   <ColorRow label="선택 배경" value={config.friendsSelectedBg} onChange={(v) => { set("friendsSelectedBg")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-selected-background-color" />
                   <MacInput label="선택 배경 투명도" hint="(-ios-selected-background-alpha)" value={config.selectedBgAlpha} onChange={set("selectedBgAlpha")} />
                 </Accordion>
@@ -1929,6 +1925,7 @@ export default function CreatePage() {
             {activeEditorCategory === "more-tab" && (
               <>
                 <Accordion title="더보기 / 그리드" badge="FeatureStyle">
+                  <ColorRow label="탭 텍스트" value={config.headerTabText} onChange={set("headerTabText")} tooltip="-ios-tab-text-color" />
                   <ColorRow label="상단 탭 텍스트" value={config.moreTabText} onChange={set("moreTabText")} tooltip="-ios-tab-text-color" />
                   <ColorRow label="서비스 버튼 컬러" value={config.moreServiceText} onChange={set("moreServiceText")} tooltip="-ios-text-color" />
                 </Accordion>

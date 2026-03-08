@@ -18,6 +18,7 @@ export const PreviewMockup = ({ disableTabNavigation = false, mainBgImageUrl }: 
   const openChatsTab = useThemeStore((state) => state.openChatsTab);
 
   const chatsTab = useThemeStore((state) => state.chatsTab);
+  const friendsTab = useThemeStore((state) => state.friendsTab);
 
   const screenConfig: ScreenThemeConfig = {
     bodyBg: globalStore.bodyBg,
@@ -45,6 +46,7 @@ export const PreviewMockup = ({ disableTabNavigation = false, mainBgImageUrl }: 
     chatListLastMsgPressColor: chatsTab.lastMsgPressColor,
     chatListSelectedBg: chatsTab.selectedBg,
     chatListSelectedBgAlpha: chatsTab.selectedBgAlpha,
+    friendsListDescText: friendsTab.listDescTextColor,
   };
 
   const renderScreen = () => {
