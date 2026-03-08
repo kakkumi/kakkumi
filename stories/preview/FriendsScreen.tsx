@@ -104,6 +104,7 @@ export interface ScreenThemeConfig {
   chatListSelectedBgAlpha?: string;
   friendsListDescText?: string;
   friendsSelectedBgAlpha?: string;
+  moreTabTextColor?: string;
 }
 
 export const FriendsScreen = React.memo(function FriendsScreen({ config }: { config: ScreenThemeConfig }) {

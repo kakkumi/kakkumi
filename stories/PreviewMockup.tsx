@@ -48,6 +48,7 @@ export const PreviewMockup = ({ disableTabNavigation = false, mainBgImageUrl }: 
     chatListSelectedBgAlpha: chatsTab.selectedBgAlpha,
     friendsListDescText: friendsTab.listDescTextColor,
     friendsSelectedBgAlpha: friendsTab.selectedBgAlpha,
+    moreTabTextColor: globalStore.headerTabText,
   };
 
   const renderScreen = () => {

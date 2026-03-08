@@ -154,8 +154,8 @@ export const MoreScreen = React.memo(function MoreScreen({ config }: { config: S
           {/* 페이지네이션 닷 */}
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6, marginTop: 14 }}>
             <div style={{ width: 14, height: 6, borderRadius: 3, backgroundColor: global.textColor }} />
-            <div style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: `${global.textColor}40` }} />
-            <div style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: `${global.textColor}30` }} />
+            <div style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: config.moreTabTextColor ?? global.textColor }} />
+            <div style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: config.moreTabTextColor ?? global.textColor }} />
           </div>
         </section>
 

@@ -27,6 +27,7 @@ type ThemeState = {
     headerText: string;
     primaryText: string;
     descText: string;
+    headerTabText: string;
   };
   tabBar: {
     activeIconColor: string;
@@ -77,6 +78,7 @@ export const useThemeStore = create<ThemeState>((set) => ({
     headerText: '#3A1D1D',
     primaryText: '#191919',
     descText: '#9E9E9E',
+    headerTabText: '#9E9E9E',
   },
   tabBar: {
     activeIconColor: '#3A1D1D',
