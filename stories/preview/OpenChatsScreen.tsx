@@ -148,7 +148,7 @@ export const OpenChatsScreen = React.memo(function OpenChatsScreen({ config }: {
               <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#3c2a2a' }}>
                 테마 만들기는?
               </p>
-              <p style={{ margin: '3px 0 0', fontSize: 11, color: global.descriptionColor, opacity: 0.8 }}>
+              <p style={{ margin: '3px 0 0', fontSize: 11, color: 'rgb(120,100,80)', opacity: 0.8 }}>
                 카꾸미
               </p>
             </div>
@@ -302,7 +302,7 @@ export const OpenChatsScreen = React.memo(function OpenChatsScreen({ config }: {
                         </span>
                       </div>
                     </div>
-                    <MoreHorizontal size={20} color={global.descriptionColor} style={{ opacity: 0.6 }} />
+                    <MoreHorizontal size={20} color="rgb(160,160,160)" style={{ opacity: 0.6 }} />
                   </div>
                   
                   {/* 본문 이미지 */}
@@ -379,7 +379,7 @@ export const OpenChatsScreen = React.memo(function OpenChatsScreen({ config }: {
           </div>
 
           {/* 얇은 구분선 */}
-          <div style={{ height: 1, backgroundColor: `${global.descriptionColor}15`, margin: '8px 16px 20px 16px' }} />
+          <div style={{ height: 1, backgroundColor: 'rgba(150,150,150,0.15)', margin: '8px 16px 20px 16px' }} />
 
           {/* 피드 3 (수도권 날씨 실시간 대화방) */}
           <article style={{ padding: '0 16px', marginBottom: 20 }}>
@@ -405,7 +405,7 @@ export const OpenChatsScreen = React.memo(function OpenChatsScreen({ config }: {
                       </span>
                     </div>
                   </div>
-                  <MoreHorizontal size={20} color={global.descriptionColor} style={{ opacity: 0.6 }} />
+                  <MoreHorizontal size={20} color="rgb(160,160,160)" style={{ opacity: 0.6 }} />
                 </div>
                 
                 <p style={{ margin: '10px 0', fontSize: 14, color: global.textColor, lineHeight: 1.4 }}>

@@ -126,7 +126,7 @@ export const NewsScreen = React.memo(function NewsScreen({ config }: { config: S
           >
             <div>
               <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#3c2a2a' }}>크리에이터가 되어 수익을 만들어보세요</p>
-              <p style={{ margin: '3px 0 0', fontSize: 11, color: global.descriptionColor }}>카꾸미 입점 신청하기</p>
+              <p style={{ margin: '3px 0 0', fontSize: 11, color: 'rgb(120,100,80)' }}>카꾸미 입점 신청하기</p>
             </div>
           </div>
         </div>
@@ -147,7 +147,7 @@ export const NewsScreen = React.memo(function NewsScreen({ config }: { config: S
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <MoreHorizontal size={18} color={global.descriptionColor} style={{ cursor: 'pointer' }} />
+                <MoreHorizontal size={18} color="rgb(160,160,160)" style={{ cursor: 'pointer' }} />
               </div>
             </div>
 

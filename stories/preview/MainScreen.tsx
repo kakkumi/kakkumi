@@ -95,7 +95,7 @@ export const MainScreen = React.memo(function MainScreen({ config }: { config: S
           <div style={{ backgroundColor: '#F5F0E8', borderRadius: 11, padding: '13px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#3c2a2a' }}>나에게 딱 맞는 테마를 찾아보세요</p>
-              <p style={{ margin: '3px 0 0', fontSize: 11, color: global.descriptionColor, opacity: 0.8 }}>테마 구경하기</p>
+              <p style={{ margin: '3px 0 0', fontSize: 11, color: 'rgb(120,100,80)', opacity: 0.8 }}>테마 구경하기</p>
             </div>
           </div>
         </div>
@@ -105,7 +105,7 @@ export const MainScreen = React.memo(function MainScreen({ config }: { config: S
             const selectedBgColor = config.chatListSelectedBg ?? global.backgroundColor;
             const selectedBgAlpha = config.chatListSelectedBgAlpha !== undefined ? parseFloat(config.chatListSelectedBgAlpha) : 1;
             const namePressColor = config.chatListNamePressColor ?? global.textColor;
-            const lastMsgPressColor = config.chatListLastMsgPressColor ?? (config.chatListLastMsgText ?? global.descriptionColor);
+            const lastMsgPressColor = config.chatListLastMsgPressColor ?? config.chatListLastMsgText ?? global.textColor;
 
             const itemBg = isSelected
               ? (() => {
@@ -135,7 +135,7 @@ export const MainScreen = React.memo(function MainScreen({ config }: { config: S
                     {chat.isPinned && <Pin size={12} color={isSelected ? namePressColor : global.textColor} fill={isSelected ? namePressColor : global.textColor} style={{ opacity: 0.6, flexShrink: 0 }} />}
                     {chat.isMuted && <BellOff size={13} color={isSelected ? namePressColor : global.textColor} style={{ opacity: 0.6, flexShrink: 0 }} />}
                   </div>
-                  <p style={{ margin: '2px 0 0', color: isSelected ? lastMsgPressColor : (config.chatListLastMsgText ?? global.descriptionColor), fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: 0.9 }}>{chat.message}</p>
+                  <p style={{ margin: '2px 0 0', color: isSelected ? lastMsgPressColor : (config.chatListLastMsgText ?? global.textColor), fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: 0.9 }}>{chat.message}</p>
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, marginLeft: 12, flexShrink: 0 }}>

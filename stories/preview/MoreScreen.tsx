@@ -161,14 +161,14 @@ export const MoreScreen = React.memo(function MoreScreen({ config }: { config: S
 
         {/* 5. 광고 배너 */}
         <div style={{ padding: '0 16px 12px 16px' }}>
-          <div style={{ borderRadius: 6, overflow: 'hidden', border: `1px solid ${global.descriptionColor}20` }}>
+          <div style={{ borderRadius: 6, overflow: 'hidden', border: `1px solid rgba(150,150,150,0.2)` }}>
             <div style={{ width: '100%', height: 150, position: 'relative', overflow: 'hidden' }}>
               <img src="/previews/flower.jpg" alt="광고 배너" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               <div style={{ position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.2)', color: '#FFF', fontSize: 10, padding: '2px 6px', borderRadius: 999 }}>광고</div>
             </div>
             <div style={{ backgroundColor: 'rgba(255,255,255,0.4)', padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: 'rgb(69,67,67)' }}>꽃으로 전하는 마음</span>
-              <button style={{ backgroundColor: 'transparent', border: `1px solid ${global.descriptionColor}30`, borderRadius: 4, padding: '4px 10px', fontSize: 11, color: global.descriptionColor }}>
+              <button style={{ backgroundColor: 'transparent', border: `1px solid rgba(100,100,100,0.3)`, borderRadius: 4, padding: '4px 10px', fontSize: 11, color: 'rgb(100,100,100)' }}>
                 바로가기
               </button>
             </div>

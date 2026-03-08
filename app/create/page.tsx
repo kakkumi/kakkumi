@@ -1821,7 +1821,7 @@ export default function CreatePage() {
                   <MacInput label="선택 배경 투명도" hint="(-ios-selected-background-alpha)" value={config.selectedBgAlpha} onChange={set("selectedBgAlpha")} />
                 </Accordion>
                 <Accordion title="섹션 / 보더" badge="MainViewStyle">
-                  <ColorRow label="섹션 타이틀" value={config.descText} onChange={set("descText")} tooltip="-ios-description-text-color" />
+                  <ColorRow label="섹션 타이틀" value={config.descText} onChange={(v) => { set("descText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-description-text-color" />
                   <ColorRow label="보더 컬러" value={config.friendsBorderColor} onChange={set("friendsBorderColor")} tooltip="border-color" />
                   <MacInput label="보더 투명도" hint="(border-alpha)" value={config.borderAlpha} onChange={set("borderAlpha")} />
                 </Accordion>

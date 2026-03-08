@@ -209,7 +209,7 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
 
         {/* 4. 업데이트한 친구 영역 (가로 스크롤) */}
         <section style={{ padding: '6px 0 8px 0' }}>
-          <p style={{ margin: '0 14px 10px 14px', fontSize: 11, fontWeight: 600, color: '#999999' }}>
+          <p style={{ margin: '0 14px 10px 14px', fontSize: 11, fontWeight: 600, color: global.descriptionColor }}>
             업데이트한 친구 4
           </p>
           <div
@@ -269,7 +269,7 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
 
         {/* 5. 생일인 친구 영역 */}
         <section style={{ padding: '8px 0' }}>
-          <p style={{ margin: '0 14px 10px 14px', fontSize: 11, fontWeight: 600, color: '#999999' }}>
+          <p style={{ margin: '0 14px 10px 14px', fontSize: 11, fontWeight: 600, color: global.descriptionColor }}>
             생일인 친구 5
           </p>
           
@@ -322,9 +322,9 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
               width: 'auto',
               padding: '4px 12px',
               backgroundColor: 'transparent',
-              border: `1px solid rgba(0,0,0,0.12)`,
+              border: `1px solid ${global.descriptionColor}60`,
               borderRadius: 999,
-              color: '#3c2a2a',
+              color: global.descriptionColor,
               fontSize: 12,
               fontWeight: 500,
               display: 'inline-flex', 
@@ -342,7 +342,7 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
 
         {/* 6. 새로운 친구 영역 */}
         <section style={{ padding: '12px 0 28px 0' }}>
-          <p style={{ margin: '0 14px 10px 14px', fontSize: 11, fontWeight: 600, color: '#999999' }}>
+          <p style={{ margin: '0 14px 10px 14px', fontSize: 11, fontWeight: 600, color: global.descriptionColor }}>
             친구 18
           </p>
           {newFriends.map((friend) => (
