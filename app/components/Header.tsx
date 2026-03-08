@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 
 const BASE_NAV_ITEMS = [
     { href: "/store", label: "테마 스토어" },
-    { href: "/create", label: "테마 만들기" },
+    { href: "/create", label: "새 테마 만들기" },
     { href: "/my-themes", label: "내 테마" },
     { href: "/support", label: "고객센터" },
 ];

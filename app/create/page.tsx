@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, startTransition, useMemo, memo } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, startTransition, useMemo, memo } from "react";
 import JSZip from "jszip";
 import Header from "../components/Header";
 
@@ -173,8 +173,10 @@ const ColorRow = memo(function ColorRow({ label, value, onChange, tooltip, disab
   const frameRef = useRef<number | null>(null);
   const pendingValueRef = useRef(value);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     setDraftValue(value);
+    /* eslint-enable react-hooks/set-state-in-effect */
     pendingValueRef.current = value;
   }, [value]);
 
@@ -1706,7 +1708,7 @@ export default function CreatePage() {
                   <div className="flex items-center justify-between py-2.5 px-1">
                     <div>
                       <div className="text-[13px] font-semibold" style={{color:"#2c2c2e"}}>다크 모드 지원</div>
-                      <div className="text-[10px] mt-0.5 font-mono" style={{color:"#aeaeb2"}}>-kakaotalk-theme-style: 'dark'</div>
+                      <div className="text-[10px] mt-0.5 font-mono" style={{color:"#aeaeb2"}}>-kakaotalk-theme-style: &apos;dark&apos;</div>
                     </div>
                     <button
                       onClick={() => set("darkMode")(!config.darkMode)}
@@ -1971,7 +1973,7 @@ export default function CreatePage() {
               <div className="flex items-center justify-between py-2.5" style={{ borderTop: "1px solid rgba(0,0,0,0.06)", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
                 <div>
                   <div className="text-[13px] font-semibold" style={{color:"#2c2c2e"}}>다크 모드 지원</div>
-                  <div className="text-[10px] mt-0.5 font-mono" style={{color:"#aeaeb2"}}>-kakaotalk-theme-style: 'dark'</div>
+                  <div className="text-[10px] mt-0.5 font-mono" style={{color:"#aeaeb2"}}>-kakaotalk-theme-style: &apos;dark&apos;</div>
                 </div>
                 <button
                   onClick={() => set("darkMode")(!config.darkMode)}
