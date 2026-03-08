@@ -1872,7 +1872,15 @@ export default function CreatePage() {
               <>
                 <Accordion title="배경" badge="MainViewStyle">
                   <ColorRow label="배경색" value={config.bodyBg} onChange={set("bodyBg")} tooltip="background-color" />
-                  <ImageUploadRow label="배경 이미지" tooltip="mainBgImage.png" imgKey="mainBg" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                  <div className="px-2.5 pb-1 flex items-center gap-1.5">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                    <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>채팅탭과 공유되는 값입니다</span>
+                  </div>
+                  <ImageUploadRow label="배경 이미지" tooltip="-ios-background-image" imgKey="mainBg" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                  <div className="px-2.5 pb-1 flex items-center gap-1.5">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                    <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>채팅탭과 공유되는 값입니다</span>
+                  </div>
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="목록 텍스트" badge="MainViewStyle">
@@ -1888,6 +1896,15 @@ export default function CreatePage() {
               <>
                 <Accordion title="배경" badge="MainViewStyle">
                   <ColorRow label="배경색" value={config.bodyBg} onChange={set("bodyBg")} tooltip="background-color" />
+                  <div className="px-2.5 pb-1 flex items-center gap-1.5">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                    <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>친구탭과 공유되는 값입니다</span>
+                  </div>
+                  <ImageUploadRow label="배경 이미지" tooltip="-ios-background-image" imgKey="mainBg" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                  <div className="px-2.5 pb-1 flex items-center gap-1.5">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                    <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>친구탭과 공유되는 값입니다</span>
+                  </div>
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="목록 텍스트" badge="MainViewStyle">
