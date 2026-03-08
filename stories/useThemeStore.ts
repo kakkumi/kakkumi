@@ -36,6 +36,8 @@ type ThemeState = {
   friendsTab: {
     updateSectionBg: string;
     listDescTextColor: string;
+    selectedBg: string;
+    selectedBgAlpha: string;
   };
   chatsTab: {
     filterChipBg: string;
@@ -84,6 +86,8 @@ export const useThemeStore = create<ThemeState>((set) => ({
   friendsTab: {
     updateSectionBg: '#F2F2F7',
     listDescTextColor: '#9E9E9E',
+    selectedBg: '#F2F2F7',
+    selectedBgAlpha: '1.0',
   },
   chatsTab: {
     filterChipBg: '#F5F5F5',

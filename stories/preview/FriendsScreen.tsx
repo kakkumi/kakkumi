@@ -103,6 +103,7 @@ export interface ScreenThemeConfig {
   chatListSelectedBg?: string;
   chatListSelectedBgAlpha?: string;
   friendsListDescText?: string;
+  friendsSelectedBgAlpha?: string;
 }
 
 export const FriendsScreen = React.memo(function FriendsScreen({ config }: { config: ScreenThemeConfig }) {
@@ -275,8 +276,19 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
             생일인 친구 5
           </p>
           
-          {birthdayFriends.map((friend) => (
-            <article key={friend.id} style={listItemBaseStyle}>
+          {birthdayFriends.map((friend) => {
+            const alpha = parseFloat(config.friendsSelectedBgAlpha ?? '1.0');
+            const hexAlpha = Math.round(alpha * 255).toString(16).padStart(2, '0');
+            return (
+            <article key={friend.id} style={{
+              ...listItemBaseStyle,
+              ...(friend.id === 2 ? {
+                backgroundColor: `${config.friendsSelectedBg}${hexAlpha}`,
+                margin: '0 3px',
+                padding: '8px 11px',
+                borderRadius: 20,
+              } : {}),
+            }}>
               <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                 <div style={{ ...avatarStyle, width: 38, height: 38, borderRadius: 14, backgroundColor: friend.color, color: global.textColor }}>
                   {personSVG}
@@ -316,7 +328,8 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
                 선물하기
               </button>
             </article>
-          ))}
+            );
+          })}
 
           {/* 더보기 토글 버튼 */}
           <div style={{ padding: '10px 14px 6px 14px', display: 'flex', justifyContent: 'center' }}>

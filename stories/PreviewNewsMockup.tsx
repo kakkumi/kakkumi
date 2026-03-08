@@ -10,6 +10,7 @@ export const PreviewNewsMockup = ({ disableTabNavigation = false, mainBgImageUrl
   const chatRoom = useThemeStore((state) => state.chatRoom);
   const passcode = useThemeStore((state) => state.passcode);
   const openChatsTab = useThemeStore((state) => state.openChatsTab);
+  const friendsTab = useThemeStore((state) => state.friendsTab);
 
   const screenConfig: ScreenThemeConfig = {
     bodyBg: globalStore.bodyBg,
@@ -20,7 +21,7 @@ export const PreviewNewsMockup = ({ disableTabNavigation = false, mainBgImageUrl
     tabBarBg: tabBar.backgroundColor,
     tabBarIcon: tabBar.inactiveIconColor,
     tabBarSelectedIcon: tabBar.activeIconColor,
-    friendsSelectedBg: globalStore.bodyBg,
+    friendsSelectedBg: friendsTab.selectedBg,
     chatBg: chatRoom.backgroundColor,
     otherBubbleBg: chatRoom.friendBubbleBg,
     myBubbleBg: chatRoom.myBubbleBg,
@@ -32,6 +33,8 @@ export const PreviewNewsMockup = ({ disableTabNavigation = false, mainBgImageUrl
     unreadCountColor: '#FF3B30',
     openchatBg: openChatsTab.bannerBackgroundColor,
     mainBgImageUrl,
+    friendsListDescText: friendsTab.listDescTextColor,
+    friendsSelectedBgAlpha: friendsTab.selectedBgAlpha,
   };
   return (
     <div style={{ position: 'relative', width: 368, height: 699 }}>

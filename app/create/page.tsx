@@ -457,15 +457,27 @@ function MacInput({
               </div>
             )}
           </div>
-          <span className="text-[11px] font-mono text-gray-400">{numVal.toFixed(1)}</span>
+          <input
+            type="number"
+            min="0"
+            max="1"
+            step="0.01"
+            value={value}
+            onChange={(e) => {
+              const v = parseFloat(e.target.value);
+              if (!isNaN(v)) onChange(Math.min(1, Math.max(0, v)).toString());
+            }}
+            disabled={readOnly}
+            className="w-[52px] text-right text-[11px] font-mono text-gray-500 bg-transparent border-b border-gray-200 outline-none focus:border-orange-400 py-0.5"
+          />
         </div>
         <input
           type="range"
           min="0"
           max="1"
-          step="0.1"
+          step="0.01"
           value={numVal}
-          onChange={(e) => onChange(parseFloat(e.target.value).toFixed(1))}
+          onChange={(e) => onChange(parseFloat(e.target.value).toString())}
           disabled={readOnly}
           className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-orange-400"
           style={{ background: `linear-gradient(to right, rgb(251,146,60) ${numVal * 100}%, #e5e7eb ${numVal * 100}%)` }}
@@ -1239,6 +1251,8 @@ export default function CreatePage() {
       friendsTab: {
         updateSectionBg: '#F2F2F7',
         listDescTextColor: config.friendsListDescText,
+        selectedBg: config.friendsSelectedBg,
+        selectedBgAlpha: config.selectedBgAlpha,
       },
       tabBar: {
         activeIconColor: config.tabBarSelectedIcon,

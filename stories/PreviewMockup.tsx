@@ -29,7 +29,7 @@ export const PreviewMockup = ({ disableTabNavigation = false, mainBgImageUrl }: 
     tabBarBg: tabBar.backgroundColor,
     tabBarIcon: tabBar.inactiveIconColor,
     tabBarSelectedIcon: tabBar.activeIconColor,
-    friendsSelectedBg: globalStore.bodyBg,
+    friendsSelectedBg: friendsTab.selectedBg,
     chatBg: chatRoom.backgroundColor,
     otherBubbleBg: chatRoom.friendBubbleBg,
     myBubbleBg: chatRoom.myBubbleBg,
@@ -47,6 +47,7 @@ export const PreviewMockup = ({ disableTabNavigation = false, mainBgImageUrl }: 
     chatListSelectedBg: chatsTab.selectedBg,
     chatListSelectedBgAlpha: chatsTab.selectedBgAlpha,
     friendsListDescText: friendsTab.listDescTextColor,
+    friendsSelectedBgAlpha: friendsTab.selectedBgAlpha,
   };
 
   const renderScreen = () => {
