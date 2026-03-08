@@ -116,7 +116,7 @@ export const MainScreen = React.memo(function MainScreen({ config }: { config: S
                     {chat.isPinned && <Pin size={12} color={global.textColor} fill={global.textColor} style={{ opacity: 0.6, flexShrink: 0 }} />}
                     {chat.isMuted && <BellOff size={13} color={global.textColor} style={{ opacity: 0.6, flexShrink: 0 }} />}
                   </div>
-                  <p style={{ margin: '2px 0 0', color: global.descriptionColor, fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: 0.9 }}>{chat.message}</p>
+                  <p style={{ margin: '2px 0 0', color: config.chatListLastMsgText ?? global.descriptionColor, fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: 0.9 }}>{chat.message}</p>
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, marginLeft: 12, flexShrink: 0 }}>

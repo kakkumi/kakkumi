@@ -39,6 +39,7 @@ type ThemeState = {
   chatsTab: {
     filterChipBg: string;
     unreadBadgeBg: string;
+    lastMsgColor: string;
   };
   openChatsTab: {
     bannerBackgroundColor: string;
@@ -81,6 +82,7 @@ export const useThemeStore = create<ThemeState>((set) => ({
   chatsTab: {
     filterChipBg: '#F5F5F5',
     unreadBadgeBg: '#FF3B30',
+    lastMsgColor: '#9E9E9E',
   },
   openChatsTab: {
     bannerBackgroundColor: '#F5F5F5',

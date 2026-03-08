@@ -97,6 +97,7 @@ export interface ScreenThemeConfig {
   unreadCountColor: string;
   openchatBg: string;
   mainBgImageUrl?: string;
+  chatListLastMsgText?: string;
 }
 
 export const FriendsScreen = React.memo(function FriendsScreen({ config }: { config: ScreenThemeConfig }) {

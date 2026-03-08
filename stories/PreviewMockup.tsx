@@ -17,6 +17,8 @@ export const PreviewMockup = ({ disableTabNavigation = false, mainBgImageUrl }: 
   const passcode = useThemeStore((state) => state.passcode);
   const openChatsTab = useThemeStore((state) => state.openChatsTab);
 
+  const chatsTab = useThemeStore((state) => state.chatsTab);
+
   const screenConfig: ScreenThemeConfig = {
     bodyBg: globalStore.bodyBg,
     headerBg: globalStore.headerBg,
@@ -38,6 +40,7 @@ export const PreviewMockup = ({ disableTabNavigation = false, mainBgImageUrl }: 
     unreadCountColor: '#FF3B30',
     openchatBg: openChatsTab.bannerBackgroundColor,
     mainBgImageUrl,
+    chatListLastMsgText: chatsTab.lastMsgColor,
   };
 
   const renderScreen = () => {

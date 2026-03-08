@@ -1070,12 +1070,13 @@ function AndroidMockup({ config, previewTab }: { config: ThemeConfig; previewTab
     unreadCountColor: config.unreadCountColor,
     openchatBg: config.openchatBg,
     mainBgImageUrl: undefined,
+    chatListLastMsgText: config.chatListLastMsgText,
   }), [
     config.bodyBg, config.headerBg, config.headerText, config.primaryText, config.descText,
     config.tabBarBg, config.tabBarIcon, config.tabBarSelectedIcon, config.friendsSelectedBg,
     config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg,
     config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText,
-    config.unreadCountColor, config.openchatBg,
+    config.unreadCountColor, config.openchatBg, config.chatListLastMsgText,
   ]);
 
   const renderScreen = () => {
@@ -1243,6 +1244,11 @@ export default function CreatePage() {
         inactiveIconColor: config.tabBarIcon,
         backgroundColor: config.tabBarBg,
       },
+      chatsTab: {
+        filterChipBg: config.bodyBg,
+        unreadBadgeBg: config.unreadCountColor,
+        lastMsgColor: config.chatListLastMsgText,
+      },
       openChatsTab: {
         bannerBackgroundColor: config.openchatBg,
       },
@@ -1259,26 +1265,8 @@ export default function CreatePage() {
         keypadTextColor: config.passcodeKeypadText,
       },
     });
-  }, [
-    config.bodyBg,
-    config.headerBg,
-    config.headerText,
-    config.primaryText,
-    config.descText,
-    config.tabBarBg,
-    config.tabBarIcon,
-    config.tabBarSelectedIcon,
-    config.openchatBg,
-    config.chatBg,
-    config.otherBubbleBg,
-    config.myBubbleBg,
-    config.inputBarBg,
-    config.sendBtnBg,
-    config.passcodeBg,
-    config.passcodeTitleText,
-    config.passcodeKeypadText,
-    setTheme,
-  ]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config, setTheme]);
 
   useEffect(() => {
     const screenMap: Record<PreviewTab, ScreenType> = {
@@ -1815,11 +1803,9 @@ export default function CreatePage() {
                 </Accordion>
                 <Accordion title="목록 텍스트" badge="MainViewStyle">
                   <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={set("primaryText")} tooltip="-ios-text-color" />
-                  <ColorRow label="이름 프레스" value={config.chatListHighlightText} onChange={(v) => { set("chatListHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-highlighted-text-color" />
                   <ColorRow label="마지막 메시지" value={config.chatListLastMsgText} onChange={(v) => { set("chatListLastMsgText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-text-color" />
+                  <ColorRow label="이름 프레스" value={config.chatListHighlightText} onChange={(v) => { set("chatListHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-highlighted-text-color" />
                   <ColorRow label="마지막 메시지 프레스" value={config.chatListHighlightText} onChange={(v) => { set("chatListHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-highlighted-text-color" />
-                </Accordion>
-                <Accordion title="목록 배경 / 칩 / 버튼" badge="MainViewStyle">
                   <ColorRow label="선택 배경" value={config.friendsSelectedBg} onChange={set("friendsSelectedBg")} tooltip="-ios-selected-background-color" />
                   <MacInput label="선택 배경 투명도" hint="(-ios-selected-background-alpha)" value={config.selectedBgAlpha} onChange={set("selectedBgAlpha")} />
                 </Accordion>
