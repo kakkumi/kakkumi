@@ -388,8 +388,8 @@ const ImageUploadRow = memo(function ImageUploadRow({ label, tooltip, imgKey, im
   );
 });
 
-/* ── 아코디언 패널 ── */
-function Accordion({ title, badge, children, autoOpenSignal, isSelected = false, settingKey }: {
+/* ── 섹션 패널 (항상 펼쳐진 상태) ── */
+function Accordion({ title, badge, children, settingKey }: {
   title: string;
   badge?: string;
   children: React.ReactNode;
@@ -397,134 +397,17 @@ function Accordion({ title, badge, children, autoOpenSignal, isSelected = false,
   isSelected?: boolean;
   settingKey?: string;
 }) {
-  const storageKey = `accordion_${title}`;
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
-  const anchorRef = useRef<HTMLDivElement | null>(null);
-  const headerRef = useRef<HTMLButtonElement | null>(null);
-  const [open, setOpen] = useState(false);
-  const [stickyTop, setStickyTop] = useState(0);
-  const [stickyZIndex, setStickyZIndex] = useState(10);
-
-  const getStackedTop = () => {
-    const node = wrapperRef.current;
-    if (!node) return 0;
-
-    const parent = node.parentElement;
-    if (!parent) return 0;
-
-    const accordions = Array.from(parent.querySelectorAll('[data-accordion-sticky="true"]')) as HTMLElement[];
-    const myIndex = accordions.indexOf(node);
-    if (myIndex < 0) return 0;
-
-    let top = 0;
-    for (let i = 0; i < myIndex; i += 1) {
-      const prevHeader = accordions[i].querySelector('[data-accordion-header="true"]') as HTMLElement | null;
-      top += prevHeader?.offsetHeight ?? 46;
-    }
-
-    return top;
-  };
-  useEffect(() => {
-    const saved = localStorage.getItem(storageKey);
-    if (saved !== null) startTransition(() => { setOpen(saved === "true"); });
-  }, [storageKey]);
-
-  useEffect(() => {
-    if (!autoOpenSignal) return;
-    startTransition(() => { setOpen(true); });
-    if (typeof window !== "undefined") {
-      localStorage.setItem(storageKey, "true");
-    }
-  }, [autoOpenSignal, storageKey]);
-
-  useEffect(() => {
-    const node = wrapperRef.current;
-    if (!node) return;
-
-    const recalcStickyTop = () => {
-      const parent = node.parentElement;
-      if (!parent) return;
-
-      const accordions = Array.from(parent.querySelectorAll('[data-accordion-sticky="true"]')) as HTMLElement[];
-      const myIndex = accordions.indexOf(node);
-      if (myIndex < 0) {
-        setStickyTop(0);
-        setStickyZIndex(10);
-        return;
-      }
-
-      const top = getStackedTop();
-
-      const z = 100 - myIndex;
-      setStickyTop(top);
-      setStickyZIndex(z);
-    };
-
-    recalcStickyTop();
-    window.addEventListener("resize", recalcStickyTop);
-
-    return () => {
-      window.removeEventListener("resize", recalcStickyTop);
-    };
-  }, [open]);
-
-  const toggle = () => {
-    setOpen((prev) => {
-      const next = !prev;
-      localStorage.setItem(storageKey, String(next));
-
-      if (next) {
-        const scrollHost = wrapperRef.current?.closest("aside") as HTMLElement | null;
-        const anchorNode = anchorRef.current;
-
-        if (scrollHost && anchorNode) {
-          requestAnimationFrame(() => {
-            const hostRect = scrollHost.getBoundingClientRect();
-            const anchorRect = anchorNode.getBoundingClientRect();
-            const desiredTop = getStackedTop();
-            const delta = anchorRect.top - hostRect.top - desiredTop;
-            const targetTop = Math.max(0, scrollHost.scrollTop + delta);
-            scrollHost.scrollTo({ top: targetTop, behavior: "smooth" });
-          });
-        }
-      }
-
-      return next;
-    });
-  };
   return (
-    <div ref={wrapperRef} data-accordion-sticky="true" style={{ display: "contents" }}>
-      <div ref={anchorRef} aria-hidden="true" className="h-0" />
-      <button
-        ref={headerRef}
-        data-setting-item="true"
-        data-setting-key={settingKey}
-        data-accordion-header="true"
-        onClick={() => toggle()}
-        className="w-full sticky top-0 z-10 flex items-center justify-between px-1 py-2.5 transition-colors"
-        style={{
-          position: "sticky",
-          top: stickyTop,
-          zIndex: stickyZIndex,
-          background: isSelected ? "rgba(74,123,247,0.06)" : "rgba(247,247,249,0.97)",
-          borderBottom: isSelected ? "1px solid rgba(74,123,247,0.2)" : open ? "1px solid rgba(0,0,0,0.07)" : "1px solid transparent",
-          backdropFilter: "blur(6px)",
-          WebkitBackdropFilter: "blur(6px)",
-        }}
-      >
-        <div className="flex items-center gap-2">
-          <span
-            className="text-[13px] font-semibold"
-            style={{color: isSelected ? "rgb(74, 123, 247)" : "#2c2c2e"}}
-          >{title}</span>
-          {badge && (
-            <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-md font-mono"
-              style={{ background: "rgba(0,0,0,0.05)", color: "#8e8e93", letterSpacing: "0.02em" }}>{badge}</span>
-          )}
-        </div>
-        <span className="text-[9px] transition-transform duration-200" style={{ color: isSelected ? "rgb(74, 123, 247)" : "#aaa", display: "inline-block", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>▼</span>
-      </button>
-      {open && <div className="px-1 pb-3 pt-1">{children}</div>}
+    <div data-setting-key={settingKey} className="flex flex-col">
+      <div className="pt-5 pb-1 px-2">
+        <span className="text-[10.5px] font-bold tracking-[0.15em] uppercase" style={{ color: "#8e8e93" }}>{title}</span>
+        {badge && (
+          <span className="ml-2 text-[9px] font-medium px-1.5 py-0.5 rounded-md font-mono"
+            style={{ background: "rgba(0,0,0,0.05)", color: "#b0b0b0", letterSpacing: "0.02em" }}>{badge}</span>
+        )}
+      </div>
+      <div className="px-1 pb-2">{children}</div>
+      <div className="mx-2 h-px" style={{ background: "rgba(0,0,0,0.06)" }} />
     </div>
   );
 }
