@@ -41,6 +41,10 @@ export const PreviewMockup = ({ disableTabNavigation = false, mainBgImageUrl }: 
     openchatBg: openChatsTab.bannerBackgroundColor,
     mainBgImageUrl,
     chatListLastMsgText: chatsTab.lastMsgColor,
+    chatListNamePressColor: chatsTab.namePressColor,
+    chatListLastMsgPressColor: chatsTab.lastMsgPressColor,
+    chatListSelectedBg: chatsTab.selectedBg,
+    chatListSelectedBgAlpha: chatsTab.selectedBgAlpha,
   };
 
   const renderScreen = () => {

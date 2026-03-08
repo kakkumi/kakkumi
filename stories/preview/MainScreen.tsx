@@ -34,6 +34,7 @@ const listItemBaseStyle: React.CSSProperties = {
 };
 
 export const MainScreen = React.memo(function MainScreen({ config }: { config: ScreenThemeConfig }) {
+  const SELECTED_CHAT_ID = 3; // 속초 - 미리보기 선택 상태 예시
   const global = {
     backgroundColor: config.bodyBg,
     textColor: config.primaryText,
@@ -99,8 +100,26 @@ export const MainScreen = React.memo(function MainScreen({ config }: { config: S
           </div>
         </div>
         <section>
-          {chats.map((chat) => (
-            <article key={chat.id} style={listItemBaseStyle}>
+          {chats.map((chat) => {
+            const isSelected = chat.id === SELECTED_CHAT_ID;
+            const selectedBgColor = config.chatListSelectedBg ?? global.backgroundColor;
+            const selectedBgAlpha = config.chatListSelectedBgAlpha !== undefined ? parseFloat(config.chatListSelectedBgAlpha) : 1;
+            const namePressColor = config.chatListNamePressColor ?? global.textColor;
+            const lastMsgPressColor = config.chatListLastMsgPressColor ?? (config.chatListLastMsgText ?? global.descriptionColor);
+
+            const itemBg = isSelected
+              ? (() => {
+                  // hex → rgba 변환
+                  const hex = selectedBgColor.replace('#', '');
+                  const r = parseInt(hex.substring(0,2), 16);
+                  const g = parseInt(hex.substring(2,4), 16);
+                  const b = parseInt(hex.substring(4,6), 16);
+                  return isNaN(r) ? selectedBgColor : `rgba(${r},${g},${b},${selectedBgAlpha})`;
+                })()
+              : 'transparent';
+
+            return (
+            <article key={chat.id} style={{ ...listItemBaseStyle, backgroundColor: itemBg }}>
               <div style={{ display: 'flex', gap: 14, alignItems: 'center', minWidth: 0, flex: 1 }}>
                 <div style={{ width: 46, height: 46, position: 'relative', flexShrink: 0 }}>
                   <div style={{ width: '100%', height: '100%', borderRadius: 17, backgroundColor: chat.id === 1 ? 'transparent' : chat.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 21 }}>
@@ -112,11 +131,11 @@ export const MainScreen = React.memo(function MainScreen({ config }: { config: S
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     {chat.id === 1 && <span style={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: global.textColor, color: global.backgroundColor, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 600, flexShrink: 0, lineHeight: 1 }}>나</span>}
-                    <p style={{ margin: 0, color: global.textColor, fontSize: 14, fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{chat.room}</p>
-                    {chat.isPinned && <Pin size={12} color={global.textColor} fill={global.textColor} style={{ opacity: 0.6, flexShrink: 0 }} />}
-                    {chat.isMuted && <BellOff size={13} color={global.textColor} style={{ opacity: 0.6, flexShrink: 0 }} />}
+                    <p style={{ margin: 0, color: isSelected ? namePressColor : global.textColor, fontSize: 14, fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{chat.room}</p>
+                    {chat.isPinned && <Pin size={12} color={isSelected ? namePressColor : global.textColor} fill={isSelected ? namePressColor : global.textColor} style={{ opacity: 0.6, flexShrink: 0 }} />}
+                    {chat.isMuted && <BellOff size={13} color={isSelected ? namePressColor : global.textColor} style={{ opacity: 0.6, flexShrink: 0 }} />}
                   </div>
-                  <p style={{ margin: '2px 0 0', color: config.chatListLastMsgText ?? global.descriptionColor, fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: 0.9 }}>{chat.message}</p>
+                  <p style={{ margin: '2px 0 0', color: isSelected ? lastMsgPressColor : (config.chatListLastMsgText ?? global.descriptionColor), fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: 0.9 }}>{chat.message}</p>
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, marginLeft: 12, flexShrink: 0 }}>
@@ -126,7 +145,7 @@ export const MainScreen = React.memo(function MainScreen({ config }: { config: S
                 ) : <div style={{ height: 20 }} />}
               </div>
             </article>
-          ))}
+          )})}
         </section>
       </div>
 

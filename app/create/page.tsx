@@ -57,6 +57,7 @@ interface ThemeConfig {
   chatListNameText: string;
   chatListLastMsgText: string;
   chatListHighlightText: string;
+  chatListLastMsgHighlightText: string;
   // ── 오픈채팅 탭 ──
   openchatBg: string;
   openchatText: string;
@@ -126,6 +127,7 @@ const defaultConfig: ThemeConfig = {
   chatListNameText: "#191919",
   chatListLastMsgText: "#9E9E9E",
   chatListHighlightText: "#3A1D1D",
+  chatListLastMsgHighlightText: "#9E9E9E",
   // 오픈채팅 탭
   openchatBg: "#F5F5F5",
   openchatText: "#191919",
@@ -171,13 +173,13 @@ interface ColorRowProps {
 }
 
 const ColorRow = memo(function ColorRow({ label, value, onChange, tooltip, disabled = false }: ColorRowProps) {
-  const [draftValue, setDraftValue] = useState(value);
+  const [draftValue, setDraftValue] = useState(value ?? '#000000');
   const frameRef = useRef<number | null>(null);
-  const pendingValueRef = useRef(value);
+  const pendingValueRef = useRef(value ?? '#000000');
 
   useEffect(() => {
-    setDraftValue(value);
-    pendingValueRef.current = value;
+    setDraftValue(value ?? '#000000');
+    pendingValueRef.current = value ?? '#000000';
   }, [value]);
 
   useEffect(() => {
@@ -1071,12 +1073,17 @@ function AndroidMockup({ config, previewTab }: { config: ThemeConfig; previewTab
     openchatBg: config.openchatBg,
     mainBgImageUrl: undefined,
     chatListLastMsgText: config.chatListLastMsgText,
+    chatListNamePressColor: config.chatListHighlightText,
+    chatListLastMsgPressColor: config.chatListLastMsgHighlightText,
+    chatListSelectedBg: config.friendsSelectedBg,
+    chatListSelectedBgAlpha: config.selectedBgAlpha,
   }), [
     config.bodyBg, config.headerBg, config.headerText, config.primaryText, config.descText,
     config.tabBarBg, config.tabBarIcon, config.tabBarSelectedIcon, config.friendsSelectedBg,
     config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg,
     config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText,
     config.unreadCountColor, config.openchatBg, config.chatListLastMsgText,
+    config.chatListHighlightText, config.chatListLastMsgHighlightText, config.selectedBgAlpha,
   ]);
 
   const renderScreen = () => {
@@ -1248,6 +1255,10 @@ export default function CreatePage() {
         filterChipBg: config.bodyBg,
         unreadBadgeBg: config.unreadCountColor,
         lastMsgColor: config.chatListLastMsgText,
+        namePressColor: config.chatListHighlightText,
+        lastMsgPressColor: config.chatListLastMsgHighlightText,
+        selectedBg: config.friendsSelectedBg,
+        selectedBgAlpha: config.selectedBgAlpha,
       },
       openChatsTab: {
         bannerBackgroundColor: config.openchatBg,
@@ -1805,7 +1816,7 @@ export default function CreatePage() {
                   <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={set("primaryText")} tooltip="-ios-text-color" />
                   <ColorRow label="마지막 메시지" value={config.chatListLastMsgText} onChange={(v) => { set("chatListLastMsgText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-text-color" />
                   <ColorRow label="이름 프레스" value={config.chatListHighlightText} onChange={(v) => { set("chatListHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-highlighted-text-color" />
-                  <ColorRow label="마지막 메시지 프레스" value={config.chatListHighlightText} onChange={(v) => { set("chatListHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-highlighted-text-color" />
+                  <ColorRow label="마지막 메시지 프레스" value={config.chatListLastMsgHighlightText} onChange={(v) => { set("chatListLastMsgHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-highlighted-text-color" />
                   <ColorRow label="선택 배경" value={config.friendsSelectedBg} onChange={set("friendsSelectedBg")} tooltip="-ios-selected-background-color" />
                   <MacInput label="선택 배경 투명도" hint="(-ios-selected-background-alpha)" value={config.selectedBgAlpha} onChange={set("selectedBgAlpha")} />
                 </Accordion>

@@ -98,6 +98,10 @@ export interface ScreenThemeConfig {
   openchatBg: string;
   mainBgImageUrl?: string;
   chatListLastMsgText?: string;
+  chatListNamePressColor?: string;
+  chatListLastMsgPressColor?: string;
+  chatListSelectedBg?: string;
+  chatListSelectedBgAlpha?: string;
 }
 
 export const FriendsScreen = React.memo(function FriendsScreen({ config }: { config: ScreenThemeConfig }) {
