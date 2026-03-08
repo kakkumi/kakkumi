@@ -1231,7 +1231,7 @@ export default function CreatePage() {
   }, [themeIdParam]);
 
   // ── 자동저장 훅 ──
-  const { status: autoSaveStatus, triggerDebounce, triggerImmediate, triggerImmediateAfterReset } = useAutoSave({
+  const { status: autoSaveStatus, triggerDebounce, triggerImmediateAfterReset } = useAutoSave({
     config,
     os,
     imageUploads,
@@ -1285,7 +1285,6 @@ export default function CreatePage() {
         keypadTextColor: config.passcodeKeypadText,
       },
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config, setTheme]);
 
   useEffect(() => {
@@ -1299,7 +1298,6 @@ export default function CreatePage() {
         bgImageUrl: imageUploads['chatroomBg'] ?? '',
       },
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [imageUploads]);
 
   useEffect(() => {
@@ -1367,7 +1365,7 @@ export default function CreatePage() {
   const handleImageUpload = (key: string, file: File) => {
     const url = URL.createObjectURL(file);
     setImageUploads((prev) => ({ ...prev, [key]: url }));
-    triggerImmediate();
+    triggerImmediateAfterReset();
   };
 
   const handleImageRemove = (key: string) => {
@@ -1376,7 +1374,7 @@ export default function CreatePage() {
       delete next[key];
       return next;
     });
-    triggerImmediate();
+    triggerImmediateAfterReset();
   };
 
   const handleDownload = async () => {
