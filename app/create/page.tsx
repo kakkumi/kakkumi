@@ -953,10 +953,10 @@ export default function CreatePage() {
         tabShopSelected: "maintabIcoShoppingSelected@2x.png",
         tabMoreNormal: "maintabIcoMore@2x.png",
         tabMoreSelected: "maintabIcoMoreSelected@2x.png",
-        bubbleSend1: "chatroomBubbleSend01@2x.png",
-        bubbleSend2: "chatroomBubbleSend02@2x.png",
-        bubbleReceive1: "chatroomBubbleReceive01@2x.png",
-        bubbleReceive2: "chatroomBubbleReceive02@2x.png",
+        bubbleSend1: "chatroomBubbleSend01@3x.png",
+        bubbleSend2: "chatroomBubbleSend02@3x.png",
+        bubbleReceive1: "chatroomBubbleReceive01@3x.png",
+        bubbleReceive2: "chatroomBubbleReceive02@3x.png",
         passcodeBgImg: "passcodeBgImage@2x.png",
         bullet1Empty: "passcodeImgCode01@2x.png",
         bullet2Empty: "passcodeImgCode02@2x.png",
@@ -1546,7 +1546,6 @@ export default function CreatePage() {
                     <span className="text-[10px] text-gray-400">또는 직접 이미지 파일을 업로드할 수 있습니다</span>
                   </div>
                   <ColorRow label="텍스트 컬러" value={config.myBubbleText} onChange={set("myBubbleText")} tooltip="-ios-text-color" />
-                  <ColorRow label="텍스트 선택 컬러" value={config.myBubbleSelectedText} onChange={set("myBubbleSelectedText")} tooltip="-ios-selected-text-color" />
                   <ColorRow label="읽지않은 메시지 숫자 컬러" value={config.myBubbleUnreadText} onChange={set("myBubbleUnreadText")} tooltip="-ios-unread-text-color" />
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
@@ -1568,7 +1567,6 @@ export default function CreatePage() {
                     />
                   </div>
                   <ColorRow label="텍스트 컬러" value={config.otherBubbleText} onChange={set("otherBubbleText")} tooltip="-ios-text-color" />
-                  <ColorRow label="텍스트 선택 컬러" value={config.otherBubbleSelectedText} onChange={set("otherBubbleSelectedText")} tooltip="-ios-selected-text-color" />
                   <ColorRow label="읽지않은 메시지 숫자 컬러" value={config.otherBubbleUnreadText} onChange={set("otherBubbleUnreadText")} tooltip="-ios-unread-text-color" />
                 </Accordion>
 
@@ -1870,13 +1868,13 @@ InputBarStyle-Chat
  */
 
 MessageCellStyle-Send
-{${imageUploads["bubbleSend1"] ? `
-    -ios-background-image: 'chatroomBubbleSend01@2x.png' 17px 17px;` : ""}${imageUploads["bubbleSend1Selected"] ? `
-    -ios-selected-background-image: 'chatroomBubbleSend01Selected@2x.png' 17px 17px;` : ""}${imageUploads["bubbleSend2"] ? `
-    -ios-group-background-image: 'chatroomBubbleSend02@2x.png' 17px 17px;` : ""}${imageUploads["bubbleSend2Selected"] ? `
-    -ios-group-selected-background-image: 'chatroomBubbleSend02Selected@2x.png' 17px 17px;` : ""}
-    -ios-title-edgeinsets: 10px 11px 7px 17px;
-    -ios-group-title-edgeinsets: 10px 11px 7px 17px;
+{
+    -ios-background-image: 'chatroomBubbleSend01.png' 15px 55px;
+    -ios-selected-background-image: 'chatroomBubbleSend01.png' 15px 55px;
+    -ios-group-background-image: 'chatroomBubbleSend02.png' 15px 15px;
+    -ios-group-selected-background-image: 'chatroomBubbleSend02.png' 15px 15px;
+    -ios-title-edgeinsets: 47.5px 12px 7px 52px;
+    -ios-group-title-edgeinsets: 8px 12px 7px 52px;
 
     -ios-background-color: ${config.myBubbleBg};
     -ios-text-color: ${config.myBubbleText};
@@ -1885,13 +1883,13 @@ MessageCellStyle-Send
 }
 
 MessageCellStyle-Receive
-{${imageUploads["bubbleReceive1"] ? `
-    -ios-background-image: 'chatroomBubbleReceive01@2x.png' 22px 17px;` : ""}${imageUploads["bubbleReceive1Selected"] ? `
-    -ios-selected-background-image: 'chatroomBubbleReceive01Selected@2x.png' 22px 17px;` : ""}${imageUploads["bubbleReceive2"] ? `
-    -ios-group-background-image: 'chatroomBubbleReceive02@2x.png' 22px 17px;` : ""}${imageUploads["bubbleReceive2Selected"] ? `
-    -ios-group-selected-background-image: 'chatroomBubbleReceive02Selected@2x.png' 22px 17px;` : ""}
-    -ios-title-edgeinsets: 10px 17px 7px 11px;
-    -ios-group-title-edgeinsets: 10px 17px 7px 11px;
+{
+    -ios-background-image: 'chatroomBubbleReceive01.png' 22px 15px;
+    -ios-selected-background-image: 'chatroomBubbleReceive01.png' 22px 15px;
+    -ios-group-background-image: 'chatroomBubbleReceive02.png' 22px 15px;
+    -ios-group-selected-background-image: 'chatroomBubbleReceive02.png' 22px 15px;
+    -ios-title-edgeinsets: 8px 19.5px 7px 12px;
+    -ios-group-title-edgeinsets: 8px 19.5px 7px 12px;
 
     -ios-background-color: ${config.otherBubbleBg};
     -ios-text-color: ${config.otherBubbleText};

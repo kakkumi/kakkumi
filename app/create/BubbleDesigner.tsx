@@ -22,19 +22,30 @@ export const DEFAULT_RECEIVE: BubbleDesignOptions = {
   characterUrl: undefined,
 };
 
-// ── SVG 틀 좌표 (bubble-send.svg 기준, 200x200)
-// 말풍선 작은 원 (왼쪽 하단): cx=43.478, cy=156.522, r=42.029
-// 캐릭터 큰 원 (오른쪽 상단): cx=125.507, cy=62.029, r=58.551
-const SEND_BUBBLE = { cx: 43.478,  cy: 156.522, r: 42.029 };
-const SEND_CHAR   = { cx: 125.507, cy: 62.029,  r: 58.551 };
+// ── SVG 틀 좌표 (bubble-send.svg 기준, 210x210)
+// 말풍선 원 (왼쪽 하단 svg_8): cx=48.10345, cy=160.51724, r=44.48276
+// 캐릭터 원 (오른쪽 상단 svg_10): cx=125.51724, cy=68.96552, r=62.58621
+const SEND_BUBBLE = { cx: 48.10345,  cy: 160.51724, r: 44.48276 };
+const SEND_CHAR   = { cx: 125.51724, cy: 68.96552,  r: 62.58621 };
 
-// receive는 좌우 반전
-const RECEIVE_BUBBLE = { cx: 200 - 43.478,  cy: 156.522, r: 42.029 };
-const RECEIVE_CHAR   = { cx: 200 - 125.507, cy: 62.029,  r: 58.551 };
+const CANVAS_SIZE = 210;
+const SEND2_W      = 210;
+const SEND2_H      = 90;
+const SEND2_BUBBLE = { cx: 45.68966, cy: 45.68966, r: 42.75862 };
 
-const CANVAS_SIZE = 200;
+// ── bubble-receive.svg 좌표 (110x90) - 말풍선만, 캐릭터 없음
+// svg_3: 말풍선 원 cx=65.51724, cy=44.82759, r=43.27586
+const RECEIVE1_W      = 110;
+const RECEIVE1_H      = 90;
+const RECEIVE1_BUBBLE = { cx: 65.51724, cy: 44.82759, r: 43.27586 };
 
-/** SVG 틀 기반으로 Canvas에 그려서 Blob 반환 */
+// ── bubble-receive-2.svg 좌표 (110x90) - 말풍선만, 캐릭터 없음
+// svg_3: 말풍선 원 cx=65.51724, cy=44.82759, r=43.27586
+const RECEIVE2_W      = 110;
+const RECEIVE2_H      = 90;
+const RECEIVE2_BUBBLE = { cx: 65.51724, cy: 44.82759, r: 43.27586 };
+
+/** bubble-send.svg 기반 PNG 생성 - 말풍선 색 + 캐릭터 합성 (210x210) */
 export async function drawBubble(
   opts: BubbleDesignOptions,
   charImg: HTMLImageElement | null
@@ -45,12 +56,9 @@ export async function drawBubble(
   const ctx = canvas.getContext("2d")!;
   ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-  const bubble = opts.side === "send" ? SEND_BUBBLE : RECEIVE_BUBBLE;
-  const charSlot = opts.side === "send" ? SEND_CHAR : RECEIVE_CHAR;
-
   // 1. 말풍선 원 색상 채우기
   ctx.beginPath();
-  ctx.arc(bubble.cx, bubble.cy, bubble.r, 0, Math.PI * 2);
+  ctx.arc(SEND_BUBBLE.cx, SEND_BUBBLE.cy, SEND_BUBBLE.r, 0, Math.PI * 2);
   ctx.fillStyle = opts.bgColor;
   ctx.fill();
 
@@ -58,18 +66,68 @@ export async function drawBubble(
   if (charImg) {
     ctx.save();
     ctx.beginPath();
-    ctx.arc(charSlot.cx, charSlot.cy, charSlot.r, 0, Math.PI * 2);
+    ctx.arc(SEND_CHAR.cx, SEND_CHAR.cy, SEND_CHAR.r, 0, Math.PI * 2);
     ctx.clip();
     ctx.drawImage(
       charImg,
-      charSlot.cx - charSlot.r,
-      charSlot.cy - charSlot.r,
-      charSlot.r * 2,
-      charSlot.r * 2
+      SEND_CHAR.cx - SEND_CHAR.r,
+      SEND_CHAR.cy - SEND_CHAR.r,
+      SEND_CHAR.r * 2,
+      SEND_CHAR.r * 2
     );
     ctx.restore();
   }
 
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/png");
+  });
+}
+
+/** bubble-send-2.svg 기반 PNG 생성 - 말풍선 색만 채움, 캐릭터 없음 (210x90) */
+export async function drawBubble2Send(bgColor: string): Promise<Blob> {
+  const canvas = document.createElement("canvas");
+  canvas.width = SEND2_W;
+  canvas.height = SEND2_H;
+  const ctx = canvas.getContext("2d")!;
+  ctx.clearRect(0, 0, SEND2_W, SEND2_H);
+
+  ctx.beginPath();
+  ctx.arc(SEND2_BUBBLE.cx, SEND2_BUBBLE.cy, SEND2_BUBBLE.r, 0, Math.PI * 2);
+  ctx.fillStyle = bgColor;
+  ctx.fill();
+
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/png");
+  });
+}
+
+/** bubble-receive.svg 기반 PNG 생성 - 말풍선 색만 채움 (110x90) */
+export async function drawBubble1Receive(bgColor: string): Promise<Blob> {
+  const canvas = document.createElement("canvas");
+  canvas.width = RECEIVE1_W;
+  canvas.height = RECEIVE1_H;
+  const ctx = canvas.getContext("2d")!;
+  ctx.clearRect(0, 0, RECEIVE1_W, RECEIVE1_H);
+  ctx.beginPath();
+  ctx.arc(RECEIVE1_BUBBLE.cx, RECEIVE1_BUBBLE.cy, RECEIVE1_BUBBLE.r, 0, Math.PI * 2);
+  ctx.fillStyle = bgColor;
+  ctx.fill();
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/png");
+  });
+}
+
+/** bubble-receive-2.svg 기반 PNG 생성 - 말풍선 색만 채움 (110x90) */
+export async function drawBubble2Receive(bgColor: string): Promise<Blob> {
+  const canvas = document.createElement("canvas");
+  canvas.width = RECEIVE2_W;
+  canvas.height = RECEIVE2_H;
+  const ctx = canvas.getContext("2d")!;
+  ctx.clearRect(0, 0, RECEIVE2_W, RECEIVE2_H);
+  ctx.beginPath();
+  ctx.arc(RECEIVE2_BUBBLE.cx, RECEIVE2_BUBBLE.cy, RECEIVE2_BUBBLE.r, 0, Math.PI * 2);
+  ctx.fillStyle = bgColor;
+  ctx.fill();
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/png");
   });
@@ -102,9 +160,14 @@ export function BubbleDesigner({ side, options, onChange, onGenerate }: BubbleDe
           URL.revokeObjectURL(prevUrlsRef.current.bubble1);
           URL.revokeObjectURL(prevUrlsRef.current.bubble2);
         }
-        // bubble1(캐릭터 있는 버전), bubble2(말풍선만)
-        const blob1 = await drawBubble(opts, img);
-        const blob2 = await drawBubble(opts, null);
+        // bubble1: send=캐릭터 포함(200x200) / receive=말풍선만(138x60)
+        // bubble2: send=말풍선만(210x90) / receive=말풍선만(receive2 파일, 추후 추가)
+        const blob1 = opts.side === "send"
+          ? await drawBubble(opts, img)
+          : await drawBubble1Receive(opts.bgColor);
+        const blob2 = opts.side === "send"
+          ? await drawBubble2Send(opts.bgColor)
+          : await drawBubble2Receive(opts.bgColor);
         const url1 = URL.createObjectURL(blob1);
         const url2 = URL.createObjectURL(blob2);
         prevUrlsRef.current = { bubble1: url1, bubble2: url2 };
@@ -186,7 +249,8 @@ export function BubbleDesigner({ side, options, onChange, onGenerate }: BubbleDe
         </div>
       </div>
 
-      {/* 캐릭터 이미지 (선택) */}
+      {/* 캐릭터 이미지 (send만 표시) */}
+      {side === "send" && (
       <div className="px-2.5 py-1">
         <div className="flex items-center justify-between mb-1.5">
           <div className="flex flex-col">
@@ -214,6 +278,7 @@ export function BubbleDesigner({ side, options, onChange, onGenerate }: BubbleDe
           <img src={charPreviewUrl} alt="캐릭터" className="w-12 h-12 object-contain rounded-lg border border-gray-100" />
         )}
       </div>
+      )}
     </div>
   );
 }
