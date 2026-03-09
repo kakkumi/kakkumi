@@ -74,7 +74,7 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { c
           </span>
         </div>
         <h2 style={{ margin: 0, fontSize: 17, fontWeight: 400, color: '#3c2a2a', flex: 1, textAlign: 'center' }}>
-          노는 게 제일 좋아
+          노는 게 제일 좋아 7
         </h2>
         <div style={{ ...iconRowStyle, width: 60, justifyContent: 'flex-end' }}>
           <Search size={20} strokeWidth={2.3} color="#191919" />
@@ -131,7 +131,10 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { c
         {/* 내 메시지 1 */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, maxWidth: '82%' }}>
-            <span style={{ fontSize: 9, color: global.descriptionColor, flexShrink: 0 }}>오후 3:33</span>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+              <span style={{ fontSize: 9, color: '#FEE500', fontWeight: 700, lineHeight: 1, alignSelf: 'flex-end' }}>2</span>
+              <span style={{ fontSize: 9, color: global.descriptionColor, flexShrink: 0 }}>오후 3:33</span>
+            </div>
             <div style={{ backgroundColor: chatRoom.myBubbleBg, color: chatRoom.myBubbleText, padding: '5px 14px', borderRadius: '18px 4px 18px 18px', fontSize: 13, lineHeight: 1.4 }}>
               나는 스토어에서 테마 사봤는데 괜찮더라구
             </div>
@@ -141,7 +144,10 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { c
         {/* 내 메시지 2 */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, maxWidth: '82%' }}>
-            <span style={{ fontSize: 9, color: global.descriptionColor, flexShrink: 0 }}>오후 3:34</span>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+              <span style={{ fontSize: 9, color: '#FEE500', fontWeight: 700, lineHeight: 1, alignSelf: 'flex-end' }}>2</span>
+              <span style={{ fontSize: 9, color: global.descriptionColor, flexShrink: 0 }}>오후 3:34</span>
+            </div>
             <div style={{ backgroundColor: chatRoom.myBubbleBg, color: chatRoom.myBubbleText, padding: '5px 14px', borderRadius: '18px 4px 18px 18px', fontSize: 13, lineHeight: 1.4 }}>
               나도 만들어볼까 ㅎㅎ
             </div>
@@ -157,7 +163,10 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { c
               <div style={{ backgroundColor: chatRoom.friendBubbleBg, color: chatRoom.friendBubbleText, padding: '5px 14px 5px 12px', borderRadius: '4px 18px 18px 18px', fontSize: 13, lineHeight: 1.4, boxShadow: '0 1px 2px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.05)' }}>
                 나도 테마제작은 관심 있는데 코딩은 너무 어렵더라
               </div>
-              <span style={{ fontSize: 9, color: global.descriptionColor, flexShrink: 0 }}>오후 4:21</span>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+                <span style={{ fontSize: 9, color: '#FEE500', fontWeight: 700, lineHeight: 1, alignSelf: 'flex-start', marginLeft: -1 }}>3</span>
+                <span style={{ fontSize: 9, color: global.descriptionColor }}>오후 4:21</span>
+              </div>
             </div>
           </div>
         </div>
@@ -171,7 +180,10 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { c
                 <div style={{ backgroundColor: chatRoom.friendBubbleBg, color: chatRoom.friendBubbleText, padding: '5px 14px 5px 12px', borderRadius: '4px 18px 18px 18px', fontSize: 13, lineHeight: 1.4, boxShadow: '0 1px 2px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.05)', wordBreak: 'keep-all' }}>
                 나 테마 만들었는데 코딩 1도 모름 ㅋㅋㅋ
               </div>
-              <span style={{ fontSize: 9, color: global.descriptionColor, flexShrink: 0 }}>오후 4:38</span>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+                <span style={{ fontSize: 9, color: '#FEE500', fontWeight: 700, lineHeight: 1, alignSelf: 'flex-start', marginLeft: -1 }}>4</span>
+                <span style={{ fontSize: 9, color: global.descriptionColor }}>오후 4:38</span>
+              </div>
             </div>
           </div>
         </div>
