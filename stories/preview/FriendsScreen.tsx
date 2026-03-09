@@ -106,6 +106,12 @@ export interface ScreenThemeConfig {
   friendsSelectedBgAlpha?: string;
   moreTabTextColor?: string;
   chatroomBgImageUrl?: string;
+  myBubbleText?: string;
+  myBubbleSelectedText?: string;
+  myBubbleUnreadText?: string;
+  friendBubbleText?: string;
+  friendBubbleSelectedText?: string;
+  friendBubbleUnreadText?: string;
 }
 
 export const FriendsScreen = React.memo(function FriendsScreen({ config }: { config: ScreenThemeConfig }) {

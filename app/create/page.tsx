@@ -809,6 +809,12 @@ export default function CreatePage() {
         myBubbleBg: config.myBubbleBg,
         inputBarBg: config.inputBarBg,
         sendButtonBg: config.sendBtnBg,
+        myBubbleText: config.myBubbleText,
+        myBubbleSelectedText: config.myBubbleSelectedText,
+        myBubbleUnreadText: config.myBubbleUnreadText,
+        friendBubbleText: config.otherBubbleText,
+        friendBubbleSelectedText: config.otherBubbleSelectedText,
+        friendBubbleUnreadText: config.otherBubbleUnreadText,
       },
       passcode: {
         backgroundColor: config.passcodeBg,
@@ -827,9 +833,15 @@ export default function CreatePage() {
         inputBarBg: config.inputBarBg,
         sendButtonBg: config.sendBtnBg,
         bgImageUrl: imageUploads['chatroomBg'] ?? '',
+        myBubbleText: config.myBubbleText,
+        myBubbleSelectedText: config.myBubbleSelectedText,
+        myBubbleUnreadText: config.myBubbleUnreadText,
+        friendBubbleText: config.otherBubbleText,
+        friendBubbleSelectedText: config.otherBubbleSelectedText,
+        friendBubbleUnreadText: config.otherBubbleUnreadText,
       },
     });
-  }, [imageUploads, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg, setTheme]);
+  }, [imageUploads, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, setTheme]);
 
   useEffect(() => {
     const screenMap: Record<PreviewTab, ScreenType> = {

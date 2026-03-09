@@ -36,9 +36,13 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { c
   const chatRoom = {
     backgroundColor: config.chatBg,
     myBubbleBg: config.myBubbleBg,
-    myBubbleText: '#191919',
+    myBubbleText: config.myBubbleText ?? '#191919',
+    myBubbleSelectedText: config.myBubbleSelectedText ?? '#191919',
+    myBubbleUnreadText: config.myBubbleUnreadText ?? '#FF3B30',
     friendBubbleBg: config.otherBubbleBg,
-    friendBubbleText: '#191919',
+    friendBubbleText: config.friendBubbleText ?? '#191919',
+    friendBubbleSelectedText: config.friendBubbleSelectedText ?? '#191919',
+    friendBubbleUnreadText: config.friendBubbleUnreadText ?? '#FF3B30',
     inputBarBg: config.inputBarBg,
     sendNormalBg: config.sendBtnBg,
     sendNormalFg: config.headerText,
@@ -132,7 +136,7 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { c
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, maxWidth: '82%' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-              <span style={{ fontSize: 9, color: '#FEE500', fontWeight: 700, lineHeight: 1, alignSelf: 'flex-end' }}>2</span>
+              <span style={{ fontSize: 9, color: chatRoom.myBubbleUnreadText, fontWeight: 700, lineHeight: 1, alignSelf: 'flex-end' }}>2</span>
               <span style={{ fontSize: 9, color: global.descriptionColor, flexShrink: 0 }}>오후 3:33</span>
             </div>
             <div style={{ backgroundColor: chatRoom.myBubbleBg, color: chatRoom.myBubbleText, padding: '5px 14px', borderRadius: '18px 4px 18px 18px', fontSize: 13, lineHeight: 1.4 }}>
@@ -145,7 +149,7 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { c
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, maxWidth: '82%' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-              <span style={{ fontSize: 9, color: '#FEE500', fontWeight: 700, lineHeight: 1, alignSelf: 'flex-end' }}>2</span>
+              <span style={{ fontSize: 9, color: chatRoom.myBubbleUnreadText, fontWeight: 700, lineHeight: 1, alignSelf: 'flex-end' }}>2</span>
               <span style={{ fontSize: 9, color: global.descriptionColor, flexShrink: 0 }}>오후 3:34</span>
             </div>
             <div style={{ backgroundColor: chatRoom.myBubbleBg, color: chatRoom.myBubbleText, padding: '5px 14px', borderRadius: '18px 4px 18px 18px', fontSize: 13, lineHeight: 1.4 }}>
@@ -164,7 +168,7 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { c
                 나도 테마제작은 관심 있는데 코딩은 너무 어렵더라
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-                <span style={{ fontSize: 9, color: '#FEE500', fontWeight: 700, lineHeight: 1, alignSelf: 'flex-start', marginLeft: -1 }}>3</span>
+                <span style={{ fontSize: 9, color: chatRoom.friendBubbleUnreadText, fontWeight: 700, lineHeight: 1, alignSelf: 'flex-start', marginLeft: -1 }}>3</span>
                 <span style={{ fontSize: 9, color: global.descriptionColor }}>오후 4:21</span>
               </div>
             </div>
@@ -181,7 +185,7 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { c
                 나 테마 만들었는데 코딩 1도 모름 ㅋㅋㅋ
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-                <span style={{ fontSize: 9, color: '#FEE500', fontWeight: 700, lineHeight: 1, alignSelf: 'flex-start', marginLeft: -1 }}>4</span>
+                <span style={{ fontSize: 9, color: chatRoom.friendBubbleUnreadText, fontWeight: 700, lineHeight: 1, alignSelf: 'flex-start', marginLeft: -1 }}>4</span>
                 <span style={{ fontSize: 9, color: global.descriptionColor }}>오후 4:38</span>
               </div>
             </div>

@@ -32,6 +32,12 @@ export const PreviewChatRoomMockup = () => {
     openchatBg: openChatsTab.bannerBackgroundColor,
     mainBgImageUrl: undefined,
     chatroomBgImageUrl: chatRoom.bgImageUrl || undefined,
+    myBubbleText: chatRoom.myBubbleText,
+    myBubbleSelectedText: chatRoom.myBubbleSelectedText,
+    myBubbleUnreadText: chatRoom.myBubbleUnreadText,
+    friendBubbleText: chatRoom.friendBubbleText,
+    friendBubbleSelectedText: chatRoom.friendBubbleSelectedText,
+    friendBubbleUnreadText: chatRoom.friendBubbleUnreadText,
   };
   return (
     <div style={{ position: 'relative', width: 368, height: 699 }}>

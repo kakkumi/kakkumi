@@ -59,6 +59,12 @@ type ThemeState = {
     inputBarBg: string;
     sendButtonBg: string;
     bgImageUrl?: string;
+    myBubbleText?: string;
+    myBubbleSelectedText?: string;
+    myBubbleUnreadText?: string;
+    friendBubbleText?: string;
+    friendBubbleSelectedText?: string;
+    friendBubbleUnreadText?: string;
   };
   passcode: {
     backgroundColor: string;
@@ -67,7 +73,15 @@ type ThemeState = {
   };
   setCurrentScreen: (screen: ScreenType) => void;
   setActiveElementId: (id: ActiveElementId) => void;
-  setTheme: (partial: Partial<Omit<ThemeState, 'setCurrentScreen' | 'setActiveElementId' | 'setTheme'>>) => void;
+  setTheme: (partial: {
+    global?: Partial<ThemeState['global']>;
+    tabBar?: Partial<ThemeState['tabBar']>;
+    friendsTab?: Partial<ThemeState['friendsTab']>;
+    chatsTab?: Partial<ThemeState['chatsTab']>;
+    openChatsTab?: Partial<ThemeState['openChatsTab']>;
+    chatRoom?: Partial<ThemeState['chatRoom']>;
+    passcode?: Partial<ThemeState['passcode']>;
+  }) => void;
 };
 
 export const useThemeStore = create<ThemeState>((set) => ({
@@ -120,12 +134,12 @@ export const useThemeStore = create<ThemeState>((set) => ({
   setCurrentScreen: (screen) => set({ currentScreen: screen }),
   setActiveElementId: (id) => set({ activeElementId: id }),
   setTheme: (partial) => set((state) => ({
-    global: partial.global ?? state.global,
-    tabBar: partial.tabBar ?? state.tabBar,
-    friendsTab: partial.friendsTab ?? state.friendsTab,
-    chatsTab: partial.chatsTab ?? state.chatsTab,
-    openChatsTab: partial.openChatsTab ?? state.openChatsTab,
-    chatRoom: partial.chatRoom ?? state.chatRoom,
-    passcode: partial.passcode ?? state.passcode,
+    global: partial.global ? { ...state.global, ...partial.global } : state.global,
+    tabBar: partial.tabBar ? { ...state.tabBar, ...partial.tabBar } : state.tabBar,
+    friendsTab: partial.friendsTab ? { ...state.friendsTab, ...partial.friendsTab } : state.friendsTab,
+    chatsTab: partial.chatsTab ? { ...state.chatsTab, ...partial.chatsTab } : state.chatsTab,
+    openChatsTab: partial.openChatsTab ? { ...state.openChatsTab, ...partial.openChatsTab } : state.openChatsTab,
+    chatRoom: partial.chatRoom ? { ...state.chatRoom, ...partial.chatRoom } : state.chatRoom,
+    passcode: partial.passcode ? { ...state.passcode, ...partial.passcode } : state.passcode,
   })),
 }));
