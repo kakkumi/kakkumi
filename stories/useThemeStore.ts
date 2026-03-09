@@ -76,7 +76,10 @@ type ThemeState = {
     backgroundColor: string;
     titleColor: string;
     keypadTextColor: string;
+    keypadBg?: string;
     bgImageUrl?: string;
+    bulletEmptyColor?: string;
+    bulletFillColor?: string;
   };
   setCurrentScreen: (screen: ScreenType) => void;
   setActiveElementId: (id: ActiveElementId) => void;

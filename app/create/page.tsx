@@ -583,7 +583,8 @@ function AndroidChatRoomMockup({ config }: { config: ThemeConfig }) {
   );
 }
 
-function AndroidMockup({ config, previewTab, imageUploads, passcodeBgMode }: { config: ThemeConfig; previewTab: PreviewTab; imageUploads: Record<string, string>; passcodeBgMode: "color" | "image" }) {
+function AndroidMockup({ config, previewTab, imageUploads, passcodeBgMode, bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor }: { config: ThemeConfig; previewTab: PreviewTab; imageUploads: Record<string, string>; passcodeBgMode: "color" | "image"; bulletEmptyMode: "color" | "image"; bulletFillMode: "color" | "image"; bulletEmptyColor: string; bulletFillColor: string }) {
+  const passcodeBgImgUrl = imageUploads["passcodeBgImg"];
   const screenConfig = useMemo(() => ({
     bodyBg: config.bodyBg,
     headerBg: config.headerBg,
@@ -602,6 +603,7 @@ function AndroidMockup({ config, previewTab, imageUploads, passcodeBgMode }: { c
     passcodeBg: config.passcodeBg,
     passcodeTitleText: config.passcodeTitleText,
     passcodeKeypadText: config.passcodeKeypadText,
+    passcodeKeypadBg: config.passcodeKeypadBg,
     unreadCountColor: config.unreadCountColor,
     openchatBg: config.openchatBg,
     mainBgImageUrl: undefined,
@@ -610,15 +612,18 @@ function AndroidMockup({ config, previewTab, imageUploads, passcodeBgMode }: { c
     chatListLastMsgPressColor: config.chatListLastMsgHighlightText,
     chatListSelectedBg: config.friendsSelectedBg,
     chatListSelectedBgAlpha: config.selectedBgAlpha,
-    passcodeBgImageUrl: passcodeBgMode === "image" ? (imageUploads["passcodeBgImg"] || undefined) : undefined,
+    passcodeBgImageUrl: passcodeBgMode === "image" ? (passcodeBgImgUrl || undefined) : undefined,
+    bulletEmptyColor: bulletEmptyMode === "color" ? bulletEmptyColor : undefined,
+    bulletFillColor: bulletFillMode === "color" ? bulletFillColor : undefined,
   }), [
     config.bodyBg, config.headerBg, config.headerText, config.primaryText, config.descText,
     config.tabBarBg, config.tabBarIcon, config.tabBarSelectedIcon, config.friendsSelectedBg,
     config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg,
-    config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText,
+    config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText, config.passcodeKeypadBg,
     config.unreadCountColor, config.openchatBg, config.chatListLastMsgText,
     config.chatListHighlightText, config.chatListLastMsgHighlightText, config.selectedBgAlpha,
-    imageUploads, imageUploads["passcodeBgImg"], passcodeBgMode,
+    passcodeBgImgUrl, passcodeBgMode,
+    bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor,
   ]);
 
   const renderScreen = () => {
@@ -700,6 +705,10 @@ export default function CreatePage() {
   const [iconSvgUrl, setIconSvgUrl] = useState<string>("");
   const [iconImageUrl, setIconImageUrl] = useState<string>("");
   const [passcodeBgMode, setPasscodeBgMode] = useState<"color" | "image">("color");
+  const [bulletEmptyMode, setBulletEmptyMode] = useState<"color" | "image">("color");
+  const [bulletFillMode, setBulletFillMode] = useState<"color" | "image">("color");
+  const [bulletEmptyColor, setBulletEmptyColor] = useState("#191919");
+  const [bulletFillColor, setBulletFillColor] = useState("#4a7bf7");
 
   const [selectedSettingKey, setSelectedSettingKey] = useState<string | null>(null);
   const [themeLoaded, setThemeLoaded] = useState(false);
@@ -848,16 +857,25 @@ export default function CreatePage() {
         backgroundColor: config.passcodeBg,
         titleColor: config.passcodeTitleText,
         keypadTextColor: config.passcodeKeypadText,
+        keypadBg: config.passcodeKeypadBg,
         bgImageUrl: passcodeBgMode === "image" ? (imageUploads['passcodeBgImg'] ?? '') : '',
+        bulletEmptyColor: bulletEmptyColor,
+        bulletFillColor: bulletFillColor,
       },
     });
-  }, [imageUploads, passcodeBgMode, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText, setTheme]);
+  }, [imageUploads, passcodeBgMode, bulletEmptyColor, bulletFillColor, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText, config.passcodeKeypadBg, setTheme]);
 
   // iconOpts 변경 시 자동저장 트리거
   useEffect(() => {
     triggerDebounce();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [iconOpts]);
+
+  // 불릿 색상/모드 변경 시 자동저장 트리거
+  useEffect(() => {
+    triggerDebounce();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bulletEmptyColor, bulletFillColor, bulletEmptyMode, bulletFillMode]);
 
   useEffect(() => {
     const screenMap: Record<PreviewTab, ScreenType> = {
@@ -947,6 +965,37 @@ export default function CreatePage() {
     triggerImmediateAfterReset();
   }, [triggerImmediateAfterReset]);
 
+  // 불릿 색상 → bullet.svg 기반 PNG 생성 후 imageUploads에 주입
+  const generateBulletPng = useCallback(async (color: string, key: string) => {
+    const W = 340, H = 340;
+    const canvas = document.createElement("canvas");
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext("2d")!;
+    ctx.clearRect(0, 0, W, H);
+    // bullet.svg: ellipse cx=170, cy=170, rx=ry=60.01515
+    ctx.beginPath();
+    ctx.ellipse(170, 170, 60.01515, 60.01515, 0, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    const blob = await new Promise<Blob>((res, rej) => canvas.toBlob(b => b ? res(b) : rej(), "image/png"));
+    const url = URL.createObjectURL(blob);
+    setImageUploads(prev => ({ ...prev, [key]: url }));
+    triggerImmediateAfterReset();
+  }, [triggerImmediateAfterReset]);
+
+  // 불릿 색상 변경 시 PNG 자동 생성 (초기 포함)
+  useEffect(() => {
+    if (bulletEmptyMode === "color") {
+      void generateBulletPng(bulletEmptyColor, "bulletEmpty");
+    }
+  }, [bulletEmptyColor, bulletEmptyMode, generateBulletPng]);
+
+  useEffect(() => {
+    if (bulletFillMode === "color") {
+      void generateBulletPng(bulletFillColor, "bulletFill");
+    }
+  }, [bulletFillColor, bulletFillMode, generateBulletPng]);
+
   const handleDownload = async () => {
     if (os === "ios") {
       // iOS: KakaoTalkTheme.css + Images/ 구조를 ZIP으로 묶어 .ktheme로 저장
@@ -954,7 +1003,7 @@ export default function CreatePage() {
       const themeName = config.name.replace(/\s/g, "_");
 
       // CSS 생성
-      zip.file("KakaoTalkTheme.css", generateCSS(config, imageUploads, passcodeBgMode));
+      zip.file("KakaoTalkTheme.css", generateCSS(config, imageUploads, passcodeBgMode, bulletEmptyMode, bulletFillMode));
 
       // 업로드된 이미지를 Images/ 폴더에 포함
       const imageFileMap: Record<string, string> = {
@@ -978,14 +1027,8 @@ export default function CreatePage() {
         bubbleReceive1: "chatroomBubbleReceive01@3x.png",
         bubbleReceive2: "chatroomBubbleReceive02@3x.png",
         passcodeBgImg: "passcodeBgImage@2x.png",
-        bullet1Empty: "passcodeImgCode01@2x.png",
-        bullet2Empty: "passcodeImgCode02@2x.png",
-        bullet3Empty: "passcodeImgCode03@2x.png",
-        bullet4Empty: "passcodeImgCode04@2x.png",
-        bullet1Fill: "passcodeImgCode01Selected@2x.png",
-        bullet2Fill: "passcodeImgCode02Selected@2x.png",
-        bullet3Fill: "passcodeImgCode03Selected@2x.png",
-        bullet4Fill: "passcodeImgCode04Selected@2x.png",
+        bulletEmpty: "passcodeImgCode@3x.png",
+        bulletFill: "passcodeImgCodeSelected@3x.png",
       };
 
       const imgPromises = Object.entries(imageFileMap)
@@ -1386,16 +1429,16 @@ export default function CreatePage() {
               <PreviewMockup disableTabNavigation mainBgImageUrl={imageUploads.mainBg} />
             ) : previewTab === "friends" ? (
               <div className="flex items-start gap-8">
-                <AndroidMockup config={config} previewTab="friends" imageUploads={imageUploads} passcodeBgMode={passcodeBgMode} />
+                <AndroidMockup config={config} previewTab="friends" imageUploads={imageUploads} passcodeBgMode={passcodeBgMode} bulletEmptyMode={bulletEmptyMode} bulletFillMode={bulletFillMode} bulletEmptyColor={bulletEmptyColor} bulletFillColor={bulletFillColor} />
                 <AndroidFriendsProfileMockup config={config} />
               </div>
             ) : previewTab === "chat" ? (
               <div className="flex items-start gap-8">
-                <AndroidMockup config={config} previewTab="chat" imageUploads={imageUploads} passcodeBgMode={passcodeBgMode} />
+                <AndroidMockup config={config} previewTab="chat" imageUploads={imageUploads} passcodeBgMode={passcodeBgMode} bulletEmptyMode={bulletEmptyMode} bulletFillMode={bulletFillMode} bulletEmptyColor={bulletEmptyColor} bulletFillColor={bulletFillColor} />
                 <AndroidChatRoomMockup config={config} />
               </div>
             ) : (
-              <AndroidMockup config={config} previewTab={previewTab} imageUploads={imageUploads} passcodeBgMode={passcodeBgMode} />
+              <AndroidMockup config={config} previewTab={previewTab} imageUploads={imageUploads} passcodeBgMode={passcodeBgMode} bulletEmptyMode={bulletEmptyMode} bulletFillMode={bulletFillMode} bulletEmptyColor={bulletEmptyColor} bulletFillColor={bulletFillColor} />
             )}
           </div>
         </main>
@@ -1740,14 +1783,67 @@ export default function CreatePage() {
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="불릿 이미지" badge="PasscodeStyle">
-                  <div className="text-[11px] px-1 mb-1 font-semibold" style={{color:"#6e6e73"}}>일반</div>
-                  {["bullet1Empty","bullet2Empty","bullet3Empty","bullet4Empty"].map((k, i) => (
-                    <ImageUploadRow key={k} label={`불릿 ${i+1}`} tooltip={`passcodeImgCode0${i+1}.png`} imgKey={k} imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  ))}
-                  <div className="text-[11px] px-1 mt-3 mb-1 font-semibold" style={{color:"#6e6e73"}}>선택</div>
-                  {["bullet1Fill","bullet2Fill","bullet3Fill","bullet4Fill"].map((k, i) => (
-                    <ImageUploadRow key={k} label={`선택 불릿 ${i+1}`} tooltip={`passcodeImgCode0${i+1}Selected.png`} imgKey={k} imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  ))}
+                  {/* 선택 불릿 */}
+                  <div className="text-[11px] px-2.5 mb-1.5 font-semibold" style={{color:"#6e6e73"}}>선택</div>
+                  <div className="mx-2.5 mb-2 flex rounded-lg overflow-hidden border border-gray-200">
+                    <button type="button" onClick={() => setBulletFillMode("color")}
+                      className="flex-1 py-1.5 text-[11px] font-semibold transition-colors"
+                      style={{ backgroundColor: bulletFillMode === "color" ? "rgb(251,146,60)" : "#fff", color: bulletFillMode === "color" ? "#fff" : "#9ca3af" }}>
+                      색상
+                    </button>
+                    <button type="button" onClick={() => setBulletFillMode("image")}
+                      className="flex-1 py-1.5 text-[11px] font-semibold transition-colors"
+                      style={{ backgroundColor: bulletFillMode === "image" ? "rgb(251,146,60)" : "#fff", color: bulletFillMode === "image" ? "#fff" : "#9ca3af" }}>
+                      이미지 업로드
+                    </button>
+                  </div>
+                  {bulletFillMode === "color" ? (
+                    <div className="flex items-center justify-between px-2.5 py-1 mb-2">
+                      <span className="text-[12px] font-medium text-gray-500">불릿 색상</span>
+                      <div className="flex items-center gap-2">
+                        <label className="relative cursor-pointer">
+                          <input type="color" value={bulletFillColor}
+                            onChange={(e) => setBulletFillColor(e.target.value)}
+                            className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10" />
+                          <div className="w-5 h-5 rounded-full ring-1 ring-black/10 shadow-sm" style={{ backgroundColor: bulletFillColor }} />
+                        </label>
+                        <span className="text-[11px] font-mono text-gray-400 w-[56px] uppercase">{bulletFillColor}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <ImageUploadRow label="선택 불릿 이미지" tooltip="passcodeImgCodeSelected@3x.png" imgKey="bulletFill" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                  )}
+
+                  {/* 일반 불릿 */}
+                  <div className="text-[11px] px-2.5 mt-3 mb-1.5 font-semibold" style={{color:"#6e6e73"}}>일반</div>
+                  <div className="mx-2.5 mb-2 flex rounded-lg overflow-hidden border border-gray-200">
+                    <button type="button" onClick={() => setBulletEmptyMode("color")}
+                      className="flex-1 py-1.5 text-[11px] font-semibold transition-colors"
+                      style={{ backgroundColor: bulletEmptyMode === "color" ? "rgb(251,146,60)" : "#fff", color: bulletEmptyMode === "color" ? "#fff" : "#9ca3af" }}>
+                      색상
+                    </button>
+                    <button type="button" onClick={() => setBulletEmptyMode("image")}
+                      className="flex-1 py-1.5 text-[11px] font-semibold transition-colors"
+                      style={{ backgroundColor: bulletEmptyMode === "image" ? "rgb(251,146,60)" : "#fff", color: bulletEmptyMode === "image" ? "#fff" : "#9ca3af" }}>
+                      이미지 업로드
+                    </button>
+                  </div>
+                  {bulletEmptyMode === "color" ? (
+                    <div className="flex items-center justify-between px-2.5 py-1">
+                      <span className="text-[12px] font-medium text-gray-500">불릿 색상</span>
+                      <div className="flex items-center gap-2">
+                        <label className="relative cursor-pointer">
+                          <input type="color" value={bulletEmptyColor}
+                            onChange={(e) => setBulletEmptyColor(e.target.value)}
+                            className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10" />
+                          <div className="w-5 h-5 rounded-full ring-1 ring-black/10 shadow-sm" style={{ backgroundColor: bulletEmptyColor }} />
+                        </label>
+                        <span className="text-[11px] font-mono text-gray-400 w-[56px] uppercase">{bulletEmptyColor}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <ImageUploadRow label="일반 불릿 이미지" tooltip="passcodeImgCode@3x.png" imgKey="bulletEmpty" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                  )}
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="키패드" badge="PasscodeStyle">
@@ -1838,7 +1934,7 @@ export default function CreatePage() {
   );
 }
 
-function generateCSS(config: ThemeConfig, imageUploads: Record<string, string> = {}, passcodeBgMode: "color" | "image" = "color"): string {
+function generateCSS(config: ThemeConfig, imageUploads: Record<string, string> = {}, passcodeBgMode: "color" | "image" = "color", bulletEmptyMode: "color" | "image" = "color", bulletFillMode: "color" | "image" = "color"): string {
   const img = (key: string, filename: string) =>
     imageUploads[key] ? `\n    -ios-background-image: '${filename}';` : "";
 
@@ -2027,15 +2123,15 @@ LabelStyle-PasscodeTitle
 }
 
 PasscodeStyle
-{${imageUploads["bullet1Empty"] ? `
-     -ios-bullet-first-image: 'passcodeImgCode01@2x.png';` : ""}${imageUploads["bullet2Empty"] ? `
-     -ios-bullet-second-image: 'passcodeImgCode02@2x.png';` : ""}${imageUploads["bullet3Empty"] ? `
-     -ios-bullet-third-image: 'passcodeImgCode03@2x.png';` : ""}${imageUploads["bullet4Empty"] ? `
-     -ios-bullet-fourth-image: 'passcodeImgCode04@2x.png';` : ""}${imageUploads["bullet1Fill"] ? `
-     -ios-bullet-selected-first-image: 'passcodeImgCode01Selected@2x.png';` : ""}${imageUploads["bullet2Fill"] ? `
-     -ios-bullet-selected-second-image: 'passcodeImgCode02Selected@2x.png';` : ""}${imageUploads["bullet3Fill"] ? `
-     -ios-bullet-selected-third-image: 'passcodeImgCode03Selected@2x.png';` : ""}${imageUploads["bullet4Fill"] ? `
-     -ios-bullet-selected-fourth-image: 'passcodeImgCode04Selected@2x.png';` : ""}
+{${imageUploads["bulletEmpty"] ? `
+     -ios-bullet-first-image: 'passcodeImgCode@3x.png';
+     -ios-bullet-second-image: 'passcodeImgCode@3x.png';
+     -ios-bullet-third-image: 'passcodeImgCode@3x.png';
+     -ios-bullet-fourth-image: 'passcodeImgCode@3x.png';` : ""}${imageUploads["bulletFill"] ? `
+     -ios-bullet-selected-first-image: 'passcodeImgCodeSelected@3x.png';
+     -ios-bullet-selected-second-image: 'passcodeImgCodeSelected@3x.png';
+     -ios-bullet-selected-third-image: 'passcodeImgCodeSelected@3x.png';
+     -ios-bullet-selected-fourth-image: 'passcodeImgCodeSelected@3x.png';` : ""}
 
     -ios-keypad-background-color: ${config.passcodeKeypadBg};
     -ios-keypad-text-normal-color: ${config.passcodeKeypadText};

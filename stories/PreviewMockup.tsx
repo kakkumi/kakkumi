@@ -36,6 +36,7 @@ export const PreviewMockup = ({ disableTabNavigation = false, mainBgImageUrl }: 
     inputBarBg: chatRoom.inputBarBg,
     sendBtnBg: chatRoom.sendButtonBg,
     passcodeBg: passcode.backgroundColor,
+    passcodeKeypadBg: passcode.keypadBg,
     passcodeTitleText: passcode.titleColor,
     passcodeKeypadText: passcode.keypadTextColor,
     unreadCountColor: '#FF3B30',
@@ -50,6 +51,8 @@ export const PreviewMockup = ({ disableTabNavigation = false, mainBgImageUrl }: 
     friendsSelectedBgAlpha: friendsTab.selectedBgAlpha,
     moreTabTextColor: globalStore.headerTabText,
     passcodeBgImageUrl: passcode.bgImageUrl || undefined,
+    bulletEmptyColor: passcode.bulletEmptyColor,
+    bulletFillColor: passcode.bulletFillColor,
   };
 
   const renderScreen = () => {

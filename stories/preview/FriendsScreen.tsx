@@ -94,6 +94,7 @@ export interface ScreenThemeConfig {
   passcodeBg: string;
   passcodeTitleText: string;
   passcodeKeypadText: string;
+  passcodeKeypadBg?: string;
   unreadCountColor: string;
   openchatBg: string;
   mainBgImageUrl?: string;
@@ -119,6 +120,8 @@ export interface ScreenThemeConfig {
   bubbleReceive1SelectedUrl?: string;
   bubbleReceive2Url?: string;
   passcodeBgImageUrl?: string;
+  bulletEmptyColor?: string;
+  bulletFillColor?: string;
 }
 
 export const FriendsScreen = React.memo(function FriendsScreen({ config }: { config: ScreenThemeConfig }) {
