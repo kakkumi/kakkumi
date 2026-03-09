@@ -104,6 +104,11 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { c
               <div style={{ backgroundColor: chatRoom.friendBubbleBg, color: chatRoom.friendBubbleText, padding: '5px 14px 5px 12px', borderRadius: '4px 18px 18px 18px', fontSize: 13, lineHeight: 1.4, boxShadow: '0 1px 2px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.05)' }}>
                 카꾸미에서 테마 만들어봤어?
               </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, marginTop: 6 }}>
+              <div style={{ backgroundColor: chatRoom.friendBubbleBg, color: chatRoom.friendBubbleText, padding: '5px 14px 5px 12px', borderRadius: '4px 18px 18px 18px', fontSize: 13, lineHeight: 1.4, boxShadow: '0 1px 2px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.05)' }}>
+                만들어본 사람 후기 좀
+              </div>
               <span style={{ fontSize: 9, color: global.descriptionColor, flexShrink: 0 }}>오후 2:10</span>
             </div>
           </div>
@@ -118,7 +123,7 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { c
               <div style={{ backgroundColor: chatRoom.friendBubbleBg, color: chatRoom.friendBubbleText, padding: '5px 14px 5px 12px', borderRadius: '4px 18px 18px 18px', fontSize: 13, lineHeight: 1.4, boxShadow: '0 1px 2px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.05)' }}>
                 그거 어렵지 않아?
               </div>
-              <span style={{ fontSize: 9, color: global.descriptionColor, flexShrink: 0 }}>오후 2:11</span>
+              <span style={{ fontSize: 9, color: global.descriptionColor, flexShrink: 0 }}>오후 2:13</span>
             </div>
           </div>
         </div>
@@ -126,9 +131,19 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { c
         {/* 내 메시지 1 */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, maxWidth: '82%' }}>
-            <span style={{ fontSize: 9, color: global.descriptionColor, flexShrink: 0 }}>오후 2:12</span>
+            <span style={{ fontSize: 9, color: global.descriptionColor, flexShrink: 0 }}>오후 3:33</span>
             <div style={{ backgroundColor: chatRoom.myBubbleBg, color: chatRoom.myBubbleText, padding: '5px 14px', borderRadius: '18px 4px 18px 18px', fontSize: 13, lineHeight: 1.4 }}>
               나는 스토어에서 테마 사봤는데 괜찮더라구
+            </div>
+          </div>
+        </div>
+
+        {/* 내 메시지 2 */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, maxWidth: '82%' }}>
+            <span style={{ fontSize: 9, color: global.descriptionColor, flexShrink: 0 }}>오후 3:34</span>
+            <div style={{ backgroundColor: chatRoom.myBubbleBg, color: chatRoom.myBubbleText, padding: '5px 14px', borderRadius: '18px 4px 18px 18px', fontSize: 13, lineHeight: 1.4 }}>
+              나도 만들어볼까 ㅎㅎ
             </div>
           </div>
         </div>
@@ -142,17 +157,7 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { c
               <div style={{ backgroundColor: chatRoom.friendBubbleBg, color: chatRoom.friendBubbleText, padding: '5px 14px 5px 12px', borderRadius: '4px 18px 18px 18px', fontSize: 13, lineHeight: 1.4, boxShadow: '0 1px 2px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.05)' }}>
                 나도 테마제작은 관심 있는데 코딩은 너무 어렵더라
               </div>
-              <span style={{ fontSize: 9, color: global.descriptionColor, flexShrink: 0 }}>오후 2:13</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 내 메시지 2 */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, maxWidth: '82%' }}>
-            <span style={{ fontSize: 9, color: global.descriptionColor, flexShrink: 0 }}>오후 2:14</span>
-            <div style={{ backgroundColor: chatRoom.myBubbleBg, color: chatRoom.myBubbleText, padding: '5px 14px', borderRadius: '18px 4px 18px 18px', fontSize: 13, lineHeight: 1.4 }}>
-              나도 만들어볼까 ㅎㅎ
+              <span style={{ fontSize: 9, color: global.descriptionColor, flexShrink: 0 }}>오후 4:21</span>
             </div>
           </div>
         </div>
@@ -166,7 +171,7 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { c
                 <div style={{ backgroundColor: chatRoom.friendBubbleBg, color: chatRoom.friendBubbleText, padding: '5px 14px 5px 12px', borderRadius: '4px 18px 18px 18px', fontSize: 13, lineHeight: 1.4, boxShadow: '0 1px 2px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.05)', wordBreak: 'keep-all' }}>
                 나 테마 만들었는데 코딩 1도 모름 ㅋㅋㅋ
               </div>
-              <span style={{ fontSize: 9, color: global.descriptionColor, flexShrink: 0 }}>오후 2:15</span>
+              <span style={{ fontSize: 9, color: global.descriptionColor, flexShrink: 0 }}>오후 4:38</span>
             </div>
           </div>
         </div>
