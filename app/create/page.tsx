@@ -694,6 +694,9 @@ export default function CreatePage() {
   const [sendBubbleOpts, setSendBubbleOpts] = useState<BubbleDesignOptions>({ ...DEFAULT_SEND, bgColor: defaultConfig.myBubbleBg });
   const [receiveBubbleOpts, setReceiveBubbleOpts] = useState<BubbleDesignOptions>({ ...DEFAULT_RECEIVE, bgColor: defaultConfig.otherBubbleBg });
   const [iconOpts, setIconOpts] = useState<IconDesignOptions>({ bgColor: "#FFFFFF", iconColor: "#FEE500" });
+  const [iconMode, setIconMode] = useState<"svg" | "image">("svg");
+  const [iconSvgUrl, setIconSvgUrl] = useState<string>("");
+  const [iconImageUrl, setIconImageUrl] = useState<string>("");
 
   const [selectedSettingKey, setSelectedSettingKey] = useState<string | null>(null);
   const [themeLoaded, setThemeLoaded] = useState(false);
@@ -840,6 +843,12 @@ export default function CreatePage() {
       },
     });
   }, [imageUploads, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, setTheme]);
+
+  // iconOpts 변경 시 자동저장 트리거
+  useEffect(() => {
+    triggerDebounce();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [iconOpts]);
 
   useEffect(() => {
     const screenMap: Record<PreviewTab, ScreenType> = {
@@ -1428,10 +1437,33 @@ export default function CreatePage() {
                     <IconDesigner
                       options={iconOpts}
                       onChange={setIconOpts}
-                      onGenerate={(url) => setImageUploads((prev) => ({ ...prev, icon: url }))}
-                      uploadedUrl={imageUploads["icon"] && iconOpts.bgColor === DEFAULT_ICON.bgColor ? imageUploads["icon"] : undefined}
-                      onUpload={(file) => handleImageUpload("icon", file)}
-                      onRemoveUpload={() => handleImageRemove("icon")}
+                      onSvgGenerate={(url) => {
+                        setIconSvgUrl(url);
+                        if (iconMode === "svg") {
+                          setImageUploads((prev) => ({ ...prev, icon: url }));
+                          triggerImmediateAfterReset();
+                        }
+                      }}
+                      onModeChange={(m) => {
+                        setIconMode(m);
+                        setImageUploads((prev) => ({
+                          ...prev,
+                          icon: m === "svg" ? iconSvgUrl : iconImageUrl,
+                        }));
+                        triggerImmediateAfterReset();
+                      }}
+                      uploadedUrl={iconImageUrl || undefined}
+                      onUpload={(file) => {
+                        const url = URL.createObjectURL(file);
+                        setIconImageUrl(url);
+                        setImageUploads((prev) => ({ ...prev, icon: url }));
+                        triggerImmediateAfterReset();
+                      }}
+                      onRemoveUpload={() => {
+                        setIconImageUrl("");
+                        setImageUploads((prev) => ({ ...prev, icon: iconSvgUrl }));
+                        triggerImmediateAfterReset();
+                      }}
                     />
                   </div>
                 </Accordion>

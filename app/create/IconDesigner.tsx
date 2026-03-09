@@ -55,7 +55,11 @@ export const DEFAULT_ICON: IconDesignOptions = {
 interface IconDesignerProps {
   options: IconDesignOptions;
   onChange: (opts: IconDesignOptions) => void;
-  onGenerate: (url: string) => void;
+  /** SVG 모드에서 생성된 PNG URL */
+  onSvgGenerate: (url: string) => void;
+  /** 현재 모드 변경 콜백 */
+  onModeChange: (mode: "svg" | "image") => void;
+  /** 이미지 업로드 탭에서 업로드된 URL */
   uploadedUrl?: string;
   onUpload: (file: File) => void;
   onRemoveUpload: () => void;
@@ -64,12 +68,13 @@ interface IconDesignerProps {
 export function IconDesigner({
   options,
   onChange,
-  onGenerate,
+  onSvgGenerate,
+  onModeChange,
   uploadedUrl,
   onUpload,
   onRemoveUpload,
 }: IconDesignerProps) {
-  const [mode, setMode] = useState<"svg" | "image">(uploadedUrl ? "image" : "svg");
+  const [mode, setMode] = useState<"svg" | "image">("svg");
   const [status, setStatus] = useState<"idle" | "generating" | "done">("idle");
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -94,13 +99,13 @@ export function IconDesigner({
         const blob = await drawIcon(opts.bgColor, opts.iconColor);
         const url = URL.createObjectURL(blob);
         prevUrlRef.current = url;
-        onGenerate(url);
+        onSvgGenerate(url);
         setStatus("done");
       } catch {
         setStatus("idle");
       }
     },
-    [onGenerate]
+    [onSvgGenerate]
   );
 
   useEffect(() => {
@@ -117,13 +122,15 @@ export function IconDesigner({
 
   const handleModeSwitch = (next: "svg" | "image") => {
     setMode(next);
-    setStatus("idle");
-    if (next === "svg") onRemoveUpload();
+    onModeChange(next);
+    // SVG 모드로 전환해도 이미지 업로드 데이터는 건드리지 않음
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setMode("image");
+    onModeChange("image");
     onUpload(file);
     e.target.value = "";
   };
@@ -199,30 +206,31 @@ export function IconDesigner({
       )}
 
       {mode === "image" && (
-        <div className="px-2.5 py-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[12px] font-medium text-gray-500">이미지 업로드</span>
-            <div className="flex items-center gap-2">
+        <div className="py-1.5 px-2.5 group">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-[12px] font-medium text-gray-500">앱 테마 리스트 이미지</span>
+            <div className="flex items-center gap-3">
               {uploadedUrl && (
                 <button type="button" onClick={onRemoveUpload}
-                  className="text-[10px] text-red-500 px-2 py-0.5 bg-red-50 rounded-md">
+                  className="text-[9px] text-red-500 font-medium px-2 py-0.5 bg-red-50 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
                   삭제
                 </button>
               )}
-              <label className="cursor-pointer flex items-center gap-1 text-[10px] text-orange-500 px-2 py-0.5 bg-orange-50 rounded-md">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-                </svg>
-                업로드
+              <label className="flex items-center cursor-pointer">
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden shrink-0 bg-gray-100 border border-transparent hover:border-orange-200 hover:bg-white hover:shadow-sm transition-all duration-200">
+                  {uploadedUrl
+                    // eslint-disable-next-line @next/next/no-img-element
+                    ? <img src={uploadedUrl} alt="아이콘" className="w-full h-full object-cover" />
+                    : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgb(200,200,200)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                      </svg>
+                  }
+                </div>
                 <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
               </label>
             </div>
           </div>
-          {uploadedUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={uploadedUrl} alt="아이콘" className="w-14 h-14 object-contain rounded-xl border border-gray-100 mt-2" />
-          )}
         </div>
       )}
     </div>
