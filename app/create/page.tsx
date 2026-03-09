@@ -6,6 +6,7 @@ import JSZip from "jszip";
 import Header from "../components/Header";
 import { useAutoSave } from "./useAutoSave";
 import { BubbleDesigner, DEFAULT_SEND, DEFAULT_RECEIVE, BubbleDesignOptions } from "./BubbleDesigner";
+import { IconDesigner, DEFAULT_ICON, IconDesignOptions } from "./IconDesigner";
 
 import { PreviewNewsMockup } from "@/stories/PreviewNewsMockup";
 import { PreviewChatRoomMockup } from "@/stories/PreviewChatRoomMockup";
@@ -692,6 +693,7 @@ export default function CreatePage() {
   const [imageUploads, setImageUploads] = useState<Record<string, string>>({});
   const [sendBubbleOpts, setSendBubbleOpts] = useState<BubbleDesignOptions>({ ...DEFAULT_SEND, bgColor: defaultConfig.myBubbleBg });
   const [receiveBubbleOpts, setReceiveBubbleOpts] = useState<BubbleDesignOptions>({ ...DEFAULT_RECEIVE, bgColor: defaultConfig.otherBubbleBg });
+  const [iconOpts, setIconOpts] = useState<IconDesignOptions>({ bgColor: "#FFFFFF", iconColor: "#FEE500" });
 
   const [selectedSettingKey, setSelectedSettingKey] = useState<string | null>(null);
   const [themeLoaded, setThemeLoaded] = useState(false);
@@ -1418,7 +1420,20 @@ export default function CreatePage() {
                   </div>
                 </Accordion>
                 <Accordion title="아이콘 이미지" badge="ManifestStyle">
-                  <ImageUploadRow label="앱 테마 리스트 이미지" tooltip="commonIcoTheme.png (162×162)" imgKey="icon" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <div className="mx-1 mb-1 rounded-xl border border-orange-100 bg-orange-50/40 overflow-hidden">
+                    <div className="px-3 py-2 bg-orange-50 border-b border-orange-100">
+                      <p className="text-[11px] font-bold text-orange-600">🎨 아이콘 제작</p>
+                      <p className="text-[10px] text-orange-400 mt-0.5">색상으로 제작하거나 직접 이미지를 업로드하세요</p>
+                    </div>
+                    <IconDesigner
+                      options={iconOpts}
+                      onChange={setIconOpts}
+                      onGenerate={(url) => setImageUploads((prev) => ({ ...prev, icon: url }))}
+                      uploadedUrl={imageUploads["icon"] && iconOpts.bgColor === DEFAULT_ICON.bgColor ? imageUploads["icon"] : undefined}
+                      onUpload={(file) => handleImageUpload("icon", file)}
+                      onRemoveUpload={() => handleImageRemove("icon")}
+                    />
+                  </div>
                 </Accordion>
                 {os === "android" && (
                   <Accordion title="Android 빌드 설정" badge="ManifestStyle">
