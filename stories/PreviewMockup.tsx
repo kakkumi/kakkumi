@@ -49,6 +49,7 @@ export const PreviewMockup = ({ disableTabNavigation = false, mainBgImageUrl }: 
     friendsListDescText: friendsTab.listDescTextColor,
     friendsSelectedBgAlpha: friendsTab.selectedBgAlpha,
     moreTabTextColor: globalStore.headerTabText,
+    passcodeBgImageUrl: passcode.bgImageUrl || undefined,
   };
 
   const renderScreen = () => {

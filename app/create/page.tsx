@@ -583,7 +583,7 @@ function AndroidChatRoomMockup({ config }: { config: ThemeConfig }) {
   );
 }
 
-function AndroidMockup({ config, previewTab }: { config: ThemeConfig; previewTab: PreviewTab }) {
+function AndroidMockup({ config, previewTab, imageUploads, passcodeBgMode }: { config: ThemeConfig; previewTab: PreviewTab; imageUploads: Record<string, string>; passcodeBgMode: "color" | "image" }) {
   const screenConfig = useMemo(() => ({
     bodyBg: config.bodyBg,
     headerBg: config.headerBg,
@@ -610,6 +610,7 @@ function AndroidMockup({ config, previewTab }: { config: ThemeConfig; previewTab
     chatListLastMsgPressColor: config.chatListLastMsgHighlightText,
     chatListSelectedBg: config.friendsSelectedBg,
     chatListSelectedBgAlpha: config.selectedBgAlpha,
+    passcodeBgImageUrl: passcodeBgMode === "image" ? (imageUploads["passcodeBgImg"] || undefined) : undefined,
   }), [
     config.bodyBg, config.headerBg, config.headerText, config.primaryText, config.descText,
     config.tabBarBg, config.tabBarIcon, config.tabBarSelectedIcon, config.friendsSelectedBg,
@@ -617,6 +618,7 @@ function AndroidMockup({ config, previewTab }: { config: ThemeConfig; previewTab
     config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText,
     config.unreadCountColor, config.openchatBg, config.chatListLastMsgText,
     config.chatListHighlightText, config.chatListLastMsgHighlightText, config.selectedBgAlpha,
+    imageUploads, imageUploads["passcodeBgImg"], passcodeBgMode,
   ]);
 
   const renderScreen = () => {
@@ -697,6 +699,7 @@ export default function CreatePage() {
   const [iconMode, setIconMode] = useState<"svg" | "image">("svg");
   const [iconSvgUrl, setIconSvgUrl] = useState<string>("");
   const [iconImageUrl, setIconImageUrl] = useState<string>("");
+  const [passcodeBgMode, setPasscodeBgMode] = useState<"color" | "image">("color");
 
   const [selectedSettingKey, setSelectedSettingKey] = useState<string | null>(null);
   const [themeLoaded, setThemeLoaded] = useState(false);
@@ -841,8 +844,14 @@ export default function CreatePage() {
         bubbleReceive1SelectedUrl: imageUploads['bubbleReceive1Selected'] ?? '',
         bubbleReceive2Url: imageUploads['bubbleReceive2'] ?? '',
       },
+      passcode: {
+        backgroundColor: config.passcodeBg,
+        titleColor: config.passcodeTitleText,
+        keypadTextColor: config.passcodeKeypadText,
+        bgImageUrl: passcodeBgMode === "image" ? (imageUploads['passcodeBgImg'] ?? '') : '',
+      },
     });
-  }, [imageUploads, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, setTheme]);
+  }, [imageUploads, passcodeBgMode, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText, setTheme]);
 
   // iconOpts 변경 시 자동저장 트리거
   useEffect(() => {
@@ -945,7 +954,7 @@ export default function CreatePage() {
       const themeName = config.name.replace(/\s/g, "_");
 
       // CSS 생성
-      zip.file("KakaoTalkTheme.css", generateCSS(config, imageUploads));
+      zip.file("KakaoTalkTheme.css", generateCSS(config, imageUploads, passcodeBgMode));
 
       // 업로드된 이미지를 Images/ 폴더에 포함
       const imageFileMap: Record<string, string> = {
@@ -980,7 +989,10 @@ export default function CreatePage() {
       };
 
       const imgPromises = Object.entries(imageFileMap)
-        .filter(([key]) => imageUploads[key])
+        .filter(([key]) => {
+          if (key === "passcodeBgImg" && passcodeBgMode === "color") return false;
+          return !!imageUploads[key];
+        })
         .map(async ([key, filename]) => {
           try {
             const res = await fetch(imageUploads[key]);
@@ -1374,16 +1386,16 @@ export default function CreatePage() {
               <PreviewMockup disableTabNavigation mainBgImageUrl={imageUploads.mainBg} />
             ) : previewTab === "friends" ? (
               <div className="flex items-start gap-8">
-                <AndroidMockup config={config} previewTab="friends" />
+                <AndroidMockup config={config} previewTab="friends" imageUploads={imageUploads} passcodeBgMode={passcodeBgMode} />
                 <AndroidFriendsProfileMockup config={config} />
               </div>
             ) : previewTab === "chat" ? (
               <div className="flex items-start gap-8">
-                <AndroidMockup config={config} previewTab="chat" />
+                <AndroidMockup config={config} previewTab="chat" imageUploads={imageUploads} passcodeBgMode={passcodeBgMode} />
                 <AndroidChatRoomMockup config={config} />
               </div>
             ) : (
-              <AndroidMockup config={config} previewTab={previewTab} />
+              <AndroidMockup config={config} previewTab={previewTab} imageUploads={imageUploads} passcodeBgMode={passcodeBgMode} />
             )}
           </div>
         </main>
@@ -1674,8 +1686,56 @@ export default function CreatePage() {
             {activeEditorCategory === "passcode" && (
               <>
                 <Accordion title="잠금화면" badge="PasscodeStyle">
-                  <ColorRow label="배경색" value={config.passcodeBg} onChange={set("passcodeBg")} tooltip="background-color" />
-                  <ImageUploadRow label="배경 이미지" tooltip="passcodeBgImage.png" imgKey="passcodeBgImg" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  {/* 배경 모드 탭 */}
+                  <div className="mx-2.5 mb-2 flex rounded-lg overflow-hidden border border-gray-200">
+                    <button
+                      type="button"
+                      onClick={() => setPasscodeBgMode("color")}
+                      className="flex-1 py-1.5 text-[11px] font-semibold transition-colors"
+                      style={{ backgroundColor: passcodeBgMode === "color" ? "rgb(251,146,60)" : "#fff", color: passcodeBgMode === "color" ? "#fff" : "#9ca3af" }}
+                    >
+                      배경색
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPasscodeBgMode("image")}
+                      className="flex-1 py-1.5 text-[11px] font-semibold transition-colors"
+                      style={{ backgroundColor: passcodeBgMode === "image" ? "rgb(251,146,60)" : "#fff", color: passcodeBgMode === "image" ? "#fff" : "#9ca3af" }}
+                    >
+                      이미지 업로드
+                    </button>
+                  </div>
+                  {passcodeBgMode === "color" ? (
+                    <ColorRow label="배경색" value={config.passcodeBg} onChange={set("passcodeBg")} tooltip="background-color" />
+                  ) : (
+                    <div className="py-1.5 px-2.5 group">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-[12px] font-medium text-gray-500">배경 이미지</span>
+                        <div className="flex items-center gap-3">
+                          {imageUploads["passcodeBgImg"] && (
+                            <button type="button" onClick={() => handleImageRemove("passcodeBgImg")}
+                              className="text-[9px] text-red-500 font-medium px-2 py-0.5 bg-red-50 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
+                              삭제
+                            </button>
+                          )}
+                          <label className="flex items-center cursor-pointer">
+                            <div className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden shrink-0 bg-gray-100 border border-transparent hover:border-orange-200 hover:bg-white hover:shadow-sm transition-all duration-200">
+                              {imageUploads["passcodeBgImg"]
+                                // eslint-disable-next-line @next/next/no-img-element
+                                ? <img src={imageUploads["passcodeBgImg"]} alt="배경" className="w-full h-full object-cover" />
+                                : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgb(200,200,200)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                                  </svg>
+                              }
+                            </div>
+                            <input type="file" accept="image/*" className="hidden"
+                              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload("passcodeBgImg", f); e.target.value = ""; }} />
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <ColorRow label="타이틀 컬러" value={config.passcodeTitleText} onChange={set("passcodeTitleText")} tooltip="-ios-text-color" />
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
@@ -1778,7 +1838,7 @@ export default function CreatePage() {
   );
 }
 
-function generateCSS(config: ThemeConfig, imageUploads: Record<string, string> = {}): string {
+function generateCSS(config: ThemeConfig, imageUploads: Record<string, string> = {}, passcodeBgMode: "color" | "image" = "color"): string {
   const img = (key: string, filename: string) =>
     imageUploads[key] ? `\n    -ios-background-image: '${filename}';` : "";
 
@@ -1958,7 +2018,7 @@ MessageCellStyle-Receive
 
 BackgroundStyle-Passcode
 {
-    background-color: ${config.passcodeBg};${img("passcodeBgImg", "passcodeBgImage@2x.png")}
+    background-color: ${config.passcodeBg};${passcodeBgMode === "image" ? img("passcodeBgImg", "passcodeBgImage@2x.png") : ""}
 }
 
 LabelStyle-PasscodeTitle

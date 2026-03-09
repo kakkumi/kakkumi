@@ -76,6 +76,7 @@ type ThemeState = {
     backgroundColor: string;
     titleColor: string;
     keypadTextColor: string;
+    bgImageUrl?: string;
   };
   setCurrentScreen: (screen: ScreenType) => void;
   setActiveElementId: (id: ActiveElementId) => void;

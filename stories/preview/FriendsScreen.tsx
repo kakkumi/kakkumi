@@ -118,6 +118,7 @@ export interface ScreenThemeConfig {
   bubbleReceive1Url?: string;
   bubbleReceive1SelectedUrl?: string;
   bubbleReceive2Url?: string;
+  passcodeBgImageUrl?: string;
 }
 
 export const FriendsScreen = React.memo(function FriendsScreen({ config }: { config: ScreenThemeConfig }) {

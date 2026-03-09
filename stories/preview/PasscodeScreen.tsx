@@ -21,6 +21,9 @@ export const PasscodeScreen = React.memo(function PasscodeScreen({ config }: { c
         width: '100%',
         overflow: 'hidden',
         backgroundColor: passcode.backgroundColor,
+        backgroundImage: config.passcodeBgImageUrl ? `url(${config.passcodeBgImageUrl})` : undefined,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         position: 'relative',
       }}
@@ -37,7 +40,7 @@ export const PasscodeScreen = React.memo(function PasscodeScreen({ config }: { c
           color: passcode.titleColor,
           zIndex: 1,
           paddingBottom: 20,
-          backgroundColor: passcode.backgroundColor,
+          backgroundColor: config.passcodeBgImageUrl ? 'transparent' : passcode.backgroundColor,
         }}
       >
         <h2 style={{ margin: 0, fontSize: 21, fontWeight: 400, color: '#3c2a2a' }}>암호 입력</h2>
