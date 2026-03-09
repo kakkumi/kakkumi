@@ -65,6 +65,12 @@ type ThemeState = {
     friendBubbleText?: string;
     friendBubbleSelectedText?: string;
     friendBubbleUnreadText?: string;
+    bubbleSend1Url?: string;
+    bubbleSend1SelectedUrl?: string;
+    bubbleSend2Url?: string;
+    bubbleReceive1Url?: string;
+    bubbleReceive1SelectedUrl?: string;
+    bubbleReceive2Url?: string;
   };
   passcode: {
     backgroundColor: string;

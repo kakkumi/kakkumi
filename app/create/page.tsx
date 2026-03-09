@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import JSZip from "jszip";
 import Header from "../components/Header";
 import { useAutoSave } from "./useAutoSave";
+import { BubbleDesigner, DEFAULT_SEND, DEFAULT_RECEIVE, BubbleDesignOptions } from "./BubbleDesigner";
 
 import { PreviewNewsMockup } from "@/stories/PreviewNewsMockup";
 import { PreviewChatRoomMockup } from "@/stories/PreviewChatRoomMockup";
@@ -689,6 +690,8 @@ export default function CreatePage() {
   const [previewTab, setPreviewTab] = useState<PreviewTab>("friends");
   const [activeEditorCategory, setActiveEditorCategory] = useState<EditorCategory>("manifest");
   const [imageUploads, setImageUploads] = useState<Record<string, string>>({});
+  const [sendBubbleOpts, setSendBubbleOpts] = useState<BubbleDesignOptions>({ ...DEFAULT_SEND, bgColor: defaultConfig.myBubbleBg });
+  const [receiveBubbleOpts, setReceiveBubbleOpts] = useState<BubbleDesignOptions>({ ...DEFAULT_RECEIVE, bgColor: defaultConfig.otherBubbleBg });
 
   const [selectedSettingKey, setSelectedSettingKey] = useState<string | null>(null);
   const [themeLoaded, setThemeLoaded] = useState(false);
@@ -803,19 +806,6 @@ export default function CreatePage() {
       openChatsTab: {
         bannerBackgroundColor: config.openchatBg,
       },
-      chatRoom: {
-        backgroundColor: config.chatBg,
-        friendBubbleBg: config.otherBubbleBg,
-        myBubbleBg: config.myBubbleBg,
-        inputBarBg: config.inputBarBg,
-        sendButtonBg: config.sendBtnBg,
-        myBubbleText: config.myBubbleText,
-        myBubbleSelectedText: config.myBubbleSelectedText,
-        myBubbleUnreadText: config.myBubbleUnreadText,
-        friendBubbleText: config.otherBubbleText,
-        friendBubbleSelectedText: config.otherBubbleSelectedText,
-        friendBubbleUnreadText: config.otherBubbleUnreadText,
-      },
       passcode: {
         backgroundColor: config.passcodeBg,
         titleColor: config.passcodeTitleText,
@@ -839,6 +829,12 @@ export default function CreatePage() {
         friendBubbleText: config.otherBubbleText,
         friendBubbleSelectedText: config.otherBubbleSelectedText,
         friendBubbleUnreadText: config.otherBubbleUnreadText,
+        bubbleSend1Url: imageUploads['bubbleSend1'] ?? '',
+        bubbleSend1SelectedUrl: imageUploads['bubbleSend1Selected'] ?? '',
+        bubbleSend2Url: imageUploads['bubbleSend2'] ?? '',
+        bubbleReceive1Url: imageUploads['bubbleReceive1'] ?? '',
+        bubbleReceive1SelectedUrl: imageUploads['bubbleReceive1Selected'] ?? '',
+        bubbleReceive2Url: imageUploads['bubbleReceive2'] ?? '',
       },
     });
   }, [imageUploads, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, setTheme]);
@@ -919,6 +915,17 @@ export default function CreatePage() {
     });
     triggerImmediateAfterReset();
   };
+
+  // 말풍선 디자이너에서 생성된 PNG blob URL을 imageUploads에 자동 주입
+  const handleSendBubbleGenerate = useCallback(({ bubble1, bubble2 }: { bubble1: string; bubble2: string }) => {
+    setImageUploads((prev) => ({ ...prev, bubbleSend1: bubble1, bubbleSend1Selected: bubble1, bubbleSend2: bubble2, bubbleSend2Selected: bubble2 }));
+    triggerImmediateAfterReset();
+  }, [triggerImmediateAfterReset]);
+
+  const handleReceiveBubbleGenerate = useCallback(({ bubble1, bubble2 }: { bubble1: string; bubble2: string }) => {
+    setImageUploads((prev) => ({ ...prev, bubbleReceive1: bubble1, bubbleReceive1Selected: bubble1, bubbleReceive2: bubble2, bubbleReceive2Selected: bubble2 }));
+    triggerImmediateAfterReset();
+  }, [triggerImmediateAfterReset]);
 
   const handleDownload = async () => {
     if (os === "ios") {
@@ -1518,24 +1525,48 @@ export default function CreatePage() {
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="보낸 메시지" badge="MessageCellStyle-Send">
-                  <ImageUploadRow label="첫 번째 말풍선" tooltip="-ios-background-image: 'chatroomBubbleSend01.png' 20px 20px;" imgKey="bubbleSend1" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
-                  <ImageUploadRow label="첫 번째 말풍선 선택" tooltip="-ios-selected-background-image: 'chatroomBubbleSend01Selected.png' 20px 20px;" imgKey="bubbleSend1Selected" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
-                  <MacInput label="첫 번째 말풍선 인셋" hint="-ios-title-edgeinsets" value={config.bubbleSendInset1} onChange={set("bubbleSendInset1")} type="text" />
-                  <ImageUploadRow label="두 번째 이상 말풍선" tooltip="-ios-group-background-image: 'chatroomBubbleSend02.png' 20px 20px;" imgKey="bubbleSend2" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
-                  <ImageUploadRow label="두 번째 이상 말풍선 선택" tooltip="-ios-group-selected-background-image: 'chatroomBubbleSend02Selected.png' 20px 20px;" imgKey="bubbleSend2Selected" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
-                  <MacInput label="두 번째 이상 말풍선 인셋" hint="-ios-group-title-edgeinsets" value={config.bubbleSendInset2} onChange={set("bubbleSendInset2")} type="text" />
+                  {/* ── 말풍선 디자이너 ── */}
+                  <div className="mx-1 mb-3 rounded-xl border border-orange-100 bg-orange-50/40 overflow-hidden">
+                    <div className="px-3 py-2 bg-orange-50 border-b border-orange-100">
+                      <p className="text-[11px] font-bold text-orange-600">🎨 말풍선 직접 제작</p>
+                      <p className="text-[10px] text-orange-400 mt-0.5">PNG 생성 후 자동으로 미리보기에 반영됩니다</p>
+                    </div>
+                    <BubbleDesigner
+                      side="send"
+                      options={sendBubbleOpts}
+                      onChange={(opts) => {
+                        setSendBubbleOpts(opts);
+                        set("myBubbleBg")(opts.bgColor);
+                      }}
+                      onGenerate={handleSendBubbleGenerate}
+                    />
+                  </div>
+                  <div className="px-2.5 pb-1 flex items-center gap-1.5">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                    <span className="text-[10px] text-gray-400">또는 직접 이미지 파일을 업로드할 수 있습니다</span>
+                  </div>
                   <ColorRow label="텍스트 컬러" value={config.myBubbleText} onChange={set("myBubbleText")} tooltip="-ios-text-color" />
                   <ColorRow label="텍스트 선택 컬러" value={config.myBubbleSelectedText} onChange={set("myBubbleSelectedText")} tooltip="-ios-selected-text-color" />
                   <ColorRow label="읽지않은 메시지 숫자 컬러" value={config.myBubbleUnreadText} onChange={set("myBubbleUnreadText")} tooltip="-ios-unread-text-color" />
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="받은 메시지" badge="MessageCellStyle-Receive">
-                  <ImageUploadRow label="첫 번째 말풍선" tooltip="-ios-background-image: 'chatroomBubbleReceive01.png' 20px 20px;" imgKey="bubbleReceive1" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
-                  <ImageUploadRow label="첫 번째 말풍선 선택" tooltip="-ios-selected-background-image: 'chatroomBubbleReceive01Selected.png' 20px 20px;" imgKey="bubbleReceive1Selected" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
-                  <MacInput label="첫 번째 말풍선 인셋" hint="-ios-title-edgeinsets" value={config.bubbleReceiveInset1} onChange={set("bubbleReceiveInset1")} type="text" />
-                  <ImageUploadRow label="두 번째 이상 말풍선" tooltip="-ios-group-background-image: 'chatroomBubbleReceive02.png' 20px 20px;" imgKey="bubbleReceive2" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
-                  <ImageUploadRow label="두 번째 이상 말풍선 선택" tooltip="-ios-group-selected-background-image: 'chatroomBubbleReceive02Selected.png' 20px 20px;" imgKey="bubbleReceive2Selected" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
-                  <MacInput label="두 번째 이상 말풍선 인셋" hint="-ios-group-title-edgeinsets" value={config.bubbleReceiveInset2} onChange={set("bubbleReceiveInset2")} type="text" />
+                  {/* ── 말풍선 디자이너 ── */}
+                  <div className="mx-1 mb-3 rounded-xl border border-orange-100 bg-orange-50/40 overflow-hidden">
+                    <div className="px-3 py-2 bg-orange-50 border-b border-orange-100">
+                      <p className="text-[11px] font-bold text-orange-600">🎨 말풍선 직접 제작</p>
+                      <p className="text-[10px] text-orange-400 mt-0.5">PNG 생성 후 자동으로 미리보기에 반영됩니다</p>
+                    </div>
+                    <BubbleDesigner
+                      side="receive"
+                      options={receiveBubbleOpts}
+                      onChange={(opts) => {
+                        setReceiveBubbleOpts(opts);
+                        set("otherBubbleBg")(opts.bgColor);
+                      }}
+                      onGenerate={handleReceiveBubbleGenerate}
+                    />
+                  </div>
                   <ColorRow label="텍스트 컬러" value={config.otherBubbleText} onChange={set("otherBubbleText")} tooltip="-ios-text-color" />
                   <ColorRow label="텍스트 선택 컬러" value={config.otherBubbleSelectedText} onChange={set("otherBubbleSelectedText")} tooltip="-ios-selected-text-color" />
                   <ColorRow label="읽지않은 메시지 숫자 컬러" value={config.otherBubbleUnreadText} onChange={set("otherBubbleUnreadText")} tooltip="-ios-unread-text-color" />

@@ -112,6 +112,12 @@ export interface ScreenThemeConfig {
   friendBubbleText?: string;
   friendBubbleSelectedText?: string;
   friendBubbleUnreadText?: string;
+  bubbleSend1Url?: string;
+  bubbleSend1SelectedUrl?: string;
+  bubbleSend2Url?: string;
+  bubbleReceive1Url?: string;
+  bubbleReceive1SelectedUrl?: string;
+  bubbleReceive2Url?: string;
 }
 
 export const FriendsScreen = React.memo(function FriendsScreen({ config }: { config: ScreenThemeConfig }) {
