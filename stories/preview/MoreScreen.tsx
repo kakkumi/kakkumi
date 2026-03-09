@@ -64,7 +64,7 @@ export const MoreScreen = React.memo(function MoreScreen({ config }: { config: S
     >
       {/* 1. 상단 헤더 */}
       <header style={{ ...headerBaseStyle, color: global.textColor }}>
-        <h2 data-active-element-id="header-title-icon" style={{ margin: 0, fontSize: 17, fontWeight: 400, color: '#3c2a2a' }}>더보기</h2>
+        <h2 data-active-element-id="header-title-icon" style={{ margin: 0, fontSize: 17, fontWeight: 400, color: config.headerText }}>더보기</h2>
         <div data-active-element-id="header-title-icon" style={{ ...iconRowStyle, color: global.textColor }}>
           <Search size={20} strokeWidth={2.3} color={global.textColor} />
           <ScanLine size={20} strokeWidth={2.3} color={global.textColor} />

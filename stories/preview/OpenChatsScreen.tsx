@@ -47,7 +47,7 @@ export const OpenChatsScreen = React.memo(function OpenChatsScreen({ config }: {
     >
       {/* 1. 상단 헤더 */}
       <header style={{ ...headerBaseStyle, color: openChatsTab.headerTitleColor }}>
-        <h2 data-active-element-id="header-title-icon" style={{ margin: 0, fontSize: 17, fontWeight: 400, color: '#3c2a2a' }}>지금</h2>
+        <h2 data-active-element-id="header-title-icon" style={{ margin: 0, fontSize: 17, fontWeight: 400, color: config.headerText }}>지금</h2>
         <div data-active-element-id="header-title-icon" style={{ ...iconRowStyle, color: global.textColor }}>
           <Search size={20} strokeWidth={2.3} color={global.textColor} />
           <div style={{ position: 'relative', display: 'inline-flex', width: 20, height: 20 }}>

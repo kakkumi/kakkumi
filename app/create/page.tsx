@@ -6,7 +6,7 @@ import JSZip from "jszip";
 import Header from "../components/Header";
 import { useAutoSave } from "./useAutoSave";
 import { BubbleDesigner, DEFAULT_SEND, DEFAULT_RECEIVE, BubbleDesignOptions } from "./BubbleDesigner";
-import { IconDesigner, DEFAULT_ICON, IconDesignOptions } from "./IconDesigner";
+import { IconDesigner, IconDesignOptions } from "./IconDesigner";
 
 import { PreviewNewsMockup } from "@/stories/PreviewNewsMockup";
 import { PreviewChatRoomMockup } from "@/stories/PreviewChatRoomMockup";
@@ -675,7 +675,7 @@ const editorCategories: { key: EditorCategory; label: string }[] = [
   { key: "friends-tab", label: "친구탭" },
   { key: "chat-tab",    label: "채팅탭" },
   { key: "chatroom",    label: "채팅방" },
-  { key: "tabbar",      label: "하단 탭바" },
+  { key: "tabbar",      label: "상·하단바" },
   { key: "more-tab",    label: "더보기탭" },
   { key: "passcode",    label: "잠금화면" },
   { key: "notification", label: "알림/배너" },
@@ -1622,10 +1622,17 @@ export default function CreatePage() {
 
             {activeEditorCategory === "tabbar" && (
               <>
+                <Accordion title="상단바 타이틀" badge="HeaderStyle-Main">
+                  <ColorRow label="타이틀 컬러" value={config.headerText} onChange={set("headerText")} tooltip="-ios-text-color" />
+                  <div className="px-2.5 pb-1 flex items-center gap-1.5 mt-1">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                    <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>채팅 · 지금 · 쇼핑 · 더보기 탭과 공유되는 값입니다</span>
+                  </div>
+                </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="탭바 배경" badge="TabbarStyle">
                   <ColorRow label="배경 컬러" value={config.tabBarBg} onChange={set("tabBarBg")} tooltip="background-color" />
                   <ImageUploadRow label="배경 이미지" tooltip="maintabBgImage.png" imgKey="tabBg" imageUploads={imageUploads} onUpload={handleImageUpload} />
-                  <ColorRow label="숏폼 배경 컬러" value={config.tabBarBg} onChange={set("tabBarBg")} tooltip="숏폼 전용 background-color" />
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="탭 아이콘" badge="TabbarStyle">
