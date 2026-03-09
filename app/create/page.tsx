@@ -6,21 +6,21 @@ import JSZip from "jszip";
 import Header from "../components/Header";
 import { useAutoSave } from "./useAutoSave";
 
-import { PreviewNewsMockup } from "../../stories/PreviewNewsMockup";
-import { PreviewChatRoomMockup } from "../../stories/PreviewChatRoomMockup";
-import { PreviewChatRoomInputMockup } from "../../stories/PreviewChatRoomInputMockup";
-import { PreviewMockup } from "../../stories/PreviewMockup";
-import { ChatRoomScreen } from "../../stories/preview/ChatRoomScreen";
-import { FriendsScreen } from "../../stories/preview/FriendsScreen";
-import { MainScreen } from "../../stories/preview/MainScreen";
-import { MoreScreen } from "../../stories/preview/MoreScreen";
-import { NewsScreen } from "../../stories/preview/NewsScreen";
-import { OpenChatsScreen } from "../../stories/preview/OpenChatsScreen";
-import { PasscodeScreen } from "../../stories/preview/PasscodeScreen";
-import { ShoppingScreen } from "../../stories/preview/ShoppingScreen";
-import { TabBar } from "../../stories/preview/TabBar";
-import { frameStyle } from "../../stories/preview/styles";
-import { ScreenType, useThemeStore as usePreviewThemeStore } from "../../stories/useThemeStore";
+import { PreviewNewsMockup } from "@/stories/PreviewNewsMockup";
+import { PreviewChatRoomMockup } from "@/stories/PreviewChatRoomMockup";
+import { PreviewChatRoomInputMockup } from "@/stories/PreviewChatRoomInputMockup";
+import { PreviewMockup } from "@/stories/PreviewMockup";
+import { ChatRoomScreen } from "@/stories/preview/ChatRoomScreen";
+import { FriendsScreen } from "@/stories/preview/FriendsScreen";
+import { MainScreen } from "@/stories/preview/MainScreen";
+import { MoreScreen } from "@/stories/preview/MoreScreen";
+import { NewsScreen } from "@/stories/preview/NewsScreen";
+import { OpenChatsScreen } from "@/stories/preview/OpenChatsScreen";
+import { PasscodeScreen } from "@/stories/preview/PasscodeScreen";
+import { ShoppingScreen } from "@/stories/preview/ShoppingScreen";
+import { TabBar } from "@/stories/preview/TabBar";
+import { frameStyle } from "@/stories/preview/styles";
+import { ScreenType, useThemeStore as usePreviewThemeStore } from "@/stories/useThemeStore";
 
 type OS = "ios" | "android";
 
@@ -89,10 +89,14 @@ interface ThemeConfig {
   myBubbleText: string;
   myBubbleSelectedText: string;
   myBubbleUnreadText: string;
+  bubbleSendInset1: string;
+  bubbleSendInset2: string;
   otherBubbleBg: string;
   otherBubbleText: string;
   otherBubbleSelectedText: string;
   otherBubbleUnreadText: string;
+  bubbleReceiveInset1: string;
+  bubbleReceiveInset2: string;
   unreadCountColor: string;
   sendBtnHighlightBg: string;
   sendBtnHighlightIcon: string;
@@ -184,10 +188,14 @@ const defaultConfig: ThemeConfig = {
   myBubbleText: "#191919",
   myBubbleSelectedText: "#191919",
   myBubbleUnreadText: "#FF3B30",
+  bubbleSendInset1: "10px 10px 7px 12px",
+  bubbleSendInset2: "10px 10px 7px 12px",
   otherBubbleBg: "#FFFFFF",
   otherBubbleText: "#191919",
   otherBubbleSelectedText: "#191919",
   otherBubbleUnreadText: "#FF3B30",
+  bubbleReceiveInset1: "10px 16px 7px 10px",
+  bubbleReceiveInset2: "10px 16px 7px 10px",
   unreadCountColor: "#FF3B30",
   sendBtnHighlightBg: "#E6CE00",
   sendBtnHighlightIcon: "#3A1D1D",
@@ -523,395 +531,7 @@ function MacInput({
   );
 }
 
-/* ── 탭바 아이콘 SVG ── */
-function TabIcon({ tab, active, color }: { tab: string; active: boolean; color: string }) {
-  const s = { width: 22, height: 22, fill: "none" };
-  if (tab === "friends") return (
-    <svg {...s} viewBox="0 0 24 24">
-      <circle cx="9" cy="7" r="3.5" stroke={color} strokeWidth={active ? 2 : 1.6} />
-      <path d="M2 20c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke={color} strokeWidth={active ? 2 : 1.6} strokeLinecap="round" />
-      <circle cx="17" cy="8" r="2.5" stroke={color} strokeWidth={active ? 1.8 : 1.4} />
-      <path d="M17 14c2.21 0 4 1.79 4 4" stroke={color} strokeWidth={active ? 1.8 : 1.4} strokeLinecap="round" />
-    </svg>
-  );
-  if (tab === "chat") return (
-    <svg {...s} viewBox="0 0 24 24">
-      <path d="M20 2H4a2 2 0 00-2 2v13a2 2 0 002 2h3l2 3 2-3h9a2 2 0 002-2V4a2 2 0 00-2-2z" stroke={color} strokeWidth={active ? 2 : 1.6} strokeLinejoin="round" />
-      <path d="M7 9h10M7 13h6" stroke={color} strokeWidth={active ? 2 : 1.6} strokeLinecap="round" />
-    </svg>
-  );
-  if (tab === "openchat") return (
-    <svg {...s} viewBox="0 0 24 24">
-      <circle cx="12" cy="12" r="9" stroke={color} strokeWidth={active ? 2 : 1.6} />
-      <path d="M8 12c0-2.21 1.79-4 4-4s4 1.79 4 4" stroke={color} strokeWidth={active ? 2 : 1.6} strokeLinecap="round" />
-      <path d="M9 15l1.5-1.5M15 15l-1.5-1.5M12 13.5V16" stroke={color} strokeWidth={active ? 1.8 : 1.4} strokeLinecap="round" />
-    </svg>
-  );
-  if (tab === "shopping") return (
-    <svg {...s} viewBox="0 0 24 24">
-      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" stroke={color} strokeWidth={active ? 2 : 1.6} strokeLinejoin="round" />
-      <path d="M3 6h18" stroke={color} strokeWidth={active ? 2 : 1.6} />
-      <path d="M16 10a4 4 0 01-8 0" stroke={color} strokeWidth={active ? 2 : 1.6} strokeLinecap="round" />
-    </svg>
-  );
-  if (tab === "passcode") return (
-    <svg {...s} viewBox="0 0 24 24">
-      <rect x="5" y="11" width="14" height="10" rx="2" stroke={color} strokeWidth={active ? 2 : 1.6} />
-      <path d="M8 11V7a4 4 0 018 0v4" stroke={color} strokeWidth={active ? 2 : 1.6} strokeLinecap="round" />
-      <circle cx="12" cy="16" r="1.5" fill={color} />
-    </svg>
-  );
-  // more
-  return (
-    <svg {...s} viewBox="0 0 24 24">
-      <rect x="3" y="5" width="18" height="2.5" rx="1.25" fill={color} />
-      <rect x="3" y="10.75" width="18" height="2.5" rx="1.25" fill={color} />
-      <rect x="3" y="16.5" width="18" height="2.5" rx="1.25" fill={color} />
-    </svg>
-  );
-}
-
-/* ── 친구 목록 공유 컴포넌트 ── */
-function IOSMockupFriendsList({ config }: { config: ThemeConfig }) {
-  return (
-    <>
-      <div className="flex items-center gap-3 px-4 py-3 border-b"
-        style={{ borderColor: `${config.primaryText}10` }}>
-        <div className="w-12 h-12 rounded-full bg-zinc-300 shrink-0" />
-        <div className="flex flex-col gap-0.5">
-          <span className="text-[13px] font-bold" style={{ color: config.primaryText }}>나</span>
-          <span className="text-[10px]" style={{ color: config.descText }}>상태메시지를 입력해주세요</span>
-        </div>
-      </div>
-      <div className="px-4 pt-3 pb-1">
-        <span className="text-[10px] font-semibold" style={{ color: config.descText }}>즐겨찾기</span>
-      </div>
-      <div className="flex gap-4 px-4 pb-3">
-        {["친구A", "친구B", "친구C"].map((n) => (
-          <div key={n} className="flex flex-col items-center gap-1">
-            <div className="w-11 h-11 rounded-full bg-zinc-200 shrink-0" />
-            <span className="text-[9px]" style={{ color: config.primaryText }}>{n}</span>
-          </div>
-        ))}
-      </div>
-      <div className="px-4 pb-1">
-        <span className="text-[10px] font-semibold" style={{ color: config.descText }}>친구 12</span>
-      </div>
-      {["친구 1", "친구 2", "친구 3", "친구 4", "친구 5"].map((name) => (
-        <div key={name} className="flex items-center gap-3 px-4 py-2">
-          <div className="w-10 h-10 rounded-full bg-zinc-200 shrink-0" />
-          <div className="flex flex-col gap-0.5">
-            <span className="text-[12px] font-medium" style={{ color: config.friendsNameText }}>{name}</span>
-            <span className="text-[9px]" style={{ color: config.descText }}>상태메시지</span>
-          </div>
-        </div>
-      ))}
-    </>
-  );
-}
-
-/* ── 탭별 바디 콘텐츠 ── */
-function MockupBody({ tab, config }: { tab: PreviewTab; config: ThemeConfig }) {
-  if (tab === "friends") return (
-    <>
-      {/* 내 프로필 */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b"
-        style={{ borderColor: `${config.primaryText}10` }}>
-        <div className="w-12 h-12 rounded-full bg-zinc-300 shrink-0" />
-        <div className="flex flex-col gap-0.5">
-          <span className="text-[13px] font-bold" style={{ color: config.primaryText }}>나</span>
-          <span className="text-[10px]" style={{ color: config.descText }}>상태메시지를 입력해주세요</span>
-        </div>
-      </div>
-      {/* 즐겨찾기 */}
-      <div className="px-4 pt-3 pb-1">
-        <span className="text-[10px] font-semibold" style={{ color: config.descText }}>즐겨찾기</span>
-      </div>
-      <div className="flex gap-4 px-4 pb-3">
-        {["친구A", "친구B", "친구C"].map((n) => (
-          <div key={n} className="flex flex-col items-center gap-1">
-            <div className="w-11 h-11 rounded-full bg-zinc-200 shrink-0" />
-            <span className="text-[9px]" style={{ color: config.primaryText }}>{n}</span>
-          </div>
-        ))}
-      </div>
-      {/* 친구 목록 */}
-      <div className="px-4 pb-1">
-        <span className="text-[10px] font-semibold" style={{ color: config.descText }}>친구 12</span>
-      </div>
-      {["친구 1", "친구 2", "친구 3", "친구 4", "친구 5"].map((name) => (
-        <div key={name} className="flex items-center gap-3 px-4 py-2">
-          <div className="w-10 h-10 rounded-full bg-zinc-200 shrink-0" />
-          <div className="flex flex-col gap-0.5">
-            <span className="text-[12px] font-medium" style={{ color: config.friendsNameText }}>{name}</span>
-            <span className="text-[9px]" style={{ color: config.descText }}>상태메시지</span>
-          </div>
-        </div>
-      ))}
-    </>
-  );
-  if (tab === "chat") return (
-    <>
-      {["카카오팀", "친구 1", "친구 2", "단체채팅방", "친구 3"].map((name, i) => (
-        <div key={name} className="flex items-center gap-3 px-4 py-2.5 border-b"
-          style={{ borderColor: `${config.primaryText}08` }}>
-          <div className={`shrink-0 rounded-${i === 3 ? "xl" : "full"} bg-zinc-200`} style={{ width: 42, height: 42 }} />
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between">
-              <span className="text-[12px] font-semibold" style={{ color: config.chatListNameText }}>{name}</span>
-              <span className="text-[9px]" style={{ color: config.descText }}>오후 {i + 1}:{(i * 7).toString().padStart(2, "0")}</span>
-            </div>
-            <span className="text-[10px] truncate block" style={{ color: config.chatListLastMsgText }}>마지막 메시지 내용입니다</span>
-          </div>
-        </div>
-      ))}
-    </>
-  );
-  if (tab === "openchat") return (
-    <>
-      <div className="px-4 pt-3 pb-2">
-        <div className="rounded-xl px-3 py-2 text-[11px] font-medium text-center" style={{ backgroundColor: `${config.headerBg}33`, color: config.primaryText }}>
-          🔍 관심 주제 오픈채팅 찾기
-        </div>
-      </div>
-      <div className="px-4 pb-1"><span className="text-[10px] font-semibold" style={{ color: config.descText }}>참여중인 오픈채팅</span></div>
-      {["카카오톡 테마 모임", "디자인 이야기", "개발자 채널", "일상 수다방"].map((name, i) => (
-        <div key={name} className="flex items-center gap-3 px-4 py-2.5 border-b" style={{ borderColor: `${config.primaryText}08` }}>
-          <div className="w-10 h-10 rounded-xl bg-zinc-200 shrink-0" />
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between">
-              <span className="text-[12px] font-semibold" style={{ color: config.primaryText }}>{name}</span>
-              <span className="text-[9px]" style={{ color: config.descText }}>{(i + 1) * 128}명</span>
-            </div>
-            <span className="text-[10px] truncate block" style={{ color: config.descText }}>최근 대화 내용</span>
-          </div>
-        </div>
-      ))}
-    </>
-  );
-  if (tab === "shopping") return (
-    <>
-      <div className="px-3 pt-3 pb-2">
-        <div className="rounded-xl h-20 flex items-center justify-center text-[11px]" style={{ backgroundColor: `${config.headerBg}44`, color: config.primaryText }}>
-          쇼핑 배너
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-2 px-3 pb-3">
-        {["패션", "뷰티", "식품", "생활"].map((cat) => (
-          <div key={cat} className="rounded-xl h-16 flex items-center justify-center text-[11px] font-medium" style={{ backgroundColor: `${config.bodyBg}`, border: `1px solid ${config.primaryText}15`, color: config.primaryText }}>
-            {cat}
-          </div>
-        ))}
-      </div>
-      <div className="px-3"><span className="text-[10px] font-semibold" style={{ color: config.descText }}>추천 상품</span></div>
-      <div className="flex gap-2 px-3 pt-2 overflow-hidden">
-        {["상품 1", "상품 2", "상품 3"].map((p) => (
-          <div key={p} className="flex flex-col gap-1 shrink-0" style={{ width: 90 }}>
-            <div className="rounded-xl h-20 bg-zinc-200" />
-            <span className="text-[9px]" style={{ color: config.primaryText }}>{p}</span>
-            <span className="text-[9px] font-bold" style={{ color: config.primaryText }}>12,000원</span>
-          </div>
-        ))}
-      </div>
-    </>
-  );
-  // more
-  if (tab === "more") return (
-    <>
-      <div className="flex items-center gap-3 px-4 py-3 border-b" style={{ borderColor: `${config.primaryText}10` }}>
-        <div className="w-12 h-12 rounded-full bg-zinc-300 shrink-0" />
-        <div className="flex flex-col gap-0.5">
-          <span className="text-[13px] font-bold" style={{ color: config.primaryText }}>나</span>
-          <span className="text-[10px]" style={{ color: config.descText }}>내 프로필 보기</span>
-        </div>
-      </div>
-      {[
-        { icon: "🔔", label: "알림" },
-        { icon: "🎵", label: "멜론" },
-        { icon: "💳", label: "카카오페이" },
-        { icon: "🗓", label: "카카오톡 채널" },
-        { icon: "⚙️", label: "설정" },
-      ].map(({ icon, label }) => (
-        <div key={label} className="flex items-center gap-3 px-4 py-3 border-b" style={{ borderColor: `${config.primaryText}08` }}>
-          <span className="text-lg w-8 text-center">{icon}</span>
-          <span className="text-[12px]" style={{ color: config.primaryText }}>{label}</span>
-        </div>
-      ))}
-    </>
-  );
-  // passcode
-  return (
-    <div className="absolute inset-0 flex flex-col items-center justify-between py-8"
-      style={{ backgroundColor: config.bodyBg }}>
-      {/* 타이틀 */}
-      <div className="flex flex-col items-center gap-2 mt-4">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-          <rect x="5" y="11" width="14" height="10" rx="2" stroke={config.primaryText} strokeWidth="1.8" />
-          <path d="M8 11V7a4 4 0 018 0v4" stroke={config.primaryText} strokeWidth="1.8" strokeLinecap="round" />
-          <circle cx="12" cy="16" r="1.5" fill={config.primaryText} />
-        </svg>
-        <span className="text-[14px] font-semibold mt-1" style={{ color: config.primaryText }}>
-          비밀번호를 입력하세요
-        </span>
-        {/* 불릿 */}
-        <div className="flex gap-4 mt-3">
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="w-3.5 h-3.5 rounded-full border-2"
-              style={{ borderColor: config.primaryText, backgroundColor: i < 2 ? config.primaryText : "transparent" }} />
-          ))}
-        </div>
-      </div>
-      {/* 키패드 */}
-      <div className="grid grid-cols-3 gap-3 w-full px-8">
-        {["1","2","3","4","5","6","7","8","9","*","0","⌫"].map((k) => (
-          <div key={k}
-            className="flex items-center justify-center rounded-2xl h-12 text-[16px] font-semibold"
-            style={{
-              backgroundColor: k === "⌫" || k === "*" ? "transparent" : `${config.primaryText}10`,
-              color: config.primaryText,
-            }}>
-            <span>{k}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ── iOS 목업 ── */
-function IOSMockup({ config, previewTab }: { config: ThemeConfig; previewTab: PreviewTab }) {
-  const tabs: { key: PreviewTab; label: string }[] = [
-    { key: "friends", label: "친구" },
-    { key: "chat", label: "채팅" },
-    { key: "openchat", label: "오픈채팅" },
-    { key: "shopping", label: "쇼핑" },
-    { key: "more", label: "더보기" },
-    { key: "passcode", label: "암호" },
-  ];
-  const headerLabels: Record<PreviewTab, string> = {
-    friends: "친구", chat: "채팅", openchat: "지금", shopping: "쇼핑", more: "더보기", passcode: "암호",
-  };
-
-  const isPasscode = previewTab === "passcode";
-
-  return (
-    <div className="relative mx-auto select-none" style={{ width: 360, height: 720 }}>
-      <div
-        className="absolute inset-0 rounded-[40px] border-[5px] border-zinc-800"
-        style={{
-          backgroundColor: config.bodyBg,
-          boxShadow: "0 30px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15) inset",
-        }}
-      >
-        {/* 다이나믹 아일랜드 */}
-        <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-24 h-6 bg-zinc-900 rounded-full z-10" />
-
-        {isPasscode ? (
-          /* ── 암호 전체화면 ── */
-          <div className="absolute inset-0 rounded-[35px] flex flex-col items-center justify-between py-10 pt-16"
-            style={{ backgroundColor: config.passcodeBg }}>
-            <div className="flex flex-col items-center gap-3">
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
-                <rect x="5" y="11" width="14" height="10" rx="2" stroke={config.passcodeTitleText} strokeWidth="1.8" />
-                <path d="M8 11V7a4 4 0 018 0v4" stroke={config.passcodeTitleText} strokeWidth="1.8" strokeLinecap="round" />
-                <circle cx="12" cy="16" r="1.5" fill={config.passcodeTitleText} />
-              </svg>
-              <span className="text-[15px] font-semibold" style={{ color: config.passcodeTitleText }}>
-                비밀번호를 입력하세요
-              </span>
-              <div className="flex gap-5 mt-2">
-                {[0,1,2,3].map((i) => (
-                  <div key={i} className="w-4 h-4 rounded-full border-2"
-                    style={{ borderColor: config.passcodeTitleText, backgroundColor: i < 2 ? config.passcodeTitleText : "transparent" }} />
-                ))}
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-3 w-full px-10 mb-4">
-              {["1","2","3","4","5","6","7","8","9","*","0","⌫"].map((k) => (
-                <div key={k}
-                  className="flex items-center justify-center rounded-2xl h-14 text-[18px] font-semibold"
-                  style={{
-                    backgroundColor: k === "⌫" || k === "*" ? "transparent" : config.passcodeKeypadBg,
-                    color: config.passcodeKeypadText,
-                  }}>
-                  {k}
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <>
-            {/* 헤더 */}
-            <div
-              className="absolute top-9 left-0 right-0 h-12 flex items-center px-5 gap-2"
-              style={{ backgroundColor: config.headerBg }}
-            >
-              <span className="font-bold text-[15px] flex-1" style={{ color: config.headerText }}>
-                {headerLabels[previewTab]}
-              </span>
-              <span className="text-[13px]" style={{ color: config.headerText }}>🔍</span>
-              <span className="text-[13px] ml-1" style={{ color: config.headerText }}>⚙︎</span>
-            </div>
-            {/* 바디 */}
-            <div
-              className="absolute left-0 right-0 overflow-y-auto overflow-x-hidden"
-              style={{ top: 84, bottom: 64, backgroundColor: config.bodyBg }}
-            >
-              <MockupBody tab={previewTab} config={config} />
-            </div>
-            {/* 탭바 */}
-            <div
-              className="absolute bottom-0 left-0 right-0 h-16 flex items-center justify-around rounded-b-[35px] border-t"
-              style={{ backgroundColor: config.tabBarBg, borderColor: `${config.primaryText}12` }}
-            >
-              {tabs.filter(t => t.key !== "passcode").map(({ key, label }) => {
-                const active = previewTab === key;
-                const color = active ? config.tabBarSelectedIcon : config.tabBarIcon;
-                return (
-                  <div key={key} className="flex flex-col items-center gap-0.5 pt-1">
-                    <TabIcon tab={key} active={active} color={color} />
-                  </div>
-                );
-              })}
-            </div>
-          </>
-        )}
-      </div>
-      <div className="absolute right-[-6px] top-24 w-1 h-12 bg-zinc-700 rounded-r-md" />
-      <div className="absolute left-[-6px] top-20 w-1 h-8 bg-zinc-700 rounded-l-md" />
-      <div className="absolute left-[-6px] top-32 w-1 h-8 bg-zinc-700 rounded-l-md" />
-    </div>
-  );
-}
-
 /* ── 채팅 탭 전용: 목업 2개 나란히 ── */
-/* ── iOS 친구 프로필 목업 (친구 탭 듀얼용 — 오른쪽) ── */
-function IOSFriendsProfileMockup({ config }: { config: ThemeConfig }) {
-  return (
-    <div className="relative mx-auto select-none" style={{ width: 360, height: 720 }}>
-      <div className="absolute inset-0 rounded-[40px] border-[5px] border-zinc-800"
-        style={{
-          backgroundColor: config.bodyBg,
-          boxShadow: "0 30px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15) inset",
-        }}>
-        <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-24 h-6 bg-zinc-900 rounded-full z-10" />
-        <div className="absolute top-9 left-0 right-0 h-12 flex items-center px-5 gap-2"
-          style={{ backgroundColor: config.headerBg }}>
-          <span className="text-[13px]" style={{ color: config.headerText }}>←</span>
-          <span className="font-bold text-[15px] flex-1" style={{ color: config.headerText }}>친구</span>
-        </div>
-        <div className="absolute left-0 right-0 overflow-y-auto overflow-x-hidden"
-          style={{ top: 84, bottom: 0, backgroundColor: config.bodyBg }}>
-          <IOSMockupFriendsList config={config} />
-        </div>
-      </div>
-      <div className="absolute right-[-6px] top-24 w-1 h-12 bg-zinc-700 rounded-r-md" />
-      <div className="absolute left-[-6px] top-20 w-1 h-8 bg-zinc-700 rounded-l-md" />
-      <div className="absolute left-[-6px] top-32 w-1 h-8 bg-zinc-700 rounded-l-md" />
-    </div>
-  );
-}
-
 /* ── Android 친구 프로필 목업 (친구 탭 듀얼용 — 오른쪽) ── */
 function AndroidFriendsProfileMockup({ config }: { config: ThemeConfig }) {
   return (
@@ -938,96 +558,6 @@ function AndroidFriendsProfileMockup({ config }: { config: ThemeConfig }) {
 }
 
 /* ── iOS 채팅방 목업 (채팅 탭 듀얼용) ── */
-function IOSChatRoomMockup({ config }: { config: ThemeConfig }) {
-  return (
-    <div className="relative mx-auto select-none" style={{ width: 360, height: 720 }}>
-      <div className="absolute inset-0 rounded-[40px] border-[5px] border-zinc-800"
-        style={{
-          backgroundColor: config.chatBg,
-          boxShadow: "0 30px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15) inset",
-        }}>
-        {/* 다이나믹 아일랜드 */}
-        <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-24 h-6 bg-zinc-900 rounded-full z-10" />
-        {/* 헤더 */}
-        <div className="absolute top-9 left-0 right-0 h-12 flex items-center px-5 gap-2"
-          style={{ backgroundColor: config.headerBg }}>
-          <span className="text-[14px]" style={{ color: config.headerText }}>←</span>
-          <span className="font-bold text-[14px] flex-1" style={{ color: config.headerText }}>친구 1</span>
-          <span className="text-[13px]" style={{ color: config.headerText }}>⋯</span>
-        </div>
-        {/* 메시지 영역 */}
-        <div className="absolute left-0 right-0 flex flex-col gap-2.5 px-4 py-3 overflow-hidden"
-          style={{ top: 84, bottom: 120, backgroundColor: config.chatBg }}>
-          <div className="flex items-end gap-1.5 self-start max-w-[75%]">
-            <div className="w-7 h-7 rounded-full bg-zinc-300 shrink-0" />
-            <div>
-              <span className="text-[9px] block mb-0.5" style={{ color: config.descText }}>친구 1</span>
-              <div className="rounded-2xl rounded-tl-sm px-3 py-2 text-[11px] leading-snug"
-                style={{ backgroundColor: config.otherBubbleBg, color: config.otherBubbleText }}>
-                안녕하세요! 👋
-              </div>
-            </div>
-            <span className="text-[8px] self-end mb-0.5" style={{ color: config.descText }}>오후 1:00</span>
-          </div>
-          <div className="flex items-end gap-1.5 self-end max-w-[75%]">
-            <span className="text-[8px] self-end mb-0.5" style={{ color: config.unreadCountColor }}>1</span>
-            <div className="rounded-2xl rounded-tr-sm px-3 py-2 text-[11px] leading-snug"
-              style={{ backgroundColor: config.myBubbleBg, color: config.myBubbleText }}>
-              반가워요! 😊
-            </div>
-          </div>
-          <div className="flex items-end gap-1.5 self-start max-w-[75%]">
-            <div className="w-7 h-7 rounded-full bg-zinc-300 shrink-0" />
-            <div className="rounded-2xl rounded-tl-sm px-3 py-2 text-[11px] leading-snug"
-              style={{ backgroundColor: config.otherBubbleBg, color: config.otherBubbleText }}>
-              테마 예쁘네요 ✨
-            </div>
-            <span className="text-[8px] self-end mb-0.5" style={{ color: config.descText }}>오후 1:02</span>
-          </div>
-          <div className="flex items-end gap-1.5 self-end max-w-[75%]">
-            <div className="rounded-2xl rounded-tr-sm px-3 py-2 text-[11px] leading-snug"
-              style={{ backgroundColor: config.myBubbleBg, color: config.myBubbleText }}>
-              감사합니다! 🎨
-            </div>
-          </div>
-        </div>
-        {/* 입력창 */}
-        <div className="absolute left-0 right-0 h-14 flex items-center gap-2 px-4"
-          style={{ bottom: 64, backgroundColor: config.inputBarBg }}>
-          <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
-            style={{ backgroundColor: config.inputFieldBg }}>
-            <span className="text-[13px]" style={{ color: config.menuBtnColor }}>+</span>
-          </div>
-          <div className="flex-1 h-9 rounded-full px-3 flex items-center"
-            style={{ backgroundColor: config.inputFieldBg }}>
-            <span className="text-[10px] text-zinc-400">메시지 입력</span>
-          </div>
-          <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
-            style={{ backgroundColor: config.sendBtnBg }}>
-            <span className="text-[11px]" style={{ color: config.sendBtnIcon }}>▶</span>
-          </div>
-        </div>
-        {/* 탭바 */}
-        <div className="absolute bottom-0 left-0 right-0 h-16 flex items-center justify-around rounded-b-[35px] border-t"
-          style={{ backgroundColor: config.tabBarBg, borderColor: `${config.primaryText}12` }}>
-          {(["friends","chat","openchat","shopping","more"] as PreviewTab[]).map((key) => {
-            const active = key === "chat";
-            const color = active ? config.tabBarSelectedIcon : config.tabBarIcon;
-            return (
-              <div key={key} className="flex flex-col items-center gap-0.5 pt-1">
-                <TabIcon tab={key} active={active} color={color} />
-              </div>
-            );
-          })}
-        </div>
-      </div>
-      <div className="absolute right-[-6px] top-24 w-1 h-12 bg-zinc-700 rounded-r-md" />
-      <div className="absolute left-[-6px] top-20 w-1 h-8 bg-zinc-700 rounded-l-md" />
-      <div className="absolute left-[-6px] top-32 w-1 h-8 bg-zinc-700 rounded-l-md" />
-    </div>
-  );
-}
-
 function AndroidChatRoomMockup({ config }: { config: ThemeConfig }) {
   return (
     <div className="relative mx-auto select-none" style={{ width: 368, height: 699 }}>
@@ -1299,7 +829,7 @@ export default function CreatePage() {
         bgImageUrl: imageUploads['chatroomBg'] ?? '',
       },
     });
-  }, [imageUploads]);
+  }, [imageUploads, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg, setTheme]);
 
   useEffect(() => {
     const screenMap: Record<PreviewTab, ScreenType> = {
@@ -1973,6 +1503,30 @@ export default function CreatePage() {
                       <span className="text-[10px] leading-snug" style={{ color: 'rgb(251,146,60)' }}>투명 PNG → 투명 부분에 배경 컬러가 비침</span>
                     </div>
                   </div>
+                </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
+                <Accordion title="보낸 메시지" badge="MessageCellStyle-Send">
+                  <ImageUploadRow label="첫 번째 말풍선" tooltip="-ios-background-image: 'chatroomBubbleSend01.png' 20px 20px;" imgKey="bubbleSend1" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                  <ImageUploadRow label="첫 번째 말풍선 선택" tooltip="-ios-selected-background-image: 'chatroomBubbleSend01Selected.png' 20px 20px;" imgKey="bubbleSend1Selected" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                  <MacInput label="첫 번째 말풍선 인셋" hint="-ios-title-edgeinsets" value={config.bubbleSendInset1} onChange={set("bubbleSendInset1")} type="text" />
+                  <ImageUploadRow label="두 번째 이상 말풍선" tooltip="-ios-group-background-image: 'chatroomBubbleSend02.png' 20px 20px;" imgKey="bubbleSend2" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                  <ImageUploadRow label="두 번째 이상 말풍선 선택" tooltip="-ios-group-selected-background-image: 'chatroomBubbleSend02Selected.png' 20px 20px;" imgKey="bubbleSend2Selected" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                  <MacInput label="두 번째 이상 말풍선 인셋" hint="-ios-group-title-edgeinsets" value={config.bubbleSendInset2} onChange={set("bubbleSendInset2")} type="text" />
+                  <ColorRow label="텍스트 컬러" value={config.myBubbleText} onChange={set("myBubbleText")} tooltip="-ios-text-color" />
+                  <ColorRow label="텍스트 선택 컬러" value={config.myBubbleSelectedText} onChange={set("myBubbleSelectedText")} tooltip="-ios-selected-text-color" />
+                  <ColorRow label="읽지않은 메시지 숫자 컬러" value={config.myBubbleUnreadText} onChange={set("myBubbleUnreadText")} tooltip="-ios-unread-text-color" />
+                </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
+                <Accordion title="받은 메시지" badge="MessageCellStyle-Receive">
+                  <ImageUploadRow label="첫 번째 말풍선" tooltip="-ios-background-image: 'chatroomBubbleReceive01.png' 20px 20px;" imgKey="bubbleReceive1" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                  <ImageUploadRow label="첫 번째 말풍선 선택" tooltip="-ios-selected-background-image: 'chatroomBubbleReceive01Selected.png' 20px 20px;" imgKey="bubbleReceive1Selected" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                  <MacInput label="첫 번째 말풍선 인셋" hint="-ios-title-edgeinsets" value={config.bubbleReceiveInset1} onChange={set("bubbleReceiveInset1")} type="text" />
+                  <ImageUploadRow label="두 번째 이상 말풍선" tooltip="-ios-group-background-image: 'chatroomBubbleReceive02.png' 20px 20px;" imgKey="bubbleReceive2" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                  <ImageUploadRow label="두 번째 이상 말풍선 선택" tooltip="-ios-group-selected-background-image: 'chatroomBubbleReceive02Selected.png' 20px 20px;" imgKey="bubbleReceive2Selected" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                  <MacInput label="두 번째 이상 말풍선 인셋" hint="-ios-group-title-edgeinsets" value={config.bubbleReceiveInset2} onChange={set("bubbleReceiveInset2")} type="text" />
+                  <ColorRow label="텍스트 컬러" value={config.otherBubbleText} onChange={set("otherBubbleText")} tooltip="-ios-text-color" />
+                  <ColorRow label="텍스트 선택 컬러" value={config.otherBubbleSelectedText} onChange={set("otherBubbleSelectedText")} tooltip="-ios-selected-text-color" />
+                  <ColorRow label="읽지않은 메시지 숫자 컬러" value={config.otherBubbleUnreadText} onChange={set("otherBubbleUnreadText")} tooltip="-ios-unread-text-color" />
                 </Accordion>
 
               </>
