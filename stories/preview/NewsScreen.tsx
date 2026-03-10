@@ -72,14 +72,18 @@ export const NewsScreen = React.memo(function NewsScreen({ config }: { config: S
               width: 28,
               height: 28,
               borderRadius: 11,
-              backgroundColor: 'rgba(255,255,255,0.65)',
+              backgroundColor: profileUrls.length > 0 ? 'transparent' : 'rgba(255,255,255,0.65)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: 15,
+              overflow: 'hidden',
             }}
           >
-            🍑
+            {profileUrls.length > 0
+              ? <img src={profileUrls[0]} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : '🍑'
+            }
           </div>
           <h2 style={{ margin: 0, fontSize: 17, fontWeight: 400, color: '#3c2a2a' }}>카꾸미</h2>
         </div>
