@@ -30,7 +30,7 @@ export default function MyThemesPage() {
   const [themes, setThemes] = useState<SavedTheme[]>([]);
   const [folders, setFolders] = useState<ThemeFolder[]>([]);
   const [loaded, setLoaded] = useState(false);
-  const [sortKey, setSortKey] = useState<SortKey>("created");
+  const [sortKey, setSortKey] = useState<SortKey>("updated");
   const [view, setView] = useState<View>("main");
   const [openFolderId, setOpenFolderId] = useState<string | null>(null);
   const [newFolderModal, setNewFolderModal] = useState(false);
@@ -38,6 +38,10 @@ export default function MyThemesPage() {
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
   const [moveModal, setMoveModal] = useState<{ themeId: string } | null>(null);
   const [emptyTrashConfirm, setEmptyTrashConfirm] = useState(false);
+  // 다중 선택
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkMoveModal, setBulkMoveModal] = useState(false);
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
 
   const fetchAll = async () => {
     const [tRes, fRes] = await Promise.all([
@@ -55,9 +59,67 @@ export default function MyThemesPage() {
     setLoaded(true);
   };
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     void fetchAll();
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  // 뷰가 바뀌면 선택 초기화
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    setSelectedIds(prev => prev.size > 0 ? new Set() : prev);
+  }, [view, openFolderId]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  // 체크박스 토글
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  // 일괄 폴더 이동
+  const handleBulkMove = async (folderId: string | null) => {
+    const ids = Array.from(selectedIds);
+    setThemes(prev => prev.map(t => ids.includes(t.id) ? { ...t, folderId } : t));
+    setBulkMoveModal(false);
+    setSelectedIds(new Set());
+    await Promise.all(ids.map(id =>
+      fetch(`/api/my-themes/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ folderId }) })
+    ));
+  };
+  // 일괄 휴지통 이동
+  const handleBulkTrash = async () => {
+    const ids = Array.from(selectedIds);
+    setThemes(prev => prev.map(t => ids.includes(t.id) ? { ...t, trashed: true, trashedAt: new Date().toISOString() } : t));
+    setSelectedIds(new Set());
+    setBulkDeleteConfirm(false);
+    await Promise.all(ids.map(id =>
+      fetch(`/api/my-themes/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trashed: true }) })
+    ));
+  };
+  // 일괄 완전 삭제 (휴지통 뷰에서)
+  const handleBulkPermanentDelete = async () => {
+    const ids = Array.from(selectedIds);
+    setThemes(prev => prev.filter(t => !ids.includes(t.id)));
+    setSelectedIds(new Set());
+    setBulkDeleteConfirm(false);
+    await Promise.all(ids.map(id =>
+      fetch(`/api/my-themes/${id}`, { method: "DELETE" })
+    ));
+  };
+  // 일괄 복원 (휴지통 뷰에서)
+  const handleBulkRestore = async () => {
+    const ids = Array.from(selectedIds);
+    setThemes(prev => prev.map(t => ids.includes(t.id) ? { ...t, trashed: false, trashedAt: null } : t));
+    setSelectedIds(new Set());
+    await Promise.all(ids.map(id =>
+      fetch(`/api/my-themes/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trashed: false }) })
+    ));
+  };
 
   // 휴지통으로 이동
   const handleTrash = async (id: string) => {
@@ -141,6 +203,15 @@ export default function MyThemesPage() {
     : openFolderId
       ? sorted(active.filter(t => t.folderId === openFolderId))
       : sorted(active.filter(t => !t.folderId));
+
+  // 전체 선택 / 해제
+  const toggleSelectAll = () => {
+    if (selectedIds.size === displayThemes.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(displayThemes.map(t => t.id)));
+    }
+  };
 
   return (
     <div className="min-h-screen" style={{ background: "#f7f7f8" }}>
@@ -234,6 +305,26 @@ export default function MyThemesPage() {
               {/* 툴바 */}
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
+                  {/* 전체 선택 체크박스 */}
+                  {displayThemes.length > 0 && (
+                    <button
+                      onClick={toggleSelectAll}
+                      className="flex items-center justify-center w-5 h-5 rounded-md border-2 transition-all shrink-0"
+                      style={{
+                        borderColor: selectedIds.size === displayThemes.length ? "rgb(74,123,247)" : "rgba(0,0,0,0.2)",
+                        background: selectedIds.size === displayThemes.length ? "rgb(74,123,247)" : "#fff",
+                      }}
+                    >
+                      {selectedIds.size > 0 && (
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round">
+                          {selectedIds.size === displayThemes.length
+                            ? <polyline points="20 6 9 17 4 12"/>
+                            : <path d="M5 12h14"/>
+                          }
+                        </svg>
+                      )}
+                    </button>
+                  )}
                   {/* 뷰 타이틀 */}
                   <span className="text-[15px] font-semibold" style={{ color: "#1a1a1a" }}>
                     {view === "trash" ? "휴지통" : openFolderId ? folders.find(f => f.id === openFolderId)?.name : "전체"}
@@ -244,43 +335,96 @@ export default function MyThemesPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-3">
-                  {/* 정렬 */}
-                  {view !== "trash" && (
-                    <div className="flex items-center rounded-full p-0.5" style={{ background: "rgba(0,0,0,0.05)" }}>
-                      {(["created", "updated"] as SortKey[]).map(k => (
-                        <button key={k} onClick={() => setSortKey(k)}
-                          className="px-3 py-1 rounded-full text-[11px] font-semibold transition-all"
-                          style={{
-                            background: sortKey === k ? "#fff" : "transparent",
-                            color: sortKey === k ? "#1a1a1a" : "#8e8e93",
-                            boxShadow: sortKey === k ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
-                          }}
+                  {/* 선택된 항목 일괄 액션 */}
+                  {selectedIds.size > 0 ? (
+                    <>
+                      <span className="text-[12px] font-semibold" style={{ color: "rgb(74,123,247)" }}>
+                        {selectedIds.size}개 선택됨
+                      </span>
+                      {view === "trash" ? (
+                        <>
+                          <button
+                            onClick={handleBulkRestore}
+                            className="px-3 py-1.5 rounded-xl text-[12px] font-semibold transition-all hover:opacity-80"
+                            style={{ background: "rgba(74,123,247,0.1)", color: "rgb(74,123,247)" }}
+                          >
+                            복원
+                          </button>
+                          <button
+                            onClick={() => setBulkDeleteConfirm(true)}
+                            className="px-3 py-1.5 rounded-xl text-[12px] font-semibold transition-all hover:opacity-80"
+                            style={{ background: "rgba(255,59,48,0.1)", color: "#ff3b30" }}
+                          >
+                            완전히 삭제
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => setBulkMoveModal(true)}
+                            className="px-3 py-1.5 rounded-xl text-[12px] font-semibold transition-all hover:opacity-80"
+                            style={{ background: "rgba(74,123,247,0.1)", color: "rgb(74,123,247)" }}
+                          >
+                            폴더 이동
+                          </button>
+                          <button
+                            onClick={() => setBulkDeleteConfirm(true)}
+                            className="px-3 py-1.5 rounded-xl text-[12px] font-semibold transition-all hover:opacity-80"
+                            style={{ background: "rgba(255,59,48,0.1)", color: "#ff3b30" }}
+                          >
+                            삭제
+                          </button>
+                        </>
+                      )}
+                      <button
+                        onClick={() => setSelectedIds(new Set())}
+                        className="text-[12px] font-medium transition-all hover:opacity-70"
+                        style={{ color: "#8e8e93" }}
+                      >
+                        취소
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {/* 정렬 */}
+                      {view !== "trash" && (
+                        <div className="flex items-center rounded-full p-0.5" style={{ background: "rgba(0,0,0,0.05)" }}>
+                          {(["updated", "created"] as SortKey[]).map(k => (
+                            <button key={k} onClick={() => setSortKey(k)}
+                              className="px-3 py-1 rounded-full text-[11px] font-semibold transition-all"
+                              style={{
+                                background: sortKey === k ? "#fff" : "transparent",
+                                color: sortKey === k ? "#1a1a1a" : "#8e8e93",
+                                boxShadow: sortKey === k ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                              }}
+                            >
+                              {k === "created" ? "생성일 순" : "수정일 순"}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {view !== "trash" && (
+                        <Link href="/create"
+                          className="flex items-center gap-1.5 text-[13px] font-semibold transition-all hover:opacity-70"
+                          style={{ color: "rgb(255,149,0)" }}
                         >
-                          {k === "created" ? "생성일 순" : "수정일 순"}
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgb(255,149,0)" strokeWidth="2.5" strokeLinecap="round">
+                            <path d="M12 5v14M5 12h14"/>
+                          </svg>
+                          새 테마 만들기
+                        </Link>
+                      )}
+                      {/* 휴지통 비우기 */}
+                      {view === "trash" && trashed.length > 0 && (
+                        <button
+                          onClick={() => setEmptyTrashConfirm(true)}
+                          className="text-[12px] font-semibold transition-all hover:opacity-70"
+                          style={{ color: "#ff5a4f" }}
+                        >
+                          모두 비우기
                         </button>
-                      ))}
-                    </div>
-                  )}
-                  {view !== "trash" && (
-                    <Link href="/create"
-                      className="flex items-center gap-1.5 text-[13px] font-semibold transition-all hover:opacity-70"
-                      style={{ color: "rgb(255,149,0)" }}
-                    >
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgb(255,149,0)" strokeWidth="2.5" strokeLinecap="round">
-                        <path d="M12 5v14M5 12h14"/>
-                      </svg>
-                      새 테마 만들기
-                    </Link>
-                  )}
-                  {/* 휴지통 비우기 */}
-                  {view === "trash" && trashed.length > 0 && (
-                    <button
-                      onClick={() => setEmptyTrashConfirm(true)}
-                      className="text-[12px] font-semibold transition-all hover:opacity-70"
-                      style={{ color: "#ff5a4f" }}
-                    >
-                      모두 비우기
-                    </button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -322,6 +466,8 @@ export default function MyThemesPage() {
                       key={theme.id}
                       theme={theme}
                       isTrash={view === "trash"}
+                      selected={selectedIds.has(theme.id)}
+                      onSelect={toggleSelect}
                       onTrash={handleTrash}
                       onRestore={handleRestore}
                       onPermanentDelete={handlePermanentDelete}
@@ -427,6 +573,73 @@ export default function MyThemesPage() {
           </button>
         </Modal>
       )}
+
+      {/* ── 일괄 폴더 이동 모달 ── */}
+      {bulkMoveModal && (
+        <Modal onClose={() => setBulkMoveModal(false)}>
+          <p className="text-[16px] font-bold mb-5" style={{ color: "#1a1a1a" }}>폴더로 이동 ({selectedIds.size}개)</p>
+          <div className="flex flex-col gap-1">
+            <button
+              onClick={() => handleBulkMove(null)}
+              className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-medium text-left transition-colors hover:bg-black/5"
+              style={{ color: "#1a1a1a" }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aeaeb2" strokeWidth="1.8" strokeLinecap="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+              </svg>
+              전체 (폴더 없음)
+            </button>
+            {folders.map(folder => (
+              <button key={folder.id}
+                onClick={() => handleBulkMove(folder.id)}
+                className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-medium text-left transition-colors hover:bg-black/5"
+                style={{ color: "#1a1a1a" }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgb(74,123,247)" strokeWidth="1.8" strokeLinecap="round">
+                  <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+                </svg>
+                {folder.name}
+              </button>
+            ))}
+          </div>
+          <button onClick={() => setBulkMoveModal(false)}
+            className="mt-5 w-full py-2.5 rounded-xl text-[13px] font-semibold"
+            style={{ color: "#8e8e93", background: "rgba(0,0,0,0.04)" }}>
+            취소
+          </button>
+        </Modal>
+      )}
+
+      {/* ── 일괄 삭제 확인 모달 ── */}
+      {bulkDeleteConfirm && (
+        <Modal onClose={() => setBulkDeleteConfirm(false)}>
+          <div className="flex flex-col items-center text-center gap-3 mb-5">
+            <p className="text-[16px] font-bold" style={{ color: "#1a1a1a" }}>
+              {view === "trash" ? "완전히 삭제할까요?" : "휴지통으로 이동할까요?"}
+            </p>
+            <p className="text-[13px] leading-relaxed" style={{ color: "#8e8e93" }}>
+              선택한 테마 {selectedIds.size}개를{" "}
+              {view === "trash" ? "영구적으로 삭제해요.\n이 작업은 되돌릴 수 없어요." : "휴지통으로 이동해요."}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setBulkDeleteConfirm(false)}
+              className="flex-1 py-2.5 rounded-xl text-[13px] font-semibold"
+              style={{ color: "#8e8e93", background: "rgba(0,0,0,0.04)" }}
+            >
+              취소
+            </button>
+            <button
+              onClick={view === "trash" ? handleBulkPermanentDelete : handleBulkTrash}
+              className="flex-1 py-2.5 rounded-xl text-[13px] font-medium transition-all hover:opacity-85"
+              style={{ background: "#ff5c52", color: "#fff" }}
+            >
+              {view === "trash" ? "완전히 삭제" : "휴지통으로 이동"}
+            </button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
@@ -478,9 +691,11 @@ function SidebarFolderItem({ folder, active, count, dragOver, onClick, onDragOve
 }
 
 /* ── 테마 카드 ── */
-function ThemeCard({ theme, isTrash, onTrash, onRestore, onPermanentDelete, onDuplicate, onMoveRequest }: {
+function ThemeCard({ theme, isTrash, selected, onSelect, onTrash, onRestore, onPermanentDelete, onDuplicate, onMoveRequest }: {
   theme: SavedTheme;
   isTrash: boolean;
+  selected: boolean;
+  onSelect: (id: string) => void;
   onTrash: (id: string) => void;
   onRestore: (id: string) => void;
   onPermanentDelete: (id: string) => void;
@@ -534,6 +749,8 @@ function ThemeCard({ theme, isTrash, onTrash, onRestore, onPermanentDelete, onDu
           background: "rgba(0,0,0,0.05)",
           transform: hover ? "translateY(-3px)" : "translateY(0)",
           cursor: isTrash ? "default" : "pointer",
+          outline: selected ? "2.5px solid rgb(74,123,247)" : "none",
+          outlineOffset: "2px",
         }}
       >
         {theme.previewImageUrl ? (
@@ -550,12 +767,35 @@ function ThemeCard({ theme, isTrash, onTrash, onRestore, onPermanentDelete, onDu
         )}
       </div>
 
-      {/* OS 배지 */}
-      <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+      {/* 체크박스 */}
+      {(hover || selected) && (
+        <button
+          onClick={e => { e.stopPropagation(); onSelect(theme.id); }}
+          className="absolute top-2.5 left-2.5 w-5 h-5 rounded-full flex items-center justify-center transition-all z-10"
+          style={{
+            background: selected ? "rgb(74,123,247)" : "rgba(255,255,255,0.85)",
+            border: selected ? "none" : "2px solid rgba(0,0,0,0.25)",
+            backdropFilter: "blur(6px)",
+          }}
+        >
+          {selected && (
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          )}
+        </button>
+      )}
+
+      {/* OS 배지 — 체크박스 표시 여부에 따라 위치 조정 */}
+      <div
+        className="absolute top-2.5 px-2 py-0.5 rounded-full text-[10px] font-semibold transition-all duration-200"
         style={{
+          left: (hover || selected) ? "35px" : "10px",
           background: theme.os === "ios" ? "rgba(255,149,0,0.85)" : "rgba(74,123,247,0.85)",
-          color: "#fff", backdropFilter: "blur(6px)",
-        }}>
+          color: "#fff",
+          backdropFilter: "blur(6px)",
+        }}
+      >
         {theme.os === "ios" ? "iOS" : "Android"}
       </div>
 
