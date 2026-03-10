@@ -26,6 +26,7 @@ export const PreviewChatRoomMockup = () => {
     inputBarBg: chatRoom.inputBarBg,
     inputBarText: chatRoom.inputBarText,
     inputFieldBg: chatRoom.inputFieldBg,
+    inputFieldBgAlpha: chatRoom.inputFieldBgAlpha,
     menuButtonFg: chatRoom.menuButtonFg,
     sendBtnBg: chatRoom.sendButtonBg,
     passcodeBg: passcode.backgroundColor,

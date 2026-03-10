@@ -11,7 +11,13 @@ export const PreviewChatRoomInputMockup = () => {
 
   const inputBarBg = chatRoom.inputBarBg;
   const inputBarText = chatRoom.inputBarText;
-  const inputFieldBg = chatRoom.inputFieldBg;
+  const rawFieldBg = chatRoom.inputFieldBg;
+  const alpha = chatRoom.inputFieldBgAlpha ?? 1;
+  const hex = rawFieldBg.replace('#', '');
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  const inputFieldBg = `rgba(${r},${g},${b},${alpha})`;
   const sendBtnBg = chatRoom.sendButtonBg;
   const sendBtnFg = chatRoom.sendButtonFg;
   const sendBtnHighlightBg = chatRoom.sendButtonHighlightBg;

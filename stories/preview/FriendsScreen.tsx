@@ -92,6 +92,7 @@ export interface ScreenThemeConfig {
   inputBarBg: string;
   inputBarText?: string;
   inputFieldBg?: string;
+  inputFieldBgAlpha?: number;
   menuButtonFg?: string;
   sendBtnBg: string;
   passcodeBg: string;

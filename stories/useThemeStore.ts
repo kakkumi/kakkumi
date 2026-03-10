@@ -60,6 +60,7 @@ type ThemeState = {
     inputBarBg: string;
     inputBarText: string;
     inputFieldBg: string;
+    inputFieldBgAlpha: number;
     sendButtonBg: string;
     sendButtonFg: string;
     sendButtonHighlightBg: string;
@@ -149,6 +150,7 @@ export const useThemeStore = create<ThemeState>((set) => ({
     inputBarBg: '#FFFFFF',
     inputBarText: '#8E8E93',
     inputFieldBg: '#F2F2F7',
+    inputFieldBgAlpha: 0.04,
     sendButtonBg: '#FEE500',
     sendButtonFg: '#3A1D1D',
     sendButtonHighlightBg: '#E6CE00',

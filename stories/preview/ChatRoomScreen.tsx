@@ -53,6 +53,14 @@ function BubbleBox({ bgColor, textColor, children, side, order }: Omit<BubbleBox
 }
 
 export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { config: ScreenThemeConfig }) {
+  const alpha = config.inputFieldBgAlpha ?? 1;
+  const rawFieldBg = config.inputFieldBg ?? '#e8e8e8';
+  const hex = rawFieldBg.replace('#', '');
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  const inputFieldBgWithAlpha = `rgba(${r},${g},${b},${alpha})`;
+
   const chatRoom = {
     backgroundColor: config.chatBg,
     myBubbleBg: config.myBubbleBg,
@@ -63,7 +71,7 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { c
     friendBubbleUnreadText: config.friendBubbleUnreadText ?? '#FF3B30',
     inputBarBg: config.inputBarBg,
     inputBarText: config.inputBarText ?? '#8E8E93',
-    inputFieldBg: config.inputFieldBg ?? '#e8e8e8',
+    inputFieldBg: inputFieldBgWithAlpha,
     menuButtonFg: config.menuButtonFg ?? '#353434',
     menuButtonBg: 'rgba(0,0,0,0.04)',
     bubbleSend1: config.bubbleSend1Url || undefined,
