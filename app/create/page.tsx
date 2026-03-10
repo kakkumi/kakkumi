@@ -323,11 +323,13 @@ const ColorRow = memo(function ColorRow({ label, value, onChange, tooltip, disab
 });
 
 /* ── 이미지 업로드 행 ── */
-const ImageUploadRow = memo(function ImageUploadRow({ label, tooltip, imgKey, imageUploads, onUpload, onRemove }: {
+const ImageUploadRow = memo(function ImageUploadRow({ label, tooltip, imgKey, imageUploads, onUpload, onRemove, badge, badgeColor }: {
   label: string; tooltip: string; imgKey: string;
   imageUploads: Record<string, string>;
   onUpload: (key: string, file: File) => void;
   onRemove?: (key: string) => void;
+  badge?: string;
+  badgeColor?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -344,6 +346,9 @@ const ImageUploadRow = memo(function ImageUploadRow({ label, tooltip, imgKey, im
         <div className="flex flex-col gap-0.5">
           <div className="flex items-center gap-2">
             <span className="text-[12px] font-medium text-gray-500">{label}</span>
+            {badge && (
+              <span className="text-[10px] font-semibold" style={{ color: badgeColor ?? '#9ca3af' }}>{badge}</span>
+            )}
             {tooltip && (
               <div className="group/tip relative flex items-center">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
@@ -719,6 +724,7 @@ export default function CreatePage() {
   const [bulletEmptyColor, setBulletEmptyColor] = useState("#191919");
   const [bulletFillColor, setBulletFillColor] = useState("#4a7bf7");
   const [keypadPressedOn, setKeypadPressedOn] = useState(true);
+  const [defaultProfileOn, setDefaultProfileOn] = useState(false);
 
   const [selectedSettingKey, setSelectedSettingKey] = useState<string | null>(null);
   const [themeLoaded, setThemeLoaded] = useState(false);
@@ -1066,7 +1072,7 @@ export default function CreatePage() {
       const themeName = config.name.replace(/\s/g, "_");
 
       // CSS 생성
-      zip.file("KakaoTalkTheme.css", generateCSS(config, imageUploads, passcodeBgMode, bulletEmptyMode, bulletFillMode, keypadPressedOn, tabBgMode));
+      zip.file("KakaoTalkTheme.css", generateCSS(config, imageUploads, passcodeBgMode, bulletEmptyMode, bulletFillMode, keypadPressedOn, tabBgMode, defaultProfileOn));
 
       // 업로드된 이미지를 Images/ 폴더에 포함
       const imageFileMap: Record<string, string> = {
@@ -1093,6 +1099,9 @@ export default function CreatePage() {
         bulletEmpty: "passcodeImgCode@3x.png",
         bulletFill: "passcodeImgCodeSelected@3x.png",
         passcodeKeypadPressed: "passcodeKeypadPressed@3x.png",
+        profileImg01: "profileImg01@3x.png",
+        profileImg02: "profileImg02@3x.png",
+        profileImg03: "profileImg03@3x.png",
       };
 
       // 모드에 따라 실제 사용할 imageUploads 키 결정
@@ -1110,6 +1119,7 @@ export default function CreatePage() {
           if (key === "tabBg" && tabBgMode === "color") return false;
           if (key === "bulletEmpty" && bulletEmptyMode === "default") return false;
           if (key === "passcodeKeypadPressed" && !keypadPressedOn) return false;
+          if ((key === "profileImg01" || key === "profileImg02" || key === "profileImg03") && !defaultProfileOn) return false;
           return !!resolvedUploads[key];
         })
         .map(async ([key, filename]) => {
@@ -1668,6 +1678,52 @@ export default function CreatePage() {
                   <ColorRow label="친구칩 리스트 Pressed" value={config.friendsSelectedBg} onChange={(v) => { set("friendsSelectedBg")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-selected-background-color" />
                   <MacInput label="선택 배경 투명도" hint="(-ios-selected-background-alpha)" value={config.selectedBgAlpha} onChange={set("selectedBgAlpha")} type="slider" />
                 </Accordion>
+                <hr className="border-t border-gray-300 mx-2 mb-4" />
+                <Accordion title="기본 프로필 이미지" badge="DefaultProfileStyle">
+                  {/* 기본 프로필 이미지 on/off 스위치 */}
+                  <div className="flex items-center justify-between px-2.5 py-1 mb-1">
+                    <span className="text-[12px] font-medium text-gray-500">기본 프로필 이미지</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDefaultProfileOn(prev => {
+                          if (prev) {
+                            // off로 전환 시 업로드된 이미지 제거
+                            setImageUploads(u => {
+                              const next = { ...u };
+                              delete next['profileImg01'];
+                              delete next['profileImg02'];
+                              delete next['profileImg03'];
+                              return next;
+                            });
+                          }
+                          return !prev;
+                        });
+                      }}
+                      style={{
+                        width: 36, height: 20, borderRadius: 10,
+                        backgroundColor: defaultProfileOn ? 'rgb(74,123,247)' : '#d1d5db',
+                        position: 'relative', border: 'none', cursor: 'pointer', transition: 'background 0.2s',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <span style={{
+                        position: 'absolute', top: 2,
+                        left: defaultProfileOn ? 18 : 2,
+                        width: 16, height: 16, borderRadius: '50%',
+                        backgroundColor: '#fff', transition: 'left 0.2s',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                      }} />
+                    </button>
+                  </div>
+                  {defaultProfileOn && (
+                    <>
+                      <ImageUploadRow label="프로필 이미지 01" badge="(필수)" badgeColor="rgb(248,113,113)" tooltip="profileImg01@3x.png" imgKey="profileImg01" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                      <ImageUploadRow label="프로필 이미지 02" badge="(선택)" tooltip="profileImg02@3x.png" imgKey="profileImg02" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                      <ImageUploadRow label="프로필 이미지 03" badge="(선택)" tooltip="profileImg03@3x.png" imgKey="profileImg03" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                    </>
+                  )}
+                </Accordion>
               </>
             )}
 
@@ -2105,7 +2161,7 @@ export default function CreatePage() {
   );
 }
 
-function generateCSS(config: ThemeConfig, imageUploads: Record<string, string> = {}, passcodeBgMode: "color" | "image" = "color", bulletEmptyMode: "default" | "color" | "image" = "default", bulletFillMode: "color" | "image" = "color", keypadPressedOn = true, tabBgMode: "color" | "image" = "color"): string {
+function generateCSS(config: ThemeConfig, imageUploads: Record<string, string> = {}, passcodeBgMode: "color" | "image" = "color", bulletEmptyMode: "default" | "color" | "image" = "default", bulletFillMode: "color" | "image" = "color", keypadPressedOn = true, tabBgMode: "color" | "image" = "color", defaultProfileOn = false): string {
   const img = (key: string, filename: string) =>
     imageUploads[key] ? `\n    -ios-background-image: '${filename}';` : "";
 
@@ -2197,8 +2253,15 @@ SectionTitleStyle-Main
 */
 
 DefaultProfileStyle
-{${imageUploads["defaultProfile"] ? `
-    -ios-profile-images: 'profileImg01@2x.png';` : ""}
+{${(() => {
+  if (!defaultProfileOn) return '';
+  const imgs = [
+    imageUploads['profileImg01'] ? `'profileImg01@3x.png'` : '',
+    imageUploads['profileImg02'] ? `'profileImg02@3x.png'` : '',
+    imageUploads['profileImg03'] ? `'profileImg03@3x.png'` : '',
+  ].filter(Boolean);
+  return imgs.length > 0 ? `\n    -ios-profile-images: ${imgs.join(' ')};` : '';
+})()}
 }
 
 
