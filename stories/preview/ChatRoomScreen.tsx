@@ -52,7 +52,7 @@ function BubbleBox({ bgColor, textColor, children, side, order }: Omit<BubbleBox
   );
 }
 
-export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { config: ScreenThemeConfig }) {
+export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config, hideContent }: { config: ScreenThemeConfig; hideContent?: boolean }) {
   const alpha = config.inputFieldBgAlpha ?? 1;
   const rawFieldBg = config.inputFieldBg ?? '#e8e8e8';
   const hex = rawFieldBg.replace('#', '');
@@ -92,7 +92,7 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { c
     }}>
 
       {/* 헤더 */}
-      <header style={{ ...headerBaseStyle, color: '#191919' }}>
+      {!hideContent && <header style={{ ...headerBaseStyle, color: '#191919' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: 60 }}>
           <span style={{ cursor: 'pointer', color: '#3c2a2a', display: 'flex', alignItems: 'center', gap: 4 }}>
             <svg width="13" height="18" viewBox="0 0 16 22" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginTop: 3 }}>
@@ -108,10 +108,10 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { c
           <Search size={20} strokeWidth={2.3} color="#191919" />
           <Menu size={20} strokeWidth={2.3} color="#191919" />
         </div>
-      </header>
+      </header>}
 
       {/* 대화 영역 */}
-      <main style={{
+      {!hideContent && <main style={{
         flex: 1, paddingTop: 8, paddingLeft: 8, paddingRight: 16, paddingBottom: 16,
         display: 'flex', flexDirection: 'column', gap: 10,
         overflowY: 'auto', overflowX: 'visible', zIndex: 10,
@@ -220,7 +220,8 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { c
           </div>
         </div>
 
-      </main>
+      </main>}
+      {hideContent && <div style={{ flex: 1 }} />}
 
       {/* 하단 입력바 */}
       <footer style={{ backgroundColor: chatRoom.inputBarBg, padding: '10px 16px 17px 16px', display: 'flex', gap: 10, alignItems: 'center', borderTop: '1px solid rgba(0,0,0,0.08)', zIndex: 10 }}>

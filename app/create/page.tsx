@@ -947,6 +947,7 @@ export default function CreatePage() {
       shopping: "SHOPPING",
       more: "MORE",
       passcode: "PASSCODE",
+      notification: "CHATROOM",
     };
 
     setCurrentScreen(screenMap[previewTab]);
@@ -1513,8 +1514,8 @@ export default function CreatePage() {
               </div>
             ) : os === "ios" && previewTab === "notification" ? (
               <div className="flex items-start gap-8">
-                <PreviewChatRoomMockup />
-                <PreviewChatRoomMockup />
+                <PreviewChatRoomMockup hideContent={true} />
+                <PreviewChatRoomMockup hideContent={true} />
               </div>
             ) : os === "ios" ? (
               <PreviewMockup disableTabNavigation mainBgImageUrl={imageUploads.mainBg} />

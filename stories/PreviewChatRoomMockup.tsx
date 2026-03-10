@@ -3,7 +3,7 @@ import { ScreenThemeConfig } from './preview/FriendsScreen';
 import { frameStyle } from './preview/styles';
 import { useThemeStore } from './useThemeStore';
 
-export const PreviewChatRoomMockup = () => {
+export const PreviewChatRoomMockup = ({ hideContent }: { hideContent?: boolean } = {}) => {
   const globalStore = useThemeStore((state) => state.global);
   const tabBar = useThemeStore((state) => state.tabBar);
   const chatRoom = useThemeStore((state) => state.chatRoom);
@@ -78,7 +78,7 @@ export const PreviewChatRoomMockup = () => {
 
         <section style={frameStyle}>
           <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
-            <ChatRoomScreen config={screenConfig} />
+            <ChatRoomScreen config={screenConfig} hideContent={hideContent} />
           </div>
         </section>
       </div>
