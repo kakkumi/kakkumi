@@ -50,8 +50,17 @@ export const PasscodeScreen = React.memo(function PasscodeScreen({ config }: { c
         <div style={{ display: 'flex', gap: 0, marginTop: 28, alignItems: 'center', height: 40 }}>
           <div style={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: config.bulletFillColor ?? '#4a7bf7', margin: '0 13px' }} />
           <div style={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: config.bulletFillColor ?? '#4a7bf7', margin: '0 13px' }} />
-          <div style={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: config.bulletEmptyColor ?? '#191919', margin: '0 13px' }} />
-          <div style={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: config.bulletEmptyColor ?? '#191919', margin: '0 13px' }} />
+          {config.bulletEmptyDefault ? (
+            <>
+              <div style={{ width: 14, height: 2, borderRadius: 1, backgroundColor: '#aaaaaa', margin: '0 13px' }} />
+              <div style={{ width: 14, height: 2, borderRadius: 1, backgroundColor: '#aaaaaa', margin: '0 13px' }} />
+            </>
+          ) : (
+            <>
+              <div style={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: config.bulletEmptyColor ?? '#191919', margin: '0 13px' }} />
+              <div style={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: config.bulletEmptyColor ?? '#191919', margin: '0 13px' }} />
+            </>
+          )}
         </div>
       </section>
 

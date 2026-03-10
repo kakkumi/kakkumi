@@ -80,6 +80,7 @@ type ThemeState = {
     bgImageUrl?: string;
     bulletEmptyColor?: string;
     bulletFillColor?: string;
+    bulletEmptyDefault?: boolean;
   };
   setCurrentScreen: (screen: ScreenType) => void;
   setActiveElementId: (id: ActiveElementId) => void;

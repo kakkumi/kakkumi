@@ -583,7 +583,7 @@ function AndroidChatRoomMockup({ config }: { config: ThemeConfig }) {
   );
 }
 
-function AndroidMockup({ config, previewTab, imageUploads, passcodeBgMode, bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor }: { config: ThemeConfig; previewTab: PreviewTab; imageUploads: Record<string, string>; passcodeBgMode: "color" | "image"; bulletEmptyMode: "color" | "image"; bulletFillMode: "color" | "image"; bulletEmptyColor: string; bulletFillColor: string }) {
+function AndroidMockup({ config, previewTab, imageUploads, passcodeBgMode, bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor }: { config: ThemeConfig; previewTab: PreviewTab; imageUploads: Record<string, string>; passcodeBgMode: "color" | "image"; bulletEmptyMode: "default" | "color" | "image"; bulletFillMode: "color" | "image"; bulletEmptyColor: string; bulletFillColor: string }) {
   const passcodeBgImgUrl = imageUploads["passcodeBgImg"];
   const screenConfig = useMemo(() => ({
     bodyBg: config.bodyBg,
@@ -614,6 +614,7 @@ function AndroidMockup({ config, previewTab, imageUploads, passcodeBgMode, bulle
     chatListSelectedBgAlpha: config.selectedBgAlpha,
     passcodeBgImageUrl: passcodeBgMode === "image" ? (passcodeBgImgUrl || undefined) : undefined,
     bulletEmptyColor: bulletEmptyMode === "color" ? bulletEmptyColor : undefined,
+    bulletEmptyDefault: bulletEmptyMode === "default",
     bulletFillColor: bulletFillMode === "color" ? bulletFillColor : undefined,
   }), [
     config.bodyBg, config.headerBg, config.headerText, config.primaryText, config.descText,
@@ -705,7 +706,7 @@ export default function CreatePage() {
   const [iconSvgUrl, setIconSvgUrl] = useState<string>("");
   const [iconImageUrl, setIconImageUrl] = useState<string>("");
   const [passcodeBgMode, setPasscodeBgMode] = useState<"color" | "image">("color");
-  const [bulletEmptyMode, setBulletEmptyMode] = useState<"color" | "image">("color");
+  const [bulletEmptyMode, setBulletEmptyMode] = useState<"default" | "color" | "image">("default");
   const [bulletFillMode, setBulletFillMode] = useState<"color" | "image">("color");
   const [bulletEmptyColor, setBulletEmptyColor] = useState("#191919");
   const [bulletFillColor, setBulletFillColor] = useState("#4a7bf7");
@@ -859,11 +860,12 @@ export default function CreatePage() {
         keypadTextColor: config.passcodeKeypadText,
         keypadBg: config.passcodeKeypadBg,
         bgImageUrl: passcodeBgMode === "image" ? (imageUploads['passcodeBgImg'] ?? '') : '',
-        bulletEmptyColor: bulletEmptyColor,
+        bulletEmptyColor: bulletEmptyMode === "color" ? bulletEmptyColor : undefined,
         bulletFillColor: bulletFillColor,
+        bulletEmptyDefault: bulletEmptyMode === "default",
       },
     });
-  }, [imageUploads, passcodeBgMode, bulletEmptyColor, bulletFillColor, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText, config.passcodeKeypadBg, setTheme]);
+  }, [imageUploads, passcodeBgMode, bulletEmptyMode, bulletEmptyColor, bulletFillColor, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText, config.passcodeKeypadBg, setTheme]);
 
   // iconOpts 변경 시 자동저장 트리거
   useEffect(() => {
@@ -1034,6 +1036,7 @@ export default function CreatePage() {
       const imgPromises = Object.entries(imageFileMap)
         .filter(([key]) => {
           if (key === "passcodeBgImg" && passcodeBgMode === "color") return false;
+          if (key === "bulletEmpty" && bulletEmptyMode === "default") return false;
           return !!imageUploads[key];
         })
         .map(async ([key, filename]) => {
@@ -1817,6 +1820,11 @@ export default function CreatePage() {
                   {/* 일반 불릿 */}
                   <div className="text-[11px] px-2.5 mt-3 mb-1.5 font-semibold" style={{color:"#6e6e73"}}>일반</div>
                   <div className="mx-2.5 mb-2 flex rounded-lg overflow-hidden border border-gray-200">
+                    <button type="button" onClick={() => setBulletEmptyMode("default")}
+                      className="flex-1 py-1.5 text-[11px] font-semibold transition-colors"
+                      style={{ backgroundColor: bulletEmptyMode === "default" ? "rgb(251,146,60)" : "#fff", color: bulletEmptyMode === "default" ? "#fff" : "#9ca3af" }}>
+                      기본
+                    </button>
                     <button type="button" onClick={() => setBulletEmptyMode("color")}
                       className="flex-1 py-1.5 text-[11px] font-semibold transition-colors"
                       style={{ backgroundColor: bulletEmptyMode === "color" ? "rgb(251,146,60)" : "#fff", color: bulletEmptyMode === "color" ? "#fff" : "#9ca3af" }}>
@@ -1828,7 +1836,7 @@ export default function CreatePage() {
                       이미지 업로드
                     </button>
                   </div>
-                  {bulletEmptyMode === "color" ? (
+                  {bulletEmptyMode === "color" && (
                     <div className="flex items-center justify-between px-2.5 py-1">
                       <span className="text-[12px] font-medium text-gray-500">불릿 색상</span>
                       <div className="flex items-center gap-2">
@@ -1841,7 +1849,8 @@ export default function CreatePage() {
                         <span className="text-[11px] font-mono text-gray-400 w-[56px] uppercase">{bulletEmptyColor}</span>
                       </div>
                     </div>
-                  ) : (
+                  )}
+                  {bulletEmptyMode === "image" && (
                     <ImageUploadRow label="일반 불릿 이미지" tooltip="passcodeImgCode@3x.png" imgKey="bulletEmpty" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
                   )}
                 </Accordion>
@@ -1934,7 +1943,7 @@ export default function CreatePage() {
   );
 }
 
-function generateCSS(config: ThemeConfig, imageUploads: Record<string, string> = {}, passcodeBgMode: "color" | "image" = "color", bulletEmptyMode: "color" | "image" = "color", bulletFillMode: "color" | "image" = "color"): string {
+function generateCSS(config: ThemeConfig, imageUploads: Record<string, string> = {}, passcodeBgMode: "color" | "image" = "color", bulletEmptyMode: "default" | "color" | "image" = "default", bulletFillMode: "color" | "image" = "color"): string {
   const img = (key: string, filename: string) =>
     imageUploads[key] ? `\n    -ios-background-image: '${filename}';` : "";
 

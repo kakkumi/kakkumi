@@ -122,6 +122,8 @@ export interface ScreenThemeConfig {
   passcodeBgImageUrl?: string;
   bulletEmptyColor?: string;
   bulletFillColor?: string;
+  bulletEmptyDefault?: boolean;
+  bulletEmptyDefault?: boolean;
 }
 
 export const FriendsScreen = React.memo(function FriendsScreen({ config }: { config: ScreenThemeConfig }) {
