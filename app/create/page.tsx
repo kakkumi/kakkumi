@@ -678,20 +678,22 @@ type EditorCategory =
   | "friends-tab"
   | "chat-tab"
   | "chatroom"
+  | "chat-inputbar"
   | "tabbar"
   | "more-tab"
   | "passcode"
   | "notification";
 
 const editorCategories: { key: EditorCategory; label: string }[] = [
-  { key: "manifest",    label: "테마 정보" },
-  { key: "friends-tab", label: "친구탭" },
-  { key: "chat-tab",    label: "채팅탭" },
-  { key: "chatroom",    label: "채팅방" },
-  { key: "tabbar",      label: "상·하단바" },
-  { key: "more-tab",    label: "더보기탭" },
-  { key: "passcode",    label: "잠금화면" },
-  { key: "notification", label: "알림/배너" },
+  { key: "manifest",      label: "테마 정보" },
+  { key: "friends-tab",   label: "친구탭" },
+  { key: "chat-tab",      label: "채팅탭" },
+  { key: "chatroom",      label: "채팅방" },
+  { key: "chat-inputbar", label: "채팅_인풋바" },
+  { key: "tabbar",        label: "상·하단바" },
+  { key: "more-tab",      label: "더보기탭" },
+  { key: "passcode",      label: "잠금화면" },
+  { key: "notification",  label: "알림/배너" },
 ];
 
 export default function CreatePage() {
@@ -1444,7 +1446,7 @@ export default function CreatePage() {
           <div className="flex flex-col px-2 gap-0.5 overflow-y-auto flex-1">
             {editorCategories.map((category, idx) => {
               const isActive = activeEditorCategory === category.key;
-              const separatorBefore = idx === 5; // 더보기탭 앞 구분선
+              const separatorBefore = idx === 6; // 상·하단바 앞 구분선
               return (
                 <div key={category.key}>
                   {separatorBefore && (
@@ -1452,7 +1454,10 @@ export default function CreatePage() {
                   )}
                   <button
                     type="button"
-                    onClick={() => setActiveEditorCategory(category.key)}
+                    onClick={() => {
+                      setActiveEditorCategory(category.key);
+                      if (category.key === "chat-inputbar") setPreviewTab("chat");
+                    }}
                     className="w-full text-left px-3 py-2 rounded-lg text-[12.5px] transition-all duration-150 flex items-center gap-2"
                     style={{
                       color: isActive ? "rgb(255, 149, 0)" : "#6b6b6b",
@@ -1750,6 +1755,23 @@ export default function CreatePage() {
                   </div>
                   <ColorRow label="텍스트 컬러" value={config.otherBubbleText} onChange={set("otherBubbleText")} tooltip="-ios-text-color" />
                   <ColorRow label="읽지않은 메시지 숫자 컬러" value={config.otherBubbleUnreadText} onChange={set("otherBubbleUnreadText")} tooltip="-ios-unread-text-color" />
+                </Accordion>
+
+              </>
+            )}
+
+            {activeEditorCategory === "chat-inputbar" && (
+              <>
+                <Accordion title="인풋바" badge="InputBarStyle-Chat">
+                  <ColorRow label="배경 컬러" value={config.inputBarBg} onChange={set("inputBarBg")} tooltip="background-color" />
+                  <ColorRow label="전송 버튼 기본 배경" value={config.sendBtnBg} onChange={set("sendBtnBg")} tooltip="-ios-send-normal-background-color" />
+                  <ColorRow label="전송 버튼 눌림 배경" value={config.sendBtnHighlightBg} onChange={set("sendBtnHighlightBg")} tooltip="-ios-send-highlighted-background-color" />
+                  <ColorRow label="전송 버튼 기본 아이콘" value={config.sendBtnIcon} onChange={set("sendBtnIcon")} tooltip="-ios-send-normal-foreground-color" />
+                  <ColorRow label="전송 버튼 눌림 아이콘" value={config.sendBtnHighlightIcon} onChange={set("sendBtnHighlightIcon")} tooltip="-ios-send-highlighted-foreground-color" />
+                  <ColorRow label="메뉴 버튼 기본 아이콘" value={config.menuBtnColor} onChange={set("menuBtnColor")} tooltip="-ios-button-normal-foreground-color" />
+                  <ColorRow label="메뉴 버튼 눌림 아이콘" value={config.menuBtnHighlightColor} onChange={set("menuBtnHighlightColor")} tooltip="-ios-button-highlighted-foreground-color" />
+                  <ColorRow label="텍스트 컬러" value={config.inputBarText} onChange={set("inputBarText")} tooltip="-ios-button-text-color" />
+                  <ColorRow label="입력 필드 배경" value={config.inputFieldBg} onChange={set("inputFieldBg")} tooltip="-ios-button-normal-background-color" />
                 </Accordion>
 
               </>
