@@ -15,6 +15,12 @@ export type SavedTheme = {
   os: string;
   folderId?: string | null;
   trashed: boolean;
+  themeColors?: {
+    chatBg: string | null;
+    myBubbleBg: string | null;
+    otherBubbleBg: string | null;
+    chatroomBgImage: string | null;
+  } | null;
 };
 
 export type ThemeFolder = {
@@ -756,6 +762,41 @@ function ThemeCard({ theme, isTrash, selected, onSelect, onTrash, onRestore, onP
         {theme.previewImageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={theme.previewImageUrl} alt={theme.name} className="w-full h-full object-cover" />
+        ) : theme.themeColors ? (
+          /* ── 색상 기반 약식 미리보기 ── */
+          <div
+            className="w-full h-full flex flex-col justify-end"
+            style={{
+              backgroundColor: theme.themeColors.chatBg ?? "#B2C7D9",
+              ...(theme.themeColors.chatroomBgImage
+                ? { backgroundImage: `url(${theme.themeColors.chatroomBgImage})`, backgroundSize: "cover", backgroundPosition: "center" }
+                : {}),
+            }}
+          >
+            {/* 말풍선 영역 */}
+            <div className="flex flex-col gap-1.5 px-2 pb-3">
+              {/* 받은 말풍선 */}
+              <div className="flex items-end gap-1">
+                <div className="w-4 h-4 rounded-full shrink-0" style={{ background: "rgba(0,0,0,0.15)" }} />
+                <div className="rounded-xl rounded-tl-sm" style={{ background: theme.themeColors.otherBubbleBg ?? "#fff", width: "42%", height: 14 }} />
+              </div>
+              {/* 보낸 말풍선 */}
+              <div className="flex justify-end">
+                <div className="rounded-xl rounded-tr-sm" style={{ background: theme.themeColors.myBubbleBg ?? "#FEE500", width: "50%", height: 14 }} />
+              </div>
+              {/* 받은 말풍선 짧은 것 */}
+              <div className="flex items-end gap-1">
+                <div className="w-4 h-4 rounded-full shrink-0 opacity-0" />
+                <div className="rounded-xl rounded-tl-sm" style={{ background: theme.themeColors.otherBubbleBg ?? "#fff", width: "30%", height: 14 }} />
+              </div>
+            </div>
+            {/* 하단 색상 힌트 바 */}
+            <div className="flex items-center gap-1.5 px-2 py-1.5" style={{ background: "rgba(0,0,0,0.22)", backdropFilter: "blur(4px)" }}>
+              <div className="w-2.5 h-2.5 rounded-full ring-1 ring-white/30" style={{ background: theme.themeColors.chatBg ?? "#B2C7D9" }} />
+              <div className="w-2.5 h-2.5 rounded-full ring-1 ring-white/30" style={{ background: theme.themeColors.myBubbleBg ?? "#FEE500" }} />
+              <div className="w-2.5 h-2.5 rounded-full ring-1 ring-white/30" style={{ background: theme.themeColors.otherBubbleBg ?? "#fff" }} />
+            </div>
+          </div>
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center gap-2"
             style={{ background: "rgba(255,149,0,0.05)" }}>

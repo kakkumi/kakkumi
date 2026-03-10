@@ -33,9 +33,31 @@ export async function GET() {
         },
     });
 
-    const themes = await prisma.myTheme.findMany({
+    const rawThemes = await prisma.myTheme.findMany({
         where: { userId: session.dbId },
         orderBy: { createdAt: "desc" },
+    });
+
+    const themes = rawThemes.map((t) => {
+        const cfg = (t.configJson ?? {}) as Record<string, unknown>;
+        const imgData = (t.imageData ?? {}) as Record<string, unknown>;
+        return {
+            id: t.id,
+            name: t.name,
+            os: t.os,
+            createdAt: t.createdAt,
+            updatedAt: t.updatedAt,
+            trashedAt: t.trashedAt,
+            trashed: t.trashed,
+            folderId: t.folderId,
+            previewImageUrl: t.previewImageUrl,
+            themeColors: {
+                chatBg: typeof cfg.chatBg === "string" ? cfg.chatBg : null,
+                myBubbleBg: typeof cfg.myBubbleBg === "string" ? cfg.myBubbleBg : null,
+                otherBubbleBg: typeof cfg.otherBubbleBg === "string" ? cfg.otherBubbleBg : null,
+                chatroomBgImage: typeof imgData.chatroomBg === "string" ? imgData.chatroomBg : null,
+            },
+        };
     });
 
     return NextResponse.json({ themes });
