@@ -3,7 +3,7 @@ import { ScreenThemeConfig } from './preview/FriendsScreen';
 import { frameStyle } from './preview/styles';
 import { useThemeStore } from './useThemeStore';
 
-export const PreviewChatRoomMockup = ({ hideContent }: { hideContent?: boolean } = {}) => {
+export const PreviewChatRoomMockup = ({ hideContent, bannerType, notifBannerBg, notifBannerNameColor, notifBannerMsgColor, directShareBg, directShareNameColor, directShareMsgColor }: { hideContent?: boolean; bannerType?: 'notif' | 'directShare'; notifBannerBg?: string; notifBannerNameColor?: string; notifBannerMsgColor?: string; directShareBg?: string; directShareNameColor?: string; directShareMsgColor?: string } = {}) => {
   const globalStore = useThemeStore((state) => state.global);
   const tabBar = useThemeStore((state) => state.tabBar);
   const chatRoom = useThemeStore((state) => state.chatRoom);
@@ -28,6 +28,12 @@ export const PreviewChatRoomMockup = ({ hideContent }: { hideContent?: boolean }
     inputFieldBg: chatRoom.inputFieldBg,
     inputFieldBgAlpha: chatRoom.inputFieldBgAlpha,
     menuButtonFg: chatRoom.menuButtonFg,
+    notifBannerBg: notifBannerBg,
+    notifBannerNameColor: notifBannerNameColor,
+    notifBannerMsgColor: notifBannerMsgColor,
+    directShareBg: directShareBg,
+    directShareNameColor: directShareNameColor,
+    directShareMsgColor: directShareMsgColor,
     sendBtnBg: chatRoom.sendButtonBg,
     passcodeBg: passcode.backgroundColor,
     passcodeTitleText: passcode.titleColor,
@@ -78,7 +84,7 @@ export const PreviewChatRoomMockup = ({ hideContent }: { hideContent?: boolean }
 
         <section style={frameStyle}>
           <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
-            <ChatRoomScreen config={screenConfig} hideContent={hideContent} />
+            <ChatRoomScreen config={screenConfig} hideContent={hideContent} bannerType={bannerType} />
           </div>
         </section>
       </div>

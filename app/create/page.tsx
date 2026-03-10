@@ -1514,8 +1514,8 @@ export default function CreatePage() {
               </div>
             ) : os === "ios" && previewTab === "notification" ? (
               <div className="flex items-start gap-8">
-                <PreviewChatRoomMockup hideContent={true} />
-                <PreviewChatRoomMockup hideContent={true} />
+                <PreviewChatRoomMockup hideContent={true} bannerType="notif" notifBannerBg={config.notifBannerBg} notifBannerNameColor={config.notifBannerNameText} notifBannerMsgColor={config.notifBannerMsgText} />
+                <PreviewChatRoomMockup hideContent={true} bannerType="directShare" directShareBg={config.directShareBg} directShareNameColor={config.directShareNameText} directShareMsgColor={config.directShareMsgText} />
               </div>
             ) : os === "ios" ? (
               <PreviewMockup disableTabNavigation mainBgImageUrl={imageUploads.mainBg} />

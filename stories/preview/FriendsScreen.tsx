@@ -94,6 +94,12 @@ export interface ScreenThemeConfig {
   inputFieldBg?: string;
   inputFieldBgAlpha?: number;
   menuButtonFg?: string;
+  notifBannerBg?: string;
+  notifBannerNameColor?: string;
+  notifBannerMsgColor?: string;
+  directShareBg?: string;
+  directShareNameColor?: string;
+  directShareMsgColor?: string;
   sendBtnBg: string;
   passcodeBg: string;
   passcodeTitleText: string;
