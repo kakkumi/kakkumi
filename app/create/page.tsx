@@ -616,6 +616,10 @@ function AndroidMockup({ config, previewTab, imageUploads, passcodeBgMode, bulle
     bulletEmptyColor: bulletEmptyMode === "color" ? bulletEmptyColor : undefined,
     bulletEmptyDefault: bulletEmptyMode === "default",
     bulletFillColor: bulletFillMode === "color" ? bulletFillColor : undefined,
+    bulletEmptyImageUrl: bulletEmptyMode === "image" ? (imageUploads['bulletEmpty'] ?? undefined) : undefined,
+    bulletFillImageUrl: bulletFillMode === "image" ? (imageUploads['bulletFill'] ?? undefined) : undefined,
+    passcodeKeypadPressedImageUrl: keypadPressedOn ? (imageUploads['passcodeKeypadPressed'] ?? undefined) : undefined,
+    passcodeKeypadPressedOn: keypadPressedOn,
   }), [
     config.bodyBg, config.headerBg, config.headerText, config.primaryText, config.descText,
     config.tabBarBg, config.tabBarIcon, config.tabBarSelectedIcon, config.friendsSelectedBg,
@@ -625,6 +629,7 @@ function AndroidMockup({ config, previewTab, imageUploads, passcodeBgMode, bulle
     config.chatListHighlightText, config.chatListLastMsgHighlightText, config.selectedBgAlpha,
     passcodeBgImgUrl, passcodeBgMode,
     bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor,
+    imageUploads, keypadPressedOn,
   ]);
 
   const renderScreen = () => {
@@ -710,6 +715,7 @@ export default function CreatePage() {
   const [bulletFillMode, setBulletFillMode] = useState<"color" | "image">("color");
   const [bulletEmptyColor, setBulletEmptyColor] = useState("#191919");
   const [bulletFillColor, setBulletFillColor] = useState("#4a7bf7");
+  const [keypadPressedOn, setKeypadPressedOn] = useState(true);
 
   const [selectedSettingKey, setSelectedSettingKey] = useState<string | null>(null);
   const [themeLoaded, setThemeLoaded] = useState(false);
@@ -783,7 +789,7 @@ export default function CreatePage() {
   }, [themeIdParam]);
 
   // ── 자동저장 훅 ──
-  const { status: autoSaveStatus, triggerDebounce, triggerImmediateAfterReset } = useAutoSave({
+  const { status: autoSaveStatus, triggerDebounce, triggerImmediate, triggerImmediateAfterReset } = useAutoSave({
     config,
     os,
     imageUploads,
@@ -861,11 +867,15 @@ export default function CreatePage() {
         keypadBg: config.passcodeKeypadBg,
         bgImageUrl: passcodeBgMode === "image" ? (imageUploads['passcodeBgImg'] ?? '') : '',
         bulletEmptyColor: bulletEmptyMode === "color" ? bulletEmptyColor : undefined,
-        bulletFillColor: bulletFillColor,
+        bulletFillColor: bulletFillMode === "color" ? bulletFillColor : undefined,
         bulletEmptyDefault: bulletEmptyMode === "default",
+        bulletEmptyImageUrl: bulletEmptyMode === "image" ? (imageUploads['bulletEmpty'] ?? undefined) : undefined,
+        bulletFillImageUrl: bulletFillMode === "image" ? (imageUploads['bulletFill'] ?? undefined) : undefined,
+        keypadPressedImageUrl: keypadPressedOn ? (imageUploads['passcodeKeypadPressed'] ?? undefined) : undefined,
+        keypadPressedOn: keypadPressedOn,
       },
     });
-  }, [imageUploads, passcodeBgMode, bulletEmptyMode, bulletEmptyColor, bulletFillColor, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText, config.passcodeKeypadBg, setTheme]);
+  }, [imageUploads, passcodeBgMode, bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor, keypadPressedOn, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText, config.passcodeKeypadBg, setTheme]);
 
   // iconOpts 변경 시 자동저장 트리거
   useEffect(() => {
@@ -878,6 +888,12 @@ export default function CreatePage() {
     triggerDebounce();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bulletEmptyColor, bulletFillColor, bulletEmptyMode, bulletFillMode]);
+
+  // passcodeBgMode, keypadPressedOn 변경 시 즉시 자동저장 트리거
+  useEffect(() => {
+    triggerImmediate();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [passcodeBgMode, keypadPressedOn]);
 
   useEffect(() => {
     const screenMap: Record<PreviewTab, ScreenType> = {
@@ -988,13 +1004,13 @@ export default function CreatePage() {
   // 불릿 색상 변경 시 PNG 자동 생성 (초기 포함)
   useEffect(() => {
     if (bulletEmptyMode === "color") {
-      void generateBulletPng(bulletEmptyColor, "bulletEmpty");
+      void generateBulletPng(bulletEmptyColor, "bulletEmptyColorPng");
     }
   }, [bulletEmptyColor, bulletEmptyMode, generateBulletPng]);
 
   useEffect(() => {
     if (bulletFillMode === "color") {
-      void generateBulletPng(bulletFillColor, "bulletFill");
+      void generateBulletPng(bulletFillColor, "bulletFillColorPng");
     }
   }, [bulletFillColor, bulletFillMode, generateBulletPng]);
 
@@ -1005,7 +1021,7 @@ export default function CreatePage() {
       const themeName = config.name.replace(/\s/g, "_");
 
       // CSS 생성
-      zip.file("KakaoTalkTheme.css", generateCSS(config, imageUploads, passcodeBgMode, bulletEmptyMode, bulletFillMode));
+      zip.file("KakaoTalkTheme.css", generateCSS(config, imageUploads, passcodeBgMode, bulletEmptyMode, bulletFillMode, keypadPressedOn));
 
       // 업로드된 이미지를 Images/ 폴더에 포함
       const imageFileMap: Record<string, string> = {
@@ -1031,17 +1047,28 @@ export default function CreatePage() {
         passcodeBgImg: "passcodeBgImage@2x.png",
         bulletEmpty: "passcodeImgCode@3x.png",
         bulletFill: "passcodeImgCodeSelected@3x.png",
+        passcodeKeypadPressed: "passcodeKeypadPressed@3x.png",
       };
+
+      // 모드에 따라 실제 사용할 imageUploads 키 결정
+      const resolvedUploads: Record<string, string> = { ...imageUploads };
+      if (bulletEmptyMode === "color") {
+        resolvedUploads["bulletEmpty"] = imageUploads["bulletEmptyColorPng"] ?? "";
+      }
+      if (bulletFillMode === "color") {
+        resolvedUploads["bulletFill"] = imageUploads["bulletFillColorPng"] ?? "";
+      }
 
       const imgPromises = Object.entries(imageFileMap)
         .filter(([key]) => {
           if (key === "passcodeBgImg" && passcodeBgMode === "color") return false;
           if (key === "bulletEmpty" && bulletEmptyMode === "default") return false;
-          return !!imageUploads[key];
+          if (key === "passcodeKeypadPressed" && !keypadPressedOn) return false;
+          return !!resolvedUploads[key];
         })
         .map(async ([key, filename]) => {
           try {
-            const res = await fetch(imageUploads[key]);
+            const res = await fetch(resolvedUploads[key]);
             const blob = await res.blob();
             zip.file(`Images/${filename}`, blob);
           } catch { /* skip */ }
@@ -1858,7 +1885,31 @@ export default function CreatePage() {
                 <Accordion title="키패드" badge="PasscodeStyle">
                   <ColorRow label="배경색" value={config.passcodeKeypadBg} onChange={set("passcodeKeypadBg")} tooltip="-ios-keypad-background-color" />
                   <ColorRow label="숫자 컬러" value={config.passcodeKeypadText} onChange={set("passcodeKeypadText")} tooltip="-ios-keypad-text-normal-color" />
-                  <ImageUploadRow label="프레스 이미지" tooltip="passcodeKeypadPressed.png" imgKey="passcodeKeypadPressed" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  {/* 프레스 이미지 스위치 */}
+                  <div className="flex items-center justify-between px-2.5 py-1 mb-1">
+                    <span className="text-[12px] font-medium text-gray-500">프레스 이미지</span>
+                    <button
+                      type="button"
+                      onClick={() => setKeypadPressedOn(prev => !prev)}
+                      style={{
+                        width: 36, height: 20, borderRadius: 10,
+                        backgroundColor: keypadPressedOn ? 'rgb(74,123,247)' : '#d1d5db',
+                        position: 'relative', border: 'none', cursor: 'pointer', transition: 'background 0.2s',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <span style={{
+                        position: 'absolute', top: 2,
+                        left: keypadPressedOn ? 18 : 2,
+                        width: 16, height: 16, borderRadius: '50%',
+                        backgroundColor: '#fff', transition: 'left 0.2s',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                      }} />
+                    </button>
+                  </div>
+                  {keypadPressedOn && (
+                    <ImageUploadRow label="프레스 이미지" tooltip="passcodeKeypadPressed@3x.png" imgKey="passcodeKeypadPressed" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                  )}
                 </Accordion>
               </>
             )}
@@ -1943,7 +1994,7 @@ export default function CreatePage() {
   );
 }
 
-function generateCSS(config: ThemeConfig, imageUploads: Record<string, string> = {}, passcodeBgMode: "color" | "image" = "color", bulletEmptyMode: "default" | "color" | "image" = "default", bulletFillMode: "color" | "image" = "color"): string {
+function generateCSS(config: ThemeConfig, imageUploads: Record<string, string> = {}, passcodeBgMode: "color" | "image" = "color", bulletEmptyMode: "default" | "color" | "image" = "default", bulletFillMode: "color" | "image" = "color", keypadPressedOn = true): string {
   const img = (key: string, filename: string) =>
     imageUploads[key] ? `\n    -ios-background-image: '${filename}';` : "";
 
@@ -2144,7 +2195,7 @@ PasscodeStyle
 
     -ios-keypad-background-color: ${config.passcodeKeypadBg};
     -ios-keypad-text-normal-color: ${config.passcodeKeypadText};
-    ${imageUploads["passcodeKeypadPressed"] ? `-ios-keypad-number-highlighted-image: 'passcodeKeypadPressed.png';` : ""}
+    ${(keypadPressedOn && imageUploads["passcodeKeypadPressed"]) ? `-ios-keypad-number-highlighted-image: 'passcodeKeypadPressed@3x.png';` : ""}
 }
 
 

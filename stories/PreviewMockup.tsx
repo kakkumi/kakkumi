@@ -54,6 +54,10 @@ export const PreviewMockup = ({ disableTabNavigation = false, mainBgImageUrl }: 
     bulletEmptyColor: passcode.bulletEmptyColor,
     bulletFillColor: passcode.bulletFillColor,
     bulletEmptyDefault: passcode.bulletEmptyDefault,
+    bulletEmptyImageUrl: passcode.bulletEmptyImageUrl,
+    bulletFillImageUrl: passcode.bulletFillImageUrl,
+    passcodeKeypadPressedImageUrl: passcode.keypadPressedImageUrl,
+    passcodeKeypadPressedOn: passcode.keypadPressedOn,
   };
 
   const renderScreen = () => {

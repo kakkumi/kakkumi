@@ -81,6 +81,10 @@ type ThemeState = {
     bulletEmptyColor?: string;
     bulletFillColor?: string;
     bulletEmptyDefault?: boolean;
+    bulletEmptyImageUrl?: string;
+    bulletFillImageUrl?: string;
+    keypadPressedImageUrl?: string;
+    keypadPressedOn?: boolean;
   };
   setCurrentScreen: (screen: ScreenType) => void;
   setActiveElementId: (id: ActiveElementId) => void;

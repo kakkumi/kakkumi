@@ -48,12 +48,28 @@ export const PasscodeScreen = React.memo(function PasscodeScreen({ config }: { c
 
         {/* 불릿 */}
         <div style={{ display: 'flex', gap: 0, marginTop: 28, alignItems: 'center', height: 40 }}>
-          <div style={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: config.bulletFillColor ?? '#4a7bf7', margin: '0 13px' }} />
-          <div style={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: config.bulletFillColor ?? '#4a7bf7', margin: '0 13px' }} />
+          {/* 1, 2번: 선택 불릿 */}
+          {config.bulletFillImageUrl ? (
+            <>
+              <img src={config.bulletFillImageUrl} alt="" style={{ width: 40, height: 40, margin: '0 5px', objectFit: 'contain' }} />
+              <img src={config.bulletFillImageUrl} alt="" style={{ width: 40, height: 40, margin: '0 5px', objectFit: 'contain' }} />
+            </>
+          ) : (
+            <>
+              <div style={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: config.bulletFillColor ?? '#4a7bf7', margin: '0 13px' }} />
+              <div style={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: config.bulletFillColor ?? '#4a7bf7', margin: '0 13px' }} />
+            </>
+          )}
+          {/* 3, 4번: 일반 불릿 */}
           {config.bulletEmptyDefault ? (
             <>
               <div style={{ width: 14, height: 2, borderRadius: 1, backgroundColor: '#aaaaaa', margin: '0 13px' }} />
               <div style={{ width: 14, height: 2, borderRadius: 1, backgroundColor: '#aaaaaa', margin: '0 13px' }} />
+            </>
+          ) : config.bulletEmptyImageUrl ? (
+            <>
+              <img src={config.bulletEmptyImageUrl} alt="" style={{ width: 40, height: 40, margin: '0 5px', objectFit: 'contain' }} />
+              <img src={config.bulletEmptyImageUrl} alt="" style={{ width: 40, height: 40, margin: '0 5px', objectFit: 'contain' }} />
             </>
           ) : (
             <>
@@ -107,19 +123,38 @@ export const PasscodeScreen = React.memo(function PasscodeScreen({ config }: { c
                 position: 'relative',
               }}
             >
-              {key === '5' && (
-                <div style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  width: 44,
-                  height: 44,
-                  borderRadius: '50%',
-                  backgroundColor: 'rgba(0,0,0,0.08)',
-                  zIndex: 0,
-                  pointerEvents: 'none',
-                }} />
+              {key === '5' && config.passcodeKeypadPressedOn !== false && (
+                config.passcodeKeypadPressedImageUrl ? (
+                  <img
+                    src={config.passcodeKeypadPressedImageUrl}
+                    alt=""
+                    style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -47%)',
+                      width: 85,
+                      height: 85,
+                      objectFit: 'contain',
+                      zIndex: 0,
+                      pointerEvents: 'none',
+                      opacity: 0.7,
+                    }}
+                  />
+                ) : (
+                  <div style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: 44,
+                    height: 44,
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(0,0,0,0.08)',
+                    zIndex: 0,
+                    pointerEvents: 'none',
+                  }} />
+                )
               )}
               <span style={{ position: 'relative', zIndex: 1 }}>
                 {key === 'delete' ? (
