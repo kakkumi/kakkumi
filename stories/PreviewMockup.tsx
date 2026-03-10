@@ -61,6 +61,7 @@ export const PreviewMockup = ({ disableTabNavigation = false, mainBgImageUrl }: 
     passcodeKeypadPressedImageUrl: passcode.keypadPressedImageUrl,
     passcodeKeypadPressedOn: passcode.keypadPressedOn,
     chatRoomNameTimeColor: chatRoom.nameTimeColor,
+    bubbleSend1CharacterUrl: chatRoom.characterUrl,
   };
 
   const renderScreen = () => {

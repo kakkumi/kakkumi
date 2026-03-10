@@ -168,20 +168,38 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config, hideC
         </div>
 
         {/* ── 내 메시지 1: 보낸 첫 번째 (bubbleSend1) ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3, overflow: 'visible', transform: config.bubbleSend1CharacterUrl ? 'translateX(-30px)' : 'none' }}>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, maxWidth: '82%', overflow: 'visible' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
               <span style={{ fontSize: 9, color: chatRoom.myBubbleUnreadText, fontWeight: 700, lineHeight: 1, alignSelf: 'flex-end' }}>2</span>
               <span style={{ fontSize: 9, color: nameTimeColor }}>오후 3:33</span>
             </div>
-            <BubbleBox imageUrl={chatRoom.bubbleSend1} bgColor={chatRoom.myBubbleBg} textColor={chatRoom.myBubbleText} side="send" order={1}>
-              나는 스토어에서 테마 사봤는데 괜찮더라구
-            </BubbleBox>
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              <BubbleBox imageUrl={chatRoom.bubbleSend1} bgColor={chatRoom.myBubbleBg} textColor={chatRoom.myBubbleText} side="send" order={1}>
+                나는 스토어에서 테마 사봤는데 괜찮더라구
+              </BubbleBox>
+              {config.bubbleSend1CharacterUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={config.bubbleSend1CharacterUrl}
+                  alt=""
+                  style={{
+                    position: 'absolute',
+                    top: -40,
+                    right: -40,
+                    width: 52,
+                    height: 52,
+                    objectFit: 'contain',
+                    pointerEvents: 'none',
+                  }}
+                />
+              )}
+            </div>
           </div>
         </div>
 
         {/* ── 내 메시지 2: 보낸 두 번째 (bubbleSend2) ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3, transform: config.bubbleSend1CharacterUrl ? 'translateX(-30px)' : 'none' }}>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, maxWidth: '82%', overflow: 'visible' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
               <span style={{ fontSize: 9, color: chatRoom.myBubbleUnreadText, fontWeight: 700, lineHeight: 1, alignSelf: 'flex-end' }}>2</span>

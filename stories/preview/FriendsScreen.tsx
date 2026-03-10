@@ -128,6 +128,7 @@ export interface ScreenThemeConfig {
   friendBubbleUnreadText?: string;
   bubbleSend1Url?: string;
   bubbleSend1SelectedUrl?: string;
+  bubbleSend1CharacterUrl?: string;
   bubbleSend2Url?: string;
   bubbleReceive1Url?: string;
   bubbleReceive1SelectedUrl?: string;

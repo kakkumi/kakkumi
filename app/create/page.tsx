@@ -794,9 +794,6 @@ export default function CreatePage() {
   const setTheme = usePreviewThemeStore((state) => state.setTheme);
 
   // ── URL ?id= 로 저장된 테마 불러오기 ──
-  // 복원 중 플래그: true인 동안 UI 동기화 useEffect가 config를 덮어쓰지 않음
-  const isRestoringRef = useRef(false);
-
   const loadThemeById = useCallback(async (id: string) => {
     try {
       const res = await fetch(`/api/my-themes/${id}`);
@@ -930,15 +927,15 @@ export default function CreatePage() {
   }, []);
   const setIconOptsWithConfig = useCallback((val: IconDesignOptions) => {
     setIconOpts(val);
-    setConfig(c => ({ ...c, uiIconOpts: val as Record<string, unknown> }));
+    setConfig(c => ({ ...c, uiIconOpts: val as unknown as Record<string, unknown> }));
   }, []);
   const setSendBubbleOptsWithConfig = useCallback((val: BubbleDesignOptions) => {
     setSendBubbleOpts(val);
-    setConfig(c => ({ ...c, uiSendBubbleOpts: val as Record<string, unknown> }));
+    setConfig(c => ({ ...c, uiSendBubbleOpts: val as unknown as Record<string, unknown> }));
   }, []);
   const setReceiveBubbleOptsWithConfig = useCallback((val: BubbleDesignOptions) => {
     setReceiveBubbleOpts(val);
-    setConfig(c => ({ ...c, uiReceiveBubbleOpts: val as Record<string, unknown> }));
+    setConfig(c => ({ ...c, uiReceiveBubbleOpts: val as unknown as Record<string, unknown> }));
   }, []);
 
   // 채팅방 배경 밝기 계산 → isDarkChatBg
@@ -1069,6 +1066,7 @@ export default function CreatePage() {
         bubbleReceive1SelectedUrl: imageUploads['bubbleReceive1Selected'] ?? '',
         bubbleReceive2Url: imageUploads['bubbleReceive2'] ?? '',
         nameTimeColor: isDarkChatBg ? '#E3E3E3' : '#242424',
+        characterUrl: sendBubbleOpts.characterUrl || undefined,
       },
       passcode: {
         backgroundColor: config.passcodeBg,
@@ -1085,7 +1083,7 @@ export default function CreatePage() {
         keypadPressedOn: keypadPressedOn,
       },
     });
-  }, [imageUploads, passcodeBgMode, tabBgMode, bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor, keypadPressedOn, defaultProfileOn, isDarkChatBg, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.inputBarText, config.inputFieldBg, config.menuBtnNormalBgAlpha, config.sendBtnBg, config.sendBtnIcon, config.sendBtnHighlightBg, config.sendBtnHighlightIcon, config.menuBtnColor, config.menuBtnHighlightColor, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText, config.passcodeKeypadBg, config.tabBarBg, config.tabBarIcon, config.tabBarSelectedIcon, setTheme]);
+  }, [imageUploads, passcodeBgMode, tabBgMode, bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor, keypadPressedOn, defaultProfileOn, isDarkChatBg, sendBubbleOpts, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.inputBarText, config.inputFieldBg, config.menuBtnNormalBgAlpha, config.sendBtnBg, config.sendBtnIcon, config.sendBtnHighlightBg, config.sendBtnHighlightIcon, config.menuBtnColor, config.menuBtnHighlightColor, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText, config.passcodeKeypadBg, config.tabBarBg, config.tabBarIcon, config.tabBarSelectedIcon, setTheme]);
 
   // iconOpts 변경 시 자동저장 트리거
   useEffect(() => {
