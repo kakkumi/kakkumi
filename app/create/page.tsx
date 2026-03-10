@@ -2114,13 +2114,7 @@ export default function CreatePage() {
         </aside>
       </div>
 
-      <style jsx global>{`
-        [data-active-element-id][data-active-selected="true"] {
-          background: rgba(74, 123, 247, 0.08);
-          box-shadow: inset 0 0 0 1.5px rgba(74, 123, 247, 0.35);
-          border-radius: 10px;
-        }
-      `}</style>
+      <style jsx global>{``}</style>
 
       {resetConfirm && (
         <div

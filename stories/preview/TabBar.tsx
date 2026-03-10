@@ -29,7 +29,6 @@ const OpenChatIcon = ({ color }: { color: string }) => (
 export const TabBar = ({ disabled = false, darkMode = false }: { disabled?: boolean; darkMode?: boolean }) => {
   const currentScreen = useThemeStore((state) => state.currentScreen);
   const setCurrentScreen = useThemeStore((state) => state.setCurrentScreen);
-  const activeElementId = useThemeStore((state) => state.activeElementId);
   const setActiveElementId = useThemeStore((state) => state.setActiveElementId);
   const tabBar = useThemeStore((state) => state.tabBar);
 
@@ -61,7 +60,6 @@ export const TabBar = ({ disabled = false, darkMode = false }: { disabled?: bool
     >
       {tabs.map((tab) => {
         const active = tab.key === currentScreen;
-        const focused = activeElementId === tabElementMap[tab.key];
         const color = active ? activeColor : inactiveColor;
 
         return (
@@ -85,9 +83,7 @@ export const TabBar = ({ disabled = false, darkMode = false }: { disabled?: bool
               fontWeight: active ? 700 : 500,
               cursor: 'pointer',
               borderRadius: 8,
-              backgroundColor: focused ? 'rgba(0,0,0,0.05)' : 'transparent',
-              boxShadow: focused ? '0 0 0 1px rgba(0,0,0,0.14) inset' : 'none',
-              transition: 'box-shadow 0.15s ease, background-color 0.15s ease',
+              backgroundColor: 'transparent',
             }}
           >
             {tab.icon(color)}
