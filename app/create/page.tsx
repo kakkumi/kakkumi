@@ -831,6 +831,11 @@ export default function CreatePage() {
         primaryText: config.primaryText,
         descText: config.descText,
         headerTabText: config.headerTabText,
+        profileImgUrls: defaultProfileOn ? [
+          imageUploads['profileImg01'],
+          imageUploads['profileImg02'],
+          imageUploads['profileImg03'],
+        ].filter(Boolean) as string[] : undefined,
       },
       friendsTab: {
         updateSectionBg: '#F2F2F7',
@@ -909,7 +914,7 @@ export default function CreatePage() {
         keypadPressedOn: keypadPressedOn,
       },
     });
-  }, [imageUploads, passcodeBgMode, tabBgMode, bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor, keypadPressedOn, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.inputBarText, config.inputFieldBg, config.menuBtnNormalBgAlpha, config.sendBtnBg, config.sendBtnIcon, config.sendBtnHighlightBg, config.sendBtnHighlightIcon, config.menuBtnColor, config.menuBtnHighlightColor, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText, config.passcodeKeypadBg, config.tabBarBg, config.tabBarIcon, config.tabBarSelectedIcon, setTheme]);
+  }, [imageUploads, passcodeBgMode, tabBgMode, bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor, keypadPressedOn, defaultProfileOn, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.inputBarText, config.inputFieldBg, config.menuBtnNormalBgAlpha, config.sendBtnBg, config.sendBtnIcon, config.sendBtnHighlightBg, config.sendBtnHighlightIcon, config.menuBtnColor, config.menuBtnHighlightColor, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText, config.passcodeKeypadBg, config.tabBarBg, config.tabBarIcon, config.tabBarSelectedIcon, setTheme]);
 
   // iconOpts 변경 시 자동저장 트리거
   useEffect(() => {

@@ -36,6 +36,7 @@ export const PreviewNewsMockup = ({ disableTabNavigation = false, mainBgImageUrl
     friendsListDescText: friendsTab.listDescTextColor,
     friendsSelectedBgAlpha: friendsTab.selectedBgAlpha,
     moreTabTextColor: globalStore.headerTabText,
+    profileImgUrls: globalStore.profileImgUrls,
   };
   return (
     <div style={{ position: 'relative', width: 368, height: 699 }}>

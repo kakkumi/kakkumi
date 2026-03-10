@@ -53,6 +53,12 @@ function BubbleBox({ bgColor, textColor, children, side, order }: Omit<BubbleBox
 }
 
 export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config, hideContent, bannerType }: { config: ScreenThemeConfig; hideContent?: boolean; bannerType?: 'notif' | 'directShare' }) {
+  const profileUrls = config.profileImgUrls ?? [];
+  const getProfileImg = (seed: number): React.ReactNode => {
+    if (profileUrls.length === 0) return personSVG;
+    const url = profileUrls[seed % profileUrls.length];
+    return <img src={url} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />;
+  };
   const alpha = config.inputFieldBgAlpha ?? 1;
   const rawFieldBg = config.inputFieldBg ?? '#e8e8e8';
   const hex = rawFieldBg.replace('#', '');
@@ -127,7 +133,7 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config, hideC
 
         {/* ── 통영: 받은 첫 번째 + 두 번째 ── */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-          <div style={{ width: 34, height: 34, borderRadius: 13, backgroundColor: members[0].color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{personSVG}</div>
+          <div style={{ width: 34, height: 34, borderRadius: 13, backgroundColor: profileUrls.length > 0 ? 'transparent' : members[0].color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>{getProfileImg(0)}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3, maxWidth: '82%' }}>
             <span style={{ fontSize: 12, color: descColor, marginLeft: 2 }}>통영</span>
             {/* 첫 번째 말풍선 (bubbleReceive1) */}
@@ -148,7 +154,7 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config, hideC
 
         {/* ── 거제: 받은 두 번째 ── */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-          <div style={{ width: 34, height: 34, borderRadius: 13, backgroundColor: members[2].color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{personSVG}</div>
+          <div style={{ width: 34, height: 34, borderRadius: 13, backgroundColor: profileUrls.length > 0 ? 'transparent' : members[2].color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>{getProfileImg(1)}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3, maxWidth: '82%' }}>
             <span style={{ fontSize: 12, color: descColor, marginLeft: 2 }}>거제</span>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, overflow: 'visible' }}>
@@ -188,7 +194,7 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config, hideC
 
         {/* ── 안동: 받은 두 번째 ── */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-          <div style={{ width: 34, height: 34, borderRadius: 13, backgroundColor: members[1].color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{personSVG}</div>
+          <div style={{ width: 34, height: 34, borderRadius: 13, backgroundColor: profileUrls.length > 0 ? 'transparent' : members[1].color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>{getProfileImg(2)}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3, maxWidth: '82%' }}>
             <span style={{ fontSize: 12, color: descColor, marginLeft: 2 }}>안동</span>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, overflow: 'visible' }}>
@@ -205,7 +211,7 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config, hideC
 
         {/* ── 강릉: 받은 두 번째 ── */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-          <div style={{ width: 34, height: 34, borderRadius: 13, backgroundColor: members[3].color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{personSVG}</div>
+          <div style={{ width: 34, height: 34, borderRadius: 13, backgroundColor: profileUrls.length > 0 ? 'transparent' : members[3].color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>{getProfileImg(0)}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3, maxWidth: '82%' }}>
             <span style={{ fontSize: 12, color: descColor, marginLeft: 2 }}>강릉</span>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, overflow: 'visible' }}>
@@ -236,11 +242,11 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config, hideC
           {/* 프로필 사진 */}
           <div style={{
             width: 36, height: 36, borderRadius: 12,
-            backgroundColor: '#B5D5F5',
+            backgroundColor: profileUrls.length > 0 ? 'transparent' : '#B5D5F5',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
+            flexShrink: 0, overflow: 'hidden',
           }}>
-            {personSVG}
+            {getProfileImg(0)}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, minWidth: 0 }}>
             {bannerType === 'directShare' ? (

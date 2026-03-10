@@ -50,6 +50,7 @@ export const PreviewMockup = ({ disableTabNavigation = false, mainBgImageUrl }: 
     friendsListDescText: friendsTab.listDescTextColor,
     friendsSelectedBgAlpha: friendsTab.selectedBgAlpha,
     moreTabTextColor: globalStore.headerTabText,
+    profileImgUrls: globalStore.profileImgUrls,
     passcodeBgImageUrl: passcode.bgImageUrl || undefined,
     bulletEmptyColor: passcode.bulletEmptyColor,
     bulletFillColor: passcode.bulletFillColor,

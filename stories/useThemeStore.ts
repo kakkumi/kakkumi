@@ -28,6 +28,7 @@ type ThemeState = {
     primaryText: string;
     descText: string;
     headerTabText: string;
+    profileImgUrls?: string[];
   };
   tabBar: {
     activeIconColor: string;
@@ -118,6 +119,7 @@ export const useThemeStore = create<ThemeState>((set) => ({
     primaryText: '#191919',
     descText: '#9E9E9E',
     headerTabText: '#9E9E9E',
+    profileImgUrls: undefined as string[] | undefined,
   },
   tabBar: {
     activeIconColor: '#3A1D1D',

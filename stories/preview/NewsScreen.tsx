@@ -34,6 +34,17 @@ const avatarStyle: React.CSSProperties = {
 };
 
 export const NewsScreen = React.memo(function NewsScreen({ config }: { config: ScreenThemeConfig }) {
+  const profileUrls = config.profileImgUrls ?? [];
+  const getProfileImg = (seed: number): React.ReactNode => {
+    if (profileUrls.length === 0) return (
+      <svg width="23" height="23" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="7" r="5" fill="rgba(120,120,120,0.55)"/>
+        <path d="M5 21 Q4 21 4 20 Q4 13 12 13 Q20 13 20 20 Q20 21 19 21 Z" fill="rgba(120,120,120,0.55)"/>
+      </svg>
+    );
+    const url = profileUrls[seed % profileUrls.length];
+    return <img src={url} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />;
+  };
   const global = {
     backgroundColor: config.bodyBg,
     textColor: config.primaryText,
@@ -135,11 +146,8 @@ export const NewsScreen = React.memo(function NewsScreen({ config }: { config: S
           <article style={{ marginBottom: 18 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
               <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
-                <div style={{ ...avatarStyle, width: 38, height: 38, borderRadius: 13, backgroundColor: '#FEE500' }}>
-                  <svg width="23" height="23" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="7" r="5" fill="rgba(120,120,120,0.55)"/>
-                    <path d="M5 21 Q4 21 4 20 Q4 13 12 13 Q20 13 20 20 Q20 21 19 21 Z" fill="rgba(120,120,120,0.55)"/>
-                  </svg>
+                <div style={{ ...avatarStyle, width: 38, height: 38, borderRadius: 13, backgroundColor: profileUrls.length > 0 ? 'transparent' : '#FEE500', overflow: 'hidden' }}>
+                  {getProfileImg(0)}
                 </div>
                 <div>
                   <p style={{ margin: 0, color: global.textColor, fontSize: 14, fontWeight: 400 }}>서울</p>

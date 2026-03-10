@@ -34,6 +34,12 @@ const listItemBaseStyle: React.CSSProperties = {
 };
 
 export const MainScreen = React.memo(function MainScreen({ config }: { config: ScreenThemeConfig }) {
+  const urls = config.profileImgUrls ?? [];
+  const getProfileImg = (seed: number): React.ReactNode => {
+    if (urls.length === 0) return null;
+    const url = urls[seed % urls.length];
+    return <img src={url} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />;
+  };
   const SELECTED_CHAT_ID = 3; // 속초 - 미리보기 선택 상태 예시
   const global = {
     backgroundColor: config.bodyBg,
@@ -122,10 +128,13 @@ export const MainScreen = React.memo(function MainScreen({ config }: { config: S
             <article key={chat.id} style={{ ...listItemBaseStyle, backgroundColor: itemBg, ...(isSelected ? { margin: '0 3px', padding: '7px 13px', borderRadius: 20 } : {}) }}>
               <div style={{ display: 'flex', gap: 14, alignItems: 'center', minWidth: 0, flex: 1 }}>
                 <div style={{ width: 46, height: 46, position: 'relative', flexShrink: 0 }}>
-                  <div style={{ width: '100%', height: '100%', borderRadius: 17, backgroundColor: chat.id === 1 ? 'transparent' : chat.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 21 }}>
-                    {chat.id === 1 ? chat.avatars[0] : (
-                      <svg width="23" height="23" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="7" r="5" fill="rgba(120,120,120,0.55)"/><path d="M5 21 Q4 21 4 20 Q4 13 12 13 Q20 13 20 20 Q20 21 19 21 Z" fill="rgba(120,120,120,0.55)"/></svg>
-                    )}
+                  <div style={{ width: '100%', height: '100%', borderRadius: 17, backgroundColor: chat.id === 1 ? 'transparent' : (urls.length > 0 ? 'transparent' : chat.color), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 21, overflow: 'hidden' }}>
+                    {chat.id === 1
+                      ? (urls.length > 0 ? getProfileImg(chat.id) : chat.avatars[0])
+                      : (urls.length > 0 ? getProfileImg(chat.id) : (
+                          <svg width="23" height="23" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="7" r="5" fill="rgba(120,120,120,0.55)"/><path d="M5 21 Q4 21 4 20 Q4 13 12 13 Q20 13 20 20 Q20 21 19 21 Z" fill="rgba(120,120,120,0.55)"/></svg>
+                        ))
+                    }
                   </div>
                 </div>
                 <div style={{ minWidth: 0, flex: 1 }}>

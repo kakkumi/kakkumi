@@ -100,6 +100,7 @@ export interface ScreenThemeConfig {
   directShareBg?: string;
   directShareNameColor?: string;
   directShareMsgColor?: string;
+  profileImgUrls?: string[];
   sendBtnBg: string;
   passcodeBg: string;
   passcodeTitleText: string;
@@ -140,6 +141,12 @@ export interface ScreenThemeConfig {
 }
 
 export const FriendsScreen = React.memo(function FriendsScreen({ config }: { config: ScreenThemeConfig }) {
+  const urls = config.profileImgUrls ?? [];
+  const getProfileImg = (seed: number): React.ReactNode => {
+    if (urls.length === 0) return personSVG;
+    const url = urls[seed % urls.length];
+    return <img src={url} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />;
+  };
   const global = {
     backgroundColor: config.bodyBg,
     textColor: config.primaryText,
@@ -262,12 +269,10 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
                 <div style={{ position: 'relative' }}>
                   {/* 프사 테두리 링 */}
                   <div style={{
-                    width: 44, height: 44, borderRadius: 18, backgroundColor: friend.color,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    width: 44, height: 44, borderRadius: 18, backgroundColor: urls.length > 0 ? 'transparent' : friend.color,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
                   }}>
-                    <span style={{ fontSize: 18 }}>
-                      {personSVG}
-                    </span>
+                    {getProfileImg(friend.id)}
                   </div>
                   
                   {/* 빨간색 업데이트 점 (좌측 상단) */}
@@ -323,8 +328,8 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
               } : {}),
             }}>
               <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                <div style={{ ...avatarStyle, width: 38, height: 38, borderRadius: 14, backgroundColor: friend.color, color: global.textColor }}>
-                  {personSVG}
+                <div style={{ ...avatarStyle, width: 38, height: 38, borderRadius: 14, backgroundColor: urls.length > 0 ? 'transparent' : friend.color, color: global.textColor, overflow: 'hidden' }}>
+                  {getProfileImg(friend.id + 10)}
                 </div>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 1, height: 20, overflow: 'visible' }}>
@@ -396,8 +401,8 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
           {newFriends.map((friend) => (
             <article key={friend.id} style={listItemBaseStyle}>
               <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                <div style={{ ...avatarStyle, width: 38, height: 38, borderRadius: 14, backgroundColor: friend.color, color: global.textColor }}>
-                  {personSVG}
+                <div style={{ ...avatarStyle, width: 38, height: 38, borderRadius: 14, backgroundColor: urls.length > 0 ? 'transparent' : friend.color, color: global.textColor, overflow: 'hidden' }}>
+                  {getProfileImg(friend.id + 20)}
                 </div>
                 <div>
                   <p style={{ margin: friend.id === 2 ? '0 0 1px' : '0', color: global.textColor, fontSize: 14, fontWeight: 400 }}>{friend.name}</p>
