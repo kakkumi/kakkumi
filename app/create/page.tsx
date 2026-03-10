@@ -1254,7 +1254,7 @@ export default function CreatePage() {
       const themeName = config.name.replace(/\s/g, "_");
 
       // CSS 생성
-      zip.file("KakaoTalkTheme.css", generateCSS(config, imageUploads, passcodeBgMode, bulletEmptyMode, bulletFillMode, keypadPressedOn, tabBgMode, defaultProfileOn));
+      zip.file("KakaoTalkTheme.css", generateCSS(config, imageUploads, passcodeBgMode, bulletEmptyMode, bulletFillMode, keypadPressedOn, tabBgMode, defaultProfileOn, !!sendBubbleOpts.characterUrl));
 
       // 업로드된 이미지를 Images/ 폴더에 포함
       const imageFileMap: Record<string, string> = {
@@ -2347,7 +2347,7 @@ export default function CreatePage() {
   );
 }
 
-function generateCSS(config: ThemeConfig, imageUploads: Record<string, string> = {}, passcodeBgMode: "color" | "image" = "color", bulletEmptyMode: "default" | "color" | "image" = "default", bulletFillMode: "color" | "image" = "color", keypadPressedOn = true, tabBgMode: "color" | "image" = "color", defaultProfileOn = false): string {
+function generateCSS(config: ThemeConfig, imageUploads: Record<string, string> = {}, passcodeBgMode: "color" | "image" = "color", bulletEmptyMode: "default" | "color" | "image" = "default", bulletFillMode: "color" | "image" = "color", keypadPressedOn = true, tabBgMode: "color" | "image" = "color", defaultProfileOn = false, hasCharacter = false): string {
   const img = (key: string, filename: string) =>
     imageUploads[key] ? `\n    -ios-background-image: '${filename}';` : "";
 
@@ -2500,12 +2500,12 @@ InputBarStyle-Chat
 
 MessageCellStyle-Send
 {
-    -ios-background-image: 'chatroomBubbleSend01.png' 15px 55px;
-    -ios-selected-background-image: 'chatroomBubbleSend01.png' 15px 55px;
+    -ios-background-image: 'chatroomBubbleSend01.png' ${hasCharacter ? '15px 55px' : '15px 15px'};
+    -ios-selected-background-image: 'chatroomBubbleSend01.png' ${hasCharacter ? '15px 55px' : '15px 5px'};
     -ios-group-background-image: 'chatroomBubbleSend02.png' 15px 15px;
     -ios-group-selected-background-image: 'chatroomBubbleSend02.png' 15px 15px;
-    -ios-title-edgeinsets: 47.5px 12px 7px 52px;
-    -ios-group-title-edgeinsets: 8px 12px 7px 52px;
+    -ios-title-edgeinsets: ${hasCharacter ? '47.5px 12px 7px 52px' : '10px 12px 7px 20px'};
+    -ios-group-title-edgeinsets: ${hasCharacter ? '8px 12px 7px 52px' : '8px 12px 7px 20px'};
 
     -ios-background-color: ${config.myBubbleBg};
     -ios-text-color: ${config.myBubbleText};

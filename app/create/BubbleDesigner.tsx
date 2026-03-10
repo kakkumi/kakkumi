@@ -101,6 +101,28 @@ export async function drawBubble2Send(bgColor: string): Promise<Blob> {
   });
 }
 
+/** bubble-send-3.svg 기반 PNG 생성 - 말풍선 색만 채움, 캐릭터 없을 때 사용 (120x90) */
+const SEND3_W = 120;
+const SEND3_H = 90;
+const SEND3_BUBBLE = { cx: 45.51724, cy: 45.33392, r: 43.27586 };
+
+export async function drawBubble3Send(bgColor: string): Promise<Blob> {
+  const canvas = document.createElement("canvas");
+  canvas.width = SEND3_W;
+  canvas.height = SEND3_H;
+  const ctx = canvas.getContext("2d")!;
+  ctx.clearRect(0, 0, SEND3_W, SEND3_H);
+
+  ctx.beginPath();
+  ctx.ellipse(SEND3_BUBBLE.cx, SEND3_BUBBLE.cy, SEND3_BUBBLE.r, SEND3_BUBBLE.r, 0, 0, Math.PI * 2);
+  ctx.fillStyle = bgColor;
+  ctx.fill();
+
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/png");
+  });
+}
+
 /** bubble-receive.svg 기반 PNG 생성 - 말풍선 색만 채움 (110x90) */
 export async function drawBubble1Receive(bgColor: string): Promise<Blob> {
   const canvas = document.createElement("canvas");
@@ -160,13 +182,13 @@ export function BubbleDesigner({ side, options, onChange, onGenerate }: BubbleDe
           URL.revokeObjectURL(prevUrlsRef.current.bubble1);
           URL.revokeObjectURL(prevUrlsRef.current.bubble2);
         }
-        // bubble1: send=캐릭터 포함(200x200) / receive=말풍선만(138x60)
-        // bubble2: send=말풍선만(210x90) / receive=말풍선만(receive2 파일, 추후 추가)
+        // send: 캐릭터 있음 → bubble1=캐릭터 합성(bubble-send.svg), bubble2=말풍선만(bubble-send-2.svg)
+        //       캐릭터 없음 → bubble1,bubble2 모두 bubble-send-3.svg 기반
         const blob1 = opts.side === "send"
-          ? await drawBubble(opts, img)
+          ? (img ? await drawBubble(opts, img) : await drawBubble3Send(opts.bgColor))
           : await drawBubble1Receive(opts.bgColor);
         const blob2 = opts.side === "send"
-          ? await drawBubble2Send(opts.bgColor)
+          ? (img ? await drawBubble2Send(opts.bgColor) : await drawBubble3Send(opts.bgColor))
           : await drawBubble2Receive(opts.bgColor);
         const url1 = URL.createObjectURL(blob1);
         const url2 = URL.createObjectURL(blob2);
