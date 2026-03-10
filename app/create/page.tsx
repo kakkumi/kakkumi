@@ -725,6 +725,52 @@ export default function CreatePage() {
   const [bulletFillColor, setBulletFillColor] = useState("#4a7bf7");
   const [keypadPressedOn, setKeypadPressedOn] = useState(true);
   const [defaultProfileOn, setDefaultProfileOn] = useState(false);
+  const [isDarkChatBg, setIsDarkChatBg] = useState(false);
+
+  // hex 색상 밝기 계산 (0~255)
+  const getHexLuminance = (hex: string): number => {
+    const h = hex.replace('#', '');
+    const r = parseInt(h.substring(0, 2), 16);
+    const g = parseInt(h.substring(2, 4), 16);
+    const b = parseInt(h.substring(4, 6), 16);
+    if (isNaN(r)) return 128;
+    return 0.299 * r + 0.587 * g + 0.114 * b;
+  };
+
+  // 이미지 URL 밝기 계산 (배경 컬러 위에 이미지 합성 후 canvas 샘플링)
+  const getImageLuminance = (url: string, bgHex: string): Promise<number> => {
+    return new Promise((resolve) => {
+      const img = new window.Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX = 80;
+        canvas.width = Math.min(img.width, MAX);
+        canvas.height = Math.min(img.height, MAX);
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return resolve(128);
+        // 먼저 배경 컬러를 채워서 투명 PNG의 투명 부분에 배경 컬러가 비치도록 합성
+        const h = bgHex.replace('#', '');
+        const r = parseInt(h.substring(0, 2), 16);
+        const g = parseInt(h.substring(2, 4), 16);
+        const b = parseInt(h.substring(4, 6), 16);
+        if (!isNaN(r)) {
+          ctx.fillStyle = `rgb(${r},${g},${b})`;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        let total = 0, count = 0;
+        for (let i = 0; i < data.length; i += 16) {
+          total += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+          count++;
+        }
+        resolve(count > 0 ? total / count : 128);
+      };
+      img.onerror = () => resolve(128);
+      img.src = url;
+    });
+  };
 
   const [selectedSettingKey, setSelectedSettingKey] = useState<string | null>(null);
   const [themeLoaded, setThemeLoaded] = useState(false);
@@ -810,6 +856,21 @@ export default function CreatePage() {
     return () => clearTimeout(timer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [themeLoaded]);
+
+  // 채팅방 배경 밝기 계산 → isDarkChatBg
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    const imgUrl = imageUploads['chatroomBg'];
+    if (imgUrl) {
+      getImageLuminance(imgUrl, config.chatBg).then(lum => {
+        setIsDarkChatBg(lum < 128);
+      });
+    } else {
+      setIsDarkChatBg(getHexLuminance(config.chatBg) < 128);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config.chatBg, imageUploads['chatroomBg']]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // ── 로그인 닉네임 → authorName 자동 설정 ──
   useEffect(() => {
@@ -923,6 +984,7 @@ export default function CreatePage() {
         bubbleReceive1Url: imageUploads['bubbleReceive1'] ?? '',
         bubbleReceive1SelectedUrl: imageUploads['bubbleReceive1Selected'] ?? '',
         bubbleReceive2Url: imageUploads['bubbleReceive2'] ?? '',
+        nameTimeColor: isDarkChatBg ? '#E3E3E3' : '#242424',
       },
       passcode: {
         backgroundColor: config.passcodeBg,
@@ -939,7 +1001,7 @@ export default function CreatePage() {
         keypadPressedOn: keypadPressedOn,
       },
     });
-  }, [imageUploads, passcodeBgMode, tabBgMode, bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor, keypadPressedOn, defaultProfileOn, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.inputBarText, config.inputFieldBg, config.menuBtnNormalBgAlpha, config.sendBtnBg, config.sendBtnIcon, config.sendBtnHighlightBg, config.sendBtnHighlightIcon, config.menuBtnColor, config.menuBtnHighlightColor, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText, config.passcodeKeypadBg, config.tabBarBg, config.tabBarIcon, config.tabBarSelectedIcon, setTheme]);
+  }, [imageUploads, passcodeBgMode, tabBgMode, bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor, keypadPressedOn, defaultProfileOn, isDarkChatBg, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.inputBarText, config.inputFieldBg, config.menuBtnNormalBgAlpha, config.sendBtnBg, config.sendBtnIcon, config.sendBtnHighlightBg, config.sendBtnHighlightIcon, config.menuBtnColor, config.menuBtnHighlightColor, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText, config.passcodeKeypadBg, config.tabBarBg, config.tabBarIcon, config.tabBarSelectedIcon, setTheme]);
 
   // iconOpts 변경 시 자동저장 트리거
   useEffect(() => {
@@ -1825,6 +1887,16 @@ export default function CreatePage() {
                     <div className="flex items-start gap-1.5">
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
                       <span className="text-[10px] leading-snug" style={{ color: 'rgb(251,146,60)' }}>투명 PNG → 투명 부분에 배경 컬러가 비침</span>
+                    </div>
+                  </div>
+                  <div className="px-2.5 pb-2 mt-1 flex flex-col gap-1">
+                    <div className="flex items-start gap-1.5">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(239,68,68)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                      <span className="text-[10px] leading-snug" style={{ color: 'rgb(239,68,68)' }}>이름·시간 텍스트는 배경 밝기를 자동 감지해 색상이 결정돼요</span>
+                    </div>
+                    <div className="flex items-start gap-1.5">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(239,68,68)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                      <span className="text-[10px] leading-snug" style={{ color: 'rgb(239,68,68)' }}>배경컬러와 투명 PNG가 합쳐졌다면 미리보기의 텍스트 색이 애매할 수 있어요. 확실한 결과는 어플에서 확인 부탁드려요.</span>
                     </div>
                   </div>
                 </Accordion>

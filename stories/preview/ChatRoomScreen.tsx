@@ -86,6 +86,7 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config, hideC
     bubbleReceive2: config.bubbleReceive2Url || undefined,
   };
   const descColor = config.descText;
+  const nameTimeColor = config.chatRoomNameTimeColor ?? descColor;
 
   return (
     <div style={{
@@ -135,7 +136,7 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config, hideC
         <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
           <div style={{ width: 34, height: 34, borderRadius: 13, backgroundColor: profileUrls.length > 0 ? 'transparent' : members[0].color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>{getProfileImg(0)}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3, maxWidth: '82%' }}>
-            <span style={{ fontSize: 12, color: descColor, marginLeft: 2 }}>통영</span>
+            <span style={{ fontSize: 12, color: nameTimeColor, marginLeft: 2 }}>통영</span>
             {/* 첫 번째 말풍선 (bubbleReceive1) */}
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, overflow: 'visible' }}>
               <BubbleBox imageUrl={chatRoom.bubbleReceive1} bgColor={chatRoom.friendBubbleBg} textColor={chatRoom.friendBubbleText} side="receive" order={1}>
@@ -147,7 +148,7 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config, hideC
               <BubbleBox imageUrl={chatRoom.bubbleReceive2} bgColor={chatRoom.friendBubbleBg} textColor={chatRoom.friendBubbleText} side="receive" order={2}>
                 만들어본 사람 후기 좀
               </BubbleBox>
-              <span style={{ fontSize: 9, color: descColor, flexShrink: 0 }}>오후 2:10</span>
+              <span style={{ fontSize: 9, color: nameTimeColor, flexShrink: 0 }}>오후 2:10</span>
             </div>
           </div>
         </div>
@@ -156,12 +157,12 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config, hideC
         <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
           <div style={{ width: 34, height: 34, borderRadius: 13, backgroundColor: profileUrls.length > 0 ? 'transparent' : members[2].color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>{getProfileImg(1)}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3, maxWidth: '82%' }}>
-            <span style={{ fontSize: 12, color: descColor, marginLeft: 2 }}>거제</span>
+            <span style={{ fontSize: 12, color: nameTimeColor, marginLeft: 2 }}>거제</span>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, overflow: 'visible' }}>
               <BubbleBox imageUrl={chatRoom.bubbleReceive2} bgColor={chatRoom.friendBubbleBg} textColor={chatRoom.friendBubbleText} side="receive" order={2}>
                 그거 어렵지 않아?
               </BubbleBox>
-              <span style={{ fontSize: 9, color: descColor, flexShrink: 0 }}>오후 2:13</span>
+              <span style={{ fontSize: 9, color: nameTimeColor, flexShrink: 0 }}>오후 2:13</span>
             </div>
           </div>
         </div>
@@ -171,7 +172,7 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config, hideC
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, maxWidth: '82%', overflow: 'visible' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
               <span style={{ fontSize: 9, color: chatRoom.myBubbleUnreadText, fontWeight: 700, lineHeight: 1, alignSelf: 'flex-end' }}>2</span>
-              <span style={{ fontSize: 9, color: descColor }}>오후 3:33</span>
+              <span style={{ fontSize: 9, color: nameTimeColor }}>오후 3:33</span>
             </div>
             <BubbleBox imageUrl={chatRoom.bubbleSend1} bgColor={chatRoom.myBubbleBg} textColor={chatRoom.myBubbleText} side="send" order={1}>
               나는 스토어에서 테마 사봤는데 괜찮더라구
@@ -184,7 +185,7 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config, hideC
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, maxWidth: '82%', overflow: 'visible' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
               <span style={{ fontSize: 9, color: chatRoom.myBubbleUnreadText, fontWeight: 700, lineHeight: 1, alignSelf: 'flex-end' }}>2</span>
-              <span style={{ fontSize: 9, color: descColor }}>오후 3:34</span>
+              <span style={{ fontSize: 9, color: nameTimeColor }}>오후 3:34</span>
             </div>
             <BubbleBox imageUrl={chatRoom.bubbleSend2} bgColor={chatRoom.myBubbleBg} textColor={chatRoom.myBubbleText} side="send" order={2}>
               나도 만들어볼까 ㅎㅎ
@@ -196,14 +197,14 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config, hideC
         <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
           <div style={{ width: 34, height: 34, borderRadius: 13, backgroundColor: profileUrls.length > 0 ? 'transparent' : members[1].color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>{getProfileImg(2)}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3, maxWidth: '82%' }}>
-            <span style={{ fontSize: 12, color: descColor, marginLeft: 2 }}>안동</span>
+            <span style={{ fontSize: 12, color: nameTimeColor, marginLeft: 2 }}>안동</span>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, overflow: 'visible' }}>
               <BubbleBox imageUrl={chatRoom.bubbleReceive2} bgColor={chatRoom.friendBubbleBg} textColor={chatRoom.friendBubbleText} side="receive" order={2}>
                 나도 테마제작은 관심 있는데 코딩은 너무 어렵더라
               </BubbleBox>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-                <span style={{ fontSize: 9, color: chatRoom.friendBubbleUnreadText, fontWeight: 700, lineHeight: 1 }}>3</span>
-                <span style={{ fontSize: 9, color: descColor }}>오후 4:21</span>
+                <span style={{ fontSize: 9, color: chatRoom.friendBubbleUnreadText, fontWeight: 700, lineHeight: 1, marginRight: 20 }}>3</span>
+                <span style={{ fontSize: 9, color: nameTimeColor }}>오후 4:21</span>
               </div>
             </div>
           </div>
@@ -213,14 +214,14 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config, hideC
         <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
           <div style={{ width: 34, height: 34, borderRadius: 13, backgroundColor: profileUrls.length > 0 ? 'transparent' : members[3].color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>{getProfileImg(0)}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3, maxWidth: '82%' }}>
-            <span style={{ fontSize: 12, color: descColor, marginLeft: 2 }}>강릉</span>
+            <span style={{ fontSize: 12, color: nameTimeColor, marginLeft: 2 }}>강릉</span>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, overflow: 'visible' }}>
               <BubbleBox imageUrl={chatRoom.bubbleReceive2} bgColor={chatRoom.friendBubbleBg} textColor={chatRoom.friendBubbleText} side="receive" order={2}>
                 나 테마 만들었는데 코딩 1도 모름 ㅋㅋㅋ
               </BubbleBox>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-                <span style={{ fontSize: 9, color: chatRoom.friendBubbleUnreadText, fontWeight: 700, lineHeight: 1 }}>4</span>
-                <span style={{ fontSize: 9, color: descColor }}>오후 4:38</span>
+                <span style={{ fontSize: 9, color: chatRoom.friendBubbleUnreadText, fontWeight: 700, lineHeight: 1, marginRight: 20 }}>4</span>
+                <span style={{ fontSize: 9, color: nameTimeColor }}>오후 4:38</span>
               </div>
             </div>
           </div>

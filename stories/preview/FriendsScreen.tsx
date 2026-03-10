@@ -119,6 +119,7 @@ export interface ScreenThemeConfig {
   friendsSelectedBgAlpha?: string;
   moreTabTextColor?: string;
   chatroomBgImageUrl?: string;
+  chatRoomNameTimeColor?: string;
   myBubbleText?: string;
   myBubbleSelectedText?: string;
   myBubbleUnreadText?: string;

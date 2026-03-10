@@ -55,6 +55,7 @@ export const PreviewChatRoomMockup = ({ hideContent, bannerType, notifBannerBg, 
     bubbleReceive1Url: chatRoom.bubbleReceive1Url,
     bubbleReceive1SelectedUrl: chatRoom.bubbleReceive1SelectedUrl,
     bubbleReceive2Url: chatRoom.bubbleReceive2Url,
+    chatRoomNameTimeColor: chatRoom.nameTimeColor,
   };
   return (
     <div style={{ position: 'relative', width: 368, height: 699 }}>

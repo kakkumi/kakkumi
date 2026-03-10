@@ -82,6 +82,7 @@ type ThemeState = {
     bubbleReceive1Url?: string;
     bubbleReceive1SelectedUrl?: string;
     bubbleReceive2Url?: string;
+    nameTimeColor?: string;
   };
   passcode: {
     backgroundColor: string;
