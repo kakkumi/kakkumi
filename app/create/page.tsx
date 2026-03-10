@@ -711,6 +711,7 @@ export default function CreatePage() {
   const [iconSvgUrl, setIconSvgUrl] = useState<string>("");
   const [iconImageUrl, setIconImageUrl] = useState<string>("");
   const [passcodeBgMode, setPasscodeBgMode] = useState<"color" | "image">("color");
+  const [tabBgMode, setTabBgMode] = useState<"color" | "image">("color");
   const [bulletEmptyMode, setBulletEmptyMode] = useState<"default" | "color" | "image">("default");
   const [bulletFillMode, setBulletFillMode] = useState<"color" | "image">("color");
   const [bulletEmptyColor, setBulletEmptyColor] = useState("#191919");
@@ -833,6 +834,7 @@ export default function CreatePage() {
         activeIconColor: config.tabBarSelectedIcon,
         inactiveIconColor: config.tabBarIcon,
         backgroundColor: config.tabBarBg,
+        backgroundImageUrl: tabBgMode === "image" ? (imageUploads["tabBg"] || undefined) : undefined,
       },
       chatsTab: {
         filterChipBg: config.bodyBg,
@@ -852,7 +854,7 @@ export default function CreatePage() {
         keypadTextColor: config.passcodeKeypadText,
       },
     });
-  }, [config, setTheme]);
+  }, [config, setTheme, tabBgMode, imageUploads]);
 
   useEffect(() => {
     setTheme({
@@ -891,7 +893,7 @@ export default function CreatePage() {
         keypadPressedOn: keypadPressedOn,
       },
     });
-  }, [imageUploads, passcodeBgMode, bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor, keypadPressedOn, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText, config.passcodeKeypadBg, setTheme]);
+  }, [imageUploads, passcodeBgMode, tabBgMode, bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor, keypadPressedOn, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText, config.passcodeKeypadBg, config.tabBarBg, config.tabBarIcon, config.tabBarSelectedIcon, setTheme]);
 
   // iconOpts 변경 시 자동저장 트리거
   useEffect(() => {
@@ -905,11 +907,19 @@ export default function CreatePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bulletEmptyColor, bulletFillColor, bulletEmptyMode, bulletFillMode]);
 
-  // passcodeBgMode, keypadPressedOn 변경 시 즉시 자동저장 트리거
+  // passcodeBgMode, keypadPressedOn, tabBgMode 변경 시 즉시 자동저장 트리거
   useEffect(() => {
     triggerImmediate();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [passcodeBgMode, keypadPressedOn]);
+  }, [passcodeBgMode, keypadPressedOn, tabBgMode]);
+
+  // 다크모드 켜질 때 탭바 배경색 #000000으로 고정
+  useEffect(() => {
+    if (config.darkMode) {
+      setConfig((prev) => ({ ...prev, tabBarBg: "#000000" }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config.darkMode]);
 
   useEffect(() => {
     const screenMap: Record<PreviewTab, ScreenType> = {
@@ -1037,12 +1047,12 @@ export default function CreatePage() {
       const themeName = config.name.replace(/\s/g, "_");
 
       // CSS 생성
-      zip.file("KakaoTalkTheme.css", generateCSS(config, imageUploads, passcodeBgMode, bulletEmptyMode, bulletFillMode, keypadPressedOn));
+      zip.file("KakaoTalkTheme.css", generateCSS(config, imageUploads, passcodeBgMode, bulletEmptyMode, bulletFillMode, keypadPressedOn, tabBgMode));
 
       // 업로드된 이미지를 Images/ 폴더에 포함
       const imageFileMap: Record<string, string> = {
         mainBg: "mainBgImage@2x.png",
-        tabBg: "maintabBgImage@2x.png",
+        tabBg: "maintabBgImage@3x.png",
         chatroomBg: "chatroomBgImage@2x.png",
         defaultProfile: "profileImg01@2x.png",
         icon: "commonIcoTheme.png",
@@ -1078,6 +1088,7 @@ export default function CreatePage() {
       const imgPromises = Object.entries(imageFileMap)
         .filter(([key]) => {
           if (key === "passcodeBgImg" && passcodeBgMode === "color") return false;
+          if (key === "tabBg" && tabBgMode === "color") return false;
           if (key === "bulletEmpty" && bulletEmptyMode === "default") return false;
           if (key === "passcodeKeypadPressed" && !keypadPressedOn) return false;
           return !!resolvedUploads[key];
@@ -1142,7 +1153,6 @@ export default function CreatePage() {
       const readmeTxt = `카카오톡 Android 테마 패키지
 ===========================
 테마 이름: ${config.name}
-버전: ${config.version}
 제작자: ${config.authorName}
 패키지: ${config.namespace}
 
@@ -1279,7 +1289,6 @@ export default function CreatePage() {
         {/* 왼쪽: 테마명 */}
         <div className="flex items-center gap-3">
           <span className="text-[13px] font-semibold" style={{ color: "#1c1c1e" }}>{config.name}</span>
-          <span className="text-[11px] font-mono px-2 py-0.5 rounded-md" style={{ background: "rgba(0,0,0,0.05)", color: "#8e8e93" }}>v{config.version}</span>
         </div>
 
         {/* 가운데: 탭 프리뷰 선택 */}
@@ -1507,26 +1516,43 @@ export default function CreatePage() {
                 <Accordion title="테마 정보" badge="ManifestStyle">
                   <MacInput label="이름" hint="(-kakaotalk-theme-name)" value={config.name} onChange={set("name")} />
                   <MacInput label="고유 테마 ID" hint="(-kakaotalk-theme-id)" value={config.packageId || "저장 후 자동 생성"} onChange={set("packageId")} readOnly={true} />
-                  <MacInput label="버전" hint="(-kakaotalk-theme-version)" value={config.version} onChange={set("version")} readOnly={true} />
+
                   <MacInput label="제작자" hint="(-kakaotalk-author-name)" value={config.authorName} onChange={set("authorName")} readOnly={true} />
                   <MacInput label="참조 URL" hint="(-kakaotalk-theme-url)" value={config.themeUrl} onChange={set("themeUrl")} />
                 </Accordion>
                 <Accordion title="시스템 스타일" badge="ManifestStyle">
-                  <div className="flex items-center justify-between py-2.5 px-2.5">
-                    <div>
-                      <div className="text-[12.5px] font-semibold text-gray-800">다크 모드 지원</div>
-                      <div className="text-[10px] mt-0.5 font-mono text-gray-400">-kakaotalk-theme-style: &apos;dark&apos;</div>
+                  <div className="flex flex-col gap-2 py-2.5 px-2.5">
+                    <div className="text-[12.5px] font-semibold text-gray-800">다크 모드 지원</div>
+                    <div className="flex rounded-lg overflow-hidden border border-gray-200">
+                      <button
+                        onClick={() => set("darkMode")(false)}
+                        className="flex-1 py-1.5 text-[11px] font-semibold transition-colors"
+                        style={{
+                          backgroundColor: !config.darkMode ? "rgb(251,146,60)" : "#fff",
+                          color: !config.darkMode ? "#fff" : "#9ca3af",
+                        }}
+                      >
+                        light
+                      </button>
+                      <button
+                        onClick={() => set("darkMode")(true)}
+                        className="flex-1 py-1.5 text-[11px] font-semibold transition-colors"
+                        style={{
+                          backgroundColor: config.darkMode ? "rgb(251,146,60)" : "#fff",
+                          color: config.darkMode ? "#fff" : "#9ca3af",
+                        }}
+                      >
+                        dark
+                      </button>
                     </div>
-                    <button
-                      onClick={() => set("darkMode")(!config.darkMode)}
-                      className="w-[36px] h-[20px] rounded-full relative transition-all duration-200 shrink-0"
-                      style={{
-                        backgroundColor: config.darkMode ? "#34c759" : "rgba(0,0,0,0.15)",
-                        boxShadow: config.darkMode ? "0 0 0 1px rgba(52,199,89,0.4)" : "0 0 0 1px rgba(0,0,0,0.1)",
-                      }}
-                    >
-                      <div className="absolute top-[2px] w-[16px] h-[16px] rounded-full bg-white shadow-md transition-all duration-200" style={{ left: config.darkMode ? "18px" : "2px" }} />
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                      <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>
+                        {config.darkMode
+                          ? "어플 시스템 UI (테마 관리 화면, 상태바 등) 가 다크 모드로 전환돼요. 내 커스텀 이미지나 색상에는 영향이 없지만 하단바 배경색은 어두운 색으로 고정이에요."
+                          : "어플 시스템 UI (테마 관리 화면, 상태바 등) 가 라이트 모드로 전환돼요. 내 커스텀 이미지나 색상에는 영향 없어요."}
+                      </span>
+                    </div>
                   </div>
                 </Accordion>
                 <Accordion title="아이콘 이미지" badge="ManifestStyle">
@@ -1732,8 +1758,49 @@ export default function CreatePage() {
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="탭바 배경" badge="TabbarStyle">
-                  <ColorRow label="배경 컬러" value={config.tabBarBg} onChange={set("tabBarBg")} tooltip="background-color" />
-                  <ImageUploadRow label="배경 이미지" tooltip="maintabBgImage.png" imgKey="tabBg" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                  <div className="mx-2.5 mb-2 flex rounded-lg overflow-hidden border border-gray-200">
+                    <button
+                      type="button"
+                      onClick={() => !config.darkMode && setTabBgMode("color")}
+                      className="flex-1 py-1.5 text-[11px] font-semibold transition-colors"
+                      style={{
+                        backgroundColor: tabBgMode === "color" ? "rgb(251,146,60)" : "#fff",
+                        color: tabBgMode === "color" ? "#fff" : "#9ca3af",
+                        opacity: config.darkMode ? 0.4 : 1,
+                        cursor: config.darkMode ? "not-allowed" : "pointer",
+                      }}
+                    >
+                      배경색
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => !config.darkMode && setTabBgMode("image")}
+                      className="flex-1 py-1.5 text-[11px] font-semibold transition-colors"
+                      style={{
+                        backgroundColor: tabBgMode === "image" ? "rgb(251,146,60)" : "#fff",
+                        color: tabBgMode === "image" ? "#fff" : "#9ca3af",
+                        opacity: config.darkMode ? 0.4 : 1,
+                        cursor: config.darkMode ? "not-allowed" : "pointer",
+                      }}
+                    >
+                      이미지 업로드
+                    </button>
+                  </div>
+                  {config.darkMode && (
+                    <div className="px-2.5 pb-1 flex items-center gap-1.5 mt-1 mb-1">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                      <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>다크 모드 사용 시 카카오톡 시스템이 하단바 배경을 검정(#000000)으로 고정해요.</span>
+                    </div>
+                  )}
+                  {tabBgMode === "color" ? (
+                    <div style={{ pointerEvents: config.darkMode ? "none" : "auto", opacity: config.darkMode ? 0.4 : 1 }}>
+                      <ColorRow label="배경 컬러" value={config.darkMode ? "#000000" : config.tabBarBg} onChange={set("tabBarBg")} tooltip="background-color" />
+                    </div>
+                  ) : (
+                    <div style={{ pointerEvents: config.darkMode ? "none" : "auto", opacity: config.darkMode ? 0.4 : 1 }}>
+                      <ImageUploadRow label="배경 이미지" tooltip="maintabBgImage.png" imgKey="tabBg" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                    </div>
+                  )}
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="탭 아이콘" badge="TabbarStyle">
@@ -2010,7 +2077,7 @@ export default function CreatePage() {
   );
 }
 
-function generateCSS(config: ThemeConfig, imageUploads: Record<string, string> = {}, passcodeBgMode: "color" | "image" = "color", bulletEmptyMode: "default" | "color" | "image" = "default", bulletFillMode: "color" | "image" = "color", keypadPressedOn = true): string {
+function generateCSS(config: ThemeConfig, imageUploads: Record<string, string> = {}, passcodeBgMode: "color" | "image" = "color", bulletEmptyMode: "default" | "color" | "image" = "default", bulletFillMode: "color" | "image" = "color", keypadPressedOn = true, tabBgMode: "color" | "image" = "color"): string {
   const img = (key: string, filename: string) =>
     imageUploads[key] ? `\n    -ios-background-image: '${filename}';` : "";
 
@@ -2021,7 +2088,6 @@ function generateCSS(config: ThemeConfig, imageUploads: Record<string, string> =
 ManifestStyle
 {
     -kakaotalk-theme-name: '${config.name}';
-    -kakaotalk-theme-version: '${config.version}';
     -kakaotalk-theme-url: '${config.themeUrl}';
     -kakaotalk-author-name: '${config.authorName}';
     -kakaotalk-theme-id: '${config.packageId}';${config.darkMode ? "\n    -kakaotalk-theme-style: 'dark';" : ""}
@@ -2034,19 +2100,21 @@ ManifestStyle
 
 TabBarStyle-Main
 {
-    background-color: ${config.tabBarBg};${img("tabBg", "maintabBgImage@2x.png")}
-    ${imageUploads["tabFriendsNormal"] ? `-ios-friends-normal-icon-image: 'maintabIcoFriends@2x.png';` : ""}
-    ${imageUploads["tabFriendsSelected"] ? `-ios-friends-selected-icon-image: 'maintabIcoFriendsSelected@2x.png';` : ""}
-    ${imageUploads["tabChatNormal"] ? `-ios-chats-normal-icon-image: 'maintabIcoChats@2x.png';` : ""}
-    ${imageUploads["tabChatSelected"] ? `-ios-chats-selected-icon-image: 'maintabIcoChatsSelected@2x.png';` : ""}
-    ${imageUploads["tabOpenNormal"] ? `-ios-now-normal-icon-image: 'maintabIcoNow@2x.png';` : ""}
-    ${imageUploads["tabOpenSelected"] ? `-ios-now-selected-icon-image: 'maintabIcoNowSelected@2x.png';` : ""}
-    ${imageUploads["tabShopNormal"] ? `-ios-shopping-normal-icon-image: 'maintabIcoShopping@2x.png';` : ""}
-    ${imageUploads["tabShopSelected"] ? `-ios-shopping-selected-icon-image: 'maintabIcoShoppingSelected@2x.png';` : ""}
-    ${imageUploads["tabMoreNormal"] ? `-ios-more-normal-icon-image: 'maintabIcoMore@2x.png';` : ""}
-    ${imageUploads["tabMoreSelected"] ? `-ios-more-selected-icon-image: 'maintabIcoMoreSelected@2x.png';` : ""}
-    -ios-icon-normal-color: ${config.tabBarIcon};
-    -ios-icon-selected-color: ${config.tabBarSelectedIcon};
+    ${[
+      tabBgMode === "image" && imageUploads["tabBg"] ? `-ios-background-image: 'maintabBgImage@3x.png';` : `background-color: ${config.tabBarBg};`,
+      imageUploads["tabFriendsNormal"] ? `-ios-friends-normal-icon-image: 'maintabIcoFriends@2x.png';` : "",
+      imageUploads["tabFriendsSelected"] ? `-ios-friends-selected-icon-image: 'maintabIcoFriendsSelected@2x.png';` : "",
+      imageUploads["tabChatNormal"] ? `-ios-chats-normal-icon-image: 'maintabIcoChats@2x.png';` : "",
+      imageUploads["tabChatSelected"] ? `-ios-chats-selected-icon-image: 'maintabIcoChatsSelected@2x.png';` : "",
+      imageUploads["tabOpenNormal"] ? `-ios-now-normal-icon-image: 'maintabIcoNow@2x.png';` : "",
+      imageUploads["tabOpenSelected"] ? `-ios-now-selected-icon-image: 'maintabIcoNowSelected@2x.png';` : "",
+      imageUploads["tabShopNormal"] ? `-ios-shopping-normal-icon-image: 'maintabIcoShopping@2x.png';` : "",
+      imageUploads["tabShopSelected"] ? `-ios-shopping-selected-icon-image: 'maintabIcoShoppingSelected@2x.png';` : "",
+      imageUploads["tabMoreNormal"] ? `-ios-more-normal-icon-image: 'maintabIcoMore@2x.png';` : "",
+      imageUploads["tabMoreSelected"] ? `-ios-more-selected-icon-image: 'maintabIcoMoreSelected@2x.png';` : "",
+      `-ios-icon-normal-color: ${config.tabBarIcon};`,
+      `-ios-icon-selected-color: ${config.tabBarSelectedIcon};`,
+    ].filter(Boolean).join("\n    ")}
 }
 
 

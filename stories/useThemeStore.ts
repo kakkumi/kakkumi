@@ -33,6 +33,7 @@ type ThemeState = {
     activeIconColor: string;
     inactiveIconColor: string;
     backgroundColor: string;
+    backgroundImageUrl?: string;
   };
   friendsTab: {
     updateSectionBg: string;
@@ -114,6 +115,7 @@ export const useThemeStore = create<ThemeState>((set) => ({
     activeIconColor: '#3A1D1D',
     inactiveIconColor: '#9E9E9E',
     backgroundColor: '#FFFFFF',
+    backgroundImageUrl: undefined as string | undefined,
   },
   friendsTab: {
     updateSectionBg: '#F2F2F7',

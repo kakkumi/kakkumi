@@ -45,7 +45,11 @@ export const TabBar = ({ disabled = false }: { disabled?: boolean }) => {
     <footer
       style={{
         borderTop: '1px solid rgba(0,0,0,0.08)',
-        backgroundColor: tabBar.backgroundColor,
+        backgroundColor: tabBar.backgroundImageUrl ? 'transparent' : tabBar.backgroundColor,
+        backgroundImage: tabBar.backgroundImageUrl ? `url(${tabBar.backgroundImageUrl})` : undefined,
+        backgroundSize: '100% 100%',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
         display: 'grid',
         gridTemplateColumns: 'repeat(5, 1fr)',
         padding: '12px 4px 16px',
