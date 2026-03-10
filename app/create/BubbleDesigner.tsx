@@ -173,6 +173,20 @@ export function BubbleDesigner({ side, options, onChange, onGenerate }: BubbleDe
   const [status, setStatus] = useState<"idle" | "generating" | "done">("idle");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevUrlsRef = useRef<{ bubble1: string; bubble2: string } | null>(null);
+  const restoredRef = useRef(false);
+
+  // 테마 복원 시 options.characterUrl이 있으면 charPreviewUrl, charImgEl 복원
+  useEffect(() => {
+    if (restoredRef.current) return;
+    if (options.characterUrl) {
+      restoredRef.current = true;
+      setCharPreviewUrl(options.characterUrl);
+      const img = new Image();
+      img.onload = () => setCharImgEl(img);
+      img.src = options.characterUrl;
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options.characterUrl]);
 
   const autoGenerate = useCallback(
     async (opts: BubbleDesignOptions, img: HTMLImageElement | null) => {
