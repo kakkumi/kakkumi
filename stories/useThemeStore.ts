@@ -58,6 +58,8 @@ type ThemeState = {
     friendBubbleBg: string;
     myBubbleBg: string;
     inputBarBg: string;
+    inputBarText: string;
+    inputFieldBg: string;
     sendButtonBg: string;
     sendButtonFg: string;
     sendButtonHighlightBg: string;
@@ -145,6 +147,8 @@ export const useThemeStore = create<ThemeState>((set) => ({
     friendBubbleBg: '#FFFFFF',
     myBubbleBg: '#FEE500',
     inputBarBg: '#FFFFFF',
+    inputBarText: '#8E8E93',
+    inputFieldBg: '#F2F2F7',
     sendButtonBg: '#FEE500',
     sendButtonFg: '#3A1D1D',
     sendButtonHighlightBg: '#E6CE00',

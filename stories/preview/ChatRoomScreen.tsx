@@ -62,6 +62,9 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { c
     friendBubbleText: config.friendBubbleText ?? '#191919',
     friendBubbleUnreadText: config.friendBubbleUnreadText ?? '#FF3B30',
     inputBarBg: config.inputBarBg,
+    inputBarText: config.inputBarText ?? '#8E8E93',
+    inputFieldBg: config.inputFieldBg ?? '#e8e8e8',
+    menuButtonFg: config.menuButtonFg ?? '#353434',
     menuButtonBg: 'rgba(0,0,0,0.04)',
     bubbleSend1: config.bubbleSend1Url || undefined,
     bubbleSend2: config.bubbleSend2Url || undefined,
@@ -213,14 +216,14 @@ export const ChatRoomScreen = React.memo(function ChatRoomScreen({ config }: { c
 
       {/* 하단 입력바 */}
       <footer style={{ backgroundColor: chatRoom.inputBarBg, padding: '10px 16px 17px 16px', display: 'flex', gap: 10, alignItems: 'center', borderTop: '1px solid rgba(0,0,0,0.08)', zIndex: 10 }}>
-        <button type="button" style={{ border: 0, borderRadius: 999, backgroundColor: chatRoom.menuButtonBg, color: '#353434', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer' }}>
+        <button type="button" style={{ border: 0, borderRadius: 999, backgroundColor: chatRoom.inputFieldBg, color: chatRoom.menuButtonFg, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer' }}>
           <Plus size={18} strokeWidth={2.5} />
         </button>
-        <div style={{ flex: 1, height: 28, borderRadius: 18, backgroundColor: '#e8e8e8', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 10px 0 14px' }}>
-          <span style={{ color: '#999999', fontSize: 13 }}>메시지 입력</span>
-          <Smile size={17} color="#999999" strokeWidth={2} style={{ cursor: 'pointer' }} />
+        <div style={{ flex: 1, height: 28, borderRadius: 18, backgroundColor: chatRoom.inputFieldBg, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 10px 0 14px' }}>
+          <span style={{ color: chatRoom.inputBarText, fontSize: 13, opacity: 0.5 }}>메시지 입력</span>
+          <Smile size={17} color={chatRoom.inputBarText} strokeWidth={2} style={{ cursor: 'pointer' }} />
         </div>
-        <button type="button" style={{ border: 0, borderRadius: 999, backgroundColor: chatRoom.menuButtonBg, color: '#353434', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', fontSize: 17, fontWeight: 700 }}>
+        <button type="button" style={{ border: 0, borderRadius: 999, backgroundColor: chatRoom.inputFieldBg, color: chatRoom.menuButtonFg, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', fontSize: 17, fontWeight: 700 }}>
           #
         </button>
       </footer>

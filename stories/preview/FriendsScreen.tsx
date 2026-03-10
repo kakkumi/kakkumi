@@ -90,6 +90,9 @@ export interface ScreenThemeConfig {
   otherBubbleBg: string;
   myBubbleBg: string;
   inputBarBg: string;
+  inputBarText?: string;
+  inputFieldBg?: string;
+  menuButtonFg?: string;
   sendBtnBg: string;
   passcodeBg: string;
   passcodeTitleText: string;

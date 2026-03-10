@@ -865,6 +865,8 @@ export default function CreatePage() {
         friendBubbleBg: config.otherBubbleBg,
         myBubbleBg: config.myBubbleBg,
         inputBarBg: config.inputBarBg,
+        inputBarText: config.inputBarText,
+        inputFieldBg: config.inputFieldBg,
         sendButtonBg: config.sendBtnBg,
         sendButtonFg: config.sendBtnIcon,
         sendButtonHighlightBg: config.sendBtnHighlightBg,
@@ -900,7 +902,7 @@ export default function CreatePage() {
         keypadPressedOn: keypadPressedOn,
       },
     });
-  }, [imageUploads, passcodeBgMode, tabBgMode, bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor, keypadPressedOn, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg, config.sendBtnIcon, config.sendBtnHighlightBg, config.sendBtnHighlightIcon, config.menuBtnColor, config.menuBtnHighlightColor, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText, config.passcodeKeypadBg, config.tabBarBg, config.tabBarIcon, config.tabBarSelectedIcon, setTheme]);
+  }, [imageUploads, passcodeBgMode, tabBgMode, bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor, keypadPressedOn, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.inputBarText, config.inputFieldBg, config.sendBtnBg, config.sendBtnIcon, config.sendBtnHighlightBg, config.sendBtnHighlightIcon, config.menuBtnColor, config.menuBtnHighlightColor, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText, config.passcodeKeypadBg, config.tabBarBg, config.tabBarIcon, config.tabBarSelectedIcon, setTheme]);
 
   // iconOpts 변경 시 자동저장 트리거
   useEffect(() => {

@@ -10,6 +10,8 @@ export const PreviewChatRoomInputMockup = () => {
   const chatRoom = useThemeStore((state) => state.chatRoom);
 
   const inputBarBg = chatRoom.inputBarBg;
+  const inputBarText = chatRoom.inputBarText;
+  const inputFieldBg = chatRoom.inputFieldBg;
   const sendBtnBg = chatRoom.sendButtonBg;
   const sendBtnFg = chatRoom.sendButtonFg;
   const sendBtnHighlightBg = chatRoom.sendButtonHighlightBg;
@@ -59,8 +61,8 @@ export const PreviewChatRoomInputMockup = () => {
         <button type="button" style={{
           border: 0,
           borderRadius: 999,
-          backgroundColor: menuBtnBg,
-          color: activeIconColor,
+          backgroundColor: inputFieldBg,
+          color: menuBtnFg,
           width: 28,
           height: 28,
           display: 'flex',
@@ -75,20 +77,20 @@ export const PreviewChatRoomInputMockup = () => {
           flex: 1,
           height: 32,
           borderRadius: 18,
-          backgroundColor: '#e8e8e8',
+          backgroundColor: inputFieldBg,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 10px 0 14px',
         }}>
-          <span style={{ color: '#999999', fontSize: 13 }}>메시지 입력</span>
-          <Smile size={17} color="#999999" strokeWidth={2} />
+          <span style={{ color: inputBarText, fontSize: 13, opacity: 0.5 }}>메시지 입력</span>
+          <Smile size={17} color={inputBarText} strokeWidth={2} />
         </div>
         <button type="button" style={{
           border: 0,
           borderRadius: 999,
-          backgroundColor: menuBtnBg,
-          color: activeIconColor,
+          backgroundColor: inputFieldBg,
+          color: menuBtnFg,
           width: 28,
           height: 28,
           display: 'flex',
@@ -116,7 +118,7 @@ export const PreviewChatRoomInputMockup = () => {
         <button type="button" style={{
           border: 0,
           borderRadius: 999,
-          backgroundColor: menuBtnBg,
+          backgroundColor: inputFieldBg,
           color: menuBtnFg,
           width: 28,
           height: 28,
@@ -132,14 +134,14 @@ export const PreviewChatRoomInputMockup = () => {
           flex: 1,
           height: 32,
           borderRadius: 18,
-          backgroundColor: '#e8e8e8',
+          backgroundColor: inputFieldBg,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 10px 0 14px',
         }}>
-          <span style={{ color: '#191919', fontSize: 13 }}>안녕하세요!</span>
-          <Smile size={17} color="#999999" strokeWidth={2} />
+          <span style={{ color: inputBarText, fontSize: 13 }}>안녕하세요!</span>
+          <Smile size={17} color={inputBarText} strokeWidth={2} />
         </div>
         {/* 전송 버튼 */}
         <button type="button" style={{
@@ -190,14 +192,14 @@ export const PreviewChatRoomInputMockup = () => {
           flex: 1,
           height: 32,
           borderRadius: 18,
-          backgroundColor: '#e8e8e8',
+          backgroundColor: inputFieldBg,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 10px 0 14px',
         }}>
-          <span style={{ color: '#191919', fontSize: 13 }}>안녕하세요!</span>
-          <Smile size={17} color="#999999" strokeWidth={2} />
+          <span style={{ color: inputBarText, fontSize: 13 }}>안녕하세요!</span>
+          <Smile size={17} color={inputBarText} strokeWidth={2} />
         </div>
         {/* 전송 버튼 */}
         <button type="button" style={{
