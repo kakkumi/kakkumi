@@ -672,7 +672,7 @@ function AndroidMockup({ config, previewTab, imageUploads, passcodeBgMode, bulle
   );
 }
 
-type PreviewTab = "friends" | "chat" | "openchat" | "shopping" | "more" | "passcode";
+type PreviewTab = "friends" | "chat" | "openchat" | "shopping" | "more" | "passcode" | "notification";
 type EditorCategory =
   | "manifest"
   | "friends-tab"
@@ -1312,7 +1312,7 @@ export default function CreatePage() {
         {/* 가운데: 탭 프리뷰 선택 */}
         <div className="flex items-center gap-0.5 rounded-full px-1 py-1" style={{ background: "rgba(0,0,0,0.05)" }}>
           {(["friends","chat","openchat","shopping","more"] as PreviewTab[]).map((tab) => {
-            const labels: Record<PreviewTab, string> = { friends:"친구", chat:"채팅", openchat:"지금", shopping:"쇼핑", more:"더보기", passcode:"암호" };
+            const labels: Record<PreviewTab, string> = { friends:"친구", chat:"채팅", openchat:"지금", shopping:"쇼핑", more:"더보기", passcode:"암호", notification:"알림" };
             return (
               <button key={tab} onClick={() => setPreviewTab(tab)}
                 className="px-3.5 py-1 text-[12px] font-semibold transition-all rounded-full"
@@ -1335,6 +1335,15 @@ export default function CreatePage() {
               whiteSpace: "nowrap",
             }}
           >암호</button>
+          <button onClick={() => setPreviewTab(previewTab === "notification" ? "friends" : "notification")}
+            className="px-3.5 py-1 text-[12px] font-semibold transition-all rounded-full"
+            style={{
+              color: previewTab === "notification" ? "#fff" : "#6b6b6b",
+              background: previewTab === "notification" ? "rgb(255,149,0)" : "transparent",
+              boxShadow: previewTab === "notification" ? "0 1px 6px rgba(255,149,0,0.35)" : "none",
+              whiteSpace: "nowrap",
+            }}
+          >알림</button>
         </div>
 
         {/* 오른쪽: OS + 버튼들 */}
@@ -1465,6 +1474,7 @@ export default function CreatePage() {
                     onClick={() => {
                       setActiveEditorCategory(category.key);
                       if (category.key === "chat-inputbar") setPreviewTab("chat");
+                      if (category.key === "notification") setPreviewTab("notification");
                     }}
                     className="w-full text-left px-3 py-2 rounded-lg text-[12.5px] transition-all duration-150 flex items-center gap-2"
                     style={{
@@ -1500,6 +1510,11 @@ export default function CreatePage() {
                 <PreviewMockup disableTabNavigation mainBgImageUrl={imageUploads.mainBg} />
                 <PreviewChatRoomMockup />
                 <PreviewChatRoomInputMockup />
+              </div>
+            ) : os === "ios" && previewTab === "notification" ? (
+              <div className="flex items-start gap-8">
+                <PreviewChatRoomMockup />
+                <PreviewChatRoomMockup />
               </div>
             ) : os === "ios" ? (
               <PreviewMockup disableTabNavigation mainBgImageUrl={imageUploads.mainBg} />
@@ -2020,25 +2035,16 @@ export default function CreatePage() {
 
             {activeEditorCategory === "notification" && (
               <>
-                <Accordion title="기본 프로필" badge="DefaultProfileStyle">
-                  <ImageUploadRow label="기본 프로필 이미지" tooltip="profileImg01.png" imgKey="defaultProfile" imageUploads={imageUploads} onUpload={handleImageUpload} />
+                <Accordion title="메시지 알림 배너" badge="BackgroundStyle-MessageNotificationBar">
+                  <ColorRow label="메시지 알림 배너 - 배경 컬러" value={config.notifBannerBg} onChange={set("notifBannerBg")} tooltip="background-color" />
+                  <ColorRow label="메시지 알림 배너 - 이름 컬러" value={config.notifBannerNameText} onChange={set("notifBannerNameText")} tooltip="-ios-text-color" />
+                  <ColorRow label="메시지 알림 배너 - 텍스트 컬러" value={config.notifBannerMsgText} onChange={set("notifBannerMsgText")} tooltip="-ios-text-color" />
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
-                <Accordion title="알림 배너" badge="BackgroundStyle-MessageNotificationBar">
-                  <ColorRow label="배경색" value={config.notifBannerBg} onChange={set("notifBannerBg")} tooltip="background-color" />
-                  <ColorRow label="이름 컬러" value={config.notifBannerNameText} onChange={set("notifBannerNameText")} tooltip="-ios-text-color (LabelStyle-MessageNotificationBarName)" />
-                  <ColorRow label="메시지 컬러" value={config.notifBannerMsgText} onChange={set("notifBannerMsgText")} tooltip="-ios-text-color (LabelStyle-MessageNotificationBarMessage)" />
-                </Accordion>
-                <hr className="border-t border-gray-300 mx-2 mb-4" />
-                <Accordion title="다이렉트 쉐어" badge="BackgroundStyle-DirectShareBar">
-                  <ColorRow label="배경색" value={config.directShareBg} onChange={set("directShareBg")} tooltip="background-color" />
-                  <ColorRow label="이름 컬러" value={config.directShareNameText} onChange={set("directShareNameText")} tooltip="-ios-text-color (LabelStyle-DirectShareBarName)" />
-                  <ColorRow label="메시지 컬러" value={config.directShareMsgText} onChange={set("directShareMsgText")} tooltip="-ios-text-color (LabelStyle-DirectShareBarMessage)" />
-                </Accordion>
-                <hr className="border-t border-gray-300 mx-2 mb-4" />
-                <Accordion title="하단 배너" badge="BottomBannerStyle">
-                  <ColorRow label="배경 컬러 (다크)" value={config.bottomBannerBg} onChange={set("bottomBannerBg")} tooltip="background-color (BottomBannerStyle)" />
-                  <ColorRow label="배경 컬러 (라이트)" value={config.bottomBannerLightBg} onChange={set("bottomBannerLightBg")} tooltip="background-color (BottomBannerStyle-Light)" />
+                <Accordion title="전달완료 배너" badge="BackgroundStyle-DirectShareBar">
+                  <ColorRow label="전달완료 배너 - 배경 컬러" value={config.directShareBg} onChange={set("directShareBg")} tooltip="background-color" />
+                  <ColorRow label="전달완료 배너 - 이름 컬러" value={config.directShareNameText} onChange={set("directShareNameText")} tooltip="-ios-text-color" />
+                  <ColorRow label="전달완료 배너 - 텍스트 컬러" value={config.directShareMsgText} onChange={set("directShareMsgText")} tooltip="-ios-text-color" />
                 </Accordion>
               </>
             )}
