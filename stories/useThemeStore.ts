@@ -59,8 +59,11 @@ type ThemeState = {
     myBubbleBg: string;
     inputBarBg: string;
     sendButtonBg: string;
+    sendButtonFg: string;
     sendButtonHighlightBg: string;
     sendButtonHighlightFg: string;
+    menuButtonFg: string;
+    menuButtonHighlightFg: string;
     bgImageUrl?: string;
     myBubbleText?: string;
     myBubbleSelectedText?: string;
@@ -143,8 +146,11 @@ export const useThemeStore = create<ThemeState>((set) => ({
     myBubbleBg: '#FEE500',
     inputBarBg: '#FFFFFF',
     sendButtonBg: '#FEE500',
+    sendButtonFg: '#3A1D1D',
     sendButtonHighlightBg: '#E6CE00',
     sendButtonHighlightFg: '#3A1D1D',
+    menuButtonFg: '#9E9E9E',
+    menuButtonHighlightFg: '#6E6E73',
     bgImageUrl: '',
   },
   passcode: {

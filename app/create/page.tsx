@@ -866,8 +866,11 @@ export default function CreatePage() {
         myBubbleBg: config.myBubbleBg,
         inputBarBg: config.inputBarBg,
         sendButtonBg: config.sendBtnBg,
+        sendButtonFg: config.sendBtnIcon,
         sendButtonHighlightBg: config.sendBtnHighlightBg,
         sendButtonHighlightFg: config.sendBtnHighlightIcon,
+        menuButtonFg: config.menuBtnColor,
+        menuButtonHighlightFg: config.menuBtnHighlightColor,
         bgImageUrl: imageUploads['chatroomBg'] ?? '',
         myBubbleText: config.myBubbleText,
         myBubbleSelectedText: config.myBubbleSelectedText,
@@ -897,7 +900,7 @@ export default function CreatePage() {
         keypadPressedOn: keypadPressedOn,
       },
     });
-  }, [imageUploads, passcodeBgMode, tabBgMode, bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor, keypadPressedOn, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg, config.sendBtnHighlightBg, config.sendBtnHighlightIcon, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText, config.passcodeKeypadBg, config.tabBarBg, config.tabBarIcon, config.tabBarSelectedIcon, setTheme]);
+  }, [imageUploads, passcodeBgMode, tabBgMode, bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor, keypadPressedOn, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg, config.sendBtnIcon, config.sendBtnHighlightBg, config.sendBtnHighlightIcon, config.menuBtnColor, config.menuBtnHighlightColor, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText, config.passcodeKeypadBg, config.tabBarBg, config.tabBarIcon, config.tabBarSelectedIcon, setTheme]);
 
   // iconOpts 변경 시 자동저장 트리거
   useEffect(() => {

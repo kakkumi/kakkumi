@@ -11,10 +11,12 @@ export const PreviewChatRoomInputMockup = () => {
 
   const inputBarBg = chatRoom.inputBarBg;
   const sendBtnBg = chatRoom.sendButtonBg;
+  const sendBtnFg = chatRoom.sendButtonFg;
   const sendBtnHighlightBg = chatRoom.sendButtonHighlightBg;
-  const sendBtnFg = globalStore.headerText;
   const sendBtnHighlightFg = chatRoom.sendButtonHighlightFg;
   const menuBtnBg = 'rgba(0,0,0,0.04)';
+  const menuBtnFg = chatRoom.menuButtonFg;
+  const menuBtnHighlightFg = chatRoom.menuButtonHighlightFg;
   const activeIconColor = tabBar.activeIconColor;
 
   const sectionLabel = (text: string) => (
@@ -115,7 +117,7 @@ export const PreviewChatRoomInputMockup = () => {
           border: 0,
           borderRadius: 999,
           backgroundColor: menuBtnBg,
-          color: activeIconColor,
+          color: menuBtnFg,
           width: 28,
           height: 28,
           display: 'flex',
@@ -143,8 +145,8 @@ export const PreviewChatRoomInputMockup = () => {
         <button type="button" style={{
           border: 0,
           borderRadius: 999,
-          backgroundColor: sendBtnHighlightBg,
-          color: sendBtnHighlightFg,
+          backgroundColor: sendBtnBg,
+          color: sendBtnFg,
           width: 28,
           height: 28,
           display: 'flex',
@@ -154,7 +156,7 @@ export const PreviewChatRoomInputMockup = () => {
           cursor: 'default',
         }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 19V5M5 12l7-7 7 7" stroke={sendBtnHighlightFg} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 19V5M5 12l7-7 7 7" stroke={sendBtnFg} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
       </div>
@@ -173,7 +175,7 @@ export const PreviewChatRoomInputMockup = () => {
           border: 0,
           borderRadius: 999,
           backgroundColor: menuBtnBg,
-          color: activeIconColor,
+          color: menuBtnHighlightFg,
           width: 28,
           height: 28,
           display: 'flex',
