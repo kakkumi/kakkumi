@@ -296,6 +296,7 @@ model MyTheme {
   name            String
   os              String         // "ios" | "android"
   previewImageUrl String?
+  themePackageId  String?        @unique // com.kakkumi.talk.theme.XXXXXXXX
   configJson      Json?          // ThemeConfig 전체 저장
   imageData       Json?          // { [key]: base64DataUrl } 이미지 맵
   trashed         Boolean        @default(false)

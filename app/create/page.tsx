@@ -128,7 +128,7 @@ interface ThemeConfig {
 const defaultConfig: ThemeConfig = {
   name: "나의 테마",
   version: "1.0.0",
-  packageId: "com.kakao.talk.theme.mytheme",
+  packageId: "",
   authorName: "제작자",
   themeUrl: "http://www.kakao.com",
   darkMode: false,
@@ -583,7 +583,7 @@ function AndroidChatRoomMockup({ config }: { config: ThemeConfig }) {
   );
 }
 
-function AndroidMockup({ config, previewTab, imageUploads, passcodeBgMode, bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor }: { config: ThemeConfig; previewTab: PreviewTab; imageUploads: Record<string, string>; passcodeBgMode: "color" | "image"; bulletEmptyMode: "default" | "color" | "image"; bulletFillMode: "color" | "image"; bulletEmptyColor: string; bulletFillColor: string }) {
+function AndroidMockup({ config, previewTab, imageUploads, passcodeBgMode, bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor, keypadPressedOn }: { config: ThemeConfig; previewTab: PreviewTab; imageUploads: Record<string, string>; passcodeBgMode: "color" | "image"; bulletEmptyMode: "default" | "color" | "image"; bulletFillMode: "color" | "image"; bulletEmptyColor: string; bulletFillColor: string; keypadPressedOn: boolean }) {
   const passcodeBgImgUrl = imageUploads["passcodeBgImg"];
   const screenConfig = useMemo(() => ({
     bodyBg: config.bodyBg,
@@ -794,6 +794,9 @@ export default function CreatePage() {
     os,
     imageUploads,
     initialThemeId: themeIdParam ?? null,
+    onCreated: (packageId) => {
+      setConfig(prev => ({ ...prev, packageId }));
+    },
   });
 
   // TabBar 컴포넌트는 store를 참조하므로 탭바 색상만 동기화
@@ -1459,16 +1462,16 @@ export default function CreatePage() {
               <PreviewMockup disableTabNavigation mainBgImageUrl={imageUploads.mainBg} />
             ) : previewTab === "friends" ? (
               <div className="flex items-start gap-8">
-                <AndroidMockup config={config} previewTab="friends" imageUploads={imageUploads} passcodeBgMode={passcodeBgMode} bulletEmptyMode={bulletEmptyMode} bulletFillMode={bulletFillMode} bulletEmptyColor={bulletEmptyColor} bulletFillColor={bulletFillColor} />
+                <AndroidMockup config={config} previewTab="friends" imageUploads={imageUploads} passcodeBgMode={passcodeBgMode} bulletEmptyMode={bulletEmptyMode} bulletFillMode={bulletFillMode} bulletEmptyColor={bulletEmptyColor} bulletFillColor={bulletFillColor} keypadPressedOn={keypadPressedOn} />
                 <AndroidFriendsProfileMockup config={config} />
               </div>
             ) : previewTab === "chat" ? (
               <div className="flex items-start gap-8">
-                <AndroidMockup config={config} previewTab="chat" imageUploads={imageUploads} passcodeBgMode={passcodeBgMode} bulletEmptyMode={bulletEmptyMode} bulletFillMode={bulletFillMode} bulletEmptyColor={bulletEmptyColor} bulletFillColor={bulletFillColor} />
+                <AndroidMockup config={config} previewTab="chat" imageUploads={imageUploads} passcodeBgMode={passcodeBgMode} bulletEmptyMode={bulletEmptyMode} bulletFillMode={bulletFillMode} bulletEmptyColor={bulletEmptyColor} bulletFillColor={bulletFillColor} keypadPressedOn={keypadPressedOn} />
                 <AndroidChatRoomMockup config={config} />
               </div>
             ) : (
-              <AndroidMockup config={config} previewTab={previewTab} imageUploads={imageUploads} passcodeBgMode={passcodeBgMode} bulletEmptyMode={bulletEmptyMode} bulletFillMode={bulletFillMode} bulletEmptyColor={bulletEmptyColor} bulletFillColor={bulletFillColor} />
+              <AndroidMockup config={config} previewTab={previewTab} imageUploads={imageUploads} passcodeBgMode={passcodeBgMode} bulletEmptyMode={bulletEmptyMode} bulletFillMode={bulletFillMode} bulletEmptyColor={bulletEmptyColor} bulletFillColor={bulletFillColor} keypadPressedOn={keypadPressedOn} />
             )}
           </div>
         </main>
@@ -1490,7 +1493,7 @@ export default function CreatePage() {
               <>
                 <Accordion title="테마 정보" badge="ManifestStyle">
                   <MacInput label="이름" hint="(-kakaotalk-theme-name)" value={config.name} onChange={set("name")} />
-                  <MacInput label="아이디" hint="(-kakaotalk-theme-id)" value={config.packageId} onChange={set("packageId")} />
+                  <MacInput label="고유 테마 ID" hint="(-kakaotalk-theme-id)" value={config.packageId || "저장 후 자동 생성"} onChange={set("packageId")} readOnly={true} />
                   <MacInput label="버전" hint="(-kakaotalk-theme-version)" value={config.version} onChange={set("version")} readOnly={true} />
                   <MacInput label="제작자" hint="(-kakaotalk-author-name)" value={config.authorName} onChange={set("authorName")} />
                   <MacInput label="참조 URL" hint="(-kakaotalk-theme-url)" value={config.themeUrl} onChange={set("themeUrl")} />

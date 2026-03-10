@@ -14,6 +14,8 @@ interface AutoSaveOptions<T> {
   imageUploads: Record<string, string>;
   /** 기존 테마 편집 시 테마 ID, 새 테마면 null */
   initialThemeId?: string | null;
+  /** 신규 테마 생성 완료 시 서버에서 받은 packageId를 전달 */
+  onCreated?: (packageId: string) => void;
 }
 
 // ...existing code...
@@ -34,6 +36,7 @@ export function useAutoSave<T extends object>({
   os,
   imageUploads,
   initialThemeId = null,
+  onCreated,
 }: AutoSaveOptions<T>): AutoSaveReturn {
   const [status, setStatus] = useState<AutoSaveStatus>("idle");
   const [themeId, setThemeId] = useState<string | null>(initialThemeId);
@@ -47,10 +50,12 @@ export function useAutoSave<T extends object>({
   const configRef = useRef(config);
   const osRef = useRef(os);
   const imageUploadsRef = useRef(imageUploads);
+  const onCreatedRef = useRef(onCreated);
 
   useEffect(() => { configRef.current = config; }, [config]);
   useEffect(() => { osRef.current = os; }, [os]);
   useEffect(() => { imageUploadsRef.current = imageUploads; }, [imageUploads]);
+  useEffect(() => { onCreatedRef.current = onCreated; }, [onCreated]);
 
   // 로컬스토리지 백업
   const backupToLocal = useCallback(() => {
@@ -147,14 +152,18 @@ export function useAutoSave<T extends object>({
         });
 
         if (res.ok) {
-          const data = await res.json() as { theme: { id: string } };
+          const data = await res.json() as { theme: { id: string; configJson?: { packageId?: string } } };
           const newId = data.theme.id;
+          const serverPackageId = (data.theme.configJson as Record<string, unknown>)?.packageId as string | undefined;
           localStorage.setItem(LS_THEME_ID_KEY, newId);
           themeIdRef.current = newId;
           startTransition(() => {
             setThemeId(newId);
             setStatus("saved");
           });
+          if (serverPackageId && onCreatedRef.current) {
+            onCreatedRef.current(serverPackageId);
+          }
           setTimeout(() => startTransition(() => setStatus("idle")), 2500);
         } else if (res.status === 401) {
           startTransition(() => setStatus("idle"));

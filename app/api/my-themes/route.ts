@@ -3,6 +3,21 @@ import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
+const CHARS = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+async function generateUniquePackageId(): Promise<string> {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    let suffix = "";
+    for (let i = 0; i < 8; i++) {
+      suffix += CHARS[Math.floor(Math.random() * CHARS.length)];
+    }
+    const packageId = `com.kakkumi.talk.theme.${suffix}`;
+    const existing = await prisma.myTheme.findUnique({ where: { themePackageId: packageId } });
+    if (!existing) return packageId;
+  }
+  throw new Error("패키지 ID 생성 실패");
+}
+
 // GET /api/my-themes
 export async function GET() {
     const session = await getServerSession();
@@ -41,13 +56,17 @@ export async function POST(req: NextRequest) {
 
     if (!name?.trim()) return NextResponse.json({ error: "테마 이름을 입력해주세요." }, { status: 400 });
 
+    const packageId = await generateUniquePackageId();
+    const mergedConfig = configJson ? { ...configJson, packageId } : { packageId };
+
     const theme = await prisma.myTheme.create({
         data: {
             userId: session.dbId,
             name: name.trim(),
             os,
             previewImageUrl: previewImageUrl ?? null,
-            configJson: configJson === null ? Prisma.DbNull : configJson === undefined ? undefined : (configJson as Prisma.InputJsonValue),
+            themePackageId: packageId,
+            configJson: mergedConfig as Prisma.InputJsonValue,
             imageData: imageData === null ? Prisma.DbNull : imageData === undefined ? undefined : (imageData as Prisma.InputJsonValue),
         },
     });
