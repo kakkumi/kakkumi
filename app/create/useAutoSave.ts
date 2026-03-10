@@ -18,6 +18,8 @@ interface AutoSaveOptions<T> {
   onCreated?: (packageId: string) => void;
   /** 신규 테마 생성 허용 여부를 외부 ref로 전달 - false면 POST 저장을 막음 */
   allowCreateRef?: MutableRefObject<boolean>;
+  /** false이면 PATCH/POST 모두 차단 (초기화 중 등) */
+  allowSaveRef?: MutableRefObject<boolean>;
   /** false이면 모든 저장 트리거를 차단 (초기 로딩 중 등) */
   enabled?: boolean;
 }
@@ -42,6 +44,7 @@ export function useAutoSave<T extends object>({
   initialThemeId = null,
   onCreated,
   allowCreateRef: externalAllowCreateRef,
+  allowSaveRef,
   enabled = true,
 }: AutoSaveOptions<T>): AutoSaveReturn {
   const [status, setStatus] = useState<AutoSaveStatus>("idle");
@@ -108,6 +111,7 @@ export function useAutoSave<T extends object>({
   const doSave = useCallback(async () => {
     // enabled 아니거나, 새 테마인데 변경사항 없으면 저장 자체를 차단
     if (!enabledRef.current) return;
+    if (allowSaveRef?.current === true) return;  // initializing 중이면 차단
     if (!allowCreateRef.current && !themeIdRef.current) return;
 
     if (isSaving.current) {

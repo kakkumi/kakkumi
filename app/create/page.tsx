@@ -795,10 +795,21 @@ export default function CreatePage() {
       // 초기 useEffect들이 enabled=false 상태에서 실행된 후 enabled=true로 전환
       requestAnimationFrame(() => {
         setThemeLoaded(true);
+        isInitializingRef.current = false;
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [themeIdParam]);
+
+  // 기존 테마 로드 완료 후 초기화 useEffect들이 모두 실행될 시간을 준 뒤 저장 허용
+  useEffect(() => {
+    if (!themeLoaded || !themeIdParam) return;
+    const timer = setTimeout(() => {
+      isInitializingRef.current = false;
+    }, 1500);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [themeLoaded]);
 
   // ── 로그인 닉네임 → authorName 자동 설정 ──
   useEffect(() => {
@@ -817,6 +828,9 @@ export default function CreatePage() {
   // 오직 사용자가 명시적으로 변경했을 때만 true로 설정됨 (useEffect 자동 계산 없음)
   const hasChangesRef = useRef(false);
 
+  // 기존 테마 로드 직후 초기화 useEffect들이 triggerDebounce를 호출하는 것을 막기 위한 ref
+  const isInitializingRef = useRef(true);
+
   // ── 자동저장 훅 ──
   const { status: autoSaveStatus, triggerDebounce, triggerImmediate, triggerImmediateAfterReset } = useAutoSave({
     config,
@@ -824,6 +838,7 @@ export default function CreatePage() {
     imageUploads,
     initialThemeId: themeIdParam ?? null,
     allowCreateRef: themeIdParam ? undefined : hasChangesRef,
+    allowSaveRef: themeIdParam ? isInitializingRef : undefined,
     enabled: themeLoaded,
     onCreated: (packageId) => {
       setConfig(prev => ({ ...prev, packageId }));
