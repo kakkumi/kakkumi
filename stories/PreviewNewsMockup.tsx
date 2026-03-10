@@ -34,6 +34,7 @@ export const PreviewNewsMockup = ({ disableTabNavigation = false, mainBgImageUrl
     openchatBg: openChatsTab.bannerBackgroundColor,
     mainBgImageUrl,
     friendsListDescText: friendsTab.listDescTextColor,
+    friendsNameText: friendsTab.nameTextColor,
     friendsSelectedBgAlpha: friendsTab.selectedBgAlpha,
     moreTabTextColor: globalStore.headerTabText,
     profileImgUrls: globalStore.profileImgUrls,

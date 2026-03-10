@@ -41,6 +41,7 @@ type ThemeState = {
     listDescTextColor: string;
     selectedBg: string;
     selectedBgAlpha: string;
+    nameTextColor: string;
   };
   chatsTab: {
     filterChipBg: string;
@@ -132,6 +133,7 @@ export const useThemeStore = create<ThemeState>((set) => ({
     listDescTextColor: '#9E9E9E',
     selectedBg: '#F2F2F7',
     selectedBgAlpha: '1.0',
+    nameTextColor: '#191919',
   },
   chatsTab: {
     filterChipBg: '#F5F5F5',

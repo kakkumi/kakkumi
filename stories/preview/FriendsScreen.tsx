@@ -109,6 +109,7 @@ export interface ScreenThemeConfig {
   unreadCountColor: string;
   openchatBg: string;
   mainBgImageUrl?: string;
+  friendsNameText?: string;
   chatListLastMsgText?: string;
   chatListNamePressColor?: string;
   chatListLastMsgPressColor?: string;
@@ -194,7 +195,7 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
               : '🍑'
             }
           </div>
-          <h2 style={{ margin: 0, fontSize: 17, fontWeight: 400, color: '#3c2a2a' }}>카꾸미</h2>
+          <h2 style={{ margin: 0, fontSize: 17, fontWeight: 400, color: global.textColor }}>카꾸미</h2>
         </div>
         <div data-active-element-id="header-title-icon" style={{ ...iconRowStyle, color: global.textColor }}>
           <Search size={20} strokeWidth={2.3} color={global.textColor} />
