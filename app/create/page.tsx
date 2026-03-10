@@ -866,6 +866,8 @@ export default function CreatePage() {
         myBubbleBg: config.myBubbleBg,
         inputBarBg: config.inputBarBg,
         sendButtonBg: config.sendBtnBg,
+        sendButtonHighlightBg: config.sendBtnHighlightBg,
+        sendButtonHighlightFg: config.sendBtnHighlightIcon,
         bgImageUrl: imageUploads['chatroomBg'] ?? '',
         myBubbleText: config.myBubbleText,
         myBubbleSelectedText: config.myBubbleSelectedText,
@@ -895,7 +897,7 @@ export default function CreatePage() {
         keypadPressedOn: keypadPressedOn,
       },
     });
-  }, [imageUploads, passcodeBgMode, tabBgMode, bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor, keypadPressedOn, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText, config.passcodeKeypadBg, config.tabBarBg, config.tabBarIcon, config.tabBarSelectedIcon, setTheme]);
+  }, [imageUploads, passcodeBgMode, tabBgMode, bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor, keypadPressedOn, config.chatBg, config.otherBubbleBg, config.myBubbleBg, config.inputBarBg, config.sendBtnBg, config.sendBtnHighlightBg, config.sendBtnHighlightIcon, config.myBubbleText, config.myBubbleSelectedText, config.myBubbleUnreadText, config.otherBubbleText, config.otherBubbleSelectedText, config.otherBubbleUnreadText, config.passcodeBg, config.passcodeTitleText, config.passcodeKeypadText, config.passcodeKeypadBg, config.tabBarBg, config.tabBarIcon, config.tabBarSelectedIcon, setTheme]);
 
   // iconOpts 변경 시 자동저장 트리거
   useEffect(() => {
@@ -1763,15 +1765,15 @@ export default function CreatePage() {
             {activeEditorCategory === "chat-inputbar" && (
               <>
                 <Accordion title="인풋바" badge="InputBarStyle-Chat">
-                  <ColorRow label="배경 컬러" value={config.inputBarBg} onChange={set("inputBarBg")} tooltip="background-color" />
-                  <ColorRow label="전송 버튼 기본 배경" value={config.sendBtnBg} onChange={set("sendBtnBg")} tooltip="-ios-send-normal-background-color" />
-                  <ColorRow label="전송 버튼 눌림 배경" value={config.sendBtnHighlightBg} onChange={set("sendBtnHighlightBg")} tooltip="-ios-send-highlighted-background-color" />
-                  <ColorRow label="전송 버튼 기본 아이콘" value={config.sendBtnIcon} onChange={set("sendBtnIcon")} tooltip="-ios-send-normal-foreground-color" />
-                  <ColorRow label="전송 버튼 눌림 아이콘" value={config.sendBtnHighlightIcon} onChange={set("sendBtnHighlightIcon")} tooltip="-ios-send-highlighted-foreground-color" />
-                  <ColorRow label="메뉴 버튼 기본 아이콘" value={config.menuBtnColor} onChange={set("menuBtnColor")} tooltip="-ios-button-normal-foreground-color" />
-                  <ColorRow label="메뉴 버튼 눌림 아이콘" value={config.menuBtnHighlightColor} onChange={set("menuBtnHighlightColor")} tooltip="-ios-button-highlighted-foreground-color" />
-                  <ColorRow label="텍스트 컬러" value={config.inputBarText} onChange={set("inputBarText")} tooltip="-ios-button-text-color" />
-                  <ColorRow label="입력 필드 배경" value={config.inputFieldBg} onChange={set("inputFieldBg")} tooltip="-ios-button-normal-background-color" />
+                  <ColorRow label="인풋바 배경컬러" value={config.inputBarBg} onChange={set("inputBarBg")} tooltip="background-color" />
+                  <ColorRow label="보내기 버튼 배경컬러" value={config.sendBtnBg} onChange={set("sendBtnBg")} tooltip="-ios-send-normal-background-color" />
+                  <ColorRow label="보내기 버튼 아이콘 컬러" value={config.sendBtnIcon} onChange={set("sendBtnIcon")} tooltip="-ios-send-normal-foreground-color" />
+                  <ColorRow label="보내기 버튼 프레스 컬러" value={config.sendBtnHighlightBg} onChange={set("sendBtnHighlightBg")} tooltip="-ios-send-highlighted-background-color" />
+                  <ColorRow label="보내기 버튼 아이콘 프레스 컬러" value={config.sendBtnHighlightIcon} onChange={set("sendBtnHighlightIcon")} tooltip="-ios-send-highlighted-foreground-color" />
+                  <ColorRow label="메뉴 버튼 아이콘 컬러" value={config.menuBtnColor} onChange={set("menuBtnColor")} tooltip="-ios-button-normal-foreground-color" />
+                  <ColorRow label="메뉴 버튼 아이콘 프레스 컬러" value={config.menuBtnHighlightColor} onChange={set("menuBtnHighlightColor")} tooltip="-ios-button-highlighted-foreground-color" />
+                  <ColorRow label="인풋바 텍스트 컬러" value={config.inputBarText} onChange={set("inputBarText")} tooltip="-ios-button-text-color" />
+                  <ColorRow label="메뉴 버튼 / 인풋바 배경 컬러" value={config.inputFieldBg} onChange={set("inputFieldBg")} tooltip="-ios-button-normal-background-color" />
                 </Accordion>
 
               </>
