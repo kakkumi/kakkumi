@@ -788,6 +788,19 @@ export default function CreatePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [themeIdParam]);
 
+  // ── 로그인 닉네임 → authorName 자동 설정 ──
+  useEffect(() => {
+    fetch("/api/auth/session")
+      .then((r) => r.json())
+      .then((data: { session?: { nickname?: string | null; name?: string | null } | null }) => {
+        const nickname = data?.session?.nickname ?? data?.session?.name ?? null;
+        if (nickname) {
+          setConfig((prev) => ({ ...prev, authorName: nickname }));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // ── 자동저장 훅 ──
   const { status: autoSaveStatus, triggerDebounce, triggerImmediate, triggerImmediateAfterReset } = useAutoSave({
     config,
@@ -1495,7 +1508,7 @@ export default function CreatePage() {
                   <MacInput label="이름" hint="(-kakaotalk-theme-name)" value={config.name} onChange={set("name")} />
                   <MacInput label="고유 테마 ID" hint="(-kakaotalk-theme-id)" value={config.packageId || "저장 후 자동 생성"} onChange={set("packageId")} readOnly={true} />
                   <MacInput label="버전" hint="(-kakaotalk-theme-version)" value={config.version} onChange={set("version")} readOnly={true} />
-                  <MacInput label="제작자" hint="(-kakaotalk-author-name)" value={config.authorName} onChange={set("authorName")} />
+                  <MacInput label="제작자" hint="(-kakaotalk-author-name)" value={config.authorName} onChange={set("authorName")} readOnly={true} />
                   <MacInput label="참조 URL" hint="(-kakaotalk-theme-url)" value={config.themeUrl} onChange={set("themeUrl")} />
                 </Accordion>
                 <Accordion title="시스템 스타일" badge="ManifestStyle">
