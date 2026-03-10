@@ -1332,7 +1332,7 @@ export default function CreatePage() {
           {/* OS 토글 */}
           <div className="flex items-center rounded-full p-0.5" style={{ background: "rgba(0,0,0,0.07)" }}>
             {(["ios","android"] as OS[]).map((o) => (
-              <button key={o} onClick={() => setOs(o)}
+              <button key={o} onClick={() => { setOs(o); triggerImmediate(); }}
                 className="px-4 py-1 text-[12px] font-semibold transition-all rounded-full"
                 style={{
                   color: os === o ? "#fff" : "#8e8e93",
@@ -1906,7 +1906,7 @@ export default function CreatePage() {
                       <div className="flex items-center gap-2">
                         <label className="relative cursor-pointer">
                           <input type="color" value={bulletFillColor}
-                            onChange={(e) => setBulletFillColor(e.target.value)}
+                            onChange={(e) => { setBulletFillColor(e.target.value); triggerDebounce(); }}
                             className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10" />
                           <div className="w-5 h-5 rounded-full ring-1 ring-black/10 shadow-sm" style={{ backgroundColor: bulletFillColor }} />
                         </label>
@@ -1942,7 +1942,7 @@ export default function CreatePage() {
                       <div className="flex items-center gap-2">
                         <label className="relative cursor-pointer">
                           <input type="color" value={bulletEmptyColor}
-                            onChange={(e) => setBulletEmptyColor(e.target.value)}
+                            onChange={(e) => { setBulletEmptyColor(e.target.value); triggerDebounce(); }}
                             className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10" />
                           <div className="w-5 h-5 rounded-full ring-1 ring-black/10 shadow-sm" style={{ backgroundColor: bulletEmptyColor }} />
                         </label>
