@@ -123,6 +123,19 @@ interface ThemeConfig {
   compileSdk: string;
   targetSdk: string;
   namespace: string;
+  // ── UI 상태 (저장/복원용) ──
+  uiDefaultProfileOn?: boolean;
+  uiPasscodeBgMode?: "color" | "image";
+  uiTabBgMode?: "color" | "image";
+  uiBulletEmptyMode?: "default" | "color" | "image";
+  uiBulletFillMode?: "color" | "image";
+  uiBulletEmptyColor?: string;
+  uiBulletFillColor?: string;
+  uiKeypadPressedOn?: boolean;
+  uiIconMode?: "svg" | "image";
+  uiIconOpts?: Record<string, unknown>;
+  uiSendBubbleOpts?: Record<string, unknown>;
+  uiReceiveBubbleOpts?: Record<string, unknown>;
 }
 
 const defaultConfig: ThemeConfig = {
@@ -781,6 +794,9 @@ export default function CreatePage() {
   const setTheme = usePreviewThemeStore((state) => state.setTheme);
 
   // ── URL ?id= 로 저장된 테마 불러오기 ──
+  // 복원 중 플래그: true인 동안 UI 동기화 useEffect가 config를 덮어쓰지 않음
+  const isRestoringRef = useRef(false);
+
   const loadThemeById = useCallback(async (id: string) => {
     try {
       const res = await fetch(`/api/my-themes/${id}`);
@@ -806,6 +822,21 @@ export default function CreatePage() {
           ...prev,
           ...(theme.configJson as Partial<ThemeConfig>),
         }));
+
+        // UI 상태값 복원
+        const c = theme.configJson as Partial<ThemeConfig>;
+        if (c.uiDefaultProfileOn !== undefined) setDefaultProfileOn(c.uiDefaultProfileOn);
+        if (c.uiPasscodeBgMode !== undefined) setPasscodeBgMode(c.uiPasscodeBgMode);
+        if (c.uiTabBgMode !== undefined) setTabBgMode(c.uiTabBgMode);
+        if (c.uiBulletEmptyMode !== undefined) setBulletEmptyMode(c.uiBulletEmptyMode);
+        if (c.uiBulletFillMode !== undefined) setBulletFillMode(c.uiBulletFillMode);
+        if (c.uiBulletEmptyColor !== undefined) setBulletEmptyColor(c.uiBulletEmptyColor);
+        if (c.uiBulletFillColor !== undefined) setBulletFillColor(c.uiBulletFillColor);
+        if (c.uiKeypadPressedOn !== undefined) setKeypadPressedOn(c.uiKeypadPressedOn);
+        if (c.uiIconMode !== undefined) setIconMode(c.uiIconMode);
+        if (c.uiIconOpts !== undefined) setIconOpts(c.uiIconOpts as unknown as IconDesignOptions);
+        if (c.uiSendBubbleOpts !== undefined) setSendBubbleOpts(c.uiSendBubbleOpts as unknown as BubbleDesignOptions);
+        if (c.uiReceiveBubbleOpts !== undefined) setReceiveBubbleOpts(c.uiReceiveBubbleOpts as unknown as BubbleDesignOptions);
       }
 
       // imageData(base64) 복원 → objectURL로 변환
@@ -856,6 +887,59 @@ export default function CreatePage() {
     return () => clearTimeout(timer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [themeLoaded]);
+
+  // UI 상태 변경 헬퍼 - state와 config를 동시에 업데이트
+  const setDefaultProfileOnWithConfig = useCallback((val: boolean | ((prev: boolean) => boolean)) => {
+    setDefaultProfileOn(prev => {
+      const next = typeof val === 'function' ? val(prev) : val;
+      setConfig(c => ({ ...c, uiDefaultProfileOn: next }));
+      return next;
+    });
+  }, []);
+  const setPasscodeBgModeWithConfig = useCallback((val: "color" | "image") => {
+    setPasscodeBgMode(val);
+    setConfig(c => ({ ...c, uiPasscodeBgMode: val }));
+  }, []);
+  const setTabBgModeWithConfig = useCallback((val: "color" | "image") => {
+    setTabBgMode(val);
+    setConfig(c => ({ ...c, uiTabBgMode: val }));
+  }, []);
+  const setBulletEmptyModeWithConfig = useCallback((val: "default" | "color" | "image") => {
+    setBulletEmptyMode(val);
+    setConfig(c => ({ ...c, uiBulletEmptyMode: val }));
+  }, []);
+  const setBulletFillModeWithConfig = useCallback((val: "color" | "image") => {
+    setBulletFillMode(val);
+    setConfig(c => ({ ...c, uiBulletFillMode: val }));
+  }, []);
+  const setBulletEmptyColorWithConfig = useCallback((val: string) => {
+    setBulletEmptyColor(val);
+    setConfig(c => ({ ...c, uiBulletEmptyColor: val }));
+  }, []);
+  const setBulletFillColorWithConfig = useCallback((val: string) => {
+    setBulletFillColor(val);
+    setConfig(c => ({ ...c, uiBulletFillColor: val }));
+  }, []);
+  const setKeypadPressedOnWithConfig = useCallback((val: boolean) => {
+    setKeypadPressedOn(val);
+    setConfig(c => ({ ...c, uiKeypadPressedOn: val }));
+  }, []);
+  const setIconModeWithConfig = useCallback((val: "svg" | "image") => {
+    setIconMode(val);
+    setConfig(c => ({ ...c, uiIconMode: val }));
+  }, []);
+  const setIconOptsWithConfig = useCallback((val: IconDesignOptions) => {
+    setIconOpts(val);
+    setConfig(c => ({ ...c, uiIconOpts: val as Record<string, unknown> }));
+  }, []);
+  const setSendBubbleOptsWithConfig = useCallback((val: BubbleDesignOptions) => {
+    setSendBubbleOpts(val);
+    setConfig(c => ({ ...c, uiSendBubbleOpts: val as Record<string, unknown> }));
+  }, []);
+  const setReceiveBubbleOptsWithConfig = useCallback((val: BubbleDesignOptions) => {
+    setReceiveBubbleOpts(val);
+    setConfig(c => ({ ...c, uiReceiveBubbleOpts: val as Record<string, unknown> }));
+  }, []);
 
   // 채팅방 배경 밝기 계산 → isDarkChatBg
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -1710,7 +1794,7 @@ export default function CreatePage() {
                     </div>
                     <IconDesigner
                       options={iconOpts}
-                      onChange={(opts) => { hasChangesRef.current = true; setIconOpts(opts); }}
+                      onChange={(opts) => { hasChangesRef.current = true; setIconOptsWithConfig(opts); }}
                       onSvgGenerate={(url) => {
                         setIconSvgUrl(url);
                         if (iconMode === "svg") {
@@ -1719,7 +1803,7 @@ export default function CreatePage() {
                         }
                       }}
                       onModeChange={(m) => {
-                        setIconMode(m);
+                        setIconModeWithConfig(m);
                         setImageUploads((prev) => ({
                           ...prev,
                           icon: m === "svg" ? iconSvgUrl : iconImageUrl,
@@ -1787,9 +1871,8 @@ export default function CreatePage() {
                       type="button"
                       onClick={() => {
                         hasChangesRef.current = true;
-                        setDefaultProfileOn(prev => {
+                        setDefaultProfileOnWithConfig(prev => {
                           if (prev) {
-                            // off로 전환 시 업로드된 이미지 제거
                             setImageUploads(u => {
                               const next = { ...u };
                               delete next['profileImg01'];
@@ -1912,7 +1995,7 @@ export default function CreatePage() {
                       side="send"
                       options={sendBubbleOpts}
                       onChange={(opts) => {
-                        setSendBubbleOpts(opts);
+                        setSendBubbleOptsWithConfig(opts);
                         set("myBubbleBg")(opts.bgColor);
                       }}
                       onGenerate={handleSendBubbleGenerate}
@@ -1937,7 +2020,7 @@ export default function CreatePage() {
                       side="receive"
                       options={receiveBubbleOpts}
                       onChange={(opts) => {
-                        setReceiveBubbleOpts(opts);
+                        setReceiveBubbleOptsWithConfig(opts);
                         set("otherBubbleBg")(opts.bgColor);
                       }}
                       onGenerate={handleReceiveBubbleGenerate}
@@ -1982,7 +2065,7 @@ export default function CreatePage() {
                   <div className="mx-2.5 mb-2 flex rounded-lg overflow-hidden border border-gray-200">
                     <button
                       type="button"
-                      onClick={() => { if (!config.darkMode) { hasChangesRef.current = true; setTabBgMode("color"); } }}
+                      onClick={() => { if (!config.darkMode) { hasChangesRef.current = true; setTabBgModeWithConfig("color"); } }}
                       className="flex-1 py-1.5 text-[11px] font-semibold transition-colors"
                       style={{
                         backgroundColor: tabBgMode === "color" ? "rgb(251,146,60)" : "#fff",
@@ -1995,7 +2078,7 @@ export default function CreatePage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => { if (!config.darkMode) { hasChangesRef.current = true; setTabBgMode("image"); } }}
+                      onClick={() => { if (!config.darkMode) { hasChangesRef.current = true; setTabBgModeWithConfig("image"); } }}
                       className="flex-1 py-1.5 text-[11px] font-semibold transition-colors"
                       style={{
                         backgroundColor: tabBgMode === "image" ? "rgb(251,146,60)" : "#fff",
@@ -2049,7 +2132,7 @@ export default function CreatePage() {
                   <div className="mx-2.5 mb-2 flex rounded-lg overflow-hidden border border-gray-200">
                     <button
                       type="button"
-                      onClick={() => { hasChangesRef.current = true; setPasscodeBgMode("color"); }}
+                      onClick={() => { hasChangesRef.current = true; setPasscodeBgModeWithConfig("color"); }}
                       className="flex-1 py-1.5 text-[11px] font-semibold transition-colors"
                       style={{ backgroundColor: passcodeBgMode === "color" ? "rgb(251,146,60)" : "#fff", color: passcodeBgMode === "color" ? "#fff" : "#9ca3af" }}
                     >
@@ -2057,7 +2140,7 @@ export default function CreatePage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => { hasChangesRef.current = true; setPasscodeBgMode("image"); }}
+                      onClick={() => { hasChangesRef.current = true; setPasscodeBgModeWithConfig("image"); }}
                       className="flex-1 py-1.5 text-[11px] font-semibold transition-colors"
                       style={{ backgroundColor: passcodeBgMode === "image" ? "rgb(251,146,60)" : "#fff", color: passcodeBgMode === "image" ? "#fff" : "#9ca3af" }}
                     >
@@ -2102,12 +2185,12 @@ export default function CreatePage() {
                   {/* 선택 불릿 */}
                   <div className="text-[11px] px-2.5 mb-1.5 font-semibold" style={{color:"#6e6e73"}}>선택</div>
                   <div className="mx-2.5 mb-2 flex rounded-lg overflow-hidden border border-gray-200">
-                    <button type="button" onClick={() => { hasChangesRef.current = true; setBulletFillMode("color"); }}
+                    <button type="button" onClick={() => { hasChangesRef.current = true; setBulletFillModeWithConfig("color"); }}
                       className="flex-1 py-1.5 text-[11px] font-semibold transition-colors"
                       style={{ backgroundColor: bulletFillMode === "color" ? "rgb(251,146,60)" : "#fff", color: bulletFillMode === "color" ? "#fff" : "#9ca3af" }}>
                       색상
                     </button>
-                    <button type="button" onClick={() => { hasChangesRef.current = true; setBulletFillMode("image"); }}
+                    <button type="button" onClick={() => { hasChangesRef.current = true; setBulletFillModeWithConfig("image"); }}
                       className="flex-1 py-1.5 text-[11px] font-semibold transition-colors"
                       style={{ backgroundColor: bulletFillMode === "image" ? "rgb(251,146,60)" : "#fff", color: bulletFillMode === "image" ? "#fff" : "#9ca3af" }}>
                       이미지 업로드
@@ -2119,7 +2202,7 @@ export default function CreatePage() {
                       <div className="flex items-center gap-2">
                         <label className="relative cursor-pointer">
                           <input type="color" value={bulletFillColor}
-                            onChange={(e) => { hasChangesRef.current = true; setBulletFillColor(e.target.value); triggerDebounce(); }}
+                            onChange={(e) => { hasChangesRef.current = true; setBulletFillColorWithConfig(e.target.value); triggerDebounce(); }}
                             className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10" />
                           <div className="w-5 h-5 rounded-full ring-1 ring-black/10 shadow-sm" style={{ backgroundColor: bulletFillColor }} />
                         </label>
@@ -2133,17 +2216,17 @@ export default function CreatePage() {
                   {/* 일반 불릿 */}
                   <div className="text-[11px] px-2.5 mt-3 mb-1.5 font-semibold" style={{color:"#6e6e73"}}>일반</div>
                   <div className="mx-2.5 mb-2 flex rounded-lg overflow-hidden border border-gray-200">
-                    <button type="button" onClick={() => { hasChangesRef.current = true; setBulletEmptyMode("default"); }}
+                    <button type="button" onClick={() => { hasChangesRef.current = true; setBulletEmptyModeWithConfig("default"); }}
                       className="flex-1 py-1.5 text-[11px] font-semibold transition-colors"
                       style={{ backgroundColor: bulletEmptyMode === "default" ? "rgb(251,146,60)" : "#fff", color: bulletEmptyMode === "default" ? "#fff" : "#9ca3af" }}>
                       기본
                     </button>
-                    <button type="button" onClick={() => { hasChangesRef.current = true; setBulletEmptyMode("color"); }}
+                    <button type="button" onClick={() => { hasChangesRef.current = true; setBulletEmptyModeWithConfig("color"); }}
                       className="flex-1 py-1.5 text-[11px] font-semibold transition-colors"
                       style={{ backgroundColor: bulletEmptyMode === "color" ? "rgb(251,146,60)" : "#fff", color: bulletEmptyMode === "color" ? "#fff" : "#9ca3af" }}>
                       색상
                     </button>
-                    <button type="button" onClick={() => { hasChangesRef.current = true; setBulletEmptyMode("image"); }}
+                    <button type="button" onClick={() => { hasChangesRef.current = true; setBulletEmptyModeWithConfig("image"); }}
                       className="flex-1 py-1.5 text-[11px] font-semibold transition-colors"
                       style={{ backgroundColor: bulletEmptyMode === "image" ? "rgb(251,146,60)" : "#fff", color: bulletEmptyMode === "image" ? "#fff" : "#9ca3af" }}>
                       이미지 업로드
@@ -2155,7 +2238,7 @@ export default function CreatePage() {
                       <div className="flex items-center gap-2">
                         <label className="relative cursor-pointer">
                           <input type="color" value={bulletEmptyColor}
-                            onChange={(e) => { hasChangesRef.current = true; setBulletEmptyColor(e.target.value); triggerDebounce(); }}
+                            onChange={(e) => { hasChangesRef.current = true; setBulletEmptyColorWithConfig(e.target.value); triggerDebounce(); }}
                             className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10" />
                           <div className="w-5 h-5 rounded-full ring-1 ring-black/10 shadow-sm" style={{ backgroundColor: bulletEmptyColor }} />
                         </label>
@@ -2176,7 +2259,7 @@ export default function CreatePage() {
                     <span className="text-[12px] font-medium text-gray-500">프레스 이미지</span>
                     <button
                       type="button"
-                      onClick={() => { hasChangesRef.current = true; setKeypadPressedOn(prev => !prev); }}
+                      onClick={() => { hasChangesRef.current = true; setKeypadPressedOnWithConfig(!keypadPressedOn); }}
                       style={{
                         width: 36, height: 20, borderRadius: 10,
                         backgroundColor: keypadPressedOn ? 'rgb(74,123,247)' : '#d1d5db',
