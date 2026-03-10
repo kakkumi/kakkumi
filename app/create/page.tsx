@@ -550,7 +550,7 @@ function AndroidFriendsProfileMockup({ config }: { config: ThemeConfig }) {
             <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
               <NewsScreen config={{ bodyBg: config.bodyBg, headerBg: config.headerBg, headerText: config.headerText, primaryText: config.primaryText, descText: config.descText, tabBarBg: config.tabBarBg, tabBarIcon: config.tabBarIcon, tabBarSelectedIcon: config.tabBarSelectedIcon, friendsSelectedBg: config.friendsSelectedBg, chatBg: config.chatBg, otherBubbleBg: config.otherBubbleBg, myBubbleBg: config.myBubbleBg, inputBarBg: config.inputBarBg, sendBtnBg: config.sendBtnBg, passcodeBg: config.passcodeBg, passcodeTitleText: config.passcodeTitleText, passcodeKeypadText: config.passcodeKeypadText, unreadCountColor: config.unreadCountColor, openchatBg: config.openchatBg, mainBgImageUrl: undefined }} />
             </div>
-            <TabBar disabled />
+            <TabBar disabled darkMode={config.darkMode} />
           </section>
         </div>
       </div>
@@ -663,7 +663,7 @@ function AndroidMockup({ config, previewTab, imageUploads, passcodeBgMode, bulle
             <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
               {renderScreen()}
             </div>
-            {showTabBar ? <TabBar disabled /> : null}
+            {showTabBar ? <TabBar disabled darkMode={config.darkMode} /> : null}
           </section>
         </div>
       </div>
@@ -913,11 +913,19 @@ export default function CreatePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [passcodeBgMode, keypadPressedOn, tabBgMode]);
 
-  // 다크모드 켜질 때 탭바 배경색 #000000으로 고정
+  // 다크/라이트모드 전환 시 탭바 배경색 자동 설정
   useEffect(() => {
-    if (config.darkMode) {
-      setConfig((prev) => ({ ...prev, tabBarBg: "#000000" }));
-    }
+    const newBg = config.darkMode ? "#000000" : "#FFFFFF";
+    setConfig((prev) => ({ ...prev, tabBarBg: newBg }));
+    setTheme({
+      tabBar: {
+        activeIconColor: config.tabBarSelectedIcon,
+        inactiveIconColor: config.tabBarIcon,
+        backgroundColor: newBg,
+        backgroundImageUrl: tabBgMode === "image" ? (imageUploads["tabBg"] || undefined) : undefined,
+      },
+    });
+    triggerImmediate();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config.darkMode]);
 
@@ -1801,24 +1809,6 @@ export default function CreatePage() {
                       <ImageUploadRow label="배경 이미지" tooltip="maintabBgImage.png" imgKey="tabBg" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
                     </div>
                   )}
-                </Accordion>
-                <hr className="border-t border-gray-300 mx-2 mb-4" />
-                <Accordion title="탭 아이콘" badge="TabbarStyle">
-                  <ColorRow label="일반 아이콘 컬러" value={config.tabBarIcon} onChange={set("tabBarIcon")} tooltip="일반 아이콘 컬러" />
-                  <ColorRow label="선택 아이콘 컬러" value={config.tabBarSelectedIcon} onChange={set("tabBarSelectedIcon")} tooltip="선택 아이콘 컬러" />
-                  {[
-                    { label: "친구", settingKey: "tab-friends", normalKey: "tabFriendsNormal", selectedKey: "tabFriendsSelected", normalTooltip: "maintablcoFriends.png", selectedTooltip: "maintablcoFriendsSelected.png" },
-                    { label: "채팅", settingKey: "tab-chat", normalKey: "tabChatNormal", selectedKey: "tabChatSelected", normalTooltip: "maintablcoChats.png", selectedTooltip: "maintabicoChatsSelected.png" },
-                    { label: "지금", settingKey: "tab-openchat", normalKey: "tabOpenNormal", selectedKey: "tabOpenSelected", normalTooltip: "maintabicoNow.png", selectedTooltip: "maintablcoNowSelected.png" },
-                    { label: "쇼핑", settingKey: "tab-shopping", normalKey: "tabShopNormal", selectedKey: "tabShopSelected", normalTooltip: "maintabicoShopping.png", selectedTooltip: "maintabicoShoppingSelected.png" },
-                    { label: "더보기", settingKey: "tab-more", normalKey: "tabMoreNormal", selectedKey: "tabMoreSelected", normalTooltip: "maintablcoMore.png", selectedTooltip: "maintablcoMoreSelected.png" },
-                  ].map((item) => (
-                    <div key={item.label} data-setting-key={item.settingKey} className="rounded-xl px-2 py-2 mb-1.5 transition-colors" style={{ background: selectedSettingKey === item.settingKey ? "rgba(74,123,247,0.07)" : "transparent", borderLeft: selectedSettingKey === item.settingKey ? "2px solid rgba(74,123,247,0.5)" : "2px solid transparent" }}>
-                      <div className="text-[11px] font-semibold mb-1 px-1" style={{ color: selectedSettingKey === item.settingKey ? "rgb(74,123,247)" : "#6e6e73" }}>{item.label}</div>
-                      <ImageUploadRow label={`${item.label} 일반`} tooltip={item.normalTooltip} imgKey={item.normalKey} imageUploads={imageUploads} onUpload={handleImageUpload} />
-                      <ImageUploadRow label={`${item.label} 선택`} tooltip={item.selectedTooltip} imgKey={item.selectedKey} imageUploads={imageUploads} onUpload={handleImageUpload} />
-                    </div>
-                  ))}
                 </Accordion>
               </>
             )}

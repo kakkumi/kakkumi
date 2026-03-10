@@ -26,12 +26,16 @@ const OpenChatIcon = ({ color }: { color: string }) => (
   </svg>
 );
 
-export const TabBar = ({ disabled = false }: { disabled?: boolean }) => {
+export const TabBar = ({ disabled = false, darkMode = false }: { disabled?: boolean; darkMode?: boolean }) => {
   const currentScreen = useThemeStore((state) => state.currentScreen);
   const setCurrentScreen = useThemeStore((state) => state.setCurrentScreen);
   const activeElementId = useThemeStore((state) => state.activeElementId);
   const setActiveElementId = useThemeStore((state) => state.setActiveElementId);
   const tabBar = useThemeStore((state) => state.tabBar);
+
+  // 목업 고정 색상 (코드 생성과 무관)
+  const inactiveColor = darkMode ? '#696b6d' : '#b9bcbf';
+  const activeColor = darkMode ? '#e4e9ef' : '#3a3a3c';
 
   const tabs: { key: TabScreenKey; label: string; icon: (color: string) => React.ReactNode }[] = [
     { key: 'FRIENDS', label: '친구', icon: (color) => <User size={20} color={color} /> },
@@ -58,7 +62,7 @@ export const TabBar = ({ disabled = false }: { disabled?: boolean }) => {
       {tabs.map((tab) => {
         const active = tab.key === currentScreen;
         const focused = activeElementId === tabElementMap[tab.key];
-        const color = active ? tabBar.activeIconColor : tabBar.inactiveIconColor;
+        const color = active ? activeColor : inactiveColor;
 
         return (
           <button
