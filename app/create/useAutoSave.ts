@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, startTransition } from "react";
+import { useCallback, useEffect, useRef, useState, startTransition, MutableRefObject } from "react";
 
 export type AutoSaveStatus = "idle" | "saving" | "saved" | "offline";
 
@@ -16,6 +16,10 @@ interface AutoSaveOptions<T> {
   initialThemeId?: string | null;
   /** 신규 테마 생성 완료 시 서버에서 받은 packageId를 전달 */
   onCreated?: (packageId: string) => void;
+  /** 신규 테마 생성 허용 여부를 외부 ref로 전달 - false면 POST 저장을 막음 */
+  allowCreateRef?: MutableRefObject<boolean>;
+  /** false이면 모든 저장 트리거를 차단 (초기 로딩 중 등) */
+  enabled?: boolean;
 }
 
 // ...existing code...
@@ -37,6 +41,8 @@ export function useAutoSave<T extends object>({
   imageUploads,
   initialThemeId = null,
   onCreated,
+  allowCreateRef: externalAllowCreateRef,
+  enabled = true,
 }: AutoSaveOptions<T>): AutoSaveReturn {
   const [status, setStatus] = useState<AutoSaveStatus>("idle");
   const [themeId, setThemeId] = useState<string | null>(initialThemeId);
@@ -51,6 +57,10 @@ export function useAutoSave<T extends object>({
   const osRef = useRef(os);
   const imageUploadsRef = useRef(imageUploads);
   const onCreatedRef = useRef(onCreated);
+  const defaultAllowCreateRef = useRef(true);
+  const allowCreateRef = externalAllowCreateRef ?? defaultAllowCreateRef;
+  const enabledRef = useRef(enabled);
+  enabledRef.current = enabled; // 렌더 시점에 즉시 동기화
 
   useEffect(() => { configRef.current = config; }, [config]);
   useEffect(() => { osRef.current = os; }, [os]);
@@ -96,6 +106,10 @@ export function useAutoSave<T extends object>({
 
   // 실제 서버 저장 함수
   const doSave = useCallback(async () => {
+    // enabled 아니거나, 새 테마인데 변경사항 없으면 저장 자체를 차단
+    if (!enabledRef.current) return;
+    if (!allowCreateRef.current && !themeIdRef.current) return;
+
     if (isSaving.current) {
       pendingSave.current = true;
       return;
@@ -196,6 +210,8 @@ export function useAutoSave<T extends object>({
 
   // 디바운스 트리거
   const triggerDebounce = useCallback(() => {
+    if (!enabledRef.current) return;
+    if (!allowCreateRef.current && !themeIdRef.current) return;
     backupToLocal();
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(() => {
@@ -206,6 +222,8 @@ export function useAutoSave<T extends object>({
 
   // 즉시 저장 트리거
   const triggerImmediate = useCallback(() => {
+    if (!enabledRef.current) return;
+    if (!allowCreateRef.current && !themeIdRef.current) return;
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
       debounceTimer.current = null;
@@ -216,6 +234,8 @@ export function useAutoSave<T extends object>({
   // 초기화 후 다음 렌더(ref 업데이트 완료) 시점에 저장
   const pendingResetSave = useRef(false);
   const triggerImmediateAfterReset = useCallback(() => {
+    if (!enabledRef.current) return;
+    if (!allowCreateRef.current && !themeIdRef.current) return;
     pendingResetSave.current = true;
   }, []);
 
