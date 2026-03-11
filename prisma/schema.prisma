@@ -30,6 +30,12 @@ enum BuildStatus {
   FAILED
 }
 
+enum ThemeOptionStatus {
+  ACTIVE          // 스토어에 공개된 옵션
+  PENDING_UPDATE  // 업데이트 심사 중 (기존 ACTIVE 버전 유지)
+  PENDING_NEW     // 신규 등록 심사 중
+}
+
 enum PurchaseStatus {
   PENDING
   COMPLETED
@@ -175,6 +181,7 @@ model Theme {
 
   creator   User           @relation("UserThemes", fields: [creatorId], references: [id])
   versions  ThemeVersion[]
+  options   ThemeOption[]
   purchases Purchase[]
   reports   Report[]       @relation("ThemeReports")
   likes     ThemeLike[]
@@ -193,6 +200,34 @@ model ThemeVersion {
 
   theme     Theme      @relation(fields: [themeId], references: [id], onDelete: Cascade)
   purchases Purchase[]
+}
+
+// 테마 옵션 (색상 변형 등) - 각 옵션마다 스냅샷 저장
+model ThemeOption {
+  id              String            @id @default(uuid())
+  themeId         String
+  os              String            // "ios" | "android"
+  name            String            // 옵션 이름 (예: 핑크 버전)
+  status          ThemeOptionStatus @default(PENDING_NEW)
+  adminNote       String?           // 반려 사유
+
+  // 현재 스토어에 공개된 스냅샷
+  fileUrl         String?           // 현재 공개 중인 파일 URL
+  configJson      Json?             // 현재 공개 중인 MyTheme configJson 스냅샷
+  imageData       Json?             // 현재 공개 중인 MyTheme imageData 스냅샷
+  myThemeId       String?           // 연결된 MyTheme id (선택)
+
+  // 업데이트 심사 중인 스냅샷 (승인 전까지 위 값 유지)
+  pendingFileUrl      String?
+  pendingConfigJson   Json?
+  pendingImageData    Json?
+  pendingMyThemeId    String?
+  pendingAdminNote    String?
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  theme           Theme             @relation(fields: [themeId], references: [id], onDelete: Cascade)
 }
 
 model Purchase {

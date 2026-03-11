@@ -19,16 +19,16 @@ export async function POST(req: NextRequest) {
         const categories = formData.getAll("categories") as string[];
         const thumbnailFile = formData.get("thumbnail") as File | null;
         const miniPreviewFiles = formData.getAll("miniPreviews") as File[];
-        const iosCount = parseInt((formData.get("iosCount") as string | null) ?? "1", 10);
-        const androidCount = parseInt((formData.get("androidCount") as string | null) ?? "1", 10);
+        const optionCount = parseInt((formData.get("optionCount") as string | null) ?? "0", 10);
 
         if (!title) return NextResponse.json({ error: "테마 이름을 입력해주세요." }, { status: 400 });
         if (!description) return NextResponse.json({ error: "테마 설명을 입력해주세요." }, { status: 400 });
         if (!categories.length) return NextResponse.json({ error: "카테고리를 1개 이상 입력해주세요." }, { status: 400 });
         if (!price) return NextResponse.json({ error: "가격을 선택해주세요." }, { status: 400 });
         if (!thumbnailFile) return NextResponse.json({ error: "미리보기 이미지를 업로드해주세요." }, { status: 400 });
+        if (optionCount === 0) return NextResponse.json({ error: "옵션을 1개 이상 추가해주세요." }, { status: 400 });
 
-        // 세션 유저가 DB에 실제로 존재하는지 확인
+        // 세션 유저 확인
         const userCheck = await prisma.$queryRaw<{ id: string }[]>`
             SELECT id FROM "User" WHERE id = ${session.dbId} AND "deletedAt" IS NULL LIMIT 1
         `;
@@ -36,29 +36,33 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "세션이 만료되었습니다. 다시 로그인해주세요." }, { status: 401 });
         }
 
-        // iOS 옵션 파싱
-        type FileOpt = { name: string; file: File | null };
-        const iosOpts: FileOpt[] = [];
-        for (let i = 0; i < iosCount; i++) {
-            iosOpts.push({
-                name: (formData.get(`iosName_${i}`) as string | null) ?? `iOS 옵션 ${i + 1}`,
-                file: formData.get(`iosFile_${i}`) as File | null,
+        // 옵션 파싱
+        type RawOption = {
+            name: string;
+            os: string;
+            // 파일 업로드 방식
+            file: File | null;
+            // MyTheme 선택 방식
+            myThemeId: string | null;
+        };
+
+        const rawOptions: RawOption[] = [];
+        for (let i = 0; i < optionCount; i++) {
+            rawOptions.push({
+                name: ((formData.get(`optName_${i}`) as string | null) ?? `옵션 ${i + 1}`).trim(),
+                os: (formData.get(`optOs_${i}`) as string | null) ?? "ios",
+                file: formData.get(`optFile_${i}`) as File | null,
+                myThemeId: (formData.get(`optMyThemeId_${i}`) as string | null) ?? null,
             });
         }
 
-        // Android 옵션 파싱
-        const androidOpts: FileOpt[] = [];
-        for (let i = 0; i < androidCount; i++) {
-            androidOpts.push({
-                name: (formData.get(`androidName_${i}`) as string | null) ?? `Android 옵션 ${i + 1}`,
-                file: formData.get(`androidFile_${i}`) as File | null,
-            });
+        // 최소 1개 옵션에 파일 or myThemeId가 있어야 함
+        const hasAnyData = rawOptions.some(o =>
+            (o.file && o.file.size > 0) || o.myThemeId
+        );
+        if (!hasAnyData) {
+            return NextResponse.json({ error: "각 옵션에 파일 또는 내 테마를 지정해주세요." }, { status: 400 });
         }
-
-        const hasAnyFile =
-            iosOpts.some(o => o.file && o.file.size > 0) ||
-            androidOpts.some(o => o.file && o.file.size > 0);
-        if (!hasAnyFile) return NextResponse.json({ error: "테마 파일을 최소 1개 업로드해주세요." }, { status: 400 });
 
         // 이름 중복 확인
         const dup = await prisma.$queryRaw<{ id: string }[]>`
@@ -85,7 +89,7 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        // DB 저장
+        // Theme DB 저장
         await prisma.$executeRaw`
             INSERT INTO "Theme" (id, "creatorId", title, description, price, status, "thumbnailUrl", images, tags, "createdAt", "updatedAt")
             VALUES (
@@ -97,32 +101,48 @@ export async function POST(req: NextRequest) {
                 ${now}, ${now}
             )
         `;
-        // isPublic, isSelling 컬럼이 있으면 기본값 true로 설정 (db push 이후 적용)
+
         try {
             await prisma.$executeRaw`
                 UPDATE "Theme" SET "isPublic" = true, "isSelling" = true WHERE id = ${id}
             `;
         } catch { /* 컬럼 없으면 무시 */ }
 
-        // iOS 옵션별 ThemeVersion 저장
-        for (const opt of iosOpts) {
-            if (!opt.file || opt.file.size === 0) continue;
-            const versionId = crypto.randomUUID();
-            const kthemeFileUrl = await uploadFile("theme-files", `${id}/ios/${versionId}.${ext(opt.file)}`, opt.file);
-            await prisma.$executeRaw`
-                INSERT INTO "ThemeVersion" (id, "themeId", version, "configJson", "kthemeFileUrl", "apkFileUrl", "buildStatus", "createdAt")
-                VALUES (${versionId}, ${id}, ${`iOS · ${opt.name}`}, ${"{}"}::jsonb, ${kthemeFileUrl}, ${null}, 'PENDING'::"BuildStatus", ${now})
-            `;
-        }
+        // ThemeOption 저장 (옵션별 스냅샷)
+        for (let i = 0; i < rawOptions.length; i++) {
+            const opt = rawOptions[i];
+            const optionId = crypto.randomUUID();
 
-        // Android 옵션별 ThemeVersion 저장
-        for (const opt of androidOpts) {
-            if (!opt.file || opt.file.size === 0) continue;
-            const versionId = crypto.randomUUID();
-            const apkFileUrl = await uploadFile("theme-files", `${id}/android/${versionId}.${ext(opt.file)}`, opt.file);
+            let fileUrl: string | null = null;
+            let configJson: string | null = null;
+            let imageData: string | null = null;
+
+            if (opt.myThemeId) {
+                // MyTheme 스냅샷
+                const myTheme = await prisma.myTheme.findFirst({
+                    where: { id: opt.myThemeId, userId: session.dbId, trashed: false },
+                });
+                if (myTheme) {
+                    configJson = JSON.stringify(myTheme.configJson ?? {});
+                    imageData = JSON.stringify(myTheme.imageData ?? {});
+                }
+            } else if (opt.file && opt.file.size > 0) {
+                // 파일 업로드
+                const osFolder = opt.os === "android" ? "android" : "ios";
+                fileUrl = await uploadFile("theme-files", `${id}/${osFolder}/${optionId}.${ext(opt.file)}`, opt.file);
+            }
+
             await prisma.$executeRaw`
-                INSERT INTO "ThemeVersion" (id, "themeId", version, "configJson", "kthemeFileUrl", "apkFileUrl", "buildStatus", "createdAt")
-                VALUES (${versionId}, ${id}, ${`Android · ${opt.name}`}, ${"{}"}::jsonb, ${null}, ${apkFileUrl}, 'PENDING'::"BuildStatus", ${now})
+                INSERT INTO "ThemeOption" (id, "themeId", os, name, status, "fileUrl", "configJson", "imageData", "myThemeId", "createdAt", "updatedAt")
+                VALUES (
+                    ${optionId}, ${id}, ${opt.os}, ${opt.name},
+                    'PENDING_NEW'::"ThemeOptionStatus",
+                    ${fileUrl},
+                    ${configJson}::jsonb,
+                    ${imageData}::jsonb,
+                    ${opt.myThemeId ?? null},
+                    ${now}, ${now}
+                )
             `;
         }
 
