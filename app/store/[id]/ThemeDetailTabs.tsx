@@ -18,6 +18,8 @@ type Review = {
 
 export type ContentBlock = string; // HTML string
 
+type OtherTheme = { id: string; title: string; thumbnailUrl: string | null; price: number };
+
 export type Props = {
     themeId: string;
     themeName: string;
@@ -25,6 +27,9 @@ export type Props = {
     isOwned?: boolean;
     userId?: string;
     contentBlocks?: ContentBlock;
+    otherThemes?: OtherTheme[];
+    creatorId?: string;
+    creatorName?: string;
 };
 
 function StarRow({ rating, size = 14 }: { rating: number; size?: number }) {
@@ -50,7 +55,7 @@ function formatDate(d: Date | string) {
     return `${y}.${m}.${day}`;
 }
 
-export default function ThemeDetailTabs({ themeId, themeName, thumbnailUrl, isOwned, userId, contentBlocks = "" }: Props) {
+export default function ThemeDetailTabs({ themeId, themeName, thumbnailUrl, isOwned, userId, contentBlocks = "", otherThemes = [], creatorId, creatorName }: Props) {
     const [activeTab, setActiveTab] = useState<"detail" | "reviews" | "more">("detail");
     const [reviews, setReviews] = useState<Review[]>([]);
     const [myReview, setMyReview] = useState<Review | null>(null);
@@ -269,8 +274,45 @@ export default function ThemeDetailTabs({ themeId, themeName, thumbnailUrl, isOw
             )}
 
             {activeTab === "more" && (
-                <div className="bg-white rounded-2xl p-10 min-h-[200px] flex items-center justify-center border border-gray-100">
-                    <p className="text-[14px] text-gray-400">크리에이터의 다른 테마가 표시될 영역입니다.</p>
+                <div className="flex flex-col gap-5">
+                    {otherThemes.length === 0 ? (
+                        <div className="bg-white rounded-2xl p-10 min-h-[200px] flex items-center justify-center border border-gray-100">
+                            <p className="text-[14px] text-gray-400">등록된 다른 테마가 없어요.</p>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
+                                {otherThemes.map(t => (
+                                    <a key={t.id} href={`/store/${t.id}`} className="flex flex-col gap-2 group">
+                                        <div className="w-full overflow-hidden rounded-xl" style={{ background: '#e5e5ea', aspectRatio: '1 / 1' }}>
+                                            {t.thumbnailUrl
+                                                ? <img src={t.thumbnailUrl} alt={t.title} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                                                : <div className="w-full h-full flex items-center justify-center">
+                                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" strokeWidth="1.5" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                                                  </div>
+                                            }
+                                        </div>
+                                        <div className="flex flex-col gap-0.5 px-0.5">
+                                            <p className="text-[12px] font-medium truncate transition-colors group-hover:text-orange-500" style={{ color: '#1a1a1a' }}>{t.title}</p>
+                                            <p className="text-[11px]" style={{ color: '#aeaeb2' }}>{t.price === 0 ? '무료' : `${t.price.toLocaleString()}원`}</p>
+                                        </div>
+                                    </a>
+                                ))}
+                            </div>
+                            {creatorId && (
+                                <div className="flex justify-center mt-2">
+                                    <a
+                                        href={`/creator/${creatorId}`}
+                                        className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-[13px] font-medium transition-all hover:opacity-70"
+                                        style={{ background: 'rgba(255,149,0,0.08)', color: 'rgb(190,100,0)' }}
+                                    >
+                                        {creatorName ?? '크리에이터'}의 모든 테마 보기
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+                                    </a>
+                                </div>
+                            )}
+                        </>
+                    )}
                 </div>
             )}
 

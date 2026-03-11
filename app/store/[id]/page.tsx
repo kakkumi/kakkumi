@@ -94,6 +94,21 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
         }));
     } catch { /* ThemeOption 테이블 없으면 무시 */ }
 
+    // 같은 크리에이터의 다른 테마 5개 조회
+    type OtherThemeRow = { id: string; title: string; thumbnailUrl: string | null; price: number };
+    let otherThemes: OtherThemeRow[] = [];
+    try {
+        otherThemes = await prisma.$queryRaw<OtherThemeRow[]>`
+            SELECT id, title, "thumbnailUrl", price
+            FROM "Theme"
+            WHERE "creatorId" = ${dbTheme.creatorId}
+              AND id != ${dbTheme.id}
+              AND status = 'PUBLISHED'
+            ORDER BY "createdAt" DESC
+            LIMIT 5
+        `;
+    } catch { /* 무시 */ }
+
     const now = new Date();
     const created = new Date(dbTheme.createdAt);
 
@@ -172,6 +187,9 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
                     isOwned={ownedVersionIds.length > 0}
                     userId={session?.dbId ?? undefined}
                     contentBlocks={typeof dbTheme.contentBlocks === "string" ? dbTheme.contentBlocks : ""}
+                    otherThemes={otherThemes}
+                    creatorId={dbTheme.creatorId}
+                    creatorName={dbTheme.creatorNickname ?? dbTheme.creatorName}
                 />
             </div>
             <Footer />
