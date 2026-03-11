@@ -15,6 +15,7 @@ export async function GET() {
             price: number; status: string; adminNote: string | null;
             createdAt: Date; creatorNickname: string | null; creatorName: string;
             thumbnailUrl: string | null; images: string[]; tags: string[];
+            contentBlocks: string | null;
             versions: { version: string; kthemeFileUrl: string | null; apkFileUrl: string | null }[];
             options: {
                 id: string; os: string; name: string; status: string; adminNote: string | null;
@@ -24,6 +25,7 @@ export async function GET() {
         }[]>`
             SELECT t.id, t.title, t.description, t.price, t.status, t."adminNote", t."createdAt",
                    t."thumbnailUrl", t.images, t.tags,
+                   t."contentBlocks",
                    u.nickname AS "creatorNickname", u.name AS "creatorName",
                    COALESCE(
                        (SELECT json_agg(json_build_object(

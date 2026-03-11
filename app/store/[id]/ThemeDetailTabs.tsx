@@ -16,12 +16,15 @@ type Review = {
     avatarUrl: string | null;
 };
 
-type Props = {
+export type ContentBlock = string; // HTML string
+
+export type Props = {
     themeId: string;
     themeName: string;
     thumbnailUrl?: string | null;
     isOwned?: boolean;
     userId?: string;
+    contentBlocks?: ContentBlock;
 };
 
 function StarRow({ rating, size = 14 }: { rating: number; size?: number }) {
@@ -47,7 +50,7 @@ function formatDate(d: Date | string) {
     return `${y}.${m}.${day}`;
 }
 
-export default function ThemeDetailTabs({ themeId, themeName, thumbnailUrl, isOwned, userId }: Props) {
+export default function ThemeDetailTabs({ themeId, themeName, thumbnailUrl, isOwned, userId, contentBlocks = "" }: Props) {
     const [activeTab, setActiveTab] = useState<"detail" | "reviews" | "more">("detail");
     const [reviews, setReviews] = useState<Review[]>([]);
     const [myReview, setMyReview] = useState<Review | null>(null);
@@ -88,7 +91,7 @@ export default function ThemeDetailTabs({ themeId, themeName, thumbnailUrl, isOw
     };
 
     const tabs = [
-        { key: "detail", label: "상세 이미지" },
+        { key: "detail", label: "테마 정보" },
         { key: "reviews", label: `리뷰 (${reviewCount})` },
         { key: "more", label: "크리에이터 다른 테마" },
     ] as const;
@@ -114,11 +117,32 @@ export default function ThemeDetailTabs({ themeId, themeName, thumbnailUrl, isOw
 
             {/* 탭 콘텐츠 */}
             {activeTab === "detail" && (
-                <div className="bg-white rounded-2xl p-10 min-h-[360px] flex items-center justify-center border border-gray-100">
-                    <div className="text-center">
-                        <p className="text-[14px] text-gray-400">테마 상세 소개 이미지가 들어갈 영역입니다.</p>
-                        <p className="text-[13px] text-gray-300 mt-1">스크린샷, 적용 예시 등 다양한 이미지를 확인하세요.</p>
-                    </div>
+                <div className="flex flex-col gap-6">
+                    {!contentBlocks || contentBlocks === "<p></p>" || contentBlocks.trim() === "" ? (
+                        <div className="bg-white rounded-2xl p-10 min-h-[200px] flex items-center justify-center border border-gray-100">
+                            <p className="text-[14px] text-gray-400">등록된 테마 정보가 없어요.</p>
+                        </div>
+                    ) : (
+                        <div
+                            className="theme-detail-content prose prose-sm max-w-none px-1"
+                            dangerouslySetInnerHTML={{ __html: contentBlocks }}
+                        />
+                    )}
+                    <style>{`
+                        .theme-detail-content h2 { font-size: 20px; font-weight: 700; margin: 16px 0 8px; color: #1a1a1a; }
+                        .theme-detail-content h3 { font-size: 16px; font-weight: 600; margin: 12px 0 6px; color: #1a1a1a; }
+                        .theme-detail-content p { margin: 6px 0; color: #3a3a3c; font-size: 15px; line-height: 1.8; }
+                        .theme-detail-content ul { list-style: disc; padding-left: 22px; margin: 8px 0; }
+                        .theme-detail-content ol { list-style: decimal; padding-left: 22px; margin: 8px 0; }
+                        .theme-detail-content li { margin: 3px 0; color: #3a3a3c; font-size: 15px; }
+                        .theme-detail-content blockquote { border-left: 3px solid rgba(255,149,0,0.5); padding-left: 14px; margin: 10px 0; color: #6e6e73; font-style: italic; }
+                        .theme-detail-content hr { border: none; border-top: 1.5px solid rgba(0,0,0,0.1); margin: 18px 0; }
+                        .theme-detail-content img { max-width: 100%; border-radius: 12px; margin: 12px 0; display: block; }
+                        .theme-detail-content strong { font-weight: 700; }
+                        .theme-detail-content em { font-style: italic; }
+                        .theme-detail-content s { text-decoration: line-through; }
+                        .theme-detail-content u { text-decoration: underline; }
+                    `}</style>
                 </div>
             )}
 

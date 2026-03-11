@@ -2,6 +2,9 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+
+const RichTextEditor = dynamic(() => import("./RichTextEditor"), { ssr: false });
 
 const PRICE_OPTIONS = ["무료", "500원", "1,000원", "1,500원", "2,000원", "2,500원"];
 const MAX_MINI_PREVIEWS = 5;
@@ -101,8 +104,17 @@ export default function RegisterForm({ headerSlot }: { authorName?: string; head
     const [miniPreviewUrls, setMiniPreviewUrls] = useState<string[]>([]);
 
     const [options, setOptions] = useState<ThemeOption[]>([]);
+    const [richContent, setRichContent] = useState("");
     const [submitted, setSubmitted] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+
+    // 리치 에디터 내 이미지 업로드 → 임시 object URL (제출 시 서버 업로드)
+    const richImageFiles = useRef<Map<string, File>>(new Map());
+    const handleRichImageUpload = useCallback(async (file: File): Promise<string> => {
+        const tempUrl = URL.createObjectURL(file);
+        richImageFiles.current.set(tempUrl, file);
+        return tempUrl;
+    }, []);
 
     const [myThemes, setMyThemes] = useState<MyThemeItem[]>([]);
     const [myThemesLoaded, setMyThemesLoaded] = useState(false);
@@ -184,6 +196,18 @@ export default function RegisterForm({ headerSlot }: { authorName?: string; head
                 if (opt.source === "file" && opt.file) formData.append(`optFile_${idx}`, opt.file);
                 else if (opt.source === "mytheme" && opt.myThemeId) formData.append(`optMyThemeId_${idx}`, opt.myThemeId);
             });
+            // richContent: object URL → 실제 업로드 URL로 치환
+            let processedHtml = richContent;
+            let imgIdx = 0;
+            for (const [tempUrl, file] of richImageFiles.current.entries()) {
+                if (processedHtml.includes(tempUrl)) {
+                    formData.append(`richImg_${imgIdx}`, file);
+                    formData.append(`richImgUrl_${imgIdx}`, tempUrl);
+                    imgIdx++;
+                }
+            }
+            formData.append("richContent", processedHtml);
+            formData.append("richImgCount", String(imgIdx));
             const res = await fetch("/api/themes/register", { method: "POST", body: formData });
             const data = await res.json() as { ok?: boolean; error?: string };
             if (!res.ok || !data.ok) { alert(data.error ?? "등록 신청 중 오류가 발생했습니다."); return; }
@@ -498,6 +522,20 @@ export default function RegisterForm({ headerSlot }: { authorName?: string; head
                             ))}
                         </div>
 
+                        {/* 08 — 테마 정보 (리치 텍스트) */}
+                        <div className="flex flex-col gap-5 py-10" style={{ borderBottom: "1px solid rgba(0,0,0,0.07)" }}>
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "rgb(255,149,0)" }}>08</span>
+                                <span className="text-[15px] font-semibold" style={{ color: "#1a1a1a" }}>테마 정보</span>
+                                <span className="text-[11px]" style={{ color: "#aaa" }}>선택 · 이미지, 텍스트, 제목 등 자유롭게</span>
+                            </div>
+                            <RichTextEditor
+                                content={richContent}
+                                onChangeAction={setRichContent}
+                                onImageUploadAction={handleRichImageUpload}
+                            />
+                        </div>
+
                         {/* 버튼 */}
                         <div className="flex gap-3 pt-8">
                             <button type="button" onClick={() => { if (nameCheckTimer.current) clearTimeout(nameCheckTimer.current); router.push("/store"); }}
@@ -553,3 +591,4 @@ export default function RegisterForm({ headerSlot }: { authorName?: string; head
         </>
     );
 }
+

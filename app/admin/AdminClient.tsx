@@ -10,7 +10,9 @@ type AdminTheme = {
     status: string; adminNote: string | null; createdAt: string;
     creatorNickname: string | null; creatorName: string;
     thumbnailUrl: string | null; images: string[]; tags: string[];
+    contentBlocks: string | null;
     versions: { version: string; kthemeFileUrl: string | null; apkFileUrl: string | null }[];
+    options: { id: string; os: string; name: string; status: string; fileUrl: string | null; myThemeId: string | null }[];
 };
 type AdminUser = {
     id: string; name: string; nickname: string | null; email: string | null;
@@ -906,6 +908,36 @@ function ThemeManageTab({ themes, loading, actionLoading, onApprove, onReject }:
                                                     )}
                                                 </div>
                                             ))}
+                                        </div>
+                                    )}
+
+                                    {/* 테마 옵션 */}
+                                    {t.options?.length > 0 && (
+                                        <div className="flex flex-col gap-2">
+                                            <p className="text-[10px] font-medium" style={{ color: "#aeaeb2" }}>테마 옵션 ({t.options.length}개)</p>
+                                            {t.options.map((opt, oi) => (
+                                                <div key={opt.id} className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: "rgba(0,0,0,0.02)", border: "1px solid rgba(0,0,0,0.06)" }}>
+                                                    <span className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0" style={{ background: "rgb(255,149,0)", color: "#fff" }}>{oi + 1}</span>
+                                                    <span className="text-[12px] font-medium flex-1" style={{ color: "#1c1c1e" }}>{opt.name || `옵션 ${oi + 1}`}</span>
+                                                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: opt.os === "ios" ? "rgba(255,149,0,0.10)" : "rgba(74,123,247,0.10)", color: opt.os === "ios" ? "#c97000" : "rgb(74,123,247)" }}>{opt.os === "ios" ? "iOS" : "Android"}</span>
+                                                    <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: opt.myThemeId ? "rgba(52,199,89,0.10)" : "rgba(0,0,0,0.05)", color: opt.myThemeId ? "#1a7a3a" : "#8e8e93" }}>{opt.myThemeId ? "내 테마" : "파일"}</span>
+                                                    {opt.fileUrl && (
+                                                        <a href={opt.fileUrl} download target="_blank" rel="noopener noreferrer" className="text-[11px] underline hover:opacity-70" style={{ color: "rgb(74,123,247)" }}>다운로드</a>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* 테마 정보 블록 */}
+                                    {t.contentBlocks && t.contentBlocks.trim() !== "" && t.contentBlocks !== "<p></p>" && (
+                                        <div className="flex flex-col gap-2">
+                                            <p className="text-[10px] font-medium" style={{ color: "#aeaeb2" }}>테마 정보</p>
+                                            <div
+                                                className="px-4 py-3 rounded-xl text-[13px] leading-relaxed admin-theme-content"
+                                                style={{ background: "rgba(0,0,0,0.02)", border: "1px solid rgba(0,0,0,0.07)" }}
+                                                dangerouslySetInnerHTML={{ __html: t.contentBlocks }}
+                                            />
                                         </div>
                                     )}
 

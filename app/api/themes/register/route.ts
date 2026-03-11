@@ -20,6 +20,8 @@ export async function POST(req: NextRequest) {
         const thumbnailFile = formData.get("thumbnail") as File | null;
         const miniPreviewFiles = formData.getAll("miniPreviews") as File[];
         const optionCount = parseInt((formData.get("optionCount") as string | null) ?? "0", 10);
+        const richContentRaw = (formData.get("richContent") as string | null) ?? "";
+        const richImgCount = parseInt((formData.get("richImgCount") as string | null) ?? "0", 10);
 
         if (!title) return NextResponse.json({ error: "테마 이름을 입력해주세요." }, { status: 400 });
         if (!description) return NextResponse.json({ error: "테마 설명을 입력해주세요." }, { status: 400 });
@@ -89,15 +91,28 @@ export async function POST(req: NextRequest) {
             }
         }
 
+        // richContent: object URL → 실제 스토리지 URL로 치환
+        let finalHtml = richContentRaw;
+        for (let i = 0; i < richImgCount; i++) {
+            const imgFile = formData.get(`richImg_${i}`) as File | null;
+            const tempUrl = (formData.get(`richImgUrl_${i}`) as string | null) ?? "";
+            if (imgFile && imgFile.size > 0 && tempUrl) {
+                const imgExt = imgFile.name.split(".").pop() ?? "jpg";
+                const uploadedUrl = await uploadFile("theme-images", `${id}/rich-${i}.${imgExt}`, imgFile);
+                finalHtml = finalHtml.split(tempUrl).join(uploadedUrl);
+            }
+        }
+
         // Theme DB 저장
         await prisma.$executeRaw`
-            INSERT INTO "Theme" (id, "creatorId", title, description, price, status, "thumbnailUrl", images, tags, "createdAt", "updatedAt")
+            INSERT INTO "Theme" (id, "creatorId", title, description, price, status, "thumbnailUrl", images, tags, "contentBlocks", "createdAt", "updatedAt")
             VALUES (
                 ${id}, ${session.dbId}, ${title}, ${description}, ${priceNum},
                 'DRAFT'::"ThemeStatus",
                 ${thumbnailUrl},
                 ${miniPreviewUrls}::text[],
                 ${categories}::text[],
+                ${finalHtml},
                 ${now}, ${now}
             )
         `;

@@ -6,6 +6,8 @@ import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import ThemeDetailLayout from "./ThemeDetailLayout";
 import ThemeDetailTabs from "./ThemeDetailTabs";
+import ThemeMockupPreview from "./ThemeMockupPreview";
+import type { ThemeOptionData } from "./ThemeMockupPreview";
 
 export default async function ThemeDetailPage(props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
@@ -24,6 +26,7 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
         creatorNickname: string | null;
         creatorName: string;
         salesCount: number;
+        contentBlocks: unknown;
     };
 
     let dbTheme: DbThemeRow | null = null;
@@ -35,7 +38,7 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
             SELECT
                 t.id, t.title, t.description, t.price,
                 t."thumbnailUrl", t.images, t.tags, t."createdAt",
-                t."creatorId",
+                t."creatorId", t."contentBlocks",
                 u.nickname AS "creatorNickname", u.name AS "creatorName",
                 COUNT(DISTINCT p.id)::int AS "salesCount"
             FROM "Theme" t
@@ -71,6 +74,25 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
         WHERE "themeId" = ${id}
         ORDER BY "createdAt" ASC
     `;
+
+    // ThemeOption 조회 (내 테마 기반 목업 미리보기용)
+    type OptionRow = { id: string; name: string; os: string; configJson: unknown; imageData: unknown };
+    let themeOptions: ThemeOptionData[] = [];
+    try {
+        const optRows = await prisma.$queryRaw<OptionRow[]>`
+            SELECT id, name, os, "configJson", "imageData"
+            FROM "ThemeOption"
+            WHERE "themeId" = ${id} AND status = 'ACTIVE'::"ThemeOptionStatus"
+            ORDER BY "createdAt" ASC
+        `;
+        themeOptions = optRows.map(r => ({
+            id: r.id,
+            name: r.name,
+            os: r.os,
+            configJson: (r.configJson && typeof r.configJson === "object") ? r.configJson as Record<string, unknown> : null,
+            imageData: (r.imageData && typeof r.imageData === "object") ? r.imageData as Record<string, string> : null,
+        }));
+    } catch { /* ThemeOption 테이블 없으면 무시 */ }
 
     const now = new Date();
     const created = new Date(dbTheme.createdAt);
@@ -140,12 +162,16 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
                     versions={versions as { id: string; version: string; kthemeFileUrl: string | null; apkFileUrl: string | null }[]}
                 />
 
+                {/* 내 테마 기반 목업 미리보기 (configJson 있는 옵션이 있을 때만 표시) */}
+                <ThemeMockupPreview options={themeOptions} />
+
                 <ThemeDetailTabs
                     themeId={dbTheme.id}
                     themeName={dbTheme.title}
                     thumbnailUrl={dbTheme.thumbnailUrl}
                     isOwned={ownedVersionIds.length > 0}
                     userId={session?.dbId ?? undefined}
+                    contentBlocks={typeof dbTheme.contentBlocks === "string" ? dbTheme.contentBlocks : ""}
                 />
             </div>
             <Footer />
