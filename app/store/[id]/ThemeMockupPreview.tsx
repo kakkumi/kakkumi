@@ -178,7 +178,7 @@ export default function ThemeMockupPreview({ options }: { options: ThemeOptionDa
             <div className="flex items-center justify-between">
                 <div className="flex flex-col gap-1">
                     <h3 className="text-[17px] font-bold" style={{ color: "#1a1a1a" }}>테마 미리보기</h3>
-                    <p className="text-[13px]" style={{ color: "#aaa" }}>실제 카카오톡 화면을 미리 확인해보세요</p>
+                    <p className="text-[13px]" style={{ color: "#aaa" }}>실제 어플 화면을 미리 확인해보세요</p>
                 </div>
                 {/* 옵션이 여러 개면 탭 선택 */}
                 {previewableOptions.length > 1 && (

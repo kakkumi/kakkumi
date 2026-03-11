@@ -1361,7 +1361,7 @@ export default function CreatePage() {
   <style>${config.darkMode ? "dark" : "light"}</style>
 </theme>`;
 
-      const readmeTxt = `카카오톡 Android 테마 패키지
+      const readmeTxt = `Android 테마 패키지
 ===========================
 테마 이름: ${config.name}
 제작자: ${config.authorName}
@@ -2091,7 +2091,7 @@ export default function CreatePage() {
                   {config.darkMode && (
                     <div className="px-2.5 pb-1 flex items-center gap-1.5 mt-1 mb-1">
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
-                      <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>다크 모드 사용 시 카카오톡 시스템이 하단바 배경을 검정(#000000)으로 고정해요.</span>
+                      <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>다크 모드 사용 시 어플 시스템이 하단바 배경을 검정(#000000)으로 고정해요.</span>
                     </div>
                   )}
                   {tabBgMode === "color" ? (

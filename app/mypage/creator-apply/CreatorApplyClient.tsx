@@ -169,7 +169,7 @@ export default function CreatorApplyPage() {
                 <span className="text-[12px] font-medium uppercase tracking-widest" style={{ color: "#aeaeb2" }}>심사 기준</span>
                 <ul className="flex flex-col gap-2.5">
                     {[
-                        "직접 제작한 카카오톡 테마 포트폴리오 필요",
+                        "직접 제작한 테마 포트폴리오 필요",
                         "타인의 저작물 사용 불가",
                         "최소 1개 이상의 완성된 테마 보유",
                     ].map((item, i) => (

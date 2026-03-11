@@ -303,7 +303,7 @@ export default function StoreContent() {
                         <h1 className="text-[26px] font-bold leading-tight tracking-tight" style={{ color: "#1c1c1e" }}>
                             마음에 드는 테마를 골라보세요
                         </h1>
-                        <p className="text-[13px]" style={{ color: "#aeaeb2" }}>카꾸미에서 만든 다양한 카카오톡 테마를 바로 적용해보세요.</p>
+                        <p className="text-[13px]" style={{ color: "#aeaeb2" }}>카꾸미에서 만든 다양한 테마를 바로 적용해보세요.</p>
                     </div>
                 </div>
 

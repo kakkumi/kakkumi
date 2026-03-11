@@ -30,7 +30,7 @@ const faqs: { q: string; a: string; category: FaqCategory }[] = [
     {
         category: "기타",
         q: "만든 테마는 어떻게 적용하나요?",
-        a: "테마 만들기 페이지에서 제작 완료 후 다운로드 버튼을 눌러 .ktheme 파일을 받고, 카카오톡 앱 설정 > 테마 메뉴에서 직접 적용할 수 있어요.",
+        a: "테마 만들기 페이지에서 제작 완료 후 다운로드 버튼을 눌러 .ktheme 파일을 받고, 앱 설정 > 테마 메뉴에서 직접 적용할 수 있어요.",
     },
     {
         category: "기타",
@@ -194,7 +194,7 @@ const howToSteps = [
     {
         step: "04",
         title: "테마 다운로드",
-        desc: "우측 상단 다운로드 버튼을 눌러 iOS용 .ktheme 파일 또는 Android APK를 받으세요. 카카오톡 앱에서 바로 적용할 수 있어요.",
+        desc: "우측 상단 다운로드 버튼을 눌러 iOS용 .ktheme 파일 또는 Android APK를 받으세요. 앱에서 바로 적용할 수 있어요.",
     },
     {
         step: "05",
