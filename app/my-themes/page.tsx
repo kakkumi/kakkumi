@@ -44,6 +44,9 @@ export default function MyThemesPage() {
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
   const [moveModal, setMoveModal] = useState<{ themeId: string } | null>(null);
   const [emptyTrashConfirm, setEmptyTrashConfirm] = useState(false);
+  // 폴더 드래그 순서
+  const [draggingFolderId, setDraggingFolderId] = useState<string | null>(null);
+  const [folderDragOverId, setFolderDragOverId] = useState<string | null>(null);
   // 다중 선택
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkMoveModal, setBulkMoveModal] = useState(false);
@@ -175,6 +178,60 @@ export default function MyThemesPage() {
     if (openFolderId === id) setOpenFolderId(null);
     await fetch(`/api/my-themes/folders/${id}`, { method: "DELETE" });
   };
+  // 폴더 이름 변경
+  const handleRenameFolder = async (id: string, newName: string) => {
+    const trimmed = newName.trim();
+    if (!trimmed) return;
+    setFolders(prev => prev.map(f => f.id === id ? { ...f, name: trimmed } : f));
+    await fetch(`/api/my-themes/folders/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: trimmed }),
+    });
+  };
+  // 폴더 드래그 순서 변경
+  const handleFolderDragStart = (e: React.DragEvent, folderId: string) => {
+    e.dataTransfer.setData("folderId", folderId);
+    e.dataTransfer.effectAllowed = "move";
+    setDraggingFolderId(folderId);
+  };
+  const handleFolderDragOver = (e: React.DragEvent, targetFolderId: string) => {
+    if (!e.dataTransfer.types.includes("folderid")) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setFolderDragOverId(targetFolderId);
+  };
+  const handleFolderDrop = (e: React.DragEvent, targetFolderId: string) => {
+    const srcId = e.dataTransfer.getData("folderId");
+    if (!srcId || srcId === targetFolderId) {
+      setDraggingFolderId(null);
+      setFolderDragOverId(null);
+      return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    setFolders(prev => {
+      const next = [...prev];
+      const srcIdx = next.findIndex(f => f.id === srcId);
+      const tgtIdx = next.findIndex(f => f.id === targetFolderId);
+      if (srcIdx === -1 || tgtIdx === -1) return prev;
+      const [moved] = next.splice(srcIdx, 1);
+      next.splice(tgtIdx, 0, moved);
+      // 서버에 순서 저장 (비동기, 실패해도 UI는 유지)
+      void fetch("/api/my-themes/folders", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderedIds: next.map(f => f.id) }),
+      });
+      return next;
+    });
+    setDraggingFolderId(null);
+    setFolderDragOverId(null);
+  };
+  const handleFolderDragEnd = () => {
+    setDraggingFolderId(null);
+    setFolderDragOverId(null);
+  };
   // 휴지통 비우기
   const handleEmptyTrash = async () => {
     setThemes(prev => prev.filter(t => !t.trashed));
@@ -264,10 +321,17 @@ export default function MyThemesPage() {
                 active={view === "main" && openFolderId === folder.id}
                 count={active.filter(t => t.folderId === folder.id).length}
                 dragOver={dragOverFolderId === folder.id}
+                isDragging={draggingFolderId === folder.id}
+                isFolderDragOver={folderDragOverId === folder.id}
                 onClick={() => { setView("main"); setOpenFolderId(folder.id); }}
                 onDragOver={(e) => handleDragOver(e, folder.id)}
                 onDrop={(e) => handleDrop(e, folder.id)}
                 onDelete={() => handleDeleteFolder(folder.id)}
+                onRename={(newName) => handleRenameFolder(folder.id, newName)}
+                onFolderDragStart={(e) => handleFolderDragStart(e, folder.id)}
+                onFolderDragOver={(e) => handleFolderDragOver(e, folder.id)}
+                onFolderDrop={(e) => handleFolderDrop(e, folder.id)}
+                onFolderDragEnd={handleFolderDragEnd}
               />
             ))}
 
@@ -651,45 +715,151 @@ export default function MyThemesPage() {
 }
 
 /* ── 폴더 사이드바 아이템 ── */
-function SidebarFolderItem({ folder, active, count, dragOver, onClick, onDragOver, onDrop, onDelete }: {
+function SidebarFolderItem({ folder, active, count, dragOver, isDragging, isFolderDragOver, onClick, onDragOver, onDrop, onDelete, onRename, onFolderDragStart, onFolderDragOver, onFolderDrop, onFolderDragEnd }: {
   folder: ThemeFolder; active: boolean; count: number; dragOver: boolean;
+  isDragging: boolean; isFolderDragOver: boolean;
   onClick: () => void;
   onDragOver: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent) => void;
   onDelete: () => void;
+  onRename: (newName: string) => void;
+  onFolderDragStart: (e: React.DragEvent) => void;
+  onFolderDragOver: (e: React.DragEvent) => void;
+  onFolderDrop: (e: React.DragEvent) => void;
+  onFolderDragEnd: () => void;
 }) {
   const [hover, setHover] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState(folder.name);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing) {
+      setTimeout(() => {
+        setEditName(folder.name);
+        inputRef.current?.select();
+      }, 0);
+    }
+  }, [editing, folder.name]);
+
+  const commitRename = () => {
+    setEditing(false);
+    if (editName.trim() && editName.trim() !== folder.name) {
+      onRename(editName.trim());
+    } else {
+      setEditName(folder.name);
+    }
+  };
+
   return (
     <div
-      className="flex items-center justify-between rounded-xl transition-all"
+      draggable
+      className="flex items-center gap-0.5 rounded-xl transition-all cursor-default"
       style={{
-        background: dragOver ? "rgba(74,123,247,0.07)" : "transparent",
-        outline: dragOver ? "1.5px dashed rgba(74,123,247,0.5)" : "none",
+        background: isFolderDragOver
+          ? "rgba(255,149,0,0.12)"
+          : dragOver
+          ? "rgba(74,123,247,0.07)"
+          : "transparent",
+        outline: isFolderDragOver
+          ? "1.5px dashed rgba(255,149,0,0.6)"
+          : dragOver
+          ? "1.5px dashed rgba(74,123,247,0.5)"
+          : "none",
+        opacity: isDragging ? 0.4 : 1,
       }}
-      onDragOver={onDragOver}
-      onDrop={onDrop}
+      onDragStart={onFolderDragStart}
+      onDragOver={(e) => {
+        if (e.dataTransfer.types.includes("folderid")) {
+          onFolderDragOver(e);
+        } else {
+          onDragOver(e);
+        }
+      }}
+      onDrop={(e) => {
+        if (e.dataTransfer.types.includes("folderid")) {
+          onFolderDrop(e);
+        } else {
+          onDrop(e);
+        }
+      }}
+      onDragEnd={onFolderDragEnd}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      <button
-        onClick={onClick}
-        className="flex-1 text-left px-2 py-[7px] rounded-xl text-[12.5px] font-medium transition-all truncate"
-        style={{ color: active ? "#FF9500" : "#3a3a3c", fontWeight: active ? 700 : 500 }}
+      {/* 드래그 핸들 아이콘 */}
+      <span
+        className="shrink-0 flex items-center justify-center w-4 h-4 ml-1 cursor-grab active:cursor-grabbing transition-opacity"
+        style={{ opacity: hover ? 0.4 : 0 }}
+        title="드래그해서 순서 변경"
       >
-        {folder.name}
-      </button>
-      {hover && (
+        <svg width="9" height="12" viewBox="0 0 9 12" fill="none">
+          <circle cx="2.5" cy="2" r="1" fill="#3a3a3c"/>
+          <circle cx="6.5" cy="2" r="1" fill="#3a3a3c"/>
+          <circle cx="2.5" cy="6" r="1" fill="#3a3a3c"/>
+          <circle cx="6.5" cy="6" r="1" fill="#3a3a3c"/>
+          <circle cx="2.5" cy="10" r="1" fill="#3a3a3c"/>
+          <circle cx="6.5" cy="10" r="1" fill="#3a3a3c"/>
+        </svg>
+      </span>
+
+      {editing ? (
+        <input
+          ref={inputRef}
+          value={editName}
+          onChange={e => setEditName(e.target.value)}
+          onBlur={commitRename}
+          onKeyDown={e => {
+            if (e.key === "Enter") commitRename();
+            if (e.key === "Escape") { setEditing(false); setEditName(folder.name); }
+          }}
+          className="flex-1 px-2 py-[6px] text-[12.5px] font-medium rounded-lg outline-none"
+          style={{
+            color: "#3a3a3c",
+            background: "rgba(0,0,0,0.05)",
+            border: "1.5px solid rgba(255,149,0,0.5)",
+          }}
+          onClick={e => e.stopPropagation()}
+        />
+      ) : (
         <button
-          onClick={onDelete}
-          className="mr-1 w-4 h-4 rounded-full flex items-center justify-center shrink-0 transition-colors"
-          style={{ background: "rgba(0,0,0,0.07)" }}
+          onClick={onClick}
+          className="flex-1 text-left px-1 py-[7px] rounded-xl text-[12.5px] font-medium transition-all truncate"
+          style={{ color: active ? "#FF9500" : "#3a3a3c", fontWeight: active ? 700 : 500 }}
         >
-          <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" strokeWidth="2.8" strokeLinecap="round">
-            <path d="M18 6L6 18M6 6l12 12"/>
-          </svg>
+          {folder.name}
         </button>
       )}
-      {!hover && count > 0 && (
+
+      {/* hover 시 오른쪽: 수정 아이콘 + 삭제 아이콘 */}
+      {!editing && hover && (
+        <div className="flex items-center gap-0.5 mr-1 shrink-0">
+          {/* 수정 아이콘 */}
+          <button
+            onClick={(e) => { e.stopPropagation(); setEditing(true); }}
+            className="w-5 h-5 rounded-full flex items-center justify-center transition-colors hover:opacity-70"
+            style={{ background: "rgba(0,0,0,0.06)" }}
+            title="이름 변경"
+          >
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </button>
+          {/* 삭제 아이콘 */}
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="w-5 h-5 rounded-full flex items-center justify-center transition-colors hover:opacity-70"
+            style={{ background: "rgba(0,0,0,0.06)" }}
+            title="폴더 삭제"
+          >
+            <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" strokeWidth="2.8" strokeLinecap="round">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+      )}
+      {!editing && !hover && count > 0 && (
         <span className="mr-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: "rgba(0,0,0,0.06)", color: "#8e8e93" }}>{count}</span>
       )}
     </div>
