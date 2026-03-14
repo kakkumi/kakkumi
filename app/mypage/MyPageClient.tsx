@@ -6,6 +6,11 @@ import Image from "next/image";
 import ThemeVaultTabs from "./ThemeVaultTabs";
 import CreditPage from "./CreditPage";
 import RefundPage from "./RefundPage";
+import OrderPage from "./OrderPage";
+import LikePage from "./LikePage";
+import SalesStatsPage from "./SalesStatsPage";
+import SettlementPage from "./SettlementPage";
+import BankAccountPage from "./BankAccountPage";
 import MyReviewsPage from "./MyReviewsPage";
 import ReviewablePage from "./ReviewablePage";
 import { formatKST } from "@/lib/date";
@@ -248,6 +253,11 @@ export default function MyPageClient({ session, purchasedCount: _purchasedCount,
     const isThemeMenu = activeMenu !== null && THEME_TAB_MAP[activeMenu] !== undefined;
     const isCreditMenu = activeMenu === "적립금";
     const isRefundMenu = activeMenu === "취소/환불 내역";
+    const isOrderMenu = activeMenu === "주문 내역";
+    const isLikeMenu = activeMenu === "좋아요";
+    const isSalesStatsMenu = activeMenu === "판매 통계";
+    const isSettlementMenu = activeMenu === "정산 내역";
+    const isBankMenu = activeMenu === "정산 계좌";
     const isSettingsMenu = activeMenu === "회원 정보";
     const isNotifMenu = activeMenu === "알림 설정";
     const isWithdrawMenu = activeMenu === "회원 탈퇴";
@@ -340,8 +350,18 @@ export default function MyPageClient({ session, purchasedCount: _purchasedCount,
                             <ThemeVaultTabs initialTab={themeTab} />
                         ) : isCreditMenu ? (
                             <CreditPage />
+                        ) : isOrderMenu ? (
+                            <OrderPage />
                         ) : isRefundMenu ? (
                             <RefundPage />
+                        ) : isLikeMenu ? (
+                            <LikePage />
+                        ) : isSalesStatsMenu ? (
+                            <SalesStatsPage />
+                        ) : isSettlementMenu ? (
+                            <SettlementPage role={session?.role} />
+                        ) : isBankMenu ? (
+                            <BankAccountPage role={session?.role} />
                         ) : isReviewMenu ? (
                             <MyReviewsPage />
                         ) : isReviewableMenu ? (

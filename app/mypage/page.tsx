@@ -67,12 +67,12 @@ export default async function MyPage() {
             category: "쇼핑",
             items: [
                 { label: "리뷰" }, { label: "적립금" }, { label: "작성 가능한 후기" },
-                { label: "주문 내역" }, { label: "취소/환불 내역" }, { label: "최근 본 상품" }, { label: "좋아요" }, { label: "팔로우" },
+                { label: "주문 내역" }, { label: "취소/환불 내역" }, { label: "좋아요" }, { label: "팔로우" },
             ],
         },
         {
             category: "수익",
-            items: [{ label: "정산 내역" }, { label: "판매 통계" }],
+            items: [{ label: "정산 내역" }, { label: "판매 통계" }, { label: "정산 계좌" }],
         },
         {
             category: "계정",

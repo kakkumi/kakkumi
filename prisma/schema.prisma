@@ -119,6 +119,9 @@ model User {
   referralCode      String?   @unique
   referralRewarded  Boolean   @default(false)
   notifSettings     Json?                       // 알림 설정 (null이면 기본값 사용)
+  bankName          String?                     // 정산 은행명
+  accountNumber     String?                     // 정산 계좌번호
+  accountHolder     String?                     // 정산 예금주
   deletedAt         DateTime?                   // soft delete
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
