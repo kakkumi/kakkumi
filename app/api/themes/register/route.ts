@@ -30,6 +30,11 @@ export async function POST(req: NextRequest) {
         if (!thumbnailFile) return NextResponse.json({ error: "미리보기 이미지를 업로드해주세요." }, { status: 400 });
         if (optionCount === 0) return NextResponse.json({ error: "옵션을 1개 이상 추가해주세요." }, { status: 400 });
 
+        // USER 역할은 무료(0원)만 등록 가능
+        if (session.role === "USER" && price !== "무료") {
+            return NextResponse.json({ error: "일반 유저는 무료 테마만 등록할 수 있습니다. 크리에이터 입점 신청 후 유료 테마를 등록할 수 있어요." }, { status: 403 });
+        }
+
         // 파일 검증 헬퍼
         const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
         const ALLOWED_THEME_TYPES = ["application/octet-stream", "application/zip", "application/x-zip-compressed"];

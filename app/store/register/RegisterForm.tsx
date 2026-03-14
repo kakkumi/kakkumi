@@ -85,8 +85,15 @@ function MyThemePickerModal({ myThemes, targetOs, onSelect, onClose }: {
     );
 }
 
-export default function RegisterForm({ headerSlot }: { authorName?: string; headerSlot?: React.ReactNode }) {
+type RegisterFormProps = {
+    authorName?: string;
+    headerSlot?: React.ReactNode;
+    role?: string;
+};
+
+export default function RegisterForm({ headerSlot, role }: RegisterFormProps) {
     const router = useRouter();
+    const isUserOnly = role === "USER";
 
     const [name, setName] = useState("");
     const [nameError, setNameError] = useState<string | null>(null);
@@ -97,7 +104,8 @@ export default function RegisterForm({ headerSlot }: { authorName?: string; head
     const [description, setDescription] = useState("");
     const [categories, setCategories] = useState<string[]>([]);
     const [categoryInput, setCategoryInput] = useState("");
-    const [price, setPrice] = useState("");
+    // USER는 무조건 무료로 고정
+    const [price, setPrice] = useState(isUserOnly ? "무료" : "");
     const [previewFile, setPreviewFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [miniPreviewFiles, setMiniPreviewFiles] = useState<File[]>([]);
@@ -197,7 +205,7 @@ export default function RegisterForm({ headerSlot }: { authorName?: string; head
                 else if (opt.source === "mytheme" && opt.myThemeId) formData.append(`optMyThemeId_${idx}`, opt.myThemeId);
             });
             // richContent: object URL → 실제 업로드 URL로 치환
-            let processedHtml = richContent;
+            const processedHtml = richContent;
             let imgIdx = 0;
             for (const [tempUrl, file] of richImageFiles.current.entries()) {
                 if (processedHtml.includes(tempUrl)) {
@@ -341,16 +349,37 @@ export default function RegisterForm({ headerSlot }: { authorName?: string; head
                                     <span className="text-[15px] font-semibold" style={{ color: "#1a1a1a" }}>가격</span>
                                     <span style={{ color: "#e11d48", fontSize: 12 }}>*</span>
                                 </div>
-                                <div className="flex flex-col gap-1">
-                                    {PRICE_OPTIONS.map(p => (
-                                        <button key={p} type="button" onClick={() => setPrice(p)}
-                                            className="flex items-center justify-between px-3 py-2 text-[13px] font-medium transition-all rounded-lg"
-                                            style={{ background: price === p ? "rgba(255,149,0,0.06)" : "transparent", color: price === p ? "rgb(200,100,0)" : "#aaa", border: price === p ? "1px solid rgba(255,149,0,0.2)" : "1px solid transparent" }}>
-                                            <span>{p}</span>
-                                            {price === p && <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgb(255,149,0)" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5" /></svg>}
-                                        </button>
-                                    ))}
-                                </div>
+                                {isUserOnly ? (
+                                    // USER: 무료 고정 + 입점 안내
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex items-center justify-between px-3 py-2 text-[13px] font-medium rounded-lg"
+                                            style={{ background: "rgba(255,149,0,0.06)", color: "rgb(200,100,0)", border: "1px solid rgba(255,149,0,0.2)" }}>
+                                            <span>무료</span>
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgb(255,149,0)" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5" /></svg>
+                                        </div>
+                                        <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg" style={{ background: "rgba(74,123,247,0.05)", border: "1px solid rgba(74,123,247,0.12)" }}>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgb(74,123,247)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
+                                                <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
+                                            </svg>
+                                            <p className="text-[11px] leading-relaxed" style={{ color: "rgb(74,123,247)" }}>
+                                                유료 테마 등록은 크리에이터 입점 신청 후 가능해요.{" "}
+                                                <a href="/mypage/creator-apply" className="font-semibold underline">입점 신청하기</a>
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    // CREATOR / ADMIN: 전체 가격 옵션
+                                    <div className="flex flex-col gap-1">
+                                        {PRICE_OPTIONS.map(p => (
+                                            <button key={p} type="button" onClick={() => setPrice(p)}
+                                                className="flex items-center justify-between px-3 py-2 text-[13px] font-medium transition-all rounded-lg"
+                                                style={{ background: price === p ? "rgba(255,149,0,0.06)" : "transparent", color: price === p ? "rgb(200,100,0)" : "#aaa", border: price === p ? "1px solid rgba(255,149,0,0.2)" : "1px solid transparent" }}>
+                                                <span>{p}</span>
+                                                {price === p && <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgb(255,149,0)" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5" /></svg>}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
 

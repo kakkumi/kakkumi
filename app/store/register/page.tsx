@@ -2,7 +2,6 @@ import { getServerSession } from "@/lib/session";
 import RegisterForm from "./RegisterForm";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
-import Link from "next/link";
 
 export default async function RegisterPage() {
     const session = await getServerSession();
@@ -40,73 +39,16 @@ export default async function RegisterPage() {
         );
     }
 
-    // 로그인은 했지만 일반 USER (크리에이터 아님)
-    if (session.role === "USER") {
-        return (
-            <div className="min-h-screen flex flex-col" style={bgStyle}>
-                <Header />
-                <div className="flex-1 max-w-[560px] mx-auto w-full px-6 pt-16 pb-20 flex flex-col gap-6">
-                    <div className="flex flex-col items-center gap-7 py-10 text-center">
-                        {/* 아이콘 */}
-                        <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: "rgba(255,149,0,0.08)" }}>
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgb(255,149,0)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                            </svg>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                            <h2 className="text-[22px] font-extrabold" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>
-                                크리에이터 입점이 필요해요
-                            </h2>
-                            <p className="text-[14px] leading-relaxed" style={{ color: "#8e8e93" }}>
-                                카꾸미 스토어는 검증된 크리에이터만 테마를 등록할 수 있어요.<br />
-                                입점 신청을 통해 크리에이터로 활동을 시작해보세요!
-                            </p>
-                        </div>
+    // 로그인은 했지만 일반 USER — 무료 테마만 등록 가능
+    // (CREATOR, ADMIN은 유료 포함 전체 가능)
 
-                        {/* 혜택 안내 */}
-                        <div className="w-full flex flex-col gap-0 text-left" style={{ borderTop: "1px solid rgba(0,0,0,0.07)" }}>
-                            {[
-                                { icon: "💰", title: "수익 창출", desc: "판매 금액의 70%를 수익으로 받아가세요." },
-                                { icon: "🎨", title: "나만의 스토어", desc: "내 테마를 스토어에 올리고 많은 사람들과 공유해요." },
-                                { icon: "📊", title: "판매 통계", desc: "내 테마의 판매 현황을 실시간으로 확인하세요." },
-                            ].map((item) => (
-                                <div key={item.title} className="flex items-start gap-3 py-4" style={{ borderBottom: "1px solid rgba(0,0,0,0.07)" }}>
-                                    <span className="text-[18px] shrink-0 mt-0.5">{item.icon}</span>
-                                    <div>
-                                        <p className="text-[13px] font-semibold" style={{ color: "#1c1c1e" }}>{item.title}</p>
-                                        <p className="text-[12px] mt-0.5" style={{ color: "#8e8e93" }}>{item.desc}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="flex flex-col gap-3 w-full pt-2">
-                            <Link href="/mypage/creator-apply">
-                                <button className="w-full py-3.5 rounded-[14px] text-[15px] font-bold transition-all active:scale-[0.98] hover:brightness-105"
-                                    style={{ background: "rgb(255,149,0)", color: "#fff", boxShadow: "0 4px 20px rgba(255,149,0,0.3)" }}>
-                                    크리에이터 입점 신청하기
-                                </button>
-                            </Link>
-                            <Link href="/store">
-                                <button className="w-full py-3 rounded-[14px] text-[14px] font-medium transition-all hover:opacity-60"
-                                    style={{ background: "transparent", color: "#8e8e93" }}>
-                                    스토어 둘러보기
-                                </button>
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-                <Footer />
-            </div>
-        );
-    }
-
-    // CREATOR 또는 ADMIN — 테마 등록 폼 표시
+    // CREATOR, ADMIN, USER 모두 등록 폼 표시 (가격 제한은 RegisterForm 내부에서)
     return (
         <div className="min-h-screen flex flex-col" style={bgStyle}>
             <Header />
             <div className="flex-1 max-w-[1200px] mx-auto w-full px-6 pt-10 pb-20 flex flex-col gap-6">
                 <RegisterForm
+                    role={session.role}
                     authorName={session.nickname ?? session.name ?? "사용자"}
                     headerSlot={
                         <div className="flex flex-col items-start gap-2">
