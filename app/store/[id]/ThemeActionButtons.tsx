@@ -41,7 +41,11 @@ export default function ThemeActionButtons(props: Props) {
 
     const isFree = priceNum === 0;
     const hasVersions = versions.length > 0;
-    const iosVersions = versions.filter(v => v.version.toLowerCase().startsWith("ios") && v.kthemeFileUrl);
+    // __ktheme_generate__ 마커도 다운로드 가능한 옵션으로 취급
+    const iosVersions = versions.filter(v =>
+        v.version.toLowerCase().startsWith("ios") &&
+        (v.kthemeFileUrl !== null && v.kthemeFileUrl !== undefined)
+    );
     const androidVersions = versions.filter(v => v.version.toLowerCase().startsWith("android") && v.apkFileUrl);
 
     // 버전별 보유 여부
@@ -53,31 +57,57 @@ export default function ThemeActionButtons(props: Props) {
             return;
         }
         if (isFree) {
-            // 무료 → 항상 옵션 모달
             setOptionModal("download");
             setSelectedVersion(null);
         } else {
-            // 유료 → 옵션 있으면 모달, 없으면 바로 주문페이지
             if (hasVersions) { setOptionModal("buy"); setSelectedVersion(null); }
             else { router.push(`/store/${props.themeId}/order?themeId=${props.themeId}`); }
         }
     };
 
+    // 무료 다운로드 or 구매 후 즉시 다운로드
     const handleRegisterAndGo = async (ver: Version) => {
         setDownloadingId(ver.id);
         try {
-            const res = await fetch("/api/download/free", {
+            // 먼저 purchase 기록 등록
+            const freeRes = await fetch("/api/download/free", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ themeId: props.themeId, versionId: ver.id }),
             });
-            const data = await res.json() as { success?: boolean; error?: string };
-            if (!res.ok) {
-                setResult({ success: false, message: data.error ?? "처리 중 오류가 발생했습니다." });
+            const freeData = await freeRes.json() as { success?: boolean; error?: string };
+            if (!freeRes.ok) {
+                setResult({ success: false, message: freeData.error ?? "처리 중 오류가 발생했습니다." });
                 return;
             }
+
+            // 내 테마 기반(configJson) → 동적 ktheme 파일 생성 후 즉시 다운로드
+            if (ver.kthemeFileUrl?.startsWith("__ktheme_generate__:")) {
+                const optionId = ver.kthemeFileUrl.replace("__ktheme_generate__:", "");
+                const dlRes = await fetch("/api/download/ktheme", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ optionId, themeId: props.themeId }),
+                });
+                if (!dlRes.ok) {
+                    setResult({ success: false, message: "ktheme 파일 생성에 실패했습니다." });
+                    return;
+                }
+                const blob = await dlRes.blob();
+                const blobUrl = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = blobUrl;
+                a.download = `${ver.version}.ktheme`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+                setOptionModal(null);
+                return;
+            }
+
             setOptionModal(null);
-            router.push("/mypage?menu=구매+테마");
+            window.location.href = "/mypage?menu=구매+테마";
         } catch {
             setResult({ success: false, message: "오류가 발생했습니다." });
         } finally {

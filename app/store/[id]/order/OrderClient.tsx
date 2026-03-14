@@ -109,7 +109,7 @@ export default function OrderPage() {
                 });
                 const data = await res.json() as { success?: boolean; error?: string };
                 if (data.success) {
-                    router.push(`/mypage?menu=구매+테마`);
+                    window.location.href = "/mypage?menu=구매+테마";
                 } else {
                     setError(data.error ?? "결제에 실패했습니다.");
                 }

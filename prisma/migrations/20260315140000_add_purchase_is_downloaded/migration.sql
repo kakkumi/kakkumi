@@ -1,0 +1,2 @@
+ALTER TABLE "Purchase"
+  ADD COLUMN IF NOT EXISTS "isDownloaded" BOOLEAN NOT NULL DEFAULT false;

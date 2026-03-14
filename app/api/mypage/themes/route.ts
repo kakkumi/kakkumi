@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
     const session = await getServerSession();
 
@@ -10,10 +12,11 @@ export async function GET() {
     }
 
     // 구매한 테마 목록 (versionId, purchaseId 포함)
-    type PurchaseRow = { purchaseId: string; themeId: string; versionId: string | null; createdAt: Date; themeTitle: string; themePrice: number; themeThumbnailUrl: string | null };
+    type PurchaseRow = { purchaseId: string; themeId: string; versionId: string | null; createdAt: Date; themeTitle: string; themePrice: number; themeThumbnailUrl: string | null; isDownloaded: boolean };
     const purchases = await prisma.$queryRaw<PurchaseRow[]>`
         SELECT p.id AS "purchaseId", p."themeId", p."versionId", p."createdAt",
-               t.title AS "themeTitle", t.price AS "themePrice", t."thumbnailUrl" AS "themeThumbnailUrl"
+               t.title AS "themeTitle", t.price AS "themePrice", t."thumbnailUrl" AS "themeThumbnailUrl",
+               COALESCE(p."isDownloaded", false) AS "isDownloaded"
         FROM "Purchase" p
         JOIN "Theme" t ON t.id = p."themeId"
         WHERE p."buyerId" = ${session.dbId} AND p.status = 'COMPLETED'::"PurchaseStatus"
@@ -58,24 +61,37 @@ export async function GET() {
         }
     }
 
-    // versionId 없는 구매의 fallback: themeId 기준 전체 버전
+    // versionId 없는 구매의 fallback: ThemeOption 첫 번째 1개만 (구매 1건 = 파일 1개)
     const themesWithoutVersion = [...new Set(purchases.filter(p => !p.versionId).map(p => p.themeId))];
     const fallbackVersionsByTheme: Record<string, VersionRow[]> = {};
     if (themesWithoutVersion.length > 0) {
-        const fallbackVersions = await prisma.$queryRaw<VersionRow[]>`
-            SELECT id, "themeId", version, "kthemeFileUrl", "apkFileUrl"
-            FROM "ThemeVersion"
+        type OptionFileRow = {
+            id: string; themeId: string; name: string; os: string;
+            fileUrl: string | null; hasConfigJson: boolean;
+        };
+        const optRows = await prisma.$queryRaw<OptionFileRow[]>`
+            SELECT DISTINCT ON ("themeId") id, "themeId", name, os, "fileUrl",
+                   ("configJson" IS NOT NULL AND "configJson"::text != 'null') AS "hasConfigJson"
+            FROM "ThemeOption"
             WHERE "themeId" = ANY(${themesWithoutVersion}::text[])
-            ORDER BY "createdAt" ASC
+              AND status = 'ACTIVE'::"ThemeOptionStatus"
+              AND ("fileUrl" IS NOT NULL OR "configJson" IS NOT NULL)
+            ORDER BY "themeId", "createdAt" ASC
         `;
-        for (const v of fallbackVersions) {
-            if (!fallbackVersionsByTheme[v.themeId]) fallbackVersionsByTheme[v.themeId] = [];
-            fallbackVersionsByTheme[v.themeId].push(v);
+        for (const o of optRows) {
+            fallbackVersionsByTheme[o.themeId] = [{
+                id: o.id,
+                themeId: o.themeId,
+                version: `${o.os === "android" ? "Android" : "iOS"} · ${o.name}`,
+                kthemeFileUrl: o.os === "ios"
+                    ? (o.hasConfigJson ? `__ktheme_generate__:${o.id}` : o.fileUrl)
+                    : null,
+                apkFileUrl: o.os === "android" && !o.hasConfigJson ? o.fileUrl : null,
+            }];
         }
     }
 
     const purchasedList = purchases.map((p) => {
-        // versionId가 있으면 해당 버전 1개만, 없으면 fallback 전체
         const versions = p.versionId
             ? (versionMap[p.versionId] ? [versionMap[p.versionId]] : [])
             : (fallbackVersionsByTheme[p.themeId] ?? []);
@@ -86,6 +102,7 @@ export async function GET() {
             price: p.themePrice,
             thumbnailUrl: p.themeThumbnailUrl ?? null,
             purchasedAt: p.createdAt,
+            isDownloaded: p.isDownloaded ?? false,
             versions,
         };
     });
@@ -100,14 +117,10 @@ export async function GET() {
         isSelling: t.isSelling ?? true,
     }));
 
-    // 구매 테마 중 내가 만든 테마는 제외 (타인 테마만)
-    const myThemeIds = new Set(mineList.map(t => t.id));
-    const purchasedOthers = purchasedList.filter(p => !myThemeIds.has(p.id));
-
     return NextResponse.json({
         mine: mineList,
-        purchased: purchasedOthers,
-        purchasedCount: purchasedOthers.length,
+        purchased: purchasedList,
+        purchasedCount: purchasedList.length,
         mineCount: myThemes.length,
     });
 }

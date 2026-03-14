@@ -261,6 +261,7 @@ model Purchase {
   amount          Int
   pgTransactionId String?        @unique
   status          PurchaseStatus @default(PENDING)
+  isDownloaded    Boolean        @default(false)
   refundReason    String?
   refundedAt      DateTime?
   createdAt       DateTime       @default(now())

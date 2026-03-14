@@ -53,6 +53,14 @@ export default function MyPageClient({ session, purchasedCount: _purchasedCount,
     const [activeMenu, setActiveMenu] = useState<string>(menuFromUrl || "회원 정보");
     const [themeTab, setThemeTab] = useState<Tab>(() => THEME_TAB_MAP[menuFromUrl] ?? "purchased");
 
+    // URL menu 파라미터가 바뀌면 activeMenu, themeTab 동기화
+    useEffect(() => {
+        if (!menuFromUrl) return;
+        setActiveMenu(menuFromUrl);
+        const tab = THEME_TAB_MAP[menuFromUrl];
+        if (tab) setThemeTab(tab);
+    }, [menuFromUrl]);
+
     // 닉네임 상태
     const currentNickname = session?.nickname ?? session?.name ?? "";
     const [nickInput, setNickInput] = useState(currentNickname);
@@ -346,7 +354,7 @@ export default function MyPageClient({ session, purchasedCount: _purchasedCount,
                 {session ? (
                     <>
                         {isThemeMenu ? (
-                            <ThemeVaultTabs initialTab={themeTab} />
+                            <ThemeVaultTabs key={activeMenu} initialTab={themeTab} />
                         ) : isCreditMenu ? (
                             <CreditPage />
                         ) : isOrderMenu ? (

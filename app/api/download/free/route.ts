@@ -11,7 +11,7 @@ export async function POST(request: Request) {
 
     try {
         const body = (await request.json()) as { themeId: string; versionId?: string };
-        const { themeId, versionId } = body;
+        const { themeId, versionId: rawVersionId } = body;
 
         if (!themeId) {
             return NextResponse.json({ error: "themeId가 필요합니다." }, { status: 400 });
@@ -27,19 +27,27 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "유료 테마는 결제 후 다운로드 가능합니다." }, { status: 403 });
         }
 
+        // versionId가 실제 ThemeVersion에 존재하는지 확인 (ThemeOption ID인 경우 null 처리)
+        let versionId: string | null = null;
+        if (rawVersionId) {
+            const verCheck = await prisma.$queryRaw<{ id: string }[]>`
+                SELECT id FROM "ThemeVersion" WHERE id = ${rawVersionId} LIMIT 1
+            `;
+            versionId = verCheck.length > 0 ? rawVersionId : null;
+        }
+
         const existing = await prisma.$queryRaw<{ id: string }[]>`
             SELECT id FROM "Purchase"
             WHERE "buyerId" = ${session.dbId}
               AND "themeId" = ${themeId}
-              AND ("versionId" = ${versionId ?? null} OR ("versionId" IS NULL AND ${versionId ?? null}::text IS NULL))
               AND status = 'COMPLETED'::"PurchaseStatus"
             LIMIT 1
         `.then(rows => rows[0] ?? null);
 
         if (!existing) {
             await prisma.$executeRaw`
-                INSERT INTO "Purchase" (id, "buyerId", "themeId", "versionId", amount, status, "createdAt")
-                VALUES (${crypto.randomUUID()}, ${session.dbId}, ${themeId}, ${versionId ?? null}, ${0}, 'COMPLETED'::"PurchaseStatus", NOW())
+                INSERT INTO "Purchase" (id, "buyerId", "themeId", "versionId", amount, status, "isDownloaded", "createdAt")
+                VALUES (${crypto.randomUUID()}, ${session.dbId}, ${themeId}, ${versionId}, ${0}, 'COMPLETED'::"PurchaseStatus", false, NOW())
             `;
         }
 

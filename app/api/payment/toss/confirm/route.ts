@@ -28,10 +28,19 @@ export async function POST(request: Request) {
         versionId?: string;
     };
 
-    const { paymentKey, orderId, amount, themeId, versionId } = body;
+    const { paymentKey, orderId, amount, themeId, versionId: rawVersionId } = body;
 
     if (!paymentKey || !orderId || !amount || !themeId) {
         return NextResponse.json({ error: "필수 파라미터가 누락되었습니다." }, { status: 400 });
+    }
+
+    // versionId가 실제 ThemeVersion 테이블에 존재하는지 확인 (ThemeOption ID가 넘어오는 경우 null 처리)
+    let versionId: string | null = null;
+    if (rawVersionId) {
+        const verCheck = await prisma.$queryRaw<{ id: string }[]>`
+            SELECT id FROM "ThemeVersion" WHERE id = ${rawVersionId} LIMIT 1
+        `;
+        versionId = verCheck.length > 0 ? rawVersionId : null;
     }
 
     // DB에서 테마 확인 및 금액 검증 (SSOT: 클라이언트 금액을 신뢰하지 않음)
@@ -45,12 +54,11 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "결제 금액이 올바르지 않습니다." }, { status: 400 });
     }
 
-    // 동일 버전 이미 구매 여부 확인
+    // 동일 테마 이미 구매 여부 확인
     const existingRows = await prisma.$queryRaw<{ id: string }[]>`
         SELECT id FROM "Purchase"
         WHERE "buyerId" = ${session.dbId}
           AND "themeId" = ${themeId}
-          AND ("versionId" = ${versionId ?? null} OR ("versionId" IS NULL AND ${versionId ?? null}::text IS NULL))
           AND status = 'COMPLETED'::"PurchaseStatus"
         LIMIT 1
     `;
@@ -85,8 +93,8 @@ export async function POST(request: Request) {
 
     // DB에 구매 기록 저장
     await prisma.$executeRaw`
-        INSERT INTO "Purchase" (id, "buyerId", "themeId", "versionId", amount, "pgTransactionId", status, "createdAt")
-        VALUES (${purchaseId}, ${session.dbId}, ${themeId}, ${versionId ?? null}, ${amount}, ${tossData.paymentKey}, 'COMPLETED'::"PurchaseStatus", ${now})
+        INSERT INTO "Purchase" (id, "buyerId", "themeId", "versionId", amount, "pgTransactionId", status, "isDownloaded", "createdAt")
+        VALUES (${purchaseId}, ${session.dbId}, ${themeId}, ${versionId ?? null}, ${amount}, ${tossData.paymentKey}, 'COMPLETED'::"PurchaseStatus", false, ${now})
     `;
 
     // 구매 적립금 지급

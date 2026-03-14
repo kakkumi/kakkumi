@@ -180,6 +180,20 @@ export async function PATCH(req: NextRequest) {
                     "pendingAdminNote" = NULL, "updatedAt" = NOW()
                 WHERE "themeId" = ${themeId} AND status = 'PENDING_NEW'::"ThemeOptionStatus"
             `;
+            // ThemeVersion의 fileUrl도 ThemeOption.fileUrl 기준으로 동기화
+            // (version 이름이 "iOS · 옵션명" or "Android · 옵션명" 형태로 저장됨)
+            await prisma.$executeRaw`
+                UPDATE "ThemeVersion" tv
+                SET
+                    "kthemeFileUrl" = CASE WHEN to_.os = 'ios' THEN to_."fileUrl" ELSE tv."kthemeFileUrl" END,
+                    "apkFileUrl"    = CASE WHEN to_.os = 'android' THEN to_."fileUrl" ELSE tv."apkFileUrl" END,
+                    "buildStatus"   = 'COMPLETED'::"BuildStatus"
+                FROM "ThemeOption" to_
+                WHERE tv."themeId" = ${themeId}
+                  AND to_."themeId" = ${themeId}
+                  AND to_."fileUrl" IS NOT NULL
+                  AND tv.version = (CASE WHEN to_.os = 'android' THEN 'Android' ELSE 'iOS' END || ' · ' || to_.name)
+            `;
             if (theme) {
                 await notifyThemeApproved(theme.creatorId, theme.title, themeId);
                 await notifyNewThemeToFollowers(theme.creatorId, theme.title, themeId);

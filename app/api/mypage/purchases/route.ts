@@ -19,6 +19,7 @@ export async function GET() {
             createdAt: Date;
             refundedAt: Date | null;
             refundReason: string | null;
+            isDownloaded: boolean;
         }[]>`
             SELECT
                 p.id,
@@ -28,7 +29,8 @@ export async function GET() {
                 p.status,
                 p."createdAt",
                 p."refundedAt",
-                p."refundReason"
+                p."refundReason",
+                COALESCE(p."isDownloaded", false) AS "isDownloaded"
             FROM "Purchase" p
             JOIN "Theme" t ON p."themeId" = t.id
             WHERE p."buyerId" = ${session.dbId}
@@ -38,19 +40,18 @@ export async function GET() {
         const now = Date.now();
         const purchases = rows.map(p => ({
             ...p,
-            // 구매 후 7일 이내 & 유료 & COMPLETED 상태만 환불 가능
             canRefund:
                 p.status === "COMPLETED" &&
                 p.amount > 0 &&
+                !p.isDownloaded &&
                 (now - new Date(p.createdAt).getTime()) / DAY_MS <= REFUND_ALLOWED_DAYS,
         }));
 
         return NextResponse.json({ purchases });
     } catch (e) {
         console.error("[mypage/purchases GET]", e);
-        // refundedAt/refundReason 컬럼 없는 경우 (db push 전) fallback
         try {
-            const rows = await prisma.$queryRaw<{
+            const rows2 = await prisma.$queryRaw<{
                 id: string;
                 themeId: string;
                 themeTitle: string;
@@ -65,10 +66,11 @@ export async function GET() {
                 ORDER BY p."createdAt" DESC
             `;
             const now2 = Date.now();
-            const purchases = rows.map(p => ({
+            const purchases = rows2.map(p => ({
                 ...p,
                 refundedAt: null,
                 refundReason: null,
+                isDownloaded: false,
                 canRefund:
                     p.status === "COMPLETED" &&
                     p.amount > 0 &&

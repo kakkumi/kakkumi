@@ -68,12 +68,35 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
 
     // 다운로드 옵션 (ThemeVersion) 조회
     type VersionRow = { id: string; version: string; kthemeFileUrl: string | null; apkFileUrl: string | null };
-    const versions = await prisma.$queryRaw<VersionRow[]>`
+    let versions = await prisma.$queryRaw<VersionRow[]>`
         SELECT id, version, "kthemeFileUrl", "apkFileUrl"
         FROM "ThemeVersion"
         WHERE "themeId" = ${id}
         ORDER BY "createdAt" ASC
     `;
+
+    // ThemeVersion이 없으면 ThemeOption.fileUrl 기반으로 fallback 생성
+    if (versions.length === 0) {
+        type OptionFileRow = { id: string; name: string; os: string; fileUrl: string | null; hasConfigJson: boolean };
+        const optFileRows = await prisma.$queryRaw<OptionFileRow[]>`
+            SELECT id, name, os, "fileUrl",
+                   ("configJson" IS NOT NULL AND "configJson"::text != 'null') AS "hasConfigJson"
+            FROM "ThemeOption"
+            WHERE "themeId" = ${id} AND status = 'ACTIVE'::"ThemeOptionStatus"
+            ORDER BY "createdAt" ASC
+        `;
+        versions = optFileRows.map(o => ({
+            id: o.id,
+            version: `${o.os === "android" ? "Android" : "iOS"} · ${o.name}`,
+            // 내 테마 기반(configJson 있음)이면 kthemeFileUrl에 특수 마커 사용 → 클라이언트에서 동적 생성 API 호출
+            kthemeFileUrl: o.os === "ios"
+                ? (o.hasConfigJson ? `__ktheme_generate__:${o.id}` : o.fileUrl)
+                : null,
+            apkFileUrl: o.os === "android"
+                ? (o.hasConfigJson ? null : o.fileUrl)
+                : null,
+        }));
+    }
 
     // ThemeOption 조회 (내 테마 기반 목업 미리보기용)
     type OptionRow = { id: string; name: string; os: string; configJson: unknown; imageData: unknown };

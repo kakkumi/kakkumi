@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
 
 function PaymentSuccessContent() {
     const searchParams = useSearchParams();
-    const router = useRouter();
     const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
     const [errorMessage, setErrorMessage] = useState("");
 
@@ -72,14 +71,14 @@ function PaymentSuccessContent() {
                         </div>
                         <div className="flex gap-3 w-full">
                             <button
-                                onClick={() => router.push("/mypage?menu=구매+테마")}
+                                onClick={() => { window.location.href = "/mypage?menu=구매+테마"; }}
                                 className="flex-1 py-3 rounded-[12px] text-[14px] font-bold text-white transition-all active:scale-[0.98]"
                                 style={{ background: "#4A7BF7" }}
                             >
                                 구매 테마 바로가기
                             </button>
                             <button
-                                onClick={() => router.push("/store")}
+                                onClick={() => { window.location.href = "/store"; }}
                                 className="flex-1 py-3 rounded-[12px] text-[14px] font-semibold text-gray-600 border border-gray-200 hover:border-gray-400 transition-all active:scale-[0.98]"
                             >
                                 스토어 보러가기
@@ -104,7 +103,7 @@ function PaymentSuccessContent() {
                             <p className="text-[14px] text-gray-500">{errorMessage}</p>
                         </div>
                         <button
-                            onClick={() => router.back()}
+                            onClick={() => history.back()}
                             className="w-full py-3 rounded-[12px] text-[14px] font-bold text-white transition-all active:scale-[0.98]"
                             style={{ background: "#4A7BF7" }}
                         >

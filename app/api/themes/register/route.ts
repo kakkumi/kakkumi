@@ -156,14 +156,17 @@ export async function POST(req: NextRequest) {
             `;
         } catch { /* 컬럼 없으면 무시 */ }
 
-        // ThemeOption 저장 (옵션별 스냅샷)
+        // ThemeOption 저장 (옵션별 스냅샷) + ThemeVersion도 함께 생성
         for (let i = 0; i < rawOptions.length; i++) {
             const opt = rawOptions[i];
             const optionId = crypto.randomUUID();
+            const versionId = crypto.randomUUID();
 
             let fileUrl: string | null = null;
             let configJson: string | null = null;
             let imageData: string | null = null;
+            let kthemeFileUrl: string | null = null;
+            let apkFileUrl: string | null = null;
 
             if (opt.myThemeId) {
                 // MyTheme 스냅샷
@@ -173,6 +176,8 @@ export async function POST(req: NextRequest) {
                 if (myTheme) {
                     configJson = JSON.stringify(myTheme.configJson ?? {});
                     imageData = JSON.stringify(myTheme.imageData ?? {});
+                    // MyTheme 기반 옵션의 경우 previewImageUrl을 파일로 사용 (없으면 null)
+                    // 실제 .ktheme/.apk 파일은 없으므로 ThemeVersion은 configJson 표시용으로만 생성
                 }
             } else if (opt.file && opt.file.size > 0) {
                 // 파일 크기 검증
@@ -182,6 +187,11 @@ export async function POST(req: NextRequest) {
                 // 파일 업로드
                 const osFolder = opt.os === "android" ? "android" : "ios";
                 fileUrl = await uploadFile("theme-files", `${id}/${osFolder}/${optionId}.${ext(opt.file)}`, opt.file);
+                if (opt.os === "android") {
+                    apkFileUrl = fileUrl;
+                } else {
+                    kthemeFileUrl = fileUrl;
+                }
             }
 
             await prisma.$executeRaw`
@@ -194,6 +204,19 @@ export async function POST(req: NextRequest) {
                     ${imageData}::jsonb,
                     ${opt.myThemeId ?? null},
                     ${now}, ${now}
+                )
+            `;
+
+            // ThemeVersion 생성 - 다운로드 가능한 버전으로 등록
+            const versionLabel = `${opt.os === "android" ? "Android" : "iOS"} · ${opt.name}`;
+            await prisma.$executeRaw`
+                INSERT INTO "ThemeVersion" (id, "themeId", version, "kthemeFileUrl", "apkFileUrl", "buildStatus", "createdAt")
+                VALUES (
+                    ${versionId}, ${id}, ${versionLabel},
+                    ${kthemeFileUrl},
+                    ${apkFileUrl},
+                    'PENDING'::"BuildStatus",
+                    ${now}
                 )
             `;
         }
