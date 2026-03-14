@@ -100,19 +100,14 @@ export async function GET() {
         isSelling: t.isSelling ?? true,
     }));
 
-    // 전체 = 내 테마 + 구매한 테마 (중복 제거)
-    const allList = [
-        ...mineList.map((t) => ({ ...t, tag: "내 테마" as const })),
-        ...purchasedList
-            .filter((p) => !mineList.some((m) => m.id === p.id))
-            .map((p) => ({ ...p, tag: "구매" as const })),
-    ];
+    // 구매 테마 중 내가 만든 테마는 제외 (타인 테마만)
+    const myThemeIds = new Set(mineList.map(t => t.id));
+    const purchasedOthers = purchasedList.filter(p => !myThemeIds.has(p.id));
 
     return NextResponse.json({
         mine: mineList,
-        purchased: purchasedList,
-        all: allList,
-        purchasedCount: purchases.length,
+        purchased: purchasedOthers,
+        purchasedCount: purchasedOthers.length,
         mineCount: myThemes.length,
     });
 }

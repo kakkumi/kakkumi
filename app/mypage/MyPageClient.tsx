@@ -22,12 +22,11 @@ type SidebarMenu = {
     items: { label: string; href?: string }[];
 };
 
-type Tab = "mine" | "purchased" | "all";
+type Tab = "mine" | "purchased";
 
 const THEME_TAB_MAP: Record<string, Tab> = {
-    "내 테마": "mine",
+    "업로드 테마": "mine",
     "구매 테마": "purchased",
-    "전체 테마": "all",
 };
 
 type Props = {

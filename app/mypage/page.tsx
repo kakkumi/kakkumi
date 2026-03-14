@@ -61,7 +61,7 @@ export default async function MyPage() {
         },
         {
             category: "테마",
-            items: [{ label: "내 테마" }, { label: "구매 테마" }, { label: "전체 테마" }],
+            items: [{ label: "업로드 테마" }, { label: "구매 테마" }],
         },
         {
             category: "쇼핑",

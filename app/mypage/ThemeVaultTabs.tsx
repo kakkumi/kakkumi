@@ -5,12 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { THEMES } from "@/app/store/data";
 
-type Tab = "mine" | "purchased" | "all";
+type Tab = "mine" | "purchased";
 
 const TABS: { key: Tab; label: string }[] = [
-    { key: "mine", label: "내 테마" },
+    { key: "mine", label: "업로드 테마" },
     { key: "purchased", label: "구매 테마" },
-    { key: "all", label: "전체 테마" },
 ];
 
 type Version = { id: string; version: string; kthemeFileUrl: string | null; apkFileUrl: string | null };
@@ -32,7 +31,6 @@ type ThemeItem = {
 type ApiResponse = {
     mine: ThemeItem[];
     purchased: ThemeItem[];
-    all: ThemeItem[];
     purchasedCount: number;
     mineCount: number;
 };
@@ -136,10 +134,10 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d6d3d1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                         <rect x="3" y="3" width="18" height="18" rx="3" /><path d="M3 9h18" />
                     </svg>
-                    <p className="text-[14px]" style={{ color: "#a8a29e" }}>아직 만든 테마가 없어요.</p>
-                    <Link href="/create">
+                    <p className="text-[14px]" style={{ color: "#a8a29e" }}>아직 스토어에 업로드한 테마가 없어요.</p>
+                    <Link href="/store/register">
                         <button className="mt-1 text-[13px] font-medium transition-opacity hover:opacity-60" style={{ color: "#FF9500" }}>
-                            첫 테마 만들기 →
+                            테마 업로드하러 가기 →
                         </button>
                     </Link>
                 </div>
@@ -367,7 +365,7 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
             {/* 탭 필터 */}
             <div className="flex items-center gap-1 mb-8 overflow-x-auto no-scrollbar -mx-1">
                 {TABS.map((tab) => {
-                    const count = tab.key === "mine" ? data?.mineCount : tab.key === "purchased" ? data?.purchasedCount : data?.all.length;
+                    const count = tab.key === "mine" ? data?.mineCount : data?.purchasedCount;
                     const active = activeTab === tab.key;
                     return (
                         <button
@@ -392,7 +390,6 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
             {/* 탭 콘텐츠 */}
             {activeTab === "mine" && renderMineList(data?.mine ?? [])}
             {activeTab === "purchased" && renderThemeList(data?.purchased ?? [], "아직 구매한 테마가 없어요. 테마 스토어를 둘러보세요!", { href: "/store", label: "테마 스토어 구경하기" }, true)}
-            {activeTab === "all" && renderThemeList(data?.all ?? [], "보유한 테마가 없어요.", { href: "/store", label: "테마 스토어 구경하기" })}
         </div>
     );
 }
