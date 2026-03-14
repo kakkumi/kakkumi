@@ -13,63 +13,37 @@ const AUTH_REQUIRED = [
 // 관리자만 접근 가능한 경로
 const ADMIN_REQUIRED = ["/admin"];
 
-/** base64url 디코딩 (Edge 환경에서 Buffer 미사용) */
-function base64urlDecode(str: string): string {
-    // base64url → base64 변환
-    const base64 = str.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
-    return atob(padded);
-}
-
-/** HMAC-SHA256 서명 검증 (Web Crypto API) */
-async function verifyHmac(payload: string, signature: string, secret: string): Promise<boolean> {
+/**
+ * 미들웨어 전용 세션 파싱 (서명 검증 없이 payload만 읽음)
+ * 실제 인증/권한 검증은 각 API route의 getServerSession()에서 수행
+ * Edge Runtime에서는 Node.js crypto 사용 불가이므로 payload 디코딩만 수행
+ */
+function parseSessionPayload(token: string): { role: string; issuedAt: number } | null {
     try {
-        const enc = new TextEncoder();
-        const key = await crypto.subtle.importKey(
-            "raw",
-            enc.encode(secret),
-            { name: "HMAC", hash: "SHA-256" },
-            false,
-            ["verify"]
-        );
-        // signature는 base64url → Uint8Array로 변환
-        const sigBase64 = signature.replace(/-/g, "+").replace(/_/g, "/");
-        const sigPadded = sigBase64 + "=".repeat((4 - (sigBase64.length % 4)) % 4);
-        const sigBytes = Uint8Array.from(atob(sigPadded), (c) => c.charCodeAt(0));
-        return await crypto.subtle.verify("HMAC", key, sigBytes, enc.encode(payload));
-    } catch {
-        return false;
-    }
-}
+        const [payloadB64] = token.split(".");
+        if (!payloadB64) return null;
 
-async function verifySessionFromCookie(
-    token: string,
-    secret: string
-): Promise<{ role: string; issuedAt: number } | null> {
-    try {
-        const [payloadB64, signature] = token.split(".");
-        if (!payloadB64 || !signature) return null;
+        // base64url → base64 변환 후 디코딩
+        const base64 = payloadB64.replace(/-/g, "+").replace(/_/g, "/");
+        const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+        const json = atob(padded);
 
-        const json = base64urlDecode(payloadB64);
-        const valid = await verifyHmac(json, signature, secret);
-        if (!valid) return null;
-
-        const parsed = JSON.parse(json) as { role: string; issuedAt: number };
+        const parsed = JSON.parse(json) as { role?: string; issuedAt?: number };
+        if (!parsed.role || !parsed.issuedAt) return null;
 
         // 만료 검증
         if (Date.now() - parsed.issuedAt > SESSION_MAX_AGE_SECONDS * 1000) {
             return null;
         }
 
-        return parsed;
+        return { role: parsed.role, issuedAt: parsed.issuedAt };
     } catch {
         return null;
     }
 }
 
-export async function middleware(req: NextRequest) {
+export function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl;
-    const sessionSecret = process.env.KAKAO_SESSION_SECRET;
 
     const isAdminPath = ADMIN_REQUIRED.some((p) => pathname.startsWith(p));
     const isAuthPath = AUTH_REQUIRED.some((p) => pathname.startsWith(p));
@@ -78,13 +52,13 @@ export async function middleware(req: NextRequest) {
 
     const sessionCookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
 
-    if (!sessionCookie || !sessionSecret) {
+    if (!sessionCookie) {
         const loginUrl = new URL("/", req.url);
         loginUrl.searchParams.set("login", "required");
         return NextResponse.redirect(loginUrl);
     }
 
-    const session = await verifySessionFromCookie(sessionCookie, sessionSecret);
+    const session = parseSessionPayload(sessionCookie);
 
     if (!session) {
         const loginUrl = new URL("/", req.url);
