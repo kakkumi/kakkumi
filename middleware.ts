@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createHmac } from "crypto";
 import { SESSION_COOKIE_NAME, SESSION_MAX_AGE_SECONDS } from "@/lib/constants";
 
 // 로그인이 필요한 경로
@@ -14,17 +13,46 @@ const AUTH_REQUIRED = [
 // 관리자만 접근 가능한 경로
 const ADMIN_REQUIRED = ["/admin"];
 
-function verifySessionFromCookie(token: string, secret: string): { role: string; issuedAt: number } | null {
+/** base64url 디코딩 (Edge 환경에서 Buffer 미사용) */
+function base64urlDecode(str: string): string {
+    // base64url → base64 변환
+    const base64 = str.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+    return atob(padded);
+}
+
+/** HMAC-SHA256 서명 검증 (Web Crypto API) */
+async function verifyHmac(payload: string, signature: string, secret: string): Promise<boolean> {
+    try {
+        const enc = new TextEncoder();
+        const key = await crypto.subtle.importKey(
+            "raw",
+            enc.encode(secret),
+            { name: "HMAC", hash: "SHA-256" },
+            false,
+            ["verify"]
+        );
+        // signature는 base64url → Uint8Array로 변환
+        const sigBase64 = signature.replace(/-/g, "+").replace(/_/g, "/");
+        const sigPadded = sigBase64 + "=".repeat((4 - (sigBase64.length % 4)) % 4);
+        const sigBytes = Uint8Array.from(atob(sigPadded), (c) => c.charCodeAt(0));
+        return await crypto.subtle.verify("HMAC", key, sigBytes, enc.encode(payload));
+    } catch {
+        return false;
+    }
+}
+
+async function verifySessionFromCookie(
+    token: string,
+    secret: string
+): Promise<{ role: string; issuedAt: number } | null> {
     try {
         const [payloadB64, signature] = token.split(".");
         if (!payloadB64 || !signature) return null;
 
-        const json = Buffer.from(payloadB64, "base64url").toString("utf8");
-        const expectedSignature = createHmac("sha256", secret)
-            .update(json)
-            .digest("base64url");
-
-        if (signature !== expectedSignature) return null;
+        const json = base64urlDecode(payloadB64);
+        const valid = await verifyHmac(json, signature, secret);
+        if (!valid) return null;
 
         const parsed = JSON.parse(json) as { role: string; issuedAt: number };
 
@@ -39,18 +67,15 @@ function verifySessionFromCookie(token: string, secret: string): { role: string;
     }
 }
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl;
     const sessionSecret = process.env.KAKAO_SESSION_SECRET;
 
-    // 관리자 경로 보호
     const isAdminPath = ADMIN_REQUIRED.some((p) => pathname.startsWith(p));
-    // 인증 필요 경로 보호
     const isAuthPath = AUTH_REQUIRED.some((p) => pathname.startsWith(p));
 
     if (!isAdminPath && !isAuthPath) return NextResponse.next();
 
-    // 세션 쿠키 검증
     const sessionCookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
 
     if (!sessionCookie || !sessionSecret) {
@@ -59,7 +84,7 @@ export function middleware(req: NextRequest) {
         return NextResponse.redirect(loginUrl);
     }
 
-    const session = verifySessionFromCookie(sessionCookie, sessionSecret);
+    const session = await verifySessionFromCookie(sessionCookie, sessionSecret);
 
     if (!session) {
         const loginUrl = new URL("/", req.url);
