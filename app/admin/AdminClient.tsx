@@ -47,8 +47,13 @@ type AdminApplication = {
     adminNote: string | null; createdAt: string;
     userId: string; userNickname: string | null; userName: string; userEmail: string | null;
 };
+type AdminMailbox = {
+    id: string; type: "SUGGESTION" | "BUG_REPORT"; title: string; content: string;
+    status: "PENDING" | "REVIEWED"; adminNote: string | null; createdAt: string;
+    userNickname: string | null; userName: string;
+};
 
-type Tab = "overview" | "themes" | "users" | "reports" | "sales" | "inquiries" | "applications";
+type Tab = "overview" | "themes" | "users" | "reports" | "sales" | "inquiries" | "applications" | "mailbox";
 type Props = {
     stats: Stats;
     recentUsers: AdminUser[];
@@ -106,7 +111,10 @@ const SIDEBAR_GROUPS: { category: string; items: { key: Tab; label: string }[] }
     },
     {
         category: "지원",
-        items: [{ key: "inquiries", label: "1:1 문의" }],
+        items: [
+            { key: "inquiries", label: "1:1 문의" },
+            { key: "mailbox",   label: "우체통" },
+        ],
     },
 ];
 
@@ -166,6 +174,7 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
     const [settlements, setSettlements] = useState<AdminSettlement[]>([]);
     const [inquiries, setInquiries] = useState<AdminInquiry[]>([]);
     const [applications, setApplications] = useState<AdminApplication[]>([]);
+    const [mailboxes, setMailboxes] = useState<AdminMailbox[]>([]);
     const [loading, setLoading] = useState(false);
 
     const [rejectModal, setRejectModal] = useState<{ themeId: string; title: string } | null>(null);
@@ -214,6 +223,10 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
                 const r = await fetch("/api/admin/applications");
                 const d = await r.json() as { applications: AdminApplication[] };
                 setApplications(d.applications ?? []);
+            } else if (tab === "mailbox") {
+                const r = await fetch("/api/admin/mailbox");
+                const d = await r.json() as { mailboxes: AdminMailbox[] };
+                setMailboxes(d.mailboxes ?? []);
             }
         } finally {
             setLoading(false);
@@ -260,6 +273,13 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
         setActionLoading(false);
         showToast("처리 완료");
         fetchTab("sales");
+    };
+    const mailboxAction = async (mailboxId: string, status: "PENDING" | "REVIEWED", adminNote?: string) => {
+        setActionLoading(true);
+        await fetch("/api/admin/mailbox", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mailboxId, status, adminNote }) });
+        setActionLoading(false);
+        showToast("처리 완료");
+        fetchTab("mailbox");
     };
     const fetchInquiryDetail = async (inq: AdminInquiry) => {
         setInquiryDetailLoading(true);
@@ -751,6 +771,16 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
                     </div>
                 )}
 
+                {/* ───────── 우체통 ───────── */}
+                {activeTab === "mailbox" && (
+                    <MailboxAdminTab
+                        mailboxes={mailboxes}
+                        loading={loading}
+                        actionLoading={actionLoading}
+                        onAction={mailboxAction}
+                    />
+                )}
+
             </div>
 
             {/* ── 모달: 테마 반려 ── */}
@@ -1024,4 +1054,193 @@ function ApplicationRow({ app, onAction, actionLoading }: {
     );
 }
 
+// ── 우체통 관리 탭 ────────────────────────────────────────────────────────────
+const MAILBOX_TYPE_STYLE: Record<string, { label: string; bg: string; color: string }> = {
+    SUGGESTION: { label: "건의해요",    bg: "rgba(255,149,0,0.10)",  color: "#c97000" },
+    BUG_REPORT: { label: "오류 신고해요", bg: "rgba(255,59,48,0.08)", color: "#c0392b" },
+};
+const MAILBOX_STATUS_STYLE: Record<string, { label: string; bg: string; color: string }> = {
+    PENDING:  { label: "미처리",    bg: "rgba(255,149,0,0.10)",  color: "#c97000" },
+    REVIEWED: { label: "처리 완료", bg: "rgba(52,199,89,0.10)",  color: "#1a7a3a" },
+};
 
+function MailboxAdminTab({ mailboxes, loading, actionLoading, onAction }: {
+    mailboxes: AdminMailbox[];
+    loading: boolean;
+    actionLoading: boolean;
+    onAction: (id: string, status: "PENDING" | "REVIEWED", adminNote?: string) => void;
+}) {
+    const [filter, setFilter] = useState<"ALL" | "PENDING" | "REVIEWED">("ALL");
+    const [typeFilter, setTypeFilter] = useState<"ALL" | "SUGGESTION" | "BUG_REPORT">("ALL");
+    const [expanded, setExpanded] = useState<string | null>(null);
+    const [noteText, setNoteText] = useState("");
+
+    const filtered = mailboxes.filter((m) => {
+        if (filter !== "ALL" && m.status !== filter) return false;
+        if (typeFilter !== "ALL" && m.type !== typeFilter) return false;
+        return true;
+    });
+
+    const pendingCount = mailboxes.filter((m) => m.status === "PENDING").length;
+
+    return (
+        <div className="flex flex-col gap-6">
+            <div>
+                <h1 className="text-[20px] font-bold tracking-tight" style={{ color: "#1c1c1e" }}>우체통</h1>
+                <p className="text-[13px] mt-1" style={{ color: "#aeaeb2" }}>사용자들이 제출한 건의 및 오류 신고를 확인합니다.</p>
+            </div>
+
+            <SectionHeader
+                title="우체통 목록"
+                count={filtered.length}
+                action={
+                    pendingCount > 0
+                        ? <Badge style={{ label: `미처리 ${pendingCount}건`, bg: "rgba(255,149,0,0.10)", color: "#c97000" }} />
+                        : undefined
+                }
+            />
+
+            {/* 필터 */}
+            <div className="flex items-center gap-6">
+                <div className="flex items-center gap-1.5">
+                    {(["ALL", "PENDING", "REVIEWED"] as const).map((s) => (
+                        <button
+                            key={s}
+                            onClick={() => setFilter(s)}
+                            className="px-3 py-1.5 rounded-full text-[12px] transition-all"
+                            style={{
+                                background: filter === s ? "rgb(74,123,247)" : "rgba(0,0,0,0.05)",
+                                color: filter === s ? "#fff" : "#6e6e73",
+                                fontWeight: filter === s ? 700 : 400,
+                            }}
+                        >
+                            {s === "ALL" ? "전체" : MAILBOX_STATUS_STYLE[s].label}
+                        </button>
+                    ))}
+                </div>
+                <div className="flex items-center gap-1.5">
+                    {(["ALL", "SUGGESTION", "BUG_REPORT"] as const).map((t) => (
+                        <button
+                            key={t}
+                            onClick={() => setTypeFilter(t)}
+                            className="px-3 py-1.5 rounded-full text-[12px] transition-all"
+                            style={{
+                                background: typeFilter === t ? "rgba(0,0,0,0.12)" : "rgba(0,0,0,0.04)",
+                                color: typeFilter === t ? "#1c1c1e" : "#8e8e93",
+                                fontWeight: typeFilter === t ? 700 : 400,
+                            }}
+                        >
+                            {t === "ALL" ? "유형 전체" : MAILBOX_TYPE_STYLE[t].label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {loading ? (
+                <EmptyState text="불러오는 중..." />
+            ) : filtered.length === 0 ? (
+                <EmptyState text="해당 조건의 우체통 내역이 없습니다." />
+            ) : (
+                <div className="flex flex-col gap-0" style={{ borderTop: "1px solid rgba(0,0,0,0.07)" }}>
+                    {filtered.map((m) => (
+                        <div key={m.id} className="flex flex-col gap-0" style={{ borderBottom: "1px solid rgba(0,0,0,0.07)" }}>
+                            <button
+                                className="w-full text-left flex items-start justify-between gap-4 py-4 px-1 transition-opacity hover:opacity-70"
+                                onClick={() => setExpanded(expanded === m.id ? null : m.id)}
+                            >
+                                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0"
+                                        style={{ background: MAILBOX_STATUS_STYLE[m.status]?.bg, color: MAILBOX_STATUS_STYLE[m.status]?.color }}>
+                                        {MAILBOX_STATUS_STYLE[m.status]?.label}
+                                    </span>
+                                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0"
+                                        style={{ background: MAILBOX_TYPE_STYLE[m.type]?.bg, color: MAILBOX_TYPE_STYLE[m.type]?.color }}>
+                                        {MAILBOX_TYPE_STYLE[m.type]?.label}
+                                    </span>
+                                    <span className="text-[13px] font-medium truncate" style={{ color: "#1c1c1e" }}>{m.title}</span>
+                                    <span className="text-[11px] shrink-0" style={{ color: "#aeaeb2" }}>{m.userNickname ?? m.userName}</span>
+                                </div>
+                                <div className="flex items-center gap-3 shrink-0">
+                                    <span className="text-[12px]" style={{ color: "#d1d1d6" }}>{new Date(m.createdAt).toLocaleDateString("ko-KR")}</span>
+                                    <svg
+                                        width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                        stroke="#aeaeb2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                                        style={{ transform: expanded === m.id ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
+                                    >
+                                        <polyline points="6 9 12 15 18 9" />
+                                    </svg>
+                                </div>
+                            </button>
+
+                            {expanded === m.id && (
+                                <div className="flex flex-col gap-4 px-4 pb-5">
+                                    {/* 내용 */}
+                                    <div
+                                        className="px-4 py-4 rounded-xl"
+                                        style={{ background: "rgba(0,0,0,0.02)", border: "1px solid rgba(0,0,0,0.06)" }}
+                                    >
+                                        <p className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: "#3a3a3c" }}>{m.content}</p>
+                                    </div>
+
+                                    {/* 관리자 메모 */}
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[11px] font-semibold" style={{ color: "#6e6e73" }}>관리자 메모 (선택)</label>
+                                        <textarea
+                                            rows={2}
+                                            value={expanded === m.id ? noteText : (m.adminNote ?? "")}
+                                            onChange={(e) => setNoteText(e.target.value)}
+                                            onFocus={() => setNoteText(m.adminNote ?? "")}
+                                            placeholder="내부 메모를 남겨두세요."
+                                            className="w-full px-3 py-2 rounded-lg text-[13px] outline-none resize-none"
+                                            style={{ background: "#fff", border: "1px solid rgba(0,0,0,0.09)", color: "#1c1c1e" }}
+                                        />
+                                    </div>
+
+                                    {/* 액션 버튼 */}
+                                    <div className="flex gap-2">
+                                        {m.status === "PENDING" ? (
+                                            <button
+                                                onClick={() => { onAction(m.id, "REVIEWED", noteText || undefined); setExpanded(null); setNoteText(""); }}
+                                                disabled={actionLoading}
+                                                className="px-4 py-2 rounded-lg text-[12px] font-semibold disabled:opacity-40 transition-opacity hover:opacity-80"
+                                                style={{ background: "rgba(52,199,89,0.10)", color: "#1a7a3a" }}
+                                            >
+                                                ✓ 처리 완료 표시
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={() => { onAction(m.id, "PENDING", noteText || undefined); setExpanded(null); setNoteText(""); }}
+                                                disabled={actionLoading}
+                                                className="px-4 py-2 rounded-lg text-[12px] font-semibold disabled:opacity-40 transition-opacity hover:opacity-80"
+                                                style={{ background: "rgba(255,149,0,0.08)", color: "#c97000" }}
+                                            >
+                                                ↩ 미처리로 변경
+                                            </button>
+                                        )}
+                                        {m.adminNote !== noteText && noteText !== "" && (
+                                            <button
+                                                onClick={() => { onAction(m.id, m.status as "PENDING" | "REVIEWED", noteText); }}
+                                                disabled={actionLoading}
+                                                className="px-4 py-2 rounded-lg text-[12px] font-semibold disabled:opacity-40 transition-opacity hover:opacity-80"
+                                                style={{ background: "rgba(74,123,247,0.08)", color: "rgb(74,123,247)" }}
+                                            >
+                                                메모 저장
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {m.adminNote && (
+                                        <div className="px-3 py-2 rounded-lg" style={{ background: "rgba(74,123,247,0.04)", borderLeft: "2px solid rgba(74,123,247,0.2)" }}>
+                                            <p className="text-[11px] font-semibold mb-0.5" style={{ color: "rgb(74,123,247)" }}>저장된 메모</p>
+                                            <p className="text-[12px]" style={{ color: "#3a3a3c" }}>{m.adminNote}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
