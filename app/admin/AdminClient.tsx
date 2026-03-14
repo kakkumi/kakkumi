@@ -52,8 +52,14 @@ type AdminMailbox = {
     status: "PENDING" | "REVIEWED"; adminNote: string | null; createdAt: string;
     userNickname: string | null; userName: string;
 };
+type AdminGalleryReport = {
+    id: string; isHandled: boolean; createdAt: string;
+    commentId: string; commentContent: string; commentIsDeleted: boolean;
+    postId: string; postThemeName: string;
+    reporterNickname: string | null; reporterName: string;
+};
 
-type Tab = "overview" | "themes" | "users" | "reports" | "sales" | "inquiries" | "applications" | "mailbox";
+type Tab = "overview" | "themes" | "users" | "reports" | "sales" | "inquiries" | "applications" | "mailbox" | "gallery_reports";
 type Props = {
     stats: Stats;
     recentUsers: AdminUser[];
@@ -112,8 +118,9 @@ const SIDEBAR_GROUPS: { category: string; items: { key: Tab; label: string }[] }
     {
         category: "지원",
         items: [
-            { key: "inquiries", label: "1:1 문의" },
-            { key: "mailbox",   label: "우체통" },
+            { key: "inquiries",      label: "1:1 문의" },
+            { key: "mailbox",        label: "우체통" },
+            { key: "gallery_reports", label: "갤러리 신고" },
         ],
     },
 ];
@@ -175,6 +182,7 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
     const [inquiries, setInquiries] = useState<AdminInquiry[]>([]);
     const [applications, setApplications] = useState<AdminApplication[]>([]);
     const [mailboxes, setMailboxes] = useState<AdminMailbox[]>([]);
+    const [galleryReports, setGalleryReports] = useState<AdminGalleryReport[]>([]);
     const [loading, setLoading] = useState(false);
 
     const [rejectModal, setRejectModal] = useState<{ themeId: string; title: string } | null>(null);
@@ -227,6 +235,10 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
                 const r = await fetch("/api/admin/mailbox");
                 const d = await r.json() as { mailboxes: AdminMailbox[] };
                 setMailboxes(d.mailboxes ?? []);
+            } else if (tab === "gallery_reports") {
+                const r = await fetch("/api/admin/gallery-reports");
+                const d = await r.json() as { reports: AdminGalleryReport[] };
+                setGalleryReports(d.reports ?? []);
             }
         } finally {
             setLoading(false);
@@ -280,6 +292,13 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
         setActionLoading(false);
         showToast("처리 완료");
         fetchTab("mailbox");
+    };
+    const galleryReportAction = async (reportId: string, action: "handle" | "delete_comment", commentId?: string) => {
+        setActionLoading(true);
+        await fetch("/api/admin/gallery-reports", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ reportId, action, commentId }) });
+        setActionLoading(false);
+        showToast("처리 완료");
+        fetchTab("gallery_reports");
     };
     const fetchInquiryDetail = async (inq: AdminInquiry) => {
         setInquiryDetailLoading(true);
@@ -781,6 +800,16 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
                     />
                 )}
 
+                {/* ───────── 갤러리 신고 ───────── */}
+                {activeTab === "gallery_reports" && (
+                    <GalleryReportsTab
+                        reports={galleryReports}
+                        loading={loading}
+                        actionLoading={actionLoading}
+                        onAction={galleryReportAction}
+                    />
+                )}
+
             </div>
 
             {/* ── 모달: 테마 반려 ── */}
@@ -1240,6 +1269,130 @@ function MailboxAdminTab({ mailboxes, loading, actionLoading, onAction }: {
                         </div>
                     ))}
                 </div>
+            )}
+        </div>
+    );
+}
+
+// ── 갤러리 신고 탭 ───────────────────────────────────────────────────────────
+function GalleryReportsTab({ reports, loading, actionLoading, onAction }: {
+    reports: AdminGalleryReport[];
+    loading: boolean;
+    actionLoading: boolean;
+    onAction: (reportId: string, action: "handle" | "delete_comment", commentId?: string) => void;
+}) {
+    const [expandedId, setExpandedId] = useState<string | null>(null);
+    const pending = reports.filter((r) => !r.isHandled);
+    const handled = reports.filter((r) => r.isHandled);
+
+    const formatDate = (iso: string) => {
+        const d = new Date(iso);
+        return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+    };
+
+    const renderList = (list: AdminGalleryReport[], emptyMsg: string) => (
+        list.length === 0 ? (
+            <EmptyState text={emptyMsg} />
+        ) : (
+            <div className="flex flex-col" style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
+                {list.map((r) => (
+                    <div key={r.id} style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+                        <button
+                            className="w-full flex items-center justify-between px-1 py-4 text-left transition-opacity hover:opacity-70"
+                            onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
+                        >
+                            <div className="flex items-center gap-3 min-w-0">
+                                <span className="shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-md"
+                                    style={{ background: r.isHandled ? "rgba(52,199,89,0.10)" : "rgba(255,149,0,0.10)", color: r.isHandled ? "#1a7a3a" : "#c97000" }}>
+                                    {r.isHandled ? "처리 완료" : "처리 대기"}
+                                </span>
+                                <span className="text-[13px] font-medium truncate" style={{ color: "#1c1c1e" }}>
+                                    [{r.postThemeName}] {r.commentIsDeleted ? "(삭제됨)" : r.commentContent.slice(0, 40)}{r.commentContent.length > 40 ? "…" : ""}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-3 shrink-0 ml-4">
+                                <span className="text-[12px]" style={{ color: "#aeaeb2" }}>신고자: {r.reporterNickname ?? r.reporterName}</span>
+                                <span className="text-[11px]" style={{ color: "#d1d1d6" }}>{formatDate(r.createdAt)}</span>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d1d1d6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                                    style={{ transform: expandedId === r.id ? "rotate(90deg)" : "none", transition: "transform 0.15s" }}>
+                                    <path d="M9 18l6-6-6-6"/>
+                                </svg>
+                            </div>
+                        </button>
+
+                        {expandedId === r.id && (
+                            <div className="px-1 pb-5 flex flex-col gap-4">
+                                <div className="px-4 py-3 rounded-xl" style={{ background: "rgba(255,149,0,0.05)", border: "1px solid rgba(255,149,0,0.12)" }}>
+                                    <p className="text-[11px] font-semibold mb-1" style={{ color: "#c97000" }}>신고된 댓글</p>
+                                    <p className="text-[13px] leading-relaxed" style={{ color: r.commentIsDeleted ? "#aeaeb2" : "#1c1c1e" }}>
+                                        {r.commentIsDeleted ? "이미 삭제된 댓글입니다." : r.commentContent}
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[12px]" style={{ color: "#aeaeb2" }}>게시글:</span>
+                                    <a href={`/gallery/${r.postId}`} target="_blank" rel="noreferrer"
+                                        className="text-[12px] underline transition-opacity hover:opacity-60"
+                                        style={{ color: "rgb(74,123,247)" }}>
+                                        {r.postThemeName}
+                                    </a>
+                                </div>
+                                {!r.isHandled && (
+                                    <div className="flex items-center gap-2">
+                                        <button onClick={() => onAction(r.id, "handle")} disabled={actionLoading}
+                                            className="px-4 py-2 rounded-lg text-[12px] font-semibold disabled:opacity-40 transition-opacity hover:opacity-80"
+                                            style={{ background: "rgba(52,199,89,0.10)", color: "#1a7a3a" }}>
+                                            처리 완료
+                                        </button>
+                                        {!r.commentIsDeleted && (
+                                            <button onClick={() => onAction(r.id, "delete_comment", r.commentId)} disabled={actionLoading}
+                                                className="px-4 py-2 rounded-lg text-[12px] font-semibold disabled:opacity-40 transition-opacity hover:opacity-80"
+                                                style={{ background: "rgba(255,59,48,0.10)", color: "#ff3b30" }}>
+                                                댓글 삭제
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
+        )
+    );
+
+    return (
+        <div className="flex flex-col gap-8">
+            <div>
+                <p className="text-[11px] font-semibold tracking-[0.12em] uppercase mb-2" style={{ color: "#a8a29e" }}>Gallery</p>
+                <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "#1c1917" }}>갤러리 신고</h1>
+                <p className="text-[14px] mt-1" style={{ color: "#78716c" }}>꾸미 갤러리 댓글 신고 내역을 관리합니다.</p>
+            </div>
+            {loading ? (
+                <div className="flex items-center gap-2 py-10" style={{ color: "#aeaeb2" }}>
+                    <div className="w-4 h-4 rounded-full border-2 border-stone-200 border-t-stone-400 animate-spin" />
+                    <span className="text-[13px]">불러오는 중…</span>
+                </div>
+            ) : (
+                <>
+                    <div>
+                        <div className="flex items-center gap-3 mb-4">
+                            <span className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "#a8a29e" }}>처리 대기</span>
+                            <div className="flex-1 h-px" style={{ backgroundColor: "#e7e5e4" }} />
+                            <span className="text-[12px] font-semibold" style={{ color: "#c97000" }}>{pending.length}건</span>
+                        </div>
+                        {renderList(pending, "처리 대기 중인 신고가 없어요.")}
+                    </div>
+                    {handled.length > 0 && (
+                        <div>
+                            <div className="flex items-center gap-3 mb-4">
+                                <span className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "#a8a29e" }}>처리 완료</span>
+                                <div className="flex-1 h-px" style={{ backgroundColor: "#e7e5e4" }} />
+                                <span className="text-[12px] font-semibold" style={{ color: "#1a7a3a" }}>{handled.length}건</span>
+                            </div>
+                            {renderList(handled, "")}
+                        </div>
+                    )}
+                </>
             )}
         </div>
     );

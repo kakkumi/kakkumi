@@ -8,6 +8,7 @@ const AUTH_REQUIRED = [
     "/store/register",
     "/my-themes",
     "/notifications",
+    "/gallery/new",
 ];
 
 // 관리자만 접근 가능한 경로
@@ -82,5 +83,6 @@ export const config = {
         "/store/register/:path*",
         "/my-themes/:path*",
         "/notifications/:path*",
+        "/gallery/new",
     ],
 };
