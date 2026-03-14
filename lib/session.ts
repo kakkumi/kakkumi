@@ -1,7 +1,6 @@
 import { createHmac } from "crypto";
 import { cookies } from "next/headers";
-
-const SESSION_COOKIE_NAME = "kakkumi_session";
+import { SESSION_COOKIE_NAME, SESSION_MAX_AGE_SECONDS } from "@/lib/constants";
 
 export type SessionUser = {
     dbId: string;
@@ -31,7 +30,12 @@ function verifySession(token: string, secret: string): SessionUser | null {
     if (signature !== expectedSignature) return null;
 
     try {
-        return JSON.parse(json) as SessionUser;
+        const parsed = JSON.parse(json) as SessionUser;
+        // 세션 만료 시간 검증 (issuedAt 기준)
+        if (Date.now() - parsed.issuedAt > SESSION_MAX_AGE_SECONDS * 1000) {
+            return null;
+        }
+        return parsed;
     } catch {
         return null;
     }
@@ -39,7 +43,6 @@ function verifySession(token: string, secret: string): SessionUser | null {
 
 /**
  * 서버 컴포넌트 / Route Handler 에서 세션을 꺼낼 때 사용
- * - app/ 디렉토리 서버 컴포넌트에서 직접 호출 가능
  */
 export async function getServerSession(): Promise<SessionUser | null> {
     try {

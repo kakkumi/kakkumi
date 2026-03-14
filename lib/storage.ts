@@ -1,7 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error("[storage] SUPABASE_URL 또는 SUPABASE_SERVICE_ROLE_KEY 환경변수가 설정되지 않았습니다.");
+}
 
 export const supabaseStorage = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -47,5 +51,3 @@ export async function uploadFile(bucket: string, path: string, file: File): Prom
     const { data } = supabaseStorage.storage.from(bucket).getPublicUrl(safePath);
     return data.publicUrl;
 }
-
-

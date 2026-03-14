@@ -35,17 +35,14 @@ export async function POST(request: Request) {
     }
 
     // DB에서 테마 확인 및 금액 검증 (SSOT: 클라이언트 금액을 신뢰하지 않음)
-    console.log("[toss/confirm] themeId:", themeId, "amount:", amount);
     const theme = await prisma.theme.findUnique({ where: { id: themeId } });
 
     if (!theme) {
-        console.error("[toss/confirm] 테마 없음. themeId:", themeId);
-        return NextResponse.json({ error: `테마를 찾을 수 없습니다. (id: ${themeId})` }, { status: 404 });
+        return NextResponse.json({ error: "테마를 찾을 수 없습니다." }, { status: 404 });
     }
 
     if (theme.price !== amount) {
-        console.error("[toss/confirm] 금액 불일치. DB:", theme.price, "요청:", amount);
-        return NextResponse.json({ error: `결제 금액이 일치하지 않습니다. (DB: ${theme.price}원, 요청: ${amount}원)` }, { status: 400 });
+        return NextResponse.json({ error: "결제 금액이 올바르지 않습니다." }, { status: 400 });
     }
 
     // 동일 버전 이미 구매 여부 확인

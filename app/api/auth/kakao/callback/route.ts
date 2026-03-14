@@ -25,10 +25,7 @@ export async function GET(request: Request) {
     const sessionSecret = process.env.KAKAO_SESSION_SECRET;
 
     if (!clientId || !redirectUri || !sessionSecret) {
-        return NextResponse.json(
-            { error: "Missing KAKAO_CLIENT_ID, KAKAO_REDIRECT_URI, or KAKAO_SESSION_SECRET" },
-            { status: 500 }
-        );
+        return NextResponse.redirect(new URL("/?login=failed", url.origin));
     }
 
     try {
@@ -137,7 +134,6 @@ export async function GET(request: Request) {
 
         // 4) nickname 조회 — 컬럼이 아직 없으면 기존 유저로 간주
         let nickname: string | null;
-        let avatarUrl: string | null;
         let nicknameColumnExists = true;
 
         try {
@@ -152,15 +148,6 @@ export async function GET(request: Request) {
             nickname = "pending";
         }
 
-        // avatarUrl은 별도로 시도 (db push 전이면 없을 수 있음)
-        try {
-            const rows = await prisma.$queryRaw<{ avatarUrl: string | null }[]>`
-                SELECT "avatarUrl" FROM "User" WHERE id = ${dbUser.id} LIMIT 1
-            `;
-            avatarUrl = rows[0]?.avatarUrl ?? null;
-        } catch {
-            avatarUrl = null;
-        }
 
         // nickname 컬럼 자체가 없으면 -> npx prisma db push 필요
         // 일단 홈으로 보내되 세션에는 name을 nickname으로 사용

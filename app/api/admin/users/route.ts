@@ -39,6 +39,11 @@ export async function PATCH(req: NextRequest) {
             action: "suspend" | "unsuspend" | "delete";
         };
 
+        const ALLOWED_ACTIONS = ["suspend", "unsuspend", "delete"] as const;
+        if (!userId || !ALLOWED_ACTIONS.includes(action)) {
+            return NextResponse.json({ error: "잘못된 요청입니다." }, { status: 400 });
+        }
+
         if (action === "suspend") {
             await prisma.$executeRaw`UPDATE "User" SET "isSuspended" = true, "updatedAt" = NOW() WHERE id = ${userId}`;
         } else if (action === "unsuspend") {

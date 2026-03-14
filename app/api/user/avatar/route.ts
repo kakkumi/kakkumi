@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { createHmac } from "crypto";
+import { SESSION_COOKIE_NAME, SESSION_MAX_AGE_SECONDS } from "@/lib/constants";
 
-const SESSION_COOKIE_NAME = "kakkumi_session";
-const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 const MAX_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
 
 function signSession(payload: Record<string, unknown>, secret: string) {

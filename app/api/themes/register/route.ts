@@ -30,6 +30,32 @@ export async function POST(req: NextRequest) {
         if (!thumbnailFile) return NextResponse.json({ error: "미리보기 이미지를 업로드해주세요." }, { status: 400 });
         if (optionCount === 0) return NextResponse.json({ error: "옵션을 1개 이상 추가해주세요." }, { status: 400 });
 
+        // 파일 검증 헬퍼
+        const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+        const ALLOWED_THEME_TYPES = ["application/octet-stream", "application/zip", "application/x-zip-compressed"];
+        const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+        const MAX_THEME_SIZE = 30 * 1024 * 1024; // 30MB
+
+        const validateImage = (file: File, label: string) => {
+            if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+                return NextResponse.json({ error: `${label}은 JPG, PNG, WEBP, GIF만 허용됩니다.` }, { status: 400 });
+            }
+            if (file.size > MAX_IMAGE_SIZE) {
+                return NextResponse.json({ error: `${label}은 5MB 이하여야 합니다.` }, { status: 400 });
+            }
+            return null;
+        };
+
+        const thumbError = validateImage(thumbnailFile, "썸네일 이미지");
+        if (thumbError) return thumbError;
+
+        for (const f of miniPreviewFiles) {
+            if (f && f.size > 0) {
+                const err = validateImage(f, "미니 프리뷰 이미지");
+                if (err) return err;
+            }
+        }
+
         // 세션 유저 확인
         const userCheck = await prisma.$queryRaw<{ id: string }[]>`
             SELECT id FROM "User" WHERE id = ${session.dbId} AND "deletedAt" IS NULL LIMIT 1
@@ -97,6 +123,8 @@ export async function POST(req: NextRequest) {
             const imgFile = formData.get(`richImg_${i}`) as File | null;
             const tempUrl = (formData.get(`richImgUrl_${i}`) as string | null) ?? "";
             if (imgFile && imgFile.size > 0 && tempUrl) {
+                const richErr = validateImage(imgFile, "테마 정보 이미지");
+                if (richErr) return richErr;
                 const imgExt = imgFile.name.split(".").pop() ?? "jpg";
                 const uploadedUrl = await uploadFile("theme-images", `${id}/rich-${i}.${imgExt}`, imgFile);
                 finalHtml = finalHtml.split(tempUrl).join(uploadedUrl);
@@ -142,6 +170,10 @@ export async function POST(req: NextRequest) {
                     imageData = JSON.stringify(myTheme.imageData ?? {});
                 }
             } else if (opt.file && opt.file.size > 0) {
+                // 파일 크기 검증
+                if (opt.file.size > MAX_THEME_SIZE) {
+                    return NextResponse.json({ error: `테마 파일은 30MB 이하여야 합니다.` }, { status: 400 });
+                }
                 // 파일 업로드
                 const osFolder = opt.os === "android" ? "android" : "ios";
                 fileUrl = await uploadFile("theme-files", `${id}/${osFolder}/${optionId}.${ext(opt.file)}`, opt.file);
