@@ -90,14 +90,17 @@ enum NotificationType {
 }
 
 model CreatorApplication {
-  id          String            @id @default(uuid())
-  userId      String
-  reason      String            // 신청 사유
-  portfolio   String?           // 포트폴리오 URL 등 (선택)
-  status      ApplicationStatus @default(PENDING)
-  adminNote   String?           // 반려 사유 등 관리자 메모
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  id           String            @id @default(uuid())
+  userId       String
+  reason       String            // 자기소개 (필수)
+  portfolio    String?           // SNS/포트폴리오 링크 (선택)
+  experience   Boolean           @default(false) // 테마 제작 경험 여부
+  tools        String[]          @default([])    // 사용 툴 목록
+  sampleImages String[]          @default([])    // 샘플 이미지 URL 배열
+  status       ApplicationStatus @default(PENDING)
+  adminNote    String?           // 반려 사유 등 관리자 메모
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
 
   user User @relation("UserApplications", fields: [userId], references: [id])
 }

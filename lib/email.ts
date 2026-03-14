@@ -161,3 +161,66 @@ export async function sendCreditExpiryWarning({
         `.trim(),
     });
 }
+
+export async function sendCreatorApproved({ to, name }: { to: string; name: string }) {
+    if (!process.env.RESEND_API_KEY) return;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kakkumi.com";
+    await resend.emails.send({
+        from: FROM,
+        to,
+        subject: "[카꾸미] 크리에이터 입점 신청이 승인되었어요! 🎉",
+        html: `
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 520px; margin: 0 auto; background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid #e5e5e5;">
+  <div style="background: linear-gradient(135deg, #FF9500, #FF6B00); padding: 32px; text-align: center;">
+    <h1 style="color: #fff; margin: 0; font-size: 24px; font-weight: 800;">카꾸미</h1>
+    <p style="color: rgba(255,255,255,0.85); margin: 8px 0 0; font-size: 14px;">크리에이터 입점 승인</p>
+  </div>
+  <div style="padding: 32px;">
+    <p style="color: #1c1c1e; font-size: 16px; margin: 0 0 16px;">안녕하세요, <strong>${name}</strong>님!</p>
+    <p style="color: #3a3a3c; font-size: 14px; line-height: 1.7; margin: 0 0 24px;">
+      카꾸미 크리에이터 입점 신청이 <strong style="color: #34c759;">승인</strong>되었습니다. 🎉<br/>
+      이제 테마를 등록하고 다양한 사용자들과 공유해보세요!
+    </p>
+    <a href="${siteUrl}/store/register"
+       style="display: block; background: #FF9500; color: #fff; text-align: center; padding: 14px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 15px;">
+      테마 등록하러 가기
+    </a>
+  </div>
+</div>`.trim(),
+    });
+}
+
+export async function sendCreatorRejected({ to, name, reason }: { to: string; name: string; reason: string }) {
+    if (!process.env.RESEND_API_KEY) return;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kakkumi.com";
+    await resend.emails.send({
+        from: FROM,
+        to,
+        subject: "[카꾸미] 크리에이터 입점 신청 결과 안내",
+        html: `
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 520px; margin: 0 auto; background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid #e5e5e5;">
+  <div style="background: linear-gradient(135deg, #FF9500, #FF6B00); padding: 32px; text-align: center;">
+    <h1 style="color: #fff; margin: 0; font-size: 24px; font-weight: 800;">카꾸미</h1>
+    <p style="color: rgba(255,255,255,0.85); margin: 8px 0 0; font-size: 14px;">크리에이터 입점 심사 결과</p>
+  </div>
+  <div style="padding: 32px;">
+    <p style="color: #1c1c1e; font-size: 16px; margin: 0 0 16px;">안녕하세요, <strong>${name}</strong>님!</p>
+    <p style="color: #3a3a3c; font-size: 14px; line-height: 1.7; margin: 0 0 20px;">
+      아쉽게도 이번 입점 신청이 <strong style="color: #ff3b30;">반려</strong>되었습니다.
+    </p>
+    <div style="background: #fff5f5; border: 1px solid #fecaca; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+      <p style="color: #92400e; font-size: 12px; font-weight: 600; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em;">반려 사유</p>
+      <p style="color: #3a3a3c; font-size: 14px; line-height: 1.6; margin: 0;">${reason}</p>
+    </div>
+    <p style="color: #8e8e93; font-size: 13px; line-height: 1.6; margin: 0 0 24px;">
+      반려 사유를 확인하고 보완한 뒤 재신청할 수 있어요.
+    </p>
+    <a href="${siteUrl}/mypage/creator-apply"
+       style="display: block; background: #FF9500; color: #fff; text-align: center; padding: 14px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 15px;">
+      재신청하기
+    </a>
+  </div>
+</div>`.trim(),
+    });
+}
+

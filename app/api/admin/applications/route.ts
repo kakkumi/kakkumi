@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { sendCreatorApproved, sendCreatorRejected } from "@/lib/email";
 
 // 입점 신청 목록 조회 (관리자)
 export async function GET() {
@@ -11,17 +12,23 @@ export async function GET() {
 
     const rows = await prisma.$queryRaw<{
         id: string; status: string; reason: string; portfolio: string | null;
+        experience: boolean; tools: string[]; sampleImages: string[];
         adminNote: string | null; createdAt: Date;
         userId: string; userNickname: string | null; userName: string; userEmail: string | null;
     }[]>`
-        SELECT a.id, a.status, a.reason, a.portfolio, a."adminNote", a."createdAt",
-               u.id AS "userId", u.nickname AS "userNickname", u.name AS "userName", u.email AS "userEmail"
+        SELECT a.id, a.status, a.reason, a.portfolio,
+               a.experience, a.tools, a."sampleImages",
+               a."adminNote", a."createdAt",
+               u.id AS "userId", u.nickname AS "userNickname",
+               u.name AS "userName", u.email AS "userEmail"
         FROM "CreatorApplication" a
         JOIN "User" u ON a."userId" = u.id
         ORDER BY a."createdAt" DESC
     `;
 
-    return NextResponse.json({ applications: rows });
+    return NextResponse.json({
+        applications: rows.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })),
+    });
 }
 
 // 신청 승인/반려 (관리자)
@@ -41,29 +48,44 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ error: "잘못된 요청" }, { status: 400 });
     }
 
-    // 신청 정보 조회
+    if (action === "REJECTED" && !adminNote?.trim()) {
+        return NextResponse.json({ error: "반려 사유를 입력해주세요." }, { status: 400 });
+    }
+
     const rows = await prisma.$queryRaw<{ userId: string }[]>`
         SELECT "userId" FROM "CreatorApplication" WHERE id = ${applicationId} LIMIT 1
     `;
     if (!rows[0]) return NextResponse.json({ error: "신청을 찾을 수 없습니다." }, { status: 404 });
 
+    const userId = rows[0].userId;
     const now = new Date();
 
-    // 신청 상태 업데이트
     await prisma.$executeRaw`
         UPDATE "CreatorApplication"
         SET status = ${action}::"ApplicationStatus",
-            "adminNote" = ${adminNote ?? null},
+            "adminNote" = ${adminNote?.trim() ?? null},
             "updatedAt" = ${now}
         WHERE id = ${applicationId}
     `;
 
-    // 승인 시 유저 role을 CREATOR로 변경
     if (action === "APPROVED") {
         await prisma.$executeRaw`
             UPDATE "User" SET role = 'CREATOR'::"Role", "updatedAt" = ${now}
-            WHERE id = ${rows[0].userId}
+            WHERE id = ${userId}
         `;
+    }
+
+    // 이메일 발송
+    const userRows = await prisma.$queryRaw<{ name: string; email: string | null }[]>`
+        SELECT name, email FROM "User" WHERE id = ${userId} LIMIT 1
+    `;
+    const u = userRows[0];
+    if (u?.email) {
+        if (action === "APPROVED") {
+            await sendCreatorApproved({ to: u.email, name: u.name }).catch(() => {});
+        } else {
+            await sendCreatorRejected({ to: u.email, name: u.name, reason: adminNote ?? "" }).catch(() => {});
+        }
     }
 
     return NextResponse.json({ ok: true });

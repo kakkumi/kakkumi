@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { uploadFile } from "@/lib/storage";
 
 // 입점 신청 조회
 export async function GET() {
@@ -10,30 +11,33 @@ export async function GET() {
     const rows = await prisma.$queryRaw<{
         id: string; status: string; reason: string;
         portfolio: string | null; adminNote: string | null; createdAt: Date;
+        experience: boolean; tools: string[]; sampleImages: string[];
     }[]>`
-        SELECT id, status, reason, portfolio, "adminNote", "createdAt"
+        SELECT id, status, reason, portfolio, "adminNote", "createdAt",
+               experience, tools, "sampleImages"
         FROM "CreatorApplication"
         WHERE "userId" = ${session.dbId}
         ORDER BY "createdAt" DESC
         LIMIT 1
     `;
 
-    return NextResponse.json({ application: rows[0] ?? null });
+    if (!rows[0]) return NextResponse.json({ application: null });
+    return NextResponse.json({
+        application: { ...rows[0], createdAt: rows[0].createdAt.toISOString() },
+    });
 }
 
-// 입점 신청 제출
+// 입점 신청 제출 (multipart/form-data)
 export async function POST(req: NextRequest) {
     const session = await getServerSession();
     if (!session?.dbId) {
         return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
     }
 
-    // 이미 CREATOR/ADMIN이면 신청 불필요
     if (session.role === "CREATOR" || session.role === "ADMIN") {
         return NextResponse.json({ error: "이미 판매 권한이 있습니다." }, { status: 400 });
     }
 
-    // 이미 대기 중인 신청 있는지 확인
     const existing = await prisma.$queryRaw<{ id: string }[]>`
         SELECT id FROM "CreatorApplication"
         WHERE "userId" = ${session.dbId} AND status = 'PENDING'::"ApplicationStatus"
@@ -43,17 +47,47 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "이미 검토 중인 신청이 있습니다." }, { status: 409 });
     }
 
-    const { reason, portfolio } = (await req.json()) as { reason: string; portfolio?: string };
-    if (!reason?.trim() || reason.trim().length < 10) {
-        return NextResponse.json({ error: "신청 사유를 10자 이상 입력해주세요." }, { status: 400 });
+    try {
+        const fd = await req.formData();
+        const reason = (fd.get("reason") as string | null)?.trim() ?? "";
+        const portfolio = (fd.get("portfolio") as string | null)?.trim() ?? "";
+        const experience = fd.get("experience") === "true";
+        const tools = fd.getAll("tools") as string[];
+        const imageFiles = fd.getAll("sampleImages") as File[];
+
+        if (!reason || reason.length < 10) {
+            return NextResponse.json({ error: "자기소개를 10자 이상 입력해주세요." }, { status: 400 });
+        }
+        if (imageFiles.length === 0) {
+            return NextResponse.json({ error: "샘플 이미지를 1개 이상 업로드해주세요." }, { status: 400 });
+        }
+
+        const appId = crypto.randomUUID();
+        const sampleImages: string[] = [];
+        for (let i = 0; i < imageFiles.length; i++) {
+            const f = imageFiles[i];
+            const ext = f.name.split(".").pop() ?? "jpg";
+            try {
+                const url = await uploadFile("creator-samples", `${appId}/sample-${i}.${ext}`, f);
+                sampleImages.push(url);
+            } catch {
+                return NextResponse.json({ error: "이미지 업로드에 실패했습니다." }, { status: 500 });
+            }
+        }
+
+        const now = new Date();
+        await prisma.$executeRaw`
+            INSERT INTO "CreatorApplication"
+              (id, "userId", reason, portfolio, experience, tools, "sampleImages", status, "createdAt", "updatedAt")
+            VALUES (
+              ${appId}, ${session.dbId}, ${reason},
+              ${portfolio || null}, ${experience}, ${tools}::text[], ${sampleImages}::text[],
+              'PENDING'::"ApplicationStatus", ${now}, ${now}
+            )
+        `;
+
+        return NextResponse.json({ ok: true });
+    } catch {
+        return NextResponse.json({ error: "서버 오류가 발생했습니다." }, { status: 500 });
     }
-
-    const now = new Date();
-    await prisma.$executeRaw`
-        INSERT INTO "CreatorApplication" (id, "userId", reason, portfolio, status, "createdAt", "updatedAt")
-        VALUES (${crypto.randomUUID()}, ${session.dbId}, ${reason.trim()}, ${portfolio?.trim() ?? null},
-                'PENDING'::"ApplicationStatus", ${now}, ${now})
-    `;
-
-    return NextResponse.json({ ok: true });
 }

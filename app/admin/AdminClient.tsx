@@ -44,6 +44,7 @@ type AdminInquiry = {
 };
 type AdminApplication = {
     id: string; status: string; reason: string; portfolio: string | null;
+    experience: boolean; tools: string[]; sampleImages: string[];
     adminNote: string | null; createdAt: string;
     userId: string; userNickname: string | null; userName: string; userEmail: string | null;
 };
@@ -765,29 +766,12 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
 
                 {/* ───────── 입점 신청 ───────── */}
                 {activeTab === "applications" && (
-                    <div className="flex flex-col gap-6">
-                        <div>
-                            <h1 className="text-[20px] font-bold tracking-tight" style={{ color: "#1c1c1e" }}>입점 신청</h1>
-                            <p className="text-[13px] mt-1" style={{ color: "#aeaeb2" }}>크리에이터 입점 신청을 검토하고 승인 또는 반려합니다.</p>
-                        </div>
-                        <SectionHeader
-                            title="신청 목록"
-                            count={applications.length}
-                            action={
-                                applications.filter(a => a.status === "PENDING").length > 0
-                                    ? <Badge style={{ label: `대기 ${applications.filter(a => a.status === "PENDING").length}건`, bg: "rgba(255,149,0,0.10)", color: "#c97000" }} />
-                                    : undefined
-                            }
-                        />
-                        {loading
-                            ? <EmptyState text="불러오는 중..." />
-                            : applications.length === 0
-                            ? <EmptyState text="입점 신청 내역이 없습니다." />
-                            : applications.map((app) => (
-                                <ApplicationRow key={app.id} app={app} onAction={applicationAction} actionLoading={actionLoading} />
-                            ))
-                        }
-                    </div>
+                    <ApplicationsAdminTab
+                        applications={applications}
+                        loading={loading}
+                        actionLoading={actionLoading}
+                        onAction={applicationAction}
+                    />
                 )}
 
                 {/* ───────── 우체통 ───────── */}
@@ -1014,12 +998,73 @@ function ThemeManageTab({ themes, loading, actionLoading, onApprove, onReject }:
     );
 }
 
-// ── 입점 신청 행 ─────────────────────────────────────────────────────────────
+// ...existing code...
 const APP_STATUS_STYLE: Record<string, { label: string; bg: string; color: string }> = {
-    PENDING:  { label: "검토 중",   bg: "rgba(255,149,0,0.10)",  color: "#c97000" },
-    APPROVED: { label: "승인 완료", bg: "rgba(52,199,89,0.10)",  color: "#1a7a3a" },
-    REJECTED: { label: "반려",      bg: "rgba(255,59,48,0.08)",  color: "#c0392b" },
+    PENDING:  { label: "대기중",   bg: "rgba(255,149,0,0.10)",  color: "#c97000" },
+    APPROVED: { label: "승인",     bg: "rgba(52,199,89,0.10)",  color: "#1a7a3a" },
+    REJECTED: { label: "반려",     bg: "rgba(255,59,48,0.08)",  color: "#c0392b" },
 };
+
+const REJECT_TEMPLATES = [
+    "샘플 퀄리티 기준 미달",
+    "저작권 침해 의심",
+    "샘플 미첨부",
+    "기타 (직접 입력)",
+];
+
+// ── 입점 신청 관리 탭 ────────────────────────────────────────────────────────
+function ApplicationsAdminTab({ applications, loading, actionLoading, onAction }: {
+    applications: AdminApplication[];
+    loading: boolean;
+    actionLoading: boolean;
+    onAction: (id: string, action: "APPROVED" | "REJECTED", note?: string) => void;
+}) {
+    const [statusTab, setStatusTab] = useState<"PENDING" | "APPROVED" | "REJECTED">("PENDING");
+
+    const filtered = applications.filter(a => a.status === statusTab);
+    const counts = {
+        PENDING:  applications.filter(a => a.status === "PENDING").length,
+        APPROVED: applications.filter(a => a.status === "APPROVED").length,
+        REJECTED: applications.filter(a => a.status === "REJECTED").length,
+    };
+
+    return (
+        <div className="flex flex-col gap-6">
+            <div>
+                <h1 className="text-[20px] font-bold tracking-tight" style={{ color: "#1c1c1e" }}>입점 신청</h1>
+                <p className="text-[13px] mt-1" style={{ color: "#aeaeb2" }}>크리에이터 입점 신청을 검토하고 승인 또는 반려합니다.</p>
+            </div>
+            {/* 상태 탭 */}
+            <div className="flex gap-1.5">
+                {(["PENDING", "APPROVED", "REJECTED"] as const).map(s => (
+                    <button key={s} onClick={() => setStatusTab(s)}
+                        className="px-4 py-1.5 rounded-full text-[13px] font-medium transition-all"
+                        style={{
+                            background: statusTab === s ? APP_STATUS_STYLE[s].bg : "transparent",
+                            color: statusTab === s ? APP_STATUS_STYLE[s].color : "#aeaeb2",
+                            border: `1px solid ${statusTab === s ? APP_STATUS_STYLE[s].color + "33" : "rgba(0,0,0,0.07)"}`,
+                        }}>
+                        {APP_STATUS_STYLE[s].label}
+                        {counts[s] > 0 && (
+                            <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold"
+                                style={{ background: statusTab === s ? APP_STATUS_STYLE[s].color : "#aeaeb2", color: "#fff" }}>
+                                {counts[s]}
+                            </span>
+                        )}
+                    </button>
+                ))}
+            </div>
+            {loading
+                ? <EmptyState text="불러오는 중..." />
+                : filtered.length === 0
+                ? <EmptyState text={`${APP_STATUS_STYLE[statusTab].label} 신청이 없습니다.`} />
+                : filtered.map(app => (
+                    <ApplicationRow key={app.id} app={app} onAction={onAction} actionLoading={actionLoading} />
+                ))
+            }
+        </div>
+    );
+}
 
 function ApplicationRow({ app, onAction, actionLoading }: {
     app: AdminApplication;
@@ -1027,61 +1072,166 @@ function ApplicationRow({ app, onAction, actionLoading }: {
     actionLoading: boolean;
 }) {
     const [expanded, setExpanded] = useState(false);
-    const [rejectNote, setRejectNote] = useState("");
     const [showReject, setShowReject] = useState(false);
+    const [rejectNote, setRejectNote] = useState("");
+    const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+    const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
     const statusStyle = APP_STATUS_STYLE[app.status] ?? APP_STATUS_STYLE.PENDING;
 
+    const handleTemplateSelect = (t: string) => {
+        setSelectedTemplate(t);
+        if (t !== "기타 (직접 입력)") setRejectNote(t);
+        else setRejectNote("");
+    };
+
     return (
-        <div className="flex flex-col gap-2 py-3.5" style={{ borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
-            <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(0,0,0,0.07)", background: "#fff" }}>
+            {/* 헤더 */}
+            <div className="flex items-start justify-between gap-4 px-5 py-4">
                 <div className="flex flex-col gap-0.5">
-                    <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-[13px] font-medium" style={{ color: "#1c1c1e" }}>{app.userNickname ?? app.userName}</span>
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[14px] font-semibold" style={{ color: "#1c1c1e" }}>{app.userNickname ?? app.userName}</span>
                         {app.userEmail && <span className="text-[11px]" style={{ color: "#aeaeb2" }}>{app.userEmail}</span>}
                         <Badge style={statusStyle} />
                     </div>
                     <p className="text-[11px]" style={{ color: "#aeaeb2" }}>신청일 {new Date(app.createdAt).toLocaleDateString("ko-KR")}</p>
                 </div>
-                {app.status === "PENDING" && (
-                    <div className="flex gap-2 shrink-0">
-                        <button onClick={() => onAction(app.id, "APPROVED")} disabled={actionLoading} className="text-[12px] font-medium px-3 py-1.5 rounded-md transition-opacity hover:opacity-70 disabled:opacity-40" style={{ background: "rgba(52,199,89,0.08)", color: "#1a7a3a" }}>승인</button>
-                        <button onClick={() => setShowReject(v => !v)} disabled={actionLoading} className="text-[12px] font-medium px-3 py-1.5 rounded-md transition-opacity hover:opacity-70 disabled:opacity-40" style={{ background: "rgba(255,59,48,0.07)", color: "#ff3b30" }}>반려</button>
-                    </div>
-                )}
+                <div className="flex items-center gap-2 shrink-0">
+                    <button onClick={() => setExpanded(v => !v)}
+                        className="text-[12px] px-3 py-1.5 rounded-lg transition-opacity hover:opacity-70"
+                        style={{ background: "rgba(0,0,0,0.04)", color: "#636366" }}>
+                        {expanded ? "접기" : "상세 보기"}
+                    </button>
+                    {app.status === "PENDING" && (
+                        <>
+                            <button onClick={() => onAction(app.id, "APPROVED")} disabled={actionLoading}
+                                className="text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-70 disabled:opacity-40"
+                                style={{ background: "rgba(52,199,89,0.10)", color: "#1a7a3a" }}>승인</button>
+                            <button onClick={() => { setShowReject(v => !v); setRejectNote(""); setSelectedTemplate(null); }}
+                                disabled={actionLoading}
+                                className="text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-70 disabled:opacity-40"
+                                style={{ background: "rgba(255,59,48,0.08)", color: "#ff3b30" }}>반려</button>
+                        </>
+                    )}
+                </div>
             </div>
 
-            <button onClick={() => setExpanded(v => !v)} className="self-start text-[12px] transition-opacity hover:opacity-60" style={{ color: "rgb(74,123,247)" }}>
-                {expanded ? "▲ 접기" : "▼ 신청 사유 보기"}
-            </button>
-
+            {/* 상세 */}
             {expanded && (
-                <div className="flex flex-col gap-2 mt-1 px-4 py-3 rounded-xl" style={{ background: "rgba(74,123,247,0.04)", borderLeft: "2px solid rgba(74,123,247,0.2)" }}>
-                    <p className="text-[13px] leading-relaxed" style={{ color: "#3a3a3c", whiteSpace: "pre-wrap" }}>{app.reason}</p>
+                <div className="flex flex-col gap-4 px-5 pb-5" style={{ borderTop: "1px solid rgba(0,0,0,0.05)" }}>
+                    <div className="grid grid-cols-2 gap-3 pt-4">
+                        <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-widest mb-1" style={{ color: "#aeaeb2" }}>제작 경험</p>
+                            <p className="text-[13px]" style={{ color: "#1c1c1e" }}>{app.experience ? "있음" : "없음"}</p>
+                        </div>
+                        {app.tools?.length > 0 && (
+                            <div>
+                                <p className="text-[10px] font-semibold uppercase tracking-widest mb-1" style={{ color: "#aeaeb2" }}>사용 툴</p>
+                                <div className="flex flex-wrap gap-1">
+                                    {app.tools.map(t => (
+                                        <span key={t} className="px-2 py-0.5 rounded-full text-[11px]"
+                                            style={{ background: "rgba(255,149,0,0.08)", color: "rgb(180,90,0)" }}>{t}</span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-widest mb-1" style={{ color: "#aeaeb2" }}>자기소개</p>
+                        <p className="text-[13px] leading-relaxed" style={{ color: "#3a3a3c", whiteSpace: "pre-wrap" }}>{app.reason}</p>
+                    </div>
                     {app.portfolio && (
-                        <a href={app.portfolio} target="_blank" rel="noopener noreferrer" className="text-[12px] underline hover:opacity-70 transition-opacity" style={{ color: "rgb(74,123,247)" }}>포트폴리오 보기 →</a>
+                        <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-widest mb-1" style={{ color: "#aeaeb2" }}>포트폴리오</p>
+                            <a href={app.portfolio} target="_blank" rel="noopener noreferrer"
+                                className="text-[13px] underline hover:opacity-70" style={{ color: "rgb(74,123,247)" }}>
+                                {app.portfolio} →
+                            </a>
+                        </div>
                     )}
-                    {app.adminNote && (
-                        <div className="mt-1 px-3 py-2 rounded-lg" style={{ background: "rgba(255,59,48,0.05)" }}>
-                            <p className="text-[11px] font-semibold mb-0.5" style={{ color: "#c0392b" }}>반려 사유</p>
-                            <p className="text-[12px]" style={{ color: "#3a3a3c" }}>{app.adminNote}</p>
+                    {app.sampleImages?.length > 0 && (
+                        <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: "#aeaeb2" }}>샘플 이미지</p>
+                            <div className="flex gap-2 flex-wrap">
+                                {app.sampleImages.map((src, i) => (
+                                    <button key={i} type="button" onClick={() => setLightboxSrc(src)}
+                                        className="rounded-xl overflow-hidden transition-opacity hover:opacity-80"
+                                        style={{ border: "1px solid rgba(0,0,0,0.08)", flexShrink: 0, width: 112, height: 112 }}>
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                            src={src}
+                                            alt={`샘플 ${i + 1}`}
+                                            style={{ width: 112, height: 112, objectFit: "cover", display: "block" }}
+                                        />
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    {app.adminNote && app.status === "REJECTED" && (
+                        <div className="px-4 py-3 rounded-xl" style={{ background: "rgba(255,59,48,0.04)", border: "1px solid rgba(255,59,48,0.12)" }}>
+                            <p className="text-[11px] font-semibold mb-1" style={{ color: "#c0392b" }}>반려 사유</p>
+                            <p className="text-[13px]" style={{ color: "#3a3a3c" }}>{app.adminNote}</p>
                         </div>
                     )}
                 </div>
             )}
 
+            {/* 반려 패널 */}
             {showReject && (
-                <div className="flex flex-col gap-2 mt-1 px-4 py-3 rounded-xl" style={{ background: "rgba(255,59,48,0.03)", border: "1px solid rgba(255,59,48,0.12)" }}>
-                    <p className="text-[12px] font-semibold" style={{ color: "#c0392b" }}>반려 사유 입력</p>
-                    <textarea rows={3} value={rejectNote} onChange={e => setRejectNote(e.target.value)} placeholder="반려 사유를 입력하면 신청자에게 표시됩니다. (선택)" className="px-3 py-2 rounded-lg text-[13px] outline-none resize-none" style={{ background: "#fff", border: "1px solid rgba(0,0,0,0.08)", color: "#1c1c1e" }} />
+                <div className="flex flex-col gap-3 px-5 pb-5" style={{ borderTop: "1px solid rgba(255,59,48,0.12)", background: "rgba(255,59,48,0.02)" }}>
+                    <p className="text-[12px] font-semibold pt-4" style={{ color: "#c0392b" }}>반려 사유 선택</p>
+                    <div className="flex flex-wrap gap-2">
+                        {REJECT_TEMPLATES.map(t => (
+                            <button key={t} type="button" onClick={() => handleTemplateSelect(t)}
+                                className="px-3 py-1.5 rounded-full text-[12px] font-medium transition-all"
+                                style={{
+                                    background: selectedTemplate === t ? "rgba(255,59,48,0.10)" : "rgba(0,0,0,0.04)",
+                                    color: selectedTemplate === t ? "#c0392b" : "#636366",
+                                    border: selectedTemplate === t ? "1px solid rgba(255,59,48,0.2)" : "1px solid transparent",
+                                }}>
+                                {t}
+                            </button>
+                        ))}
+                    </div>
+                    <textarea rows={3} value={rejectNote} onChange={e => setRejectNote(e.target.value)}
+                        placeholder="반려 사유를 입력하면 신청자에게 이메일로 전달됩니다."
+                        className="px-3 py-2.5 rounded-xl text-[13px] outline-none resize-none"
+                        style={{ background: "#fff", border: "1px solid rgba(0,0,0,0.08)", color: "#1c1c1e" }} />
                     <div className="flex gap-2">
-                        <button onClick={() => { onAction(app.id, "REJECTED", rejectNote || undefined); setShowReject(false); }} disabled={actionLoading} className="px-3 py-1.5 rounded-lg text-[12px] font-semibold text-white disabled:opacity-40 transition-opacity hover:opacity-80" style={{ background: "#ff3b30" }}>반려 확정</button>
-                        <button onClick={() => setShowReject(false)} className="px-3 py-1.5 rounded-lg text-[12px] transition-opacity hover:opacity-70" style={{ background: "rgba(0,0,0,0.05)", color: "#6e6e73" }}>취소</button>
+                        <button onClick={() => { onAction(app.id, "REJECTED", rejectNote); setShowReject(false); }}
+                            disabled={actionLoading || !rejectNote.trim()}
+                            className="px-4 py-2 rounded-xl text-[12px] font-semibold text-white disabled:opacity-40 transition-opacity hover:opacity-80"
+                            style={{ background: "#ff3b30" }}>반려 확정</button>
+                        <button onClick={() => { setShowReject(false); setRejectNote(""); setSelectedTemplate(null); }}
+                            className="px-4 py-2 rounded-xl text-[12px] transition-opacity hover:opacity-70"
+                            style={{ background: "rgba(0,0,0,0.05)", color: "#6e6e73" }}>취소</button>
+                    </div>
+                </div>
+            )}
+
+            {/* 라이트박스 */}
+            {lightboxSrc && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center"
+                    style={{ background: "rgba(0,0,0,0.85)" }}
+                    onClick={() => setLightboxSrc(null)}>
+                    <div className="relative max-w-[90vw] max-h-[90vh]" onClick={e => e.stopPropagation()}>
+                        <img src={lightboxSrc} alt="" className="max-w-full max-h-[90vh] rounded-xl object-contain" />
+                        <button onClick={() => setLightboxSrc(null)}
+                            className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center"
+                            style={{ background: "rgba(0,0,0,0.6)" }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+                                <path d="M18 6L6 18M6 6l12 12"/>
+                            </svg>
+                        </button>
                     </div>
                 </div>
             )}
         </div>
     );
 }
+
+
 
 // ── 우체통 관리 탭 ────────────────────────────────────────────────────────────
 const MAILBOX_TYPE_STYLE: Record<string, { label: string; bg: string; color: string }> = {
