@@ -55,6 +55,7 @@ html, body {
 body {
   color: var(--foreground);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Arial, sans-serif;
+  min-width: 1024px;
 }
 
 /* macOS 유리 질감 (Liquid Glass) */
