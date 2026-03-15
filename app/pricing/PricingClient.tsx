@@ -21,7 +21,6 @@ const FREE_FEATURES = [
     { label: "테마 복사/복제", included: false },
     { label: "내 테마 저장 무제한", included: false },
     { label: "Pro 전용 프리셋 팔레트", included: false },
-    { label: "Ctrl+Z / 앞으로 되돌리기", included: false },
     { label: "Pro 전용 프로필 뱃지 ✦", included: false },
     { label: "광고 없는 UI (추후 적용)", included: false },
 ];
@@ -34,7 +33,6 @@ const PRO_FEATURES = [
     { label: "무료 테마 다운로드", included: true },
     { label: "테마 복사/복제", included: true },
     { label: "Pro 전용 프리셋 팔레트", included: true },
-    { label: "Ctrl+Z / 앞으로 되돌리기", included: true },
     { label: "Pro 전용 프로필 뱃지 ✦", included: true },
     { label: "광고 없는 UI (추후 적용)", included: true },
 ];
