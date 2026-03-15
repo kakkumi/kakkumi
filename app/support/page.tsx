@@ -394,11 +394,11 @@ export default function SupportPage() {
                         <span style={{ color: "#8e8e93" }}>점심 12:00 – 13:00</span>
                     </p>
                     <a
-                        href="mailto:aaa@kakkumi.com"
+                        href="mailto:kakkumi.official@gmail.com"
                         className="px-2 text-[12px] hover:underline mt-1"
                         style={{ color: "#FF9500" }}
                     >
-                        aaa@kakkumi.com
+                        kakkumi.official@gmail.com
                     </a>
                 </aside>
 

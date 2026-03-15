@@ -10,8 +10,8 @@ export default function Footer() {
                 <div className="flex flex-col gap-1">
                     <p className="text-[12px]" style={{ color: "#3a3a3c" }}>
                         주식회사 카꾸미 · 대표자 김나윤 · 이메일{" "}
-                        <a href="mailto:aaa@kakkumi.com" className="hover:underline" style={{ color: "#3a3a3c" }}>
-                            aaa@kakkumi.com
+                        <a href="mailto:kakkumi.official@gmail.com" className="hover:underline" style={{ color: "#3a3a3c" }}>
+                            kakkumi.official@gmail.com
                         </a>
                     </p>
                     <p className="text-[11px]" style={{ color: "#8e8e93" }}>© 2026 카꾸미. 카카오톡과 무관한 개인 제작 툴입니다.</p>

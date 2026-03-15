@@ -129,7 +129,7 @@ export default function SubscriptionPaymentsPage() {
                     <p className="text-[11px] font-semibold" style={{ color: "#a8a29e" }}>결제 취소 안내</p>
                     <p className="text-[11px] leading-relaxed" style={{ color: "#c4c4c6" }}>
                         구독 결제는 결제일로부터 7일 이내에 취소 요청이 가능합니다. 이미 이용 기간이 시작된 경우 취소가 제한될 수 있습니다.
-                        취소 문의는 고객센터 1:1 문의 또는 이메일(support@kakkumi.com)로 접수해 주세요.
+                        취소 문의는 고객센터 1:1 문의 또는 이메일(kakkumi.official@gmail.com)로 접수해 주세요.
                         환불은 원래 결제 수단으로 영업일 기준 3~5일 이내에 처리됩니다.
                     </p>
                 </div>

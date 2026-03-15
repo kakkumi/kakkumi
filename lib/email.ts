@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM = process.env.RESEND_FROM ?? "카꾸미 <noreply@kakkumi.com>";
+const FROM = process.env.RESEND_FROM ?? "카꾸미 <kakkumi.official@gmail.com>";
 
 export async function sendPurchaseReceipt({
     to,
