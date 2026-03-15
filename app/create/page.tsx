@@ -247,42 +247,24 @@ interface ColorRowProps {
 }
 
 const ColorRow = memo(function ColorRow({ label, value, onChange, tooltip, disabled = false }: ColorRowProps) {
-  const [draftValue, setDraftValue] = useState(value ?? '#000000');
-  const frameRef = useRef<number | null>(null);
-  const pendingValueRef = useRef(value ?? '#000000');
+  const [localValue, setLocalValue] = useState(value ?? '#000000');
 
-  useEffect(() => {
-    startTransition(() => {
-      setDraftValue(value ?? '#000000');
+  useEffect(() => { setLocalValue(value ?? '#000000'); }, [value]);
+
+  // rAF 스로틀: 드래그 중 상위 onChange(setConfig) 전파를 1프레임에 1번만
+  const rafRef     = useRef<number | null>(null);
+  const pendingVal = useRef(value ?? '#000000');
+
+  const scheduleOnChange = useCallback((v: string) => {
+    pendingVal.current = v;
+    if (rafRef.current !== null) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      onChange(pendingVal.current);
     });
-    pendingValueRef.current = value ?? '#000000';
-  }, [value]);
+  }, [onChange]);
 
-  useEffect(() => {
-    return () => {
-      if (frameRef.current !== null) {
-        cancelAnimationFrame(frameRef.current);
-      }
-    };
-  }, []);
-
-  const scheduleColorCommit = (nextValue: string) => {
-    pendingValueRef.current = nextValue;
-    if (frameRef.current !== null) return;
-
-    frameRef.current = requestAnimationFrame(() => {
-      frameRef.current = null;
-      onChange(pendingValueRef.current);
-    });
-  };
-
-  const commitColorNow = () => {
-    if (frameRef.current !== null) {
-      cancelAnimationFrame(frameRef.current);
-      frameRef.current = null;
-    }
-    onChange(pendingValueRef.current);
-  };
+  useEffect(() => () => { if (rafRef.current !== null) cancelAnimationFrame(rafRef.current); }, []);
 
   return (
     <div
@@ -312,23 +294,22 @@ const ColorRow = memo(function ColorRow({ label, value, onChange, tooltip, disab
         <label className="relative cursor-pointer group/picker">
           <input
             type="color"
-            value={draftValue}
+            value={localValue}
             onChange={(e) => {
-              const nextValue = e.target.value;
-              setDraftValue(nextValue);
-              scheduleColorCommit(nextValue);
+              const v = e.target.value;
+              setLocalValue(v);
+              scheduleOnChange(v);
             }}
-            onBlur={commitColorNow}
             disabled={disabled}
             className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
           />
           <div
             className="w-5 h-5 rounded-full shadow-sm transition-all duration-200 group-hover/picker:scale-110 ring-1 ring-black/5"
-            style={{ backgroundColor: draftValue }}
+            style={{ backgroundColor: localValue }}
           />
         </label>
         <div className="text-[11px] font-mono text-gray-400 w-[56px] text-right uppercase tracking-wide">
-          {draftValue}
+          {localValue}
         </div>
       </div>
     </div>
@@ -1204,7 +1185,7 @@ export default function CreatePage() {
   }, [triggerImmediateAfterReset]);
 
   // 불릿 색상 → bullet.svg 기반 PNG 생성 후 imageUploads에 주입 (시스템 자동 생성 — history 제외)
-  const generateBulletPng = useCallback(async (color: string, key: string) => {
+  const generateBulletPng = useCallback((color: string, key: string) => {
     const W = 340, H = 340;
     const canvas = document.createElement("canvas");
     canvas.width = W; canvas.height = H;
@@ -1214,21 +1195,28 @@ export default function CreatePage() {
     ctx.ellipse(170, 170, 60.01515, 60.01515, 0, 0, Math.PI * 2);
     ctx.fillStyle = color;
     ctx.fill();
-    const blob = await new Promise<Blob>((res, rej) => canvas.toBlob(b => b ? res(b) : rej(), "image/png"));
-    const url = URL.createObjectURL(blob);
+    // toDataURL → Blob → objectURL (동기)
+    const dataUrl = canvas.toDataURL("image/png");
+    const arr = dataUrl.split(",");
+    const mime = arr[0].match(/:(.*?);/)![1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) u8arr[n] = bstr.charCodeAt(n);
+    const url = URL.createObjectURL(new Blob([u8arr], { type: mime }));
     setImageUploads(prev => ({ ...prev, [key]: url }));
   }, []);
 
   // 불릿 색상 변경 시 PNG 자동 생성 (초기 포함)
   useEffect(() => {
     if (bulletEmptyMode === "color") {
-      void generateBulletPng(bulletEmptyColor, "bulletEmptyColorPng");
+      generateBulletPng(bulletEmptyColor, "bulletEmptyColorPng");
     }
   }, [bulletEmptyColor, bulletEmptyMode, generateBulletPng]);
 
   useEffect(() => {
     if (bulletFillMode === "color") {
-      void generateBulletPng(bulletFillColor, "bulletFillColorPng");
+      generateBulletPng(bulletFillColor, "bulletFillColorPng");
     }
   }, [bulletFillColor, bulletFillMode, generateBulletPng]);
 

@@ -23,34 +23,37 @@ function drawIconOnCanvas(
 
   // 2. 말풍선 본체
   ctx.fillStyle = iconColor;
-  const bodyPath = new Path2D(BUBBLE_BODY);
-  ctx.fill(bodyPath);
+  ctx.fill(new Path2D(BUBBLE_BODY));
 
   // 3. 말풍선 꼬리
-  const tailPath = new Path2D(BUBBLE_TAIL);
-  ctx.fill(tailPath);
+  ctx.fill(new Path2D(BUBBLE_TAIL));
 }
 
-export async function drawIcon(bgColor: string, iconColor: string): Promise<Blob> {
+// dataURL → objectURL 변환 (동기)
+function dataURLtoObjectURL(dataUrl: string): string {
+  const arr = dataUrl.split(",");
+  const mime = arr[0].match(/:(.*?);/)![1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) u8arr[n] = bstr.charCodeAt(n);
+  return URL.createObjectURL(new Blob([u8arr], { type: mime }));
+}
+
+/** 아이콘 PNG 동기 생성 → objectURL 반환 */
+export function drawIconSync(bgColor: string, iconColor: string): string {
   const canvas = document.createElement("canvas");
   canvas.width = ICON_W;
   canvas.height = ICON_H;
   const ctx = canvas.getContext("2d")!;
   drawIconOnCanvas(ctx, bgColor, iconColor);
-  return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/png");
-  });
+  return dataURLtoObjectURL(canvas.toDataURL("image/png"));
 }
 
 export interface IconDesignOptions {
   bgColor: string;
   iconColor: string;
 }
-
-export const DEFAULT_ICON: IconDesignOptions = {
-  bgColor: "#FFFFFF",
-  iconColor: "#FEE500",
-};
 
 interface IconDesignerProps {
   options: IconDesignOptions;
@@ -78,26 +81,38 @@ export function IconDesigner({
   const [status, setStatus] = useState<"idle" | "generating" | "done">("idle");
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevUrlRef = useRef<string | null>(null);
 
-  // 미리보기 캔버스 실시간 렌더링
+  // 로컬 색상 (미리보기 원형 즉시 반영용)
+  const [localBgColor, setLocalBgColor]     = useState(options.bgColor);
+  const [localIconColor, setLocalIconColor] = useState(options.iconColor);
+
+  // 외부 변경 동기화
+  useEffect(() => { setLocalBgColor(options.bgColor); },   [options.bgColor]);
+  useEffect(() => { setLocalIconColor(options.iconColor); }, [options.iconColor]);
+
+  // rAF 스로틀용 ref
+  const rafRef       = useRef<number | null>(null);
+  const pendingBg    = useRef(options.bgColor);
+  const pendingIcon  = useRef(options.iconColor);
+
+  // 미리보기 캔버스 — 로컬 색상으로 즉시 렌더
   useEffect(() => {
     if (mode !== "svg") return;
     const canvas = previewCanvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    drawIconOnCanvas(ctx, options.bgColor, options.iconColor);
-  }, [options, mode]);
+    drawIconOnCanvas(ctx, localBgColor, localIconColor);
+  }, [localBgColor, localIconColor, mode]);
 
+  // objectURL 생성 + 상위 전파
   const autoGenerate = useCallback(
-    async (opts: IconDesignOptions) => {
+    (opts: IconDesignOptions) => {
       setStatus("generating");
       try {
         if (prevUrlRef.current) URL.revokeObjectURL(prevUrlRef.current);
-        const blob = await drawIcon(opts.bgColor, opts.iconColor);
-        const url = URL.createObjectURL(blob);
+        const url = drawIconSync(opts.bgColor, opts.iconColor);
         prevUrlRef.current = url;
         onSvgGenerate(url);
         setStatus("done");
@@ -108,36 +123,36 @@ export function IconDesigner({
     [onSvgGenerate]
   );
 
+  // options 확정 시 objectURL 생성
   useEffect(() => {
     if (mode !== "svg") return;
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      void autoGenerate(options);
-    }, 300);
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
+    autoGenerate(options);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options, mode]);
 
-  const handleModeSwitch = (next: "svg" | "image") => {
-    setMode(next);
-    onModeChange(next);
-    // SVG 모드로 전환해도 이미지 업로드 데이터는 건드리지 않음
-  };
+  // rAF 스로틀: 드래그 중 상위 onChange 전파를 1프레임에 1번만
+  const scheduleOnChange = useCallback((bg: string, icon: string) => {
+    pendingBg.current   = bg;
+    pendingIcon.current = icon;
+    if (rafRef.current !== null) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      onChange({ bgColor: pendingBg.current, iconColor: pendingIcon.current });
+    });
+  }, [onChange]);
+
+  useEffect(() => () => { if (rafRef.current !== null) cancelAnimationFrame(rafRef.current); }, []);
+
+  const handleModeSwitch = (next: "svg" | "image") => { setMode(next); onModeChange(next); };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setMode("image");
-    onModeChange("image");
-    onUpload(file);
-    e.target.value = "";
+    setMode("image"); onModeChange("image"); onUpload(file); e.target.value = "";
   };
 
   return (
     <div className="flex flex-col gap-3 py-2">
-
       {/* 모드 탭 */}
       <div className="mx-2.5 flex rounded-lg overflow-hidden border border-gray-200">
         <button type="button" onClick={() => handleModeSwitch("svg")}
@@ -154,12 +169,10 @@ export function IconDesigner({
 
       {mode === "svg" && (
         <>
-          {/* 상태 표시 */}
           <div className="mx-2.5 flex items-center gap-2 py-1.5 px-3 rounded-lg"
             style={{ backgroundColor: status === "done" ? "rgba(34,197,94,0.08)" : "rgba(0,0,0,0.03)" }}>
             <span className="text-[10px]">{status === "done" ? "✅" : "⬜"}</span>
-            <span className="text-[11px] font-medium"
-              style={{ color: status === "done" ? "rgb(22,163,74)" : "#9ca3af" }}>
+            <span className="text-[11px] font-medium" style={{ color: status === "done" ? "rgb(22,163,74)" : "#9ca3af" }}>
               {status === "done" ? "아이콘 적용됨" : "색상을 변경하면 자동 반영됩니다"}
             </span>
           </div>
@@ -169,12 +182,19 @@ export function IconDesigner({
             <span className="text-[12px] font-medium text-gray-500">배경 색상</span>
             <div className="flex items-center gap-2">
               <label className="relative cursor-pointer">
-                <input type="color" value={options.bgColor}
-                  onChange={(e) => onChange({ ...options, bgColor: e.target.value })}
-                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10" />
-                <div className="w-5 h-5 rounded-full ring-1 ring-black/10 shadow-sm" style={{ backgroundColor: options.bgColor }} />
+                <input
+                  type="color"
+                  value={localBgColor}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setLocalBgColor(v);
+                    scheduleOnChange(v, pendingIcon.current);
+                  }}
+                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
+                />
+                <div className="w-5 h-5 rounded-full ring-1 ring-black/10 shadow-sm" style={{ backgroundColor: localBgColor }} />
               </label>
-              <span className="text-[11px] font-mono text-gray-400 w-[56px] uppercase">{options.bgColor}</span>
+              <span className="text-[11px] font-mono text-gray-400 w-[56px] uppercase">{localBgColor}</span>
             </div>
           </div>
 
@@ -183,54 +203,53 @@ export function IconDesigner({
             <span className="text-[12px] font-medium text-gray-500">아이콘 색상</span>
             <div className="flex items-center gap-2">
               <label className="relative cursor-pointer">
-                <input type="color" value={options.iconColor}
-                  onChange={(e) => onChange({ ...options, iconColor: e.target.value })}
-                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10" />
-                <div className="w-5 h-5 rounded-full ring-1 ring-black/10 shadow-sm" style={{ backgroundColor: options.iconColor }} />
+                <input
+                  type="color"
+                  value={localIconColor}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setLocalIconColor(v);
+                    scheduleOnChange(pendingBg.current, v);
+                  }}
+                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
+                />
+                <div className="w-5 h-5 rounded-full ring-1 ring-black/10 shadow-sm" style={{ backgroundColor: localIconColor }} />
               </label>
-              <span className="text-[11px] font-mono text-gray-400 w-[56px] uppercase">{options.iconColor}</span>
+              <span className="text-[11px] font-mono text-gray-400 w-[56px] uppercase">{localIconColor}</span>
             </div>
           </div>
 
           {/* 미리보기 */}
           <div className="px-2.5 pb-1">
             <span className="text-[11px] font-medium text-gray-400 block mb-1.5">미리보기</span>
-            <canvas
-              ref={previewCanvasRef}
-              width={ICON_W}
-              height={ICON_H}
-              style={{ width: 54, height: 54, borderRadius: 12, border: "1px solid #eee", display: "block" }}
-            />
+            <canvas ref={previewCanvasRef} width={ICON_W} height={ICON_H}
+              className="w-16 h-16 rounded-xl border border-gray-100 shadow-sm" />
           </div>
         </>
       )}
 
       {mode === "image" && (
-        <div className="py-1.5 px-2.5 group">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-[12px] font-medium text-gray-500">앱 테마 리스트 이미지</span>
-            <div className="flex items-center gap-3">
-              {uploadedUrl && (
-                <button type="button" onClick={onRemoveUpload}
-                  className="text-[9px] text-red-500 font-medium px-2 py-0.5 bg-red-50 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
-                  삭제
-                </button>
-              )}
-              <label className="flex items-center cursor-pointer">
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden shrink-0 bg-gray-100 border border-transparent hover:border-orange-200 hover:bg-white hover:shadow-sm transition-all duration-200">
-                  {uploadedUrl
-                    // eslint-disable-next-line @next/next/no-img-element
-                    ? <img src={uploadedUrl} alt="아이콘" className="w-full h-full object-cover" />
-                    : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgb(200,200,200)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-                      </svg>
-                  }
-                </div>
+        <div className="px-2.5 py-1">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[12px] font-medium text-gray-500">아이콘 이미지</span>
+            {uploadedUrl ? (
+              <button type="button" onClick={onRemoveUpload}
+                className="text-[10px] text-red-500 px-2 py-0.5 bg-red-50 rounded-md">삭제</button>
+            ) : (
+              <label className="cursor-pointer flex items-center gap-1 text-[10px] text-orange-500 px-2 py-0.5 bg-orange-50 rounded-md">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                업로드
                 <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
               </label>
-            </div>
+            )}
           </div>
+          {uploadedUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={uploadedUrl} alt="아이콘" className="w-16 h-16 object-contain rounded-xl border border-gray-100 shadow-sm" />
+          )}
         </div>
       )}
     </div>
