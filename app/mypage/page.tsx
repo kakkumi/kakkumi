@@ -76,7 +76,7 @@ export default async function MyPage() {
         },
         {
             category: "계정",
-            items: [{ label: "회원 탈퇴" }],
+            items: [{ label: "결제 정보" }, { label: "결제 내역" }, { label: "회원 탈퇴" }],
         },
     ];
 

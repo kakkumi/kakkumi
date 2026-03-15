@@ -70,6 +70,18 @@ enum ApplicationStatus {
   REJECTED
 }
 
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+}
+
+enum SubscriptionPaymentStatus {
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
 enum PointType {
   REFERRAL_REWARD
   PURCHASE_USE
@@ -146,6 +158,8 @@ model User {
   galleryComments     GalleryComment[]
   galleryReactions    GalleryReaction[]
   galleryCommentReports GalleryCommentReport[]
+  subscription        Subscription?
+  subscriptionPayments SubscriptionPayment[]
 }
 
 model Follow {
@@ -452,5 +466,40 @@ model GalleryCommentReport {
   reporter User           @relation(fields: [reporterId], references: [id], onDelete: Cascade)
 
   @@unique([commentId, reporterId])
+}
+
+model Subscription {
+  id                String             @id @default(uuid())
+  userId            String             @unique
+  status            SubscriptionStatus @default(ACTIVE)
+  amount            Int                @default(4900)
+  billingKey        String?            // 토스페이먼츠 빌링키
+  customerKey       String?            // 토스페이먼츠 customerKey
+  cardCompany       String?            // 카드사
+  cardNumber        String?            // 마스킹된 카드 번호
+  startedAt         DateTime           @default(now())
+  nextBillingAt     DateTime?          // 다음 결제일
+  cancelledAt       DateTime?          // 해지일
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  user     User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments SubscriptionPayment[]
+}
+
+model SubscriptionPayment {
+  id             String                    @id @default(uuid())
+  subscriptionId String
+  userId         String
+  amount         Int
+  status         SubscriptionPaymentStatus @default(COMPLETED)
+  pgTransactionId String?                  @unique
+  periodStart    DateTime
+  periodEnd      DateTime
+  paidAt         DateTime                  @default(now())
+  createdAt      DateTime                  @default(now())
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 

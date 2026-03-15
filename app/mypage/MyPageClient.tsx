@@ -13,6 +13,8 @@ import SettlementPage from "./SettlementPage";
 import BankAccountPage from "./BankAccountPage";
 import MyReviewsPage from "./MyReviewsPage";
 import ReviewablePage from "./ReviewablePage";
+import SubscriptionInfoPage from "./SubscriptionInfoPage";
+import SubscriptionPaymentsPage from "./SubscriptionPaymentsPage";
 import { formatKST } from "@/lib/date";
 import { validateNickname } from "@/lib/nickname";
 import { WITHDRAW_CONFIRM_TEXT, AVATAR_MAX_SIZE_MB } from "@/lib/constants";
@@ -271,6 +273,8 @@ export default function MyPageClient({ session, purchasedCount: _purchasedCount,
     const isFollowMenu = activeMenu === "팔로우";
     const isReviewMenu = activeMenu === "리뷰";
     const isReviewableMenu = activeMenu === "작성 가능한 후기";
+    const isSubInfoMenu = activeMenu === "결제 정보";
+    const isSubPaymentsMenu = activeMenu === "결제 내역";
 
     type FollowingUser = { id: string; nickname: string | null; name: string; avatarUrl: string | null; themeCount: number };
     const [followingList, setFollowingList] = useState<FollowingUser[]>([]);
@@ -373,6 +377,10 @@ export default function MyPageClient({ session, purchasedCount: _purchasedCount,
                             <MyReviewsPage />
                         ) : isReviewableMenu ? (
                             <ReviewablePage />
+                        ) : isSubInfoMenu ? (
+                            <SubscriptionInfoPage />
+                        ) : isSubPaymentsMenu ? (
+                            <SubscriptionPaymentsPage />
                         ) : isFollowMenu ? (
                             <>
                                 {/* 섹션 헤더 */}

@@ -740,6 +740,84 @@ export default function CreatePage() {
   const [defaultProfileOn, setDefaultProfileOn] = useState(false);
   const [isDarkChatBg, setIsDarkChatBg] = useState(false);
 
+  // ── 구독 상태 ──
+  const [isPro, setIsPro] = useState(false);
+  const [proToast, setProToast] = useState("");
+
+  const showProToast = (msg: string) => {
+    setProToast(msg);
+    setTimeout(() => setProToast(""), 3500);
+  };
+
+  useEffect(() => {
+    fetch("/api/subscription")
+      .then(r => r.json())
+      .then((d: { subscription?: { status?: string } | null; role?: string | null }) => {
+        const sub = d?.subscription;
+        const role = d?.role;
+        setIsPro(sub?.status === "ACTIVE" || role === "CREATOR" || role === "ADMIN");
+      })
+      .catch(() => {});
+  }, []);
+
+  // ── Undo / Redo 히스토리 (Pro 전용) ──
+  const MAX_HISTORY = 50;
+  const historyRef = useRef<ThemeConfig[]>([]);
+  const historyIndexRef = useRef(-1);
+  const isUndoRedoRef = useRef(false);
+
+  const pushHistory = useCallback((cfg: ThemeConfig) => {
+    if (isUndoRedoRef.current) return;
+    const history = historyRef.current;
+    const idx = historyIndexRef.current;
+    // 현재 위치 이후 기록 제거
+    historyRef.current = history.slice(0, idx + 1);
+    historyRef.current.push(cfg);
+    if (historyRef.current.length > MAX_HISTORY) historyRef.current.shift();
+    historyIndexRef.current = historyRef.current.length - 1;
+  }, []);
+
+  const handleUndo = useCallback(() => {
+    if (!isPro) { showProToast("실행취소는 Pro 플랜에서 사용할 수 있어요."); return; }
+    const idx = historyIndexRef.current;
+    if (idx <= 0) return;
+    historyIndexRef.current = idx - 1;
+    isUndoRedoRef.current = true;
+    setConfig(historyRef.current[historyIndexRef.current]);
+    isUndoRedoRef.current = false;
+  }, [isPro]);
+
+  const handleRedo = useCallback(() => {
+    if (!isPro) { showProToast("다시실행은 Pro 플랜에서 사용할 수 있어요."); return; }
+    const idx = historyIndexRef.current;
+    if (idx >= historyRef.current.length - 1) return;
+    historyIndexRef.current = idx + 1;
+    isUndoRedoRef.current = true;
+    setConfig(historyRef.current[historyIndexRef.current]);
+    isUndoRedoRef.current = false;
+  }, [isPro]);
+
+  // Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z 단축키
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().includes("MAC");
+      const ctrlOrCmd = isMac ? e.metaKey : e.ctrlKey;
+      if (!ctrlOrCmd) return;
+      if (e.key === "z" && !e.shiftKey) { e.preventDefault(); handleUndo(); }
+      if ((e.key === "y") || (e.key === "z" && e.shiftKey)) { e.preventDefault(); handleRedo(); }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleUndo, handleRedo]);
+
+  // config 변경 시 history push
+  useEffect(() => {
+    pushHistory(config);
+  }, [config, pushHistory]);
+
+  // ── 복제 상태 ──
+  const [duplicating, setDuplicating] = useState(false);
+
   // hex 색상 밝기 계산 (0~255)
   const getHexLuminance = (hex: string): number => {
     const h = hex.replace('#', '');
@@ -1567,6 +1645,72 @@ export default function CreatePage() {
             </svg>
             초기화
           </button>
+
+          {/* Undo / Redo (Pro 전용) */}
+          <div className="flex items-center rounded-lg overflow-hidden" style={{ border: "1px solid rgba(0,0,0,0.1)" }}>
+            <button
+              onClick={handleUndo}
+              title={isPro ? "실행취소 (Ctrl+Z)" : "Pro 전용 기능"}
+              className="flex items-center justify-center w-8 h-7 transition-all hover:opacity-70"
+              style={{ background: "rgba(255,255,255,0.9)", color: isPro ? "#3a3a3c" : "#c7c7cc", borderRight: "1px solid rgba(0,0,0,0.07)" }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/>
+              </svg>
+            </button>
+            <button
+              onClick={handleRedo}
+              title={isPro ? "다시실행 (Ctrl+Y)" : "Pro 전용 기능"}
+              className="flex items-center justify-center w-8 h-7 transition-all hover:opacity-70"
+              style={{ background: "rgba(255,255,255,0.9)", color: isPro ? "#3a3a3c" : "#c7c7cc" }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 7v6h-6"/><path d="M3 17a9 9 0 019-9 9 9 0 016 2.3L21 13"/>
+              </svg>
+            </button>
+          </div>
+
+          {/* 복제 버튼 (Pro 전용, 기존 테마 편집 시에만 표시) */}
+          {themeIdParam && (
+            <button
+              onClick={async () => {
+                if (!isPro) { showProToast("테마 복제는 Pro 플랜에서 사용할 수 있어요."); return; }
+                setDuplicating(true);
+                try {
+                  const res = await fetch(`/api/my-themes/${themeIdParam}/duplicate`, { method: "POST" });
+                  const data = await res.json() as { theme?: { id: string }; error?: string; limitReached?: boolean };
+                  if (!res.ok) {
+                    showProToast(data.error ?? "복제 실패");
+                  } else {
+                    showProToast("테마가 복제됐어요! 내 테마에서 확인하세요.");
+                  }
+                } finally {
+                  setDuplicating(false);
+                }
+              }}
+              disabled={duplicating}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all hover:opacity-80 disabled:opacity-40"
+              style={{ background: isPro ? "rgba(74,123,247,0.08)" : "rgba(0,0,0,0.04)", color: isPro ? "rgb(74,123,247)" : "#c7c7cc", border: `1px solid ${isPro ? "rgba(74,123,247,0.2)" : "rgba(0,0,0,0.07)"}` }}
+              title={isPro ? "이 테마를 복제해 새 테마 만들기" : "Pro 전용 기능"}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+              </svg>
+              {duplicating ? "복제 중..." : "복제"}
+            </button>
+          )}
+
+          {/* Pro 전용 기능 토스트 */}
+          {proToast && (
+            <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-xl text-[13px] font-medium shadow-lg flex items-center gap-2"
+              style={{ background: "#18181b", color: "#fff", whiteSpace: "nowrap" }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF9500" strokeWidth="2" strokeLinecap="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+              {proToast}
+              <a href="/pricing" className="underline ml-1" style={{ color: "#FF9500" }}>Pro 보기</a>
+            </div>
+          )}
 
           {/* 자동저장 상태 표시 */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium"

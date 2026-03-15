@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import { getUserPlan, canSaveMoreThemes } from "@/lib/subscription";
 
 const CHARS = "abcdefghijklmnopqrstuvwxyz0123456789";
 
@@ -78,6 +79,17 @@ export async function POST(req: NextRequest) {
 
     if (!name?.trim()) return NextResponse.json({ error: "테마 이름을 입력해주세요." }, { status: 400 });
 
+    // 구독 플랜 확인 및 슬롯 제한
+    const plan = await getUserPlan(session.dbId, session.role ?? "USER");
+    const currentCount = await prisma.myTheme.count({
+        where: { userId: session.dbId, trashed: false },
+    });
+    if (!canSaveMoreThemes(currentCount, plan)) {
+        return NextResponse.json({
+            error: "무료 플랜은 최대 5개까지 저장할 수 있어요. Pro로 업그레이드하면 무제한 저장이 가능해요.",
+            limitReached: true,
+        }, { status: 403 });
+    }
     const packageId = await generateUniquePackageId();
     const mergedConfig = configJson ? { ...configJson, packageId } : { packageId };
 

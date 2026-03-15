@@ -13,6 +13,7 @@ const BASE_NAV_ITEMS = [
     { href: "/gallery", label: "꾸미 갤러리" },
     { href: "/create", label: "새 테마 만들기" },
     { href: "/my-themes", label: "내 테마" },
+    { href: "/pricing", label: "요금제" },
     { href: "/support", label: "고객센터" },
 ];
 
@@ -30,6 +31,7 @@ function getNavItems(role: string | null) {
             CREATOR_APPLY,
             THEME_REGISTER,
             BASE_NAV_ITEMS[4],
+            BASE_NAV_ITEMS[5],
             ADMIN_PAGE,
         ];
     }
@@ -41,6 +43,7 @@ function getNavItems(role: string | null) {
             BASE_NAV_ITEMS[3],
             THEME_REGISTER,
             BASE_NAV_ITEMS[4],
+            BASE_NAV_ITEMS[5],
         ];
     }
     // USER 또는 비로그인
@@ -49,9 +52,9 @@ function getNavItems(role: string | null) {
         BASE_NAV_ITEMS[1],
         BASE_NAV_ITEMS[2],
         BASE_NAV_ITEMS[3],
-        THEME_REGISTER,
         CREATOR_APPLY,
         BASE_NAV_ITEMS[4],
+        BASE_NAV_ITEMS[5],
     ];
 }
 
