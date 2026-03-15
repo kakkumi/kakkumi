@@ -169,9 +169,9 @@ export default function GalleryPage() {
                         <button key={s} onClick={() => setSort(s)}
                             className="px-4 py-1.5 rounded-full text-[13px] font-medium transition-all duration-150"
                             style={{
-                                backgroundColor: sort === s ? "#1c1917" : "transparent",
-                                color: sort === s ? "#fafaf9" : "#78716c",
-                                border: `1px solid ${sort === s ? "#1c1917" : "#e7e5e4"}`,
+                                backgroundColor: sort === s ? "rgb(74,123,247)" : "transparent",
+                                color: sort === s ? "#fff" : "#78716c",
+                                border: `1px solid ${sort === s ? "rgb(74,123,247)" : "#e7e5e4"}`,
                             }}>
                             {s === "latest" ? "최신순" : "좋아요순"}
                         </button>

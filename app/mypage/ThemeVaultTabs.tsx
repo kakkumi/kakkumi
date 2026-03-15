@@ -482,9 +482,9 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
                             onClick={() => setActiveTab(tab.key)}
                             className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium transition-all duration-150"
                             style={{
-                                backgroundColor: active ? "#1c1917" : "transparent",
-                                color: active ? "#fafaf9" : "#78716c",
-                                border: `1px solid ${active ? "#1c1917" : "#e7e5e4"}`,
+                                backgroundColor: active ? "rgb(74,123,247)" : "transparent",
+                                color: active ? "#fff" : "#78716c",
+                                border: `1px solid ${active ? "rgb(74,123,247)" : "#e7e5e4"}`,
                             }}
                         >
                             {tab.label}

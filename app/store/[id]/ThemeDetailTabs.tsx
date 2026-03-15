@@ -111,8 +111,8 @@ export default function ThemeDetailTabs({ themeId, themeName, thumbnailUrl, isOw
                         onClick={() => setActiveTab(tab.key)}
                         className={`pb-3 border-b-2 font-${activeTab === tab.key ? "bold" : "medium"} text-[15px] transition-colors`}
                         style={{
-                            borderColor: activeTab === tab.key ? "#1c1c1e" : "transparent",
-                            color: activeTab === tab.key ? "#1c1c1e" : "#9ca3af",
+                            borderColor: activeTab === tab.key ? "rgb(74,123,247)" : "transparent",
+                            color: activeTab === tab.key ? "rgb(74,123,247)" : "#9ca3af",
                         }}
                     >
                         {tab.key === "reviews" ? `리뷰 (${reviewCount})` : tab.label}

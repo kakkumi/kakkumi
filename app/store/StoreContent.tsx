@@ -363,7 +363,7 @@ export default function StoreContent() {
                             onClick={() => setActiveSort(opt.key as SortKey)}
                             className="px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-all"
                             style={{
-                                background: activeSort === opt.key ? "#1c1c1e" : "transparent",
+                                background: activeSort === opt.key ? "rgb(74,123,247)" : "transparent",
                                 color: activeSort === opt.key ? "#fff" : "#8e8e93",
                                 border: activeSort === opt.key ? "none" : "1px solid rgba(0,0,0,0.1)",
                             }}

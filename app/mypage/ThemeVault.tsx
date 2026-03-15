@@ -26,7 +26,7 @@ export default function ThemeVault() {
                     className="px-4 py-2 rounded-xl text-[13px] font-bold transition-all"
                     style={{
                         background: activeTab === "mine" ? "rgba(255,255,255,0.85)" : "transparent",
-                        color: activeTab === "mine" ? "#1c1c1e" : "rgba(0,0,0,0.4)",
+                        color: activeTab === "mine" ? "rgb(74,123,247)" : "rgba(0,0,0,0.4)",
                         boxShadow: activeTab === "mine" ? "0 2px 8px rgba(0,0,0,0.08)" : "none",
                     }}
                 >
@@ -37,7 +37,7 @@ export default function ThemeVault() {
                     className="px-4 py-2 rounded-xl text-[13px] font-bold transition-all"
                     style={{
                         background: activeTab === "purchased" ? "rgba(255,255,255,0.85)" : "transparent",
-                        color: activeTab === "purchased" ? "#1c1c1e" : "rgba(0,0,0,0.4)",
+                        color: activeTab === "purchased" ? "rgb(74,123,247)" : "rgba(0,0,0,0.4)",
                         boxShadow: activeTab === "purchased" ? "0 2px 8px rgba(0,0,0,0.08)" : "none",
                     }}
                 >
