@@ -27,6 +27,7 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
         creatorName: string;
         salesCount: number;
         contentBlocks: unknown;
+        isSelling: boolean;
     };
 
     let dbTheme: DbThemeRow | null = null;
@@ -39,6 +40,7 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
                 t.id, t.title, t.description, t.price,
                 t."thumbnailUrl", t.images, t.tags, t."createdAt",
                 t."creatorId", t."contentBlocks",
+                COALESCE(t."isSelling", true) AS "isSelling",
                 u.nickname AS "creatorNickname", u.name AS "creatorName",
                 COUNT(DISTINCT p.id)::int AS "salesCount"
             FROM "Theme" t
@@ -198,6 +200,7 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
                     isOwned={ownedVersionIds.length > 0}
                     ownedVersionIds={ownedVersionIds}
                     versions={versions as { id: string; version: string; kthemeFileUrl: string | null; apkFileUrl: string | null }[]}
+                    isSelling={dbTheme.isSelling ?? true}
                 />
 
                 {/* 내 테마 기반 목업 미리보기 (configJson 있는 옵션이 있을 때만 표시) */}

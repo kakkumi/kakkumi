@@ -8,9 +8,6 @@ export async function PATCH(req: NextRequest) {
     if (!session?.dbId) {
         return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
     }
-    if (session.role !== "CREATOR" && session.role !== "ADMIN") {
-        return NextResponse.json({ error: "크리에이터 권한이 필요합니다." }, { status: 403 });
-    }
 
     try {
         const { themeId, action } = (await req.json()) as {

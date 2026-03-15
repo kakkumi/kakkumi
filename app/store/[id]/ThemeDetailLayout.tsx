@@ -55,12 +55,14 @@ type Props = {
     isOwned?: boolean;
     ownedVersionIds?: string[];
     versions?: ThemeVersion[];
+    isSelling?: boolean;
 };
 
 export default function ThemeDetailLayout({
     images, previews, name, tag, themeId,
     price, priceNum, author, creatorId, description, category,
     stats, dbId, isLoggedIn, userId, isOwned, ownedVersionIds = [], versions = [],
+    isSelling = true,
 }: Props) {
     const router = useRouter();
     const colors = themeId ? THEME_COLORS[themeId] : undefined;
@@ -227,6 +229,7 @@ export default function ThemeDetailLayout({
                         ownedVersionIds={ownedVersionIds}
                         versions={versions}
                         onInquiryAction={() => setShowInquiryModal(true)}
+                        isSelling={isSelling}
                     />
 
                     {/* 포인트 혜택 */}

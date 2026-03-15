@@ -118,6 +118,17 @@ export async function notifyThemeApproved(creatorId: string, themeName: string, 
     });
 }
 
+/** 테마 수정 승인 알림 */
+export async function notifyThemeUpdateApproved(creatorId: string, themeName: string, themeId: string) {
+    await createNotification({
+        userId: creatorId,
+        type: "THEME_APPROVED",
+        title: "테마 수정 승인 완료",
+        body: `"${themeName}" 테마 수정이 승인되어 스토어에 반영되었습니다.`,
+        linkUrl: `/store/${themeId}`,
+    });
+}
+
 /** 테마 반려 알림 */
 export async function notifyThemeRejected(creatorId: string, themeName: string, reason?: string) {
     await createNotification({

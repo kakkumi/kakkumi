@@ -21,6 +21,7 @@ export async function GET() {
                 likeCount: number;
                 reviewCount: number;
                 avgRating: number;
+                isSelling: boolean;
             }[]>`
                 SELECT
                     t.id,
@@ -32,6 +33,7 @@ export async function GET() {
                     t.tags,
                     t."createdAt",
                     t."creatorId",
+                    COALESCE(t."isSelling", true) AS "isSelling",
                     u.nickname AS "creatorNickname",
                     u.name     AS "creatorName",
                     COUNT(DISTINCT p.id)::int AS "salesCount",
@@ -45,7 +47,6 @@ export async function GET() {
                 LEFT JOIN "Review" r ON r."themeId" = t.id
                 WHERE t.status = 'PUBLISHED'
                   AND (t."isPublic" IS NULL OR t."isPublic" = true)
-                  AND (t."isSelling" IS NULL OR t."isSelling" = true)
                 GROUP BY t.id, t."creatorId", u.nickname, u.name
                 ORDER BY t."createdAt" DESC
             `;
@@ -66,6 +67,7 @@ export async function GET() {
                 likeCount: number;
                 reviewCount: number;
                 avgRating: number;
+                isSelling: boolean;
             }[]>`
                 SELECT
                     t.id,
@@ -77,6 +79,7 @@ export async function GET() {
                     t.tags,
                     t."createdAt",
                     t."creatorId",
+                    true AS "isSelling",
                     u.nickname AS "creatorNickname",
                     u.name     AS "creatorName",
                     COUNT(DISTINCT p.id)::int AS "salesCount",

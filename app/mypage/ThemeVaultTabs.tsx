@@ -233,13 +233,16 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
                                         </Link>
                                     </div>
                                     {theme.status === "PUBLISHED" && (
-                                        <div className="flex gap-3 mt-2.5 flex-wrap">
+                                        <div className="flex gap-3 mt-2.5 flex-wrap items-center">
                                             {theme.isPublic ? (
-                                                <button disabled={isDisabled} onClick={() => handleThemeAction(theme.id, "setPrivate")}
-                                                    className="text-[11px] font-medium transition-opacity hover:opacity-50 disabled:opacity-30"
-                                                    style={{ color: "#a8a29e" }}>
-                                                    비공개로 전환
-                                                </button>
+                                                <div className="flex items-center gap-1 group relative">
+                                                    <button disabled={isDisabled} onClick={() => handleThemeAction(theme.id, "setPrivate")}
+                                                        className="text-[11px] font-medium transition-opacity hover:opacity-50 disabled:opacity-30"
+                                                        style={{ color: "#a8a29e" }}>
+                                                        비공개로 전환
+                                                    </button>
+                                                    <span className="text-[10px] cursor-help" style={{ color: "#d6d3d1" }} title="스토어 목록에서 숨겨집니다. 링크 직접 접근도 차단돼요.">?</span>
+                                                </div>
                                             ) : (
                                                 <button disabled={isDisabled} onClick={() => handleThemeAction(theme.id, "setPublic")}
                                                     className="text-[11px] font-medium transition-opacity hover:opacity-50 disabled:opacity-30"
@@ -249,11 +252,14 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
                                             )}
                                             <span style={{ color: "#e7e5e4", fontSize: 11 }}>·</span>
                                             {theme.isSelling ? (
-                                                <button disabled={isDisabled} onClick={() => handleThemeAction(theme.id, "discontinue")}
-                                                    className="text-[11px] font-medium transition-opacity hover:opacity-50 disabled:opacity-30"
-                                                    style={{ color: "#ff3b30" }}>
-                                                    판매 중단
-                                                </button>
+                                                <div className="flex items-center gap-1">
+                                                    <button disabled={isDisabled} onClick={() => handleThemeAction(theme.id, "discontinue")}
+                                                        className="text-[11px] font-medium transition-opacity hover:opacity-50 disabled:opacity-30"
+                                                        style={{ color: "#ff3b30" }}>
+                                                        판매 중단
+                                                    </button>
+                                                    <span className="text-[10px] cursor-help" style={{ color: "#d6d3d1" }} title="스토어에는 보이지만 구매 버튼이 비활성화돼요.">?</span>
+                                                </div>
                                             ) : (
                                                 <button disabled={isDisabled} onClick={() => handleThemeAction(theme.id, "resume")}
                                                     className="text-[11px] font-medium transition-opacity hover:opacity-50 disabled:opacity-30"
@@ -261,7 +267,19 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
                                                     판매 재개
                                                 </button>
                                             )}
+                                            <span style={{ color: "#e7e5e4", fontSize: 11 }}>·</span>
+                                            <Link href={`/store/edit/${theme.id}`}>
+                                                <button className="text-[11px] font-medium transition-opacity hover:opacity-50"
+                                                    style={{ color: "#FF9500" }}>
+                                                    수정 신청
+                                                </button>
+                                            </Link>
                                         </div>
+                                    )}
+                                    {theme.status === "DRAFT" && (
+                                        <p className="text-[11px] mt-1.5" style={{ color: "#a8a29e" }}>
+                                            ⏳ 관리자 검토 중이에요. 승인 후 스토어에 반영됩니다.
+                                        </p>
                                     )}
                                 </div>
                             </div>

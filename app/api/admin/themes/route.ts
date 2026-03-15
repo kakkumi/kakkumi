@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import { sendThemeRejectionEmail } from "@/lib/email";
-import { notifyThemeApproved, notifyThemeRejected, notifyNewThemeToFollowers } from "@/lib/notification";
+import { notifyThemeApproved, notifyThemeRejected, notifyNewThemeToFollowers, notifyThemeUpdateApproved } from "@/lib/notification";
 
 // 전체 테마 목록 (DRAFT 포함)
 export async function GET() {
@@ -16,6 +16,10 @@ export async function GET() {
             createdAt: Date; creatorNickname: string | null; creatorName: string;
             thumbnailUrl: string | null; images: string[]; tags: string[];
             contentBlocks: string | null;
+            pendingTitle: string | null; pendingDescription: string | null;
+            pendingPrice: number | null; pendingTags: string[] | null;
+            pendingThumbnailUrl: string | null; pendingImages: string[] | null;
+            pendingContentBlocks: string | null; pendingReviewVisibility: string | null;
             versions: { version: string; kthemeFileUrl: string | null; apkFileUrl: string | null }[];
             options: {
                 id: string; os: string; name: string; status: string; adminNote: string | null;
@@ -26,6 +30,9 @@ export async function GET() {
             SELECT t.id, t.title, t.description, t.price, t.status, t."adminNote", t."createdAt",
                    t."thumbnailUrl", t.images, t.tags,
                    t."contentBlocks",
+                   t."pendingTitle", t."pendingDescription", t."pendingPrice",
+                   t."pendingTags", t."pendingThumbnailUrl", t."pendingImages",
+                   t."pendingContentBlocks", t."pendingReviewVisibility",
                    u.nickname AS "creatorNickname", u.name AS "creatorName",
                    COALESCE(
                        (SELECT json_agg(json_build_object(
@@ -165,8 +172,59 @@ export async function PATCH(req: NextRequest) {
         const theme = themeRows[0];
 
         if (action === "approve") {
-            // 테마 승인 시 PENDING_NEW 옵션도 모두 ACTIVE로
-            await prisma.$executeRaw`UPDATE "Theme" SET status = 'PUBLISHED', "adminNote" = NULL, "updatedAt" = NOW() WHERE id = ${themeId}`;
+            // pending 수정사항이 있으면 실제 컬럼에 반영
+            const pendingRows = await prisma.$queryRaw<{
+                pendingTitle: string | null;
+                pendingDescription: string | null;
+                pendingPrice: number | null;
+                pendingTags: string[] | null;
+                pendingThumbnailUrl: string | null;
+                pendingImages: string[] | null;
+                pendingContentBlocks: unknown;
+                pendingReviewVisibility: string | null;
+                isUpdate: boolean;
+            }[]>`
+                SELECT
+                    "pendingTitle", "pendingDescription", "pendingPrice",
+                    "pendingTags", "pendingThumbnailUrl", "pendingImages",
+                    "pendingContentBlocks", "pendingReviewVisibility",
+                    ("pendingTitle" IS NOT NULL) AS "isUpdate"
+                FROM "Theme" WHERE id = ${themeId} LIMIT 1
+            `.catch(() => []);
+
+            const pending = pendingRows[0];
+            const isUpdate = pending?.isUpdate ?? false;
+
+            if (isUpdate && pending) {
+                // 수정 승인: pending → 실제 반영
+                await prisma.$executeRaw`
+                    UPDATE "Theme" SET
+                        title = COALESCE("pendingTitle", title),
+                        description = COALESCE("pendingDescription", description),
+                        price = COALESCE("pendingPrice", price),
+                        tags = COALESCE("pendingTags", tags),
+                        "thumbnailUrl" = COALESCE("pendingThumbnailUrl", "thumbnailUrl"),
+                        images = COALESCE("pendingImages", images),
+                        "contentBlocks" = COALESCE("pendingContentBlocks", "contentBlocks"),
+                        "pendingTitle" = NULL, "pendingDescription" = NULL,
+                        "pendingPrice" = NULL, "pendingTags" = NULL,
+                        "pendingThumbnailUrl" = NULL, "pendingImages" = NULL,
+                        "pendingContentBlocks" = NULL, "pendingReviewVisibility" = NULL,
+                        status = 'PUBLISHED'::"ThemeStatus",
+                        "isPublic" = true,
+                        "adminNote" = NULL, "updatedAt" = NOW()
+                    WHERE id = ${themeId}
+                `.catch(() =>
+                    prisma.$executeRaw`
+                        UPDATE "Theme" SET status = 'PUBLISHED'::"ThemeStatus", "isPublic" = true, "adminNote" = NULL, "updatedAt" = NOW() WHERE id = ${themeId}
+                    `
+                );
+            } else {
+                // 신규 승인
+                await prisma.$executeRaw`UPDATE "Theme" SET status = 'PUBLISHED', "adminNote" = NULL, "updatedAt" = NOW() WHERE id = ${themeId}`;
+            }
+
+            // PENDING_NEW 옵션 ACTIVE 승격
             await prisma.$executeRaw`
                 UPDATE "ThemeOption"
                 SET
@@ -180,8 +238,21 @@ export async function PATCH(req: NextRequest) {
                     "pendingAdminNote" = NULL, "updatedAt" = NOW()
                 WHERE "themeId" = ${themeId} AND status = 'PENDING_NEW'::"ThemeOptionStatus"
             `;
-            // ThemeVersion의 fileUrl도 ThemeOption.fileUrl 기준으로 동기화
-            // (version 이름이 "iOS · 옵션명" or "Android · 옵션명" 형태로 저장됨)
+            // PENDING_UPDATE 옵션도 ACTIVE 승격
+            await prisma.$executeRaw`
+                UPDATE "ThemeOption"
+                SET
+                    status = 'ACTIVE'::"ThemeOptionStatus",
+                    "fileUrl" = COALESCE("pendingFileUrl", "fileUrl"),
+                    "configJson" = COALESCE("pendingConfigJson", "configJson"),
+                    "imageData" = COALESCE("pendingImageData", "imageData"),
+                    "myThemeId" = COALESCE("pendingMyThemeId", "myThemeId"),
+                    "pendingFileUrl" = NULL, "pendingConfigJson" = NULL,
+                    "pendingImageData" = NULL, "pendingMyThemeId" = NULL,
+                    "pendingAdminNote" = NULL, "updatedAt" = NOW()
+                WHERE "themeId" = ${themeId} AND status = 'PENDING_UPDATE'::"ThemeOptionStatus"
+            `.catch(() => null);
+
             await prisma.$executeRaw`
                 UPDATE "ThemeVersion" tv
                 SET
@@ -193,10 +264,15 @@ export async function PATCH(req: NextRequest) {
                   AND to_."themeId" = ${themeId}
                   AND to_."fileUrl" IS NOT NULL
                   AND tv.version = (CASE WHEN to_.os = 'android' THEN 'Android' ELSE 'iOS' END || ' · ' || to_.name)
-            `;
+            `.catch(() => null);
+
             if (theme) {
-                await notifyThemeApproved(theme.creatorId, theme.title, themeId);
-                await notifyNewThemeToFollowers(theme.creatorId, theme.title, themeId);
+                if (isUpdate) {
+                    await notifyThemeUpdateApproved(theme.creatorId, theme.title, themeId);
+                } else {
+                    await notifyThemeApproved(theme.creatorId, theme.title, themeId);
+                    await notifyNewThemeToFollowers(theme.creatorId, theme.title, themeId);
+                }
             }
         } else if (action === "reject") {
             await prisma.$executeRaw`UPDATE "Theme" SET status = 'DRAFT', "adminNote" = ${adminNote ?? ""}, "updatedAt" = NOW() WHERE id = ${themeId}`;

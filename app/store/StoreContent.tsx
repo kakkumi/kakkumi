@@ -50,6 +50,7 @@ type DbTheme = {
     likeCount: number;
     reviewCount: number;
     avgRating: number;
+    isSelling: boolean;
 };
 
 // 시드 데이터용 숫자 id 테마 타입
@@ -89,6 +90,7 @@ type UnifiedTheme = {
     description: string;
     isLegacy: boolean;
     legacyId?: number;
+    isSelling: boolean;
 };
 
 function dbThemeToUnified(t: DbTheme): UnifiedTheme {
@@ -110,6 +112,7 @@ function dbThemeToUnified(t: DbTheme): UnifiedTheme {
         thumbnailUrl: t.thumbnailUrl,
         description: t.description ?? "",
         isLegacy: false,
+        isSelling: t.isSelling ?? true,
     };
 }
 
@@ -409,7 +412,13 @@ export default function StoreContent() {
                                         )}
                                         {/* 배지들 */}
                                         <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-                                            {theme.tag && (
+                                            {!theme.isSelling && (
+                                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                                                    style={{ background: "rgba(0,0,0,0.55)", color: "#fff" }}>
+                                                    판매중단
+                                                </span>
+                                            )}
+                                            {theme.isSelling && theme.tag && (
                                                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
                                                     style={{ background: theme.tag === "무료" ? "rgba(255,239,154,0.95)" : "rgba(170,189,232,0.95)", color: "#1c1c1e" }}>
                                                     {theme.tag}

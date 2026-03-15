@@ -12,7 +12,16 @@ type AdminTheme = {
     thumbnailUrl: string | null; images: string[]; tags: string[];
     contentBlocks: string | null;
     versions: { version: string; kthemeFileUrl: string | null; apkFileUrl: string | null }[];
-    options: { id: string; os: string; name: string; status: string; fileUrl: string | null; myThemeId: string | null }[];
+    options: { id: string; os: string; name: string; status: string; fileUrl: string | null; myThemeId: string | null; pendingFileUrl: string | null; pendingMyThemeId: string | null }[];
+    // 수정 신청 pending 필드
+    pendingTitle: string | null;
+    pendingDescription: string | null;
+    pendingPrice: number | null;
+    pendingTags: string[] | null;
+    pendingThumbnailUrl: string | null;
+    pendingImages: string[] | null;
+    pendingContentBlocks: string | null;
+    pendingReviewVisibility: string | null;
 };
 type AdminUser = {
     id: string; name: string; nickname: string | null; email: string | null;
@@ -833,6 +842,32 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
 }
 
 // ── 테마 관리 탭 ─────────────────────────────────────────────────────────────
+function DiffRow({ label, before, after }: { label: string; before: string; after: string }) {
+    const changed = before !== after;
+    return (
+        <div className="flex flex-col gap-0.5">
+            <p className="text-[10px] font-medium flex items-center gap-1.5" style={{ color: "#aeaeb2" }}>
+                {label}
+                {changed && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(255,149,0,0.15)", color: "#c97000" }}>변경됨</span>}
+            </p>
+            {changed ? (
+                <div className="flex flex-col gap-1">
+                    <div className="flex items-start gap-1.5">
+                        <span className="text-[9px] font-bold mt-0.5 shrink-0" style={{ color: "#ff3b30" }}>기존</span>
+                        <p className="text-[12px] line-through" style={{ color: "#aeaeb2" }}>{before || "(없음)"}</p>
+                    </div>
+                    <div className="flex items-start gap-1.5">
+                        <span className="text-[9px] font-bold mt-0.5 shrink-0" style={{ color: "#34c759" }}>변경</span>
+                        <p className="text-[12px] font-medium" style={{ color: "#1c1c1e" }}>{after || "(없음)"}</p>
+                    </div>
+                </div>
+            ) : (
+                <p className="text-[12px]" style={{ color: "#1c1c1e" }}>{before || "(없음)"}</p>
+            )}
+        </div>
+    );
+}
+
 function ThemeManageTab({ themes, loading, actionLoading, onApprove, onReject }: {
     themes: AdminTheme[]; loading: boolean; actionLoading: boolean;
     onApprove: (id: string) => void; onReject: (id: string, title: string) => void;
@@ -855,6 +890,7 @@ function ThemeManageTab({ themes, loading, actionLoading, onApprove, onReject }:
                 ? <EmptyState text="승인 대기 중인 테마가 없습니다." />
                 : draftThemes.map((t) => {
                     const isOpen = expandedId === t.id;
+                    const isUpdate = !!t.pendingTitle;
                     return (
                         <div key={t.id}>
                             <button
@@ -866,10 +902,16 @@ function ThemeManageTab({ themes, loading, actionLoading, onApprove, onReject }:
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-0.5">
                                         <span className="text-[13px] font-medium truncate" style={{ color: "#1c1c1e" }}>{t.title}</span>
-                                        <Badge style={{ label: "승인 대기", bg: "rgba(255,149,0,0.10)", color: "#c97000" }} />
+                                        {isUpdate
+                                            ? <Badge style={{ label: "수정 신청", bg: "rgba(74,123,247,0.10)", color: "rgb(74,123,247)" }} />
+                                            : <Badge style={{ label: "신규 등록", bg: "rgba(255,149,0,0.10)", color: "#c97000" }} />
+                                        }
                                     </div>
                                     <p className="text-[11px]" style={{ color: "#aeaeb2" }}>
                                         {t.creatorNickname ?? t.creatorName} · {t.price === 0 ? "무료" : `${t.price.toLocaleString()}원`} · {formatKST(t.createdAt, false)}
+                                        {isUpdate && t.pendingReviewVisibility === "hide" && (
+                                            <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded" style={{ background: "rgba(255,59,48,0.08)", color: "#ff3b30" }}>검토 중 비공개 요청</span>
+                                        )}
                                     </p>
                                     {t.adminNote && <p className="text-[11px] mt-0.5" style={{ color: "#ff3b30" }}>이전 반려: {t.adminNote}</p>}
                                 </div>
@@ -880,6 +922,71 @@ function ThemeManageTab({ themes, loading, actionLoading, onApprove, onReject }:
 
                             {isOpen && (
                                 <div className="flex flex-col gap-5 py-5 pl-2" style={{ borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
+
+                                    {/* 수정 신청 변경 내용 비교 */}
+                                    {isUpdate && (
+                                        <div className="rounded-2xl p-4 flex flex-col gap-4" style={{ background: "rgba(74,123,247,0.03)", border: "1px solid rgba(74,123,247,0.12)" }}>
+                                            <p className="text-[11px] font-bold" style={{ color: "rgb(74,123,247)" }}>📝 수정 신청 — 변경 내용 비교</p>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <DiffRow
+                                                    label="테마 이름"
+                                                    before={t.title}
+                                                    after={t.pendingTitle ?? t.title}
+                                                />
+                                                <DiffRow
+                                                    label="가격"
+                                                    before={t.price === 0 ? "무료" : `${t.price.toLocaleString()}원`}
+                                                    after={t.pendingPrice === null || t.pendingPrice === undefined
+                                                        ? (t.price === 0 ? "무료" : `${t.price.toLocaleString()}원`)
+                                                        : (t.pendingPrice === 0 ? "무료" : `${t.pendingPrice.toLocaleString()}원`)
+                                                    }
+                                                />
+                                            </div>
+                                            <DiffRow
+                                                label="테마 설명"
+                                                before={t.description ?? ""}
+                                                after={t.pendingDescription ?? t.description ?? ""}
+                                            />
+                                            {/* 카테고리 비교 */}
+                                            {t.pendingTags && (
+                                                <div className="flex flex-col gap-1.5">
+                                                    <p className="text-[10px] font-medium flex items-center gap-1.5" style={{ color: "#aeaeb2" }}>
+                                                        카테고리
+                                                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(255,149,0,0.15)", color: "#c97000" }}>변경됨</span>
+                                                    </p>
+                                                    <div className="flex gap-6">
+                                                        <div className="flex flex-col gap-1">
+                                                            <span className="text-[9px] font-bold" style={{ color: "#ff3b30" }}>기존</span>
+                                                            <div className="flex flex-wrap gap-1">{(t.tags ?? []).map(tag => <span key={tag} className="text-[11px] px-2 py-0.5 rounded-full" style={{ background: "rgba(0,0,0,0.05)", color: "#6e6e73" }}>{tag}</span>)}</div>
+                                                        </div>
+                                                        <div className="flex flex-col gap-1">
+                                                            <span className="text-[9px] font-bold" style={{ color: "#34c759" }}>변경</span>
+                                                            <div className="flex flex-wrap gap-1">{t.pendingTags.map(tag => <span key={tag} className="text-[11px] px-2 py-0.5 rounded-full" style={{ background: "rgba(52,199,89,0.1)", color: "#1a7a3a" }}>{tag}</span>)}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {/* 썸네일 비교 */}
+                                            {t.pendingThumbnailUrl && t.pendingThumbnailUrl !== t.thumbnailUrl && (
+                                                <div className="flex flex-col gap-1.5">
+                                                    <p className="text-[10px] font-medium flex items-center gap-1.5" style={{ color: "#aeaeb2" }}>
+                                                        대표 이미지 <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(255,149,0,0.15)", color: "#c97000" }}>변경됨</span>
+                                                    </p>
+                                                    <div className="flex gap-4 items-start">
+                                                        <div className="flex flex-col gap-1 items-center">
+                                                            <span className="text-[9px] font-bold" style={{ color: "#ff3b30" }}>기존</span>
+                                                            {t.thumbnailUrl && <img src={t.thumbnailUrl} alt="기존" className="w-[80px] h-[80px] rounded-xl object-cover" style={{ border: "1px solid rgba(0,0,0,0.07)", opacity: 0.6 }} />}
+                                                        </div>
+                                                        <div className="flex flex-col gap-1 items-center">
+                                                            <span className="text-[9px] font-bold" style={{ color: "#34c759" }}>변경</span>
+                                                            <img src={t.pendingThumbnailUrl} alt="변경" className="w-[80px] h-[80px] rounded-xl object-cover" style={{ border: "2px solid rgba(52,199,89,0.4)" }} />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
                                     {/* 이미지 */}
                                     {(t.thumbnailUrl || t.images?.length > 0) && (
                                         <div className="flex gap-3 flex-wrap">
@@ -958,17 +1065,29 @@ function ThemeManageTab({ themes, loading, actionLoading, onApprove, onReject }:
                                     {t.options?.length > 0 && (
                                         <div className="flex flex-col gap-2">
                                             <p className="text-[10px] font-medium" style={{ color: "#aeaeb2" }}>테마 옵션 ({t.options.length}개)</p>
-                                            {t.options.map((opt, oi) => (
-                                                <div key={opt.id} className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: "rgba(0,0,0,0.02)", border: "1px solid rgba(0,0,0,0.06)" }}>
-                                                    <span className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0" style={{ background: "rgb(255,149,0)", color: "#fff" }}>{oi + 1}</span>
-                                                    <span className="text-[12px] font-medium flex-1" style={{ color: "#1c1c1e" }}>{opt.name || `옵션 ${oi + 1}`}</span>
-                                                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: opt.os === "ios" ? "rgba(255,149,0,0.10)" : "rgba(74,123,247,0.10)", color: opt.os === "ios" ? "#c97000" : "rgb(74,123,247)" }}>{opt.os === "ios" ? "iOS" : "Android"}</span>
-                                                    <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: opt.myThemeId ? "rgba(52,199,89,0.10)" : "rgba(0,0,0,0.05)", color: opt.myThemeId ? "#1a7a3a" : "#8e8e93" }}>{opt.myThemeId ? "내 테마" : "파일"}</span>
-                                                    {opt.fileUrl && (
-                                                        <a href={opt.fileUrl} download target="_blank" rel="noopener noreferrer" className="text-[11px] underline hover:opacity-70" style={{ color: "rgb(74,123,247)" }}>다운로드</a>
-                                                    )}
-                                                </div>
-                                            ))}
+                                            {t.options.map((opt, oi) => {
+                                                const hasPendingChange = !!(opt.pendingFileUrl || opt.pendingMyThemeId);
+                                                return (
+                                                    <div key={opt.id} className="flex items-center gap-2 px-3 py-2 rounded-lg"
+                                                        style={{ background: hasPendingChange ? "rgba(74,123,247,0.04)" : "rgba(0,0,0,0.02)", border: `1px solid ${hasPendingChange ? "rgba(74,123,247,0.15)" : "rgba(0,0,0,0.06)"}` }}>
+                                                        <span className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0" style={{ background: "rgb(255,149,0)", color: "#fff" }}>{oi + 1}</span>
+                                                        <span className="text-[12px] font-medium flex-1" style={{ color: "#1c1c1e" }}>{opt.name || `옵션 ${oi + 1}`}</span>
+                                                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: opt.os === "ios" ? "rgba(255,149,0,0.10)" : "rgba(74,123,247,0.10)", color: opt.os === "ios" ? "#c97000" : "rgb(74,123,247)" }}>{opt.os === "ios" ? "iOS" : "Android"}</span>
+                                                        <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: opt.myThemeId ? "rgba(52,199,89,0.10)" : "rgba(0,0,0,0.05)", color: opt.myThemeId ? "#1a7a3a" : "#8e8e93" }}>{opt.myThemeId ? "내 테마" : "파일"}</span>
+                                                        {opt.fileUrl && !hasPendingChange && (
+                                                            <a href={opt.fileUrl} download target="_blank" rel="noopener noreferrer" className="text-[11px] underline hover:opacity-70" style={{ color: "rgb(74,123,247)" }}>다운로드</a>
+                                                        )}
+                                                        {hasPendingChange && (
+                                                            <>
+                                                                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(74,123,247,0.12)", color: "rgb(74,123,247)" }}>파일 변경됨</span>
+                                                                {opt.pendingFileUrl && (
+                                                                    <a href={opt.pendingFileUrl} download target="_blank" rel="noopener noreferrer" className="text-[11px] underline hover:opacity-70" style={{ color: "#34c759" }}>새 파일</a>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     )}
 
@@ -998,7 +1117,6 @@ function ThemeManageTab({ themes, loading, actionLoading, onApprove, onReject }:
     );
 }
 
-// ...existing code...
 const APP_STATUS_STYLE: Record<string, { label: string; bg: string; color: string }> = {
     PENDING:  { label: "대기중",   bg: "rgba(255,149,0,0.10)",  color: "#c97000" },
     APPROVED: { label: "승인",     bg: "rgba(52,199,89,0.10)",  color: "#1a7a3a" },

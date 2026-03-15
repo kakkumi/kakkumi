@@ -17,13 +17,13 @@ type Props = {
     ownedVersionIds?: string[];
     versions?: Version[];
     onInquiryAction?: () => void;
+    isSelling?: boolean;
 };
 
 export default function ThemeActionButtons(props: Props) {
-    const { priceNum, priceName, isLoggedIn, ownedVersionIds = [], versions = [], onInquiryAction } = props;
+    const { priceNum, priceName, isLoggedIn, ownedVersionIds = [], versions = [], onInquiryAction, isSelling = true } = props;
     const router = useRouter();
     const [liked, setLiked] = useState(false);
-    const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<{ success?: boolean; message?: string } | null>(null);
 
     const [optionModal, setOptionModal] = useState<"download" | "buy" | null>(null);
@@ -423,17 +423,23 @@ export default function ThemeActionButtons(props: Props) {
 
             {/* ── 버튼 행 ── */}
             <div className="flex gap-3">
-                <button
-                    onClick={handleMainAction}
-                    disabled={loading}
-                    className="flex-[3] py-[14px] rounded-[14px] text-[15px] font-bold text-white transition-all active:scale-[0.98] disabled:opacity-60"
-                    style={{
-                        background: "#4A7BF7",
-                        boxShadow: "0 4px 20px rgba(74,123,247,0.3)",
-                    }}
-                >
-                    {loading ? "처리 중..." : isFree ? "무료 다운로드" : `${priceName} 구매하기`}
-                </button>
+                {!isSelling ? (
+                    <div className="flex-[3] py-[14px] rounded-[14px] text-[15px] font-bold text-center"
+                        style={{ background: "rgba(0,0,0,0.06)", color: "#aeaeb2" }}>
+                        판매가 중단된 테마예요
+                    </div>
+                ) : (
+                    <button
+                        onClick={handleMainAction}
+                        className="flex-[3] py-[14px] rounded-[14px] text-[15px] font-bold text-white transition-all active:scale-[0.98]"
+                        style={{
+                            background: "#4A7BF7",
+                            boxShadow: "0 4px 20px rgba(74,123,247,0.3)",
+                        }}
+                    >
+                        {isFree ? "무료 다운로드" : `${priceName} 구매하기`}
+                    </button>
+                )}
                 <button
                     onClick={handleLike}
                     className="w-[52px] flex items-center justify-center rounded-[14px] transition-all active:scale-[0.98] hover:bg-red-50"
