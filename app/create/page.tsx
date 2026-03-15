@@ -22,7 +22,7 @@ import { PasscodeScreen } from "@/stories/preview/PasscodeScreen";
 import { ShoppingScreen } from "@/stories/preview/ShoppingScreen";
 import { TabBar } from "@/stories/preview/TabBar";
 import { frameStyle } from "@/stories/preview/styles";
-import { ScreenType, useThemeStore as usePreviewThemeStore } from "@/stories/useThemeStore";
+import { useThemeStore as usePreviewThemeStore } from "@/stories/useThemeStore";
 
 type OS = "ios" | "android";
 
@@ -1201,19 +1201,6 @@ export default function CreatePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config.darkMode]);
 
-  useEffect(() => {
-    const screenMap: Record<PreviewTab, ScreenType> = {
-      friends: "FRIENDS",
-      chat: "CHATS",
-      openchat: "OPENCHATS",
-      shopping: "SHOPPING",
-      more: "MORE",
-      passcode: "PASSCODE",
-      notification: "CHATROOM",
-    };
-
-    setCurrentScreen(screenMap[previewTab]);
-  }, [previewTab, setCurrentScreen]);
 
   useEffect(() => {
     if (!activeElementId) return;
@@ -1826,8 +1813,6 @@ export default function CreatePage() {
                     type="button"
                     onClick={() => {
                       setActiveEditorCategory(category.key);
-                      if (category.key === "chat-inputbar") setPreviewTab("chat");
-                      if (category.key === "notification") setPreviewTab("notification");
                     }}
                     className="w-full text-left px-3 py-2 rounded-lg text-[12.5px] transition-all duration-150 flex items-center gap-2"
                     style={{
@@ -2011,13 +1996,13 @@ export default function CreatePage() {
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="목록 텍스트" badge="MainViewStyle">
-                  <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={(v) => { set("primaryText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-text-color" />
+                  <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={(v) => { set("primaryText")(v); }} tooltip="-ios-text-color" />
                   <div className="px-2.5 pb-1 flex items-center gap-1.5">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
                     <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>채팅탭, 더보기탭과 공유되는 값입니다</span>
                   </div>
-                  <ColorRow label="친구칩 (상태메시지)" value={config.friendsListDescText} onChange={(v) => { set("friendsListDescText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-description-text-color" />
-                  <ColorRow label="친구칩 리스트 Pressed" value={config.friendsSelectedBg} onChange={(v) => { set("friendsSelectedBg")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-selected-background-color" />
+                  <ColorRow label="친구칩 (상태메시지)" value={config.friendsListDescText} onChange={(v) => { set("friendsListDescText")(v); }} tooltip="-ios-description-text-color" />
+                  <ColorRow label="친구칩 리스트 Pressed" value={config.friendsSelectedBg} onChange={(v) => { set("friendsSelectedBg")(v); }} tooltip="-ios-selected-background-color" />
                   <MacInput label="선택 배경 투명도" hint="(-ios-selected-background-alpha)" value={config.selectedBgAlpha} onChange={set("selectedBgAlpha")} type="slider" />
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
@@ -2085,15 +2070,15 @@ export default function CreatePage() {
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="목록 텍스트" badge="MainViewStyle-Primary">
-                  <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={(v) => { set("primaryText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-text-color" />
+                  <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={(v) => { set("primaryText")(v); }} tooltip="-ios-text-color" />
                   <div className="px-2.5 pb-1 flex items-center gap-1.5">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
                     <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>친구탭, 더보기탭과 공유되는 값입니다</span>
                   </div>
-                  <ColorRow label="이름 프레스" value={config.chatListHighlightText} onChange={(v) => { set("chatListHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-highlighted-text-color" />
-                  <ColorRow label="마지막 메시지" value={config.chatListLastMsgText} onChange={(v) => { set("chatListLastMsgText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-text-color" />
-                  <ColorRow label="마지막 메시지 프레스" value={config.chatListLastMsgHighlightText} onChange={(v) => { set("chatListLastMsgHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-highlighted-text-color" />
-                  <ColorRow label="선택 배경" value={config.friendsSelectedBg} onChange={(v) => { set("friendsSelectedBg")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-selected-background-color" />
+                  <ColorRow label="이름 프레스" value={config.chatListHighlightText} onChange={(v) => { set("chatListHighlightText")(v); }} tooltip="-ios-highlighted-text-color" />
+                  <ColorRow label="마지막 메시지" value={config.chatListLastMsgText} onChange={(v) => { set("chatListLastMsgText")(v); }} tooltip="-ios-paragraph-text-color" />
+                  <ColorRow label="마지막 메시지 프레스" value={config.chatListLastMsgHighlightText} onChange={(v) => { set("chatListLastMsgHighlightText")(v); }} tooltip="-ios-paragraph-highlighted-text-color" />
+                  <ColorRow label="선택 배경" value={config.friendsSelectedBg} onChange={(v) => { set("friendsSelectedBg")(v); }} tooltip="-ios-selected-background-color" />
                   <div className="px-2.5 pb-1 flex items-center gap-1.5">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
                     <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>친구탭과 공유되는 값입니다</span>
@@ -2270,7 +2255,7 @@ export default function CreatePage() {
             {activeEditorCategory === "more-tab" && (
               <>
                 <Accordion title="목록 텍스트" badge="MainViewStyle-Primary">
-                  <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={(v) => { set("primaryText")(v); if (previewTab !== "more") setPreviewTab("more"); }} tooltip="-ios-text-color" />
+                  <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={(v) => { set("primaryText")(v); }} tooltip="-ios-text-color" />
                   <div className="px-2.5 pb-1 flex items-center gap-1.5">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
                     <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>친구탭, 채팅탭과 공유되는 값입니다</span>
@@ -2278,7 +2263,7 @@ export default function CreatePage() {
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="헤더" badge="HeaderStyle-Main">
-                  <ColorRow label="탭 텍스트" value={config.headerTabText} onChange={(v) => { set("headerTabText")(v); if (previewTab !== "more") setPreviewTab("more"); }} tooltip="-ios-tab-text-color" />
+                  <ColorRow label="탭 텍스트" value={config.headerTabText} onChange={(v) => { set("headerTabText")(v); }} tooltip="-ios-tab-text-color" />
                 </Accordion>
               </>
             )}
