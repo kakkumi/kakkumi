@@ -44,6 +44,8 @@ export default function MyThemesPage() {
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
   const [moveModal, setMoveModal] = useState<{ themeId: string } | null>(null);
   const [emptyTrashConfirm, setEmptyTrashConfirm] = useState(false);
+  const [isPro, setIsPro] = useState(false);
+  const [proToast, setProToast] = useState(false);
   // 폴더 드래그 순서
   const [draggingFolderId, setDraggingFolderId] = useState<string | null>(null);
   const [folderDragOverId, setFolderDragOverId] = useState<string | null>(null);
@@ -53,9 +55,10 @@ export default function MyThemesPage() {
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
 
   const fetchAll = async () => {
-    const [tRes, fRes] = await Promise.all([
+    const [tRes, fRes, subRes] = await Promise.all([
       fetch("/api/my-themes"),
       fetch("/api/my-themes/folders"),
+      fetch("/api/subscription"),
     ]);
     if (tRes.ok) {
       const d = await tRes.json() as { themes: SavedTheme[] };
@@ -64,6 +67,12 @@ export default function MyThemesPage() {
     if (fRes.ok) {
       const d = await fRes.json() as { folders: ThemeFolder[] };
       setFolders(d.folders);
+    }
+    if (subRes.ok) {
+      const d = await subRes.json() as { subscription?: { status?: string } | null; role?: string | null };
+      const sub = d?.subscription;
+      const role = d?.role;
+      setIsPro(sub?.status?.toUpperCase() === "ACTIVE" || role === "CREATOR" || role === "ADMIN");
     }
     setLoaded(true);
   };
@@ -147,6 +156,11 @@ export default function MyThemesPage() {
   };
   // 사본 만들기
   const handleDuplicate = async (id: string) => {
+    if (!isPro) {
+      setProToast(true);
+      setTimeout(() => setProToast(false), 3500);
+      return;
+    }
     const res = await fetch(`/api/my-themes/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ duplicate: true }) });
     if (res.ok) {
       const d = await res.json() as { theme: SavedTheme };
@@ -279,6 +293,16 @@ export default function MyThemesPage() {
   return (
     <div className="min-h-screen" style={{ background: "#f7f7f8" }}>
       <Header />
+
+      {/* Pro 기능 안내 토스트 */}
+      {proToast && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl shadow-xl"
+          style={{ background: "#1c1c1e", color: "#fff", minWidth: 280 }}>
+          <span className="text-[13px] font-semibold px-2 py-0.5 rounded-full" style={{ background: "rgba(255,149,0,0.25)", color: "#FF9500", fontSize: 11 }}>PRO</span>
+          <span className="text-[13px]">사본 만들기는 Pro 구독자 전용 기능이에요.</span>
+          <a href="/pricing" className="text-[12px] font-bold shrink-0" style={{ color: "#FF9500" }}>구독하기 →</a>
+        </div>
+      )}
 
       <div className="flex w-full" style={{ maxWidth: 1400, margin: "0 auto" }}>
 
@@ -543,6 +567,7 @@ export default function MyThemesPage() {
                       onPermanentDelete={handlePermanentDelete}
                       onDuplicate={handleDuplicate}
                       onMoveRequest={(id) => setMoveModal({ themeId: id })}
+                      isPro={isPro}
                     />
                   ))}
                 </div>
@@ -867,7 +892,7 @@ function SidebarFolderItem({ folder, active, count, dragOver, isDragging, isFold
 }
 
 /* ── 테마 카드 ── */
-function ThemeCard({ theme, isTrash, selected, onSelect, onTrash, onRestore, onPermanentDelete, onDuplicate, onMoveRequest }: {
+function ThemeCard({ theme, isTrash, selected, onSelect, onTrash, onRestore, onPermanentDelete, onDuplicate, onMoveRequest, isPro }: {
   theme: SavedTheme;
   isTrash: boolean;
   selected: boolean;
@@ -877,6 +902,7 @@ function ThemeCard({ theme, isTrash, selected, onSelect, onTrash, onRestore, onP
   onPermanentDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
   onMoveRequest: (id: string) => void;
+  isPro: boolean;
 }) {
   const router = useRouter();
   const [hover, setHover] = useState(false);
@@ -1047,7 +1073,12 @@ function ThemeCard({ theme, isTrash, selected, onSelect, onTrash, onRestore, onP
                       <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
                     </svg>
                   } onClick={() => { onMoveRequest(theme.id); setMenuOpen(false); }} />
-                  <MenuItem label="사본 만들기" icon={
+                  <MenuItem label={
+                    <span className="flex items-center gap-1.5 whitespace-nowrap">
+                      사본 만들기
+                      {!isPro && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: "rgba(255,149,0,0.15)", color: "#FF9500" }}>PRO</span>}
+                    </span>
+                  } icon={
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
                       <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
                     </svg>
@@ -1082,7 +1113,7 @@ function ThemeCard({ theme, isTrash, selected, onSelect, onTrash, onRestore, onP
 
 /* ── 메뉴 아이템 ── */
 function MenuItem({ label, icon, onClick, danger }: {
-  label: string;
+  label: React.ReactNode;
   icon: React.ReactNode;
   onClick: () => void;
   danger?: boolean;

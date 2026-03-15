@@ -1749,6 +1749,7 @@ export default function CreatePage() {
             {autoSaveStatus === "saving" ? "저장 중..."
               : autoSaveStatus === "saved" ? "모든 변경 사항 저장됨"
               : autoSaveStatus === "offline" ? "오프라인 상태입니다"
+              : autoSaveStatus === "slot_limit" ? "저장 슬롯 초과"
               : "자동 저장 대기 중"}
           </div>
 
@@ -1779,6 +1780,21 @@ export default function CreatePage() {
             <path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0119 12.55M5 12.55a10.94 10.94 0 015.17-2.39M10.71 5.05A16 16 0 0122.56 9M1.42 9a15.91 15.91 0 014.7-2.88M8.53 16.11a6 6 0 016.95 0M12 20h.01"/>
           </svg>
           오프라인 상태입니다. 연결 시 자동 저장됩니다.
+        </div>
+      )}
+
+      {/* ── 슬롯 초과 배너 ── */}
+      {autoSaveStatus === "slot_limit" && (
+        <div
+          className="flex items-center justify-center gap-2 py-1.5 text-[12px] font-medium shrink-0"
+          style={{ background: "rgba(255,149,0,0.08)", borderBottom: "1px solid rgba(255,149,0,0.2)", color: "rgb(180,100,0)" }}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          무료 플랜은 최대 5개까지 저장할 수 있어요.&nbsp;
+          <a href="/pricing" className="font-bold underline" style={{ color: "#FF9500" }}>Pro로 업그레이드</a>
+          하면 무제한 저장이 가능해요.
         </div>
       )}
 

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, startTransition, MutableRefObject } from "react";
 
-export type AutoSaveStatus = "idle" | "saving" | "saved" | "offline";
+export type AutoSaveStatus = "idle" | "saving" | "saved" | "offline" | "slot_limit";
 
 const LS_KEY = "kakkumi_draft";
 const LS_THEME_ID_KEY = "kakkumi_draft_theme_id";
@@ -185,6 +185,9 @@ export function useAutoSave<T extends object>({
           setTimeout(() => startTransition(() => setStatus("idle")), 2500);
         } else if (res.status === 401) {
           startTransition(() => setStatus("idle"));
+        } else if (res.status === 403) {
+          // 슬롯 초과 — offline이 아닌 slot_limit으로 처리
+          startTransition(() => setStatus("slot_limit"));
         } else {
           startTransition(() => setStatus("offline"));
         }
