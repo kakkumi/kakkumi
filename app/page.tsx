@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { Suspense } from "react";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import HeroTitle from "./components/HeroTitle";
 import LoginBlockedNotice from "./components/LoginBlockedNotice";
+import HeroButtons from "./components/HeroButtons";
 
 const features = [
     {
@@ -134,22 +134,7 @@ export default function Home() {
                                 </div>
                             </div>
 
-                            <div className="mt-12 flex flex-wrap items-center gap-5">
-                                <Link href="/create">
-                                    <button
-                                        className="group inline-flex items-center gap-2 rounded-full px-8 py-4 text-[15px] font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
-                                        style={{ background: "rgb(255,149,0)", color: "#fff", boxShadow: "0 14px 36px rgba(255,149,0,0.28)" }}
-                                    >
-                                        무료로 시작하기
-                                        <span className="inline-block transition-transform duration-200 group-hover:translate-x-1">→</span>
-                                    </button>
-                                </Link>
-                                <div className="text-[13px] leading-6" style={{ color: "#7f848d" }}>
-                                    가입 없이도 미리 체험 가능해요.
-                                    <br />
-                                    지금 바로 화면에서 분위기를 확인해보세요.
-                                </div>
-                            </div>
+                            <HeroButtons variant="hero" />
                         </div>
 
                         <div className="relative mx-auto flex w-full max-w-[520px] justify-center lg:justify-end">
@@ -292,16 +277,7 @@ export default function Home() {
                         </div>
 
                         <div className="flex flex-col items-start justify-between gap-6 border-t pt-8 md:flex-row md:items-center" style={{ borderColor: "rgba(0,0,0,0.08)" }}>
-                            <p className="text-[15px] leading-[1.9]" style={{ color: "#6f7682" }}>지금 바로 시작해보세요. 가입 없이도 미리 체험 가능해요.</p>
-                            <Link href="/create">
-                                <button
-                                    className="group inline-flex items-center gap-2 rounded-full px-8 py-4 text-[15px] font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
-                                    style={{ background: "rgb(255,149,0)", color: "#fff", boxShadow: "0 14px 34px rgba(255,149,0,0.24)" }}
-                                >
-                                    테마 만들러 가기
-                                    <span className="inline-block transition-transform duration-200 group-hover:translate-x-1">→</span>
-                                </button>
-                            </Link>
+                            <HeroButtons variant="bottom" />
                         </div>
                     </div>
                 </section>

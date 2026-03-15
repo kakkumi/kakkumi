@@ -77,14 +77,18 @@ export default function Header() {
     const NAV_ITEMS = getNavItems(role);
 
     // 로그인이 필요한 href 목록 (비로그인 상태에서만)
-    const LOGIN_REQUIRED_HREFS = ["/create", "/mypage/creator-apply"];
+    const LOGIN_REQUIRED_HREFS: Record<string, string> = {
+        "/create": "테마 만들기는 로그인이 필요한 기능이에요.",
+        "/my-themes": "내 테마는 로그인이 필요한 기능이에요.",
+        "/store/register": "테마 등록은 로그인이 필요한 기능이에요.",
+        "/mypage/creator-apply": "입점 신청은 로그인이 필요한 기능이에요.",
+    };
 
     const handleNavClick = (e: React.MouseEvent, href: string) => {
         if (!sessionLoaded) return;
-        if (role === null && LOGIN_REQUIRED_HREFS.includes(href)) {
+        if (role === null && LOGIN_REQUIRED_HREFS[href]) {
             e.preventDefault();
-            const label = href === "/create" ? "테마 만들기는" : "입점 신청은";
-            setLoginModal(`${label} 로그인이 필요한 기능이에요.`);
+            setLoginModal(LOGIN_REQUIRED_HREFS[href]);
         }
     };
 
