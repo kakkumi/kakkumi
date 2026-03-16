@@ -13,12 +13,6 @@ type Application = {
 
 const TOOLS = ["포토샵", "일러스트", "프로크리에이트", "카꾸미"];
 
-const STATUS_INFO: Record<string, { label: string; color: string; bg: string; desc: string; icon: string }> = {
-    PENDING:  { label: "검토 중이에요",       color: "#c97000", bg: "rgba(255,149,0,0.10)",  desc: "신청서를 검토 중입니다. 영업일 기준 3일 이내에 결과를 안내해 드려요.", icon: "⏳" },
-    APPROVED: { label: "크리에이터가 되었어요!", color: "#1a7a3a", bg: "rgba(52,199,89,0.10)",  desc: "크리에이터 권한이 부여되었습니다. 이제 테마를 등록할 수 있어요!", icon: "🎉" },
-    REJECTED: { label: "반려되었어요",          color: "#c0392b", bg: "rgba(255,59,48,0.08)",   desc: "신청이 반려되었습니다. 아래 사유를 확인하고 재신청해 주세요.", icon: "😔" },
-};
-
 function FieldLabel({ num, label, required, sub }: { num: string; label: string; required?: boolean; sub?: string }) {
     return (
         <div className="flex flex-col gap-0.5 mb-3">
@@ -45,6 +39,7 @@ function inputStyle(focused: boolean) {
 export default function CreatorApplyClient() {
     const router = useRouter();
     const [application, setApplication] = useState<Application | null | undefined>(undefined);
+    const [role, setRole] = useState<string>("USER");
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
     const [done, setDone] = useState(false);
@@ -64,7 +59,10 @@ export default function CreatorApplyClient() {
     useEffect(() => {
         fetch("/api/creator/apply")
             .then(r => r.json())
-            .then((d: { application: Application | null }) => setApplication(d.application))
+            .then((d: { application: Application | null; role?: string | null }) => {
+                setApplication(d.application);
+                setRole(d.role ?? "USER");
+            })
             .catch(() => setApplication(null));
     }, []);
 
@@ -127,101 +125,76 @@ export default function CreatorApplyClient() {
         );
     }
 
-    // ── 기존 신청 현황 ──
-    if (application && !done) {
-        const info = STATUS_INFO[application.status] ?? STATUS_INFO.PENDING;
+    // ── 크리에이터: 현황 페이지 ──
+    if ((role === "CREATOR" || role === "ADMIN") && !done) {
         return (
-            <div className="flex flex-col gap-8 pt-10">
+            <div className="flex flex-col pt-10" style={{ gap: 40 }}>
                 <div>
                     <p className="text-[11px] font-semibold tracking-[0.12em] uppercase mb-1" style={{ color: "#a8a29e" }}>Creator</p>
                     <h2 className="text-[24px] font-bold tracking-tight" style={{ color: "#1c1c1e" }}>입점 신청 현황</h2>
                 </div>
 
-                {/* 상태 카드 */}
-                <div className="px-5 py-5 rounded-2xl flex flex-col gap-2" style={{ background: info.bg, border: `1px solid ${info.color}22` }}>
-                    <div className="flex items-center gap-2">
-                        <span className="text-[20px]">{info.icon}</span>
-                        <span className="text-[15px] font-bold" style={{ color: info.color }}>{info.label}</span>
-                    </div>
-                    <p className="text-[13px] leading-relaxed" style={{ color: "#636366" }}>{info.desc}</p>
+                <div className="flex flex-col gap-3">
+                    <span className="text-[36px]">🎉</span>
+                    <p className="text-[20px] font-bold" style={{ color: "#1a7a3a" }}>크리에이터가 되었어요!</p>
+                    <p className="text-[14px] leading-relaxed" style={{ color: "#8e8e93" }}>
+                        크리에이터 권한이 부여되었습니다.<br />이제 테마를 자유롭게 등록할 수 있어요.
+                    </p>
+                </div>
+
+                <div style={{ borderTop: "1px solid rgba(0,0,0,0.07)", paddingTop: 32 }}>
+                    <Link href="/store/register">
+                        <button className="w-full py-3.5 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-[0.99]"
+                            style={{ background: "rgb(74,123,247)", borderRadius: 14 }}>
+                            테마 등록하러 가기
+                        </button>
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
+    // ── 일반 유저: 신청 현황 (PENDING / REJECTED) ──
+    if (application && application.status !== "APPROVED" && !done) {
+        const isPending = application.status === "PENDING";
+        const isRejected = application.status === "REJECTED";
+        return (
+            <div className="flex flex-col pt-10" style={{ gap: 40 }}>
+                <div>
+                    <p className="text-[11px] font-semibold tracking-[0.12em] uppercase mb-1" style={{ color: "#a8a29e" }}>Creator</p>
+                    <h2 className="text-[24px] font-bold tracking-tight" style={{ color: "#1c1c1e" }}>입점 신청 현황</h2>
+                </div>
+
+                {/* 상태 */}
+                <div className="flex flex-col gap-3">
+                    <span className="text-[36px]">{isPending ? "⏳" : "😔"}</span>
+                    <p className="text-[20px] font-bold" style={{ color: isPending ? "#c97000" : "#c0392b" }}>
+                        {isPending ? "검토 중이에요" : "반려되었어요"}
+                    </p>
+                    <p className="text-[14px] leading-relaxed" style={{ color: "#8e8e93" }}>
+                        {isPending
+                            ? "신청서를 검토 중입니다. 영업일 기준 3일 이내에 결과를 안내해 드려요."
+                            : "신청이 반려되었습니다. 아래 사유를 확인하고 재신청해 주세요."}
+                    </p>
                 </div>
 
                 {/* 반려 사유 */}
-                {application.status === "REJECTED" && application.adminNote && (
-                    <div className="flex flex-col gap-2" style={{ borderTop: "1px solid rgba(0,0,0,0.07)", paddingTop: 20 }}>
+                {isRejected && application.adminNote && (
+                    <div className="flex flex-col gap-2" style={{ borderTop: "1px solid rgba(0,0,0,0.07)", paddingTop: 24 }}>
                         <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: "#a8a29e" }}>반려 사유</span>
                         <p className="text-[14px] leading-relaxed" style={{ color: "#3a3a3c" }}>{application.adminNote}</p>
                     </div>
                 )}
 
-                {/* 제출한 정보 요약 */}
-                <div className="flex flex-col gap-4" style={{ borderTop: "1px solid rgba(0,0,0,0.07)", paddingTop: 20 }}>
-                    <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: "#a8a29e" }}>제출한 내용</span>
-                    <div className="flex flex-col gap-3">
-                        <div>
-                            <p className="text-[11px] font-medium mb-1" style={{ color: "#a8a29e" }}>자기소개</p>
-                            <p className="text-[13px] leading-relaxed" style={{ color: "#3a3a3c" }}>{application.reason}</p>
-                        </div>
-                        {application.portfolio && (
-                            <div>
-                                <p className="text-[11px] font-medium mb-1" style={{ color: "#a8a29e" }}>포트폴리오</p>
-                                <a href={application.portfolio} target="_blank" rel="noreferrer"
-                                    className="text-[13px] underline" style={{ color: "rgb(74,123,247)" }}>
-                                    {application.portfolio}
-                                </a>
-                            </div>
-                        )}
-                        <div>
-                            <p className="text-[11px] font-medium mb-1" style={{ color: "#a8a29e" }}>제작 경험</p>
-                            <p className="text-[13px]" style={{ color: "#3a3a3c" }}>{application.experience ? "있음" : "없음"}</p>
-                        </div>
-                        {application.tools?.length > 0 && (
-                            <div>
-                                <p className="text-[11px] font-medium mb-1.5" style={{ color: "#a8a29e" }}>사용 툴</p>
-                                <div className="flex flex-wrap gap-1.5">
-                                    {application.tools.map(t => (
-                                        <span key={t} className="px-2.5 py-1 rounded-full text-[12px] font-medium"
-                                            style={{ background: "rgba(255,149,0,0.08)", color: "rgb(180,90,0)" }}>{t}</span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                        {application.sampleImages?.length > 0 && (
-                            <div>
-                                <p className="text-[11px] font-medium mb-2" style={{ color: "#a8a29e" }}>샘플 이미지</p>
-                                <div className="flex gap-2">
-                                    {application.sampleImages.map((src, i) => (
-                                        <a key={i} href={src} target="_blank" rel="noreferrer">
-                                            <div className="relative w-20 h-20 rounded-xl overflow-hidden" style={{ border: "1px solid rgba(0,0,0,0.08)" }}>
-                                                <Image src={src} alt="" fill className="object-cover" />
-                                            </div>
-                                        </a>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                        <div className="flex justify-between items-center">
-                            <span className="text-[12px]" style={{ color: "#a8a29e" }}>신청일</span>
-                            <span className="text-[12px]" style={{ color: "#636366" }}>{new Date(application.createdAt).toLocaleDateString("ko-KR")}</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* 버튼 */}
-                {application.status === "REJECTED" && (
-                    <button onClick={() => setApplication(null)}
-                        className="w-full py-3.5 text-[14px] font-semibold text-white transition-all active:scale-[0.99]"
-                        style={{ background: "#ff9500", borderRadius: 12 }}>
-                        재신청하기
-                    </button>
-                )}
-                {application.status === "APPROVED" && (
-                    <Link href="/store/register">
-                        <button className="w-full py-3.5 text-[14px] font-semibold text-white transition-all active:scale-[0.99]"
-                            style={{ background: "rgb(74,123,247)", borderRadius: 12 }}>
-                            테마 등록하러 가기
+                {/* 재신청 버튼 */}
+                {isRejected && (
+                    <div style={{ borderTop: "1px solid rgba(0,0,0,0.07)", paddingTop: 32 }}>
+                        <button onClick={() => setApplication(null)}
+                            className="w-full py-3.5 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-[0.99]"
+                            style={{ background: "#ff9500", borderRadius: 14 }}>
+                            재신청하기
                         </button>
-                    </Link>
+                    </div>
                 )}
             </div>
         );

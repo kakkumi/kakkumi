@@ -6,7 +6,7 @@ import { uploadFile } from "@/lib/storage";
 // 입점 신청 조회
 export async function GET() {
     const session = await getServerSession();
-    if (!session?.dbId) return NextResponse.json({ application: null });
+    if (!session?.dbId) return NextResponse.json({ application: null, role: null });
 
     const rows = await prisma.$queryRaw<{
         id: string; status: string; reason: string;
@@ -21,9 +21,12 @@ export async function GET() {
         LIMIT 1
     `;
 
-    if (!rows[0]) return NextResponse.json({ application: null });
+    const role = session.role ?? "USER";
+
+    if (!rows[0]) return NextResponse.json({ application: null, role });
     return NextResponse.json({
         application: { ...rows[0], createdAt: rows[0].createdAt.toISOString() },
+        role,
     });
 }
 
