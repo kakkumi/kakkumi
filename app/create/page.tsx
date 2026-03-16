@@ -762,61 +762,6 @@ export default function CreatePage() {
       .catch(() => {});
   }, []);
 
-  // ── Undo / Redo 히스토리 (Pro 전용) ──
-  const MAX_HISTORY = 50;
-  const historyRef = useRef<ThemeConfig[]>([]);
-  const historyIndexRef = useRef(-1);
-  const isUndoRedoRef = useRef(false);
-
-  const pushHistory = useCallback((cfg: ThemeConfig) => {
-    if (isUndoRedoRef.current) return;
-    const history = historyRef.current;
-    const idx = historyIndexRef.current;
-    // 현재 위치 이후 기록 제거
-    historyRef.current = history.slice(0, idx + 1);
-    historyRef.current.push(cfg);
-    if (historyRef.current.length > MAX_HISTORY) historyRef.current.shift();
-    historyIndexRef.current = historyRef.current.length - 1;
-  }, []);
-
-  const handleUndo = useCallback(() => {
-    if (!isPro) { showProToast("실행취소는 Pro 플랜에서 사용할 수 있어요."); return; }
-    const idx = historyIndexRef.current;
-    if (idx <= 0) return;
-    historyIndexRef.current = idx - 1;
-    isUndoRedoRef.current = true;
-    setConfig(historyRef.current[historyIndexRef.current]);
-    isUndoRedoRef.current = false;
-  }, [isPro]);
-
-  const handleRedo = useCallback(() => {
-    if (!isPro) { showProToast("다시실행은 Pro 플랜에서 사용할 수 있어요."); return; }
-    const idx = historyIndexRef.current;
-    if (idx >= historyRef.current.length - 1) return;
-    historyIndexRef.current = idx + 1;
-    isUndoRedoRef.current = true;
-    setConfig(historyRef.current[historyIndexRef.current]);
-    isUndoRedoRef.current = false;
-  }, [isPro]);
-
-  // Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z 단축키
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const isMac = navigator.platform.toUpperCase().includes("MAC");
-      const ctrlOrCmd = isMac ? e.metaKey : e.ctrlKey;
-      if (!ctrlOrCmd) return;
-      if (e.key === "z" && !e.shiftKey) { e.preventDefault(); handleUndo(); }
-      if ((e.key === "y") || (e.key === "z" && e.shiftKey)) { e.preventDefault(); handleRedo(); }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleUndo, handleRedo]);
-
-  // config 변경 시 history push
-  useEffect(() => {
-    pushHistory(config);
-  }, [config, pushHistory]);
-
   // ── 복제 상태 ──
   const [duplicating, setDuplicating] = useState(false);
 
@@ -1645,30 +1590,6 @@ export default function CreatePage() {
             </svg>
             초기화
           </button>
-
-          {/* Undo / Redo (Pro 전용) */}
-          <div className="flex items-center rounded-lg overflow-hidden" style={{ border: "1px solid rgba(0,0,0,0.1)" }}>
-            <button
-              onClick={handleUndo}
-              title={isPro ? "실행취소 (Ctrl+Z)" : "Pro 전용 기능"}
-              className="flex items-center justify-center w-8 h-7 transition-all hover:opacity-70"
-              style={{ background: "rgba(255,255,255,0.9)", color: isPro ? "#3a3a3c" : "#c7c7cc", borderRight: "1px solid rgba(0,0,0,0.07)" }}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/>
-              </svg>
-            </button>
-            <button
-              onClick={handleRedo}
-              title={isPro ? "다시실행 (Ctrl+Y)" : "Pro 전용 기능"}
-              className="flex items-center justify-center w-8 h-7 transition-all hover:opacity-70"
-              style={{ background: "rgba(255,255,255,0.9)", color: isPro ? "#3a3a3c" : "#c7c7cc" }}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 7v6h-6"/><path d="M3 17a9 9 0 019-9 9 9 0 016 2.3L21 13"/>
-              </svg>
-            </button>
-          </div>
 
           {/* 복제 버튼 (Pro 전용, 기존 테마 편집 시에만 표시) */}
           {themeIdParam && (

@@ -235,7 +235,6 @@ export default function PricingClient({ isLoggedIn, isSubscribed }: Props) {
                             { label: "내 테마 저장", free: "최대 5개", pro: "무제한" },
                             { label: "테마 복사/복제", free: "✗", pro: "✓" },
                             { label: "Pro 전용 프리셋 팔레트", free: "✗", pro: "✓" },
-                            { label: "Ctrl+Z / 실행취소·복구", free: "✗", pro: "✓" },
                         ]},
                         { category: "스토어 & 커뮤니티", rows: [
                             { label: "테마 스토어 이용", free: "✓", pro: "✓" },
