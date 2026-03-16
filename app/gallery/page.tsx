@@ -29,30 +29,23 @@ function timeAgo(iso: string) {
     return `${dt.getFullYear()}.${String(dt.getMonth() + 1).padStart(2, "0")}.${String(dt.getDate()).padStart(2, "0")}`;
 }
 
-function getAvatarSrc(role: string, avatar: string | null, image: string | null): string | null {
+function getAvatarSrc(role: string, avatarUrl: string | null): string {
+    // 커스텀 업로드 사진 (PRO 유저 - '/'로 시작하지 않는 data URL 등)
+    if (avatarUrl && !avatarUrl.startsWith("/")) return avatarUrl;
+    // 역할별 기본 이미지
     if (role === "CREATOR" || role === "ADMIN") return "/creator.png";
-    // USER: avatarUrl이 있으면 PRO 유저가 설정한 커스텀 사진
-    return avatar ?? image ?? null;
+    return "/user.png";
 }
 
-function Avatar({ avatar, image, name, role, size = 32, onClick }: { avatar: string | null; image: string | null; name: string; role: string; size?: number; onClick?: (e: React.MouseEvent) => void }) {
-    const src = getAvatarSrc(role, avatar, image);
-    const fallbackSrc = role === "CREATOR" || role === "ADMIN" ? "/creator.png" : "/user.png";
-    if (src) return (
+function Avatar({ avatar, name, role, size = 32, onClick }: { avatar: string | null; image?: string | null; name: string; role: string; size?: number; onClick?: (e: React.MouseEvent) => void }) {
+    const src = getAvatarSrc(role, avatar);
+    return (
         <Image
             src={src} alt={name} width={size} height={size}
             className="rounded-full object-cover"
             style={{ width: size, height: size, cursor: onClick ? "pointer" : "default" }}
             onClick={onClick}
-            unoptimized
-        />
-    );
-    return (
-        <Image
-            src={fallbackSrc} alt={name} width={size} height={size}
-            className="rounded-full object-cover"
-            style={{ width: size, height: size, cursor: onClick ? "pointer" : "default" }}
-            onClick={onClick}
+            unoptimized={!!avatar && !avatar.startsWith("/")}
         />
     );
 }
@@ -91,7 +84,7 @@ function PostCard({ post, myId, onLike, onNavigate }: {
                 {/* 프사 + 닉네임 + 시간 */}
                 <div className="flex items-center gap-2 min-w-0">
                     <Link href={`/creator/${post.userId}`} onClick={(e) => e.stopPropagation()} className="shrink-0">
-                        <Avatar avatar={post.userAvatar} image={post.userImage} name={displayName} role={post.userRole} size={22} />
+                        <Avatar avatar={post.userAvatar} name={displayName} role={post.userRole} size={22} />
                     </Link>
                     <Link
                         href={`/creator/${post.userId}`}

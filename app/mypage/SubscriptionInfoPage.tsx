@@ -58,7 +58,10 @@ export default function SubscriptionInfoPage() {
                 setCancelConfirm(false);
                 // 상태 갱신
                 setSub(prev => prev ? { ...prev, status: "CANCELLED", cancelledAt: new Date().toISOString() } : prev);
+                // 헤더 등 사이트 전체 프로필 사진 기본값으로 즉시 갱신
+                window.dispatchEvent(new CustomEvent("avatar-updated"));
                 setTimeout(() => router.refresh(), 1000);
+                setTimeout(() => window.dispatchEvent(new CustomEvent("avatar-updated")), 1200);
             }
         } finally {
             setCancelling(false);

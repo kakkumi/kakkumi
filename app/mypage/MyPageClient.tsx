@@ -271,7 +271,11 @@ export default function MyPageClient({ session, purchasedCount: _purchasedCount,
                 setAvatarPreview(url);
                 setAvatarSuccess(true);
                 setTimeout(() => setAvatarSuccess(false), 3000);
+                // 헤더 등 사이트 전체 프로필 사진 즉시 갱신
+                window.dispatchEvent(new CustomEvent("avatar-updated"));
                 router.refresh();
+                // refresh 이후에도 한 번 더 발생시켜 타이밍 문제 방지
+                setTimeout(() => window.dispatchEvent(new CustomEvent("avatar-updated")), 400);
             }
         } catch {
             setAvatarError("네트워크 오류가 발생했습니다.");
@@ -433,13 +437,14 @@ export default function MyPageClient({ session, purchasedCount: _purchasedCount,
                                                     <button onClick={() => router.push(`/creator/${user.id}`)} className="shrink-0 w-10 h-10 rounded-full overflow-hidden flex items-center justify-center transition-all hover:opacity-75" style={{ background: "#e7e5e4" }}>
                                                         <Image
                                                             src={
-                                                                user.role === "CREATOR" || user.role === "ADMIN"
-                                                                    ? "/creator.png"
-                                                                    : (user.avatarUrl ?? "/user.png")
+                                                                (user.avatarUrl && !user.avatarUrl.startsWith("/"))
+                                                                    ? user.avatarUrl
+                                                                    : (user.role === "CREATOR" || user.role === "ADMIN" ? "/creator.png" : "/user.png")
                                                             }
                                                             alt={user.nickname ?? user.name}
                                                             width={40} height={40}
                                                             className="w-full h-full object-cover"
+                                                            unoptimized={!!user.avatarUrl && !user.avatarUrl.startsWith("/")}
                                                         />
                                                     </button>
                                                     {/* 이름 + 테마 수 */}

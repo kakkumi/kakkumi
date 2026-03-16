@@ -101,11 +101,11 @@ export default function CreatorProfileClient({ creatorId }: { creatorId: string 
     }
 
     const displayName = creator.nickname ?? creator.name;
-    // role 기반 아바타: CREATOR/ADMIN → creator.png, USER → avatarUrl(PRO 커스텀) or user.png
+    // 커스텀 업로드 사진(PRO) 우선, 없으면 역할별 기본 이미지
     const avatarSrc =
-        creator.role === "CREATOR" || creator.role === "ADMIN"
-            ? "/creator.png"
-            : (creator.avatarUrl ?? creator.image ?? "/user.png");
+        (creator.avatarUrl && !creator.avatarUrl.startsWith("/"))
+            ? creator.avatarUrl
+            : (creator.role === "CREATOR" || creator.role === "ADMIN" ? "/creator.png" : "/user.png");
 
     return (
         <div className="min-h-screen" style={{ background: "#f3f3f3" }}>

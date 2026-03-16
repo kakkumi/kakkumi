@@ -34,16 +34,24 @@ function timeAgo(iso: string) {
     return `${dt.getFullYear()}.${String(dt.getMonth() + 1).padStart(2, "0")}.${String(dt.getDate()).padStart(2, "0")}`;
 }
 
-function getAvatarSrc(role: string, avatar: string | null, image: string | null): string | null {
+function getAvatarSrc(role: string, avatarUrl: string | null): string {
+    // 커스텀 업로드 사진 (PRO 유저 - '/'로 시작하지 않는 data URL 등)
+    if (avatarUrl && !avatarUrl.startsWith("/")) return avatarUrl;
+    // 역할별 기본 이미지
     if (role === "CREATOR" || role === "ADMIN") return "/creator.png";
-    return avatar ?? image ?? null;
+    return "/user.png";
 }
 
-function Avatar({ avatar, image, name, role, size = 32 }: { avatar: string | null; image: string | null; name: string; role: string; size?: number }) {
-    const src = getAvatarSrc(role, avatar, image);
-    const fallbackSrc = role === "CREATOR" || role === "ADMIN" ? "/creator.png" : "/user.png";
-    if (src) return <Image src={src} alt={name} width={size} height={size} className="rounded-full object-cover" style={{ width: size, height: size }} unoptimized />;
-    return <Image src={fallbackSrc} alt={name} width={size} height={size} className="rounded-full object-cover" style={{ width: size, height: size }} />;
+function Avatar({ avatar, name, role, size = 32 }: { avatar: string | null; image?: string | null; name: string; role: string; size?: number }) {
+    const src = getAvatarSrc(role, avatar);
+    return (
+        <Image
+            src={src} alt={name} width={size} height={size}
+            className="rounded-full object-cover"
+            style={{ width: size, height: size }}
+            unoptimized={!!avatar && !avatar.startsWith("/")}
+        />
+    );
 }
 
 function Toast({ msg }: { msg: string }) {
