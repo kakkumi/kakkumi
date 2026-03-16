@@ -4,7 +4,8 @@ import { Suspense } from "react";
 import Header from "../components/Header";
 import { prisma } from "@/lib/prisma";
 import MyPageClient from "./MyPageClient";
-import { getUserPlan } from "@/lib/subscription";
+
+export const dynamic = "force-dynamic";
 
 const SESSION_COOKIE_NAME = "kakkumi_session";
 
@@ -54,8 +55,16 @@ export default async function MyPage() {
         } catch {
             createdAt = null;
         }
-        const plan = await getUserPlan(session.dbId, session.role ?? "USER");
-        isPro = plan === "PRO" || plan === "ADMIN";
+
+        // 구독 상태 직접 확인 (CREATOR 포함 모든 role 체크)
+        const role = session.role ?? "USER";
+        if (role === "ADMIN") {
+            isPro = true;
+        } else {
+            // USER, CREATOR 모두 PRO 구독 여부 확인
+            const sub = await prisma.subscription.findUnique({ where: { userId: session.dbId } });
+            isPro = !!sub && String(sub.status).toUpperCase() === "ACTIVE";
+        }
     }
 
     const sidebarMenus = [

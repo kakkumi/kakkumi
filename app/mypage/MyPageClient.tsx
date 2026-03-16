@@ -49,7 +49,7 @@ type Props = {
     isPro?: boolean;
 };
 
-export default function MyPageClient({ session, purchasedCount: _purchasedCount, sidebarMenus, createdAt, credit: _credit = 0, isPro = false }: Props) {
+export default function MyPageClient({ session, purchasedCount: _purchasedCount, sidebarMenus, createdAt, credit: _credit = 0, isPro: isProProp = false }: Props) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const menuFromUrl = searchParams.get("menu") ?? "";
@@ -63,6 +63,21 @@ export default function MyPageClient({ session, purchasedCount: _purchasedCount,
         const tab = THEME_TAB_MAP[menuFromUrl];
         if (tab) setThemeTab(tab);
     }, [menuFromUrl]);
+
+    // 구독 상태 클라이언트에서 재확인 (서버 캐시 우회)
+    const [isPro, setIsPro] = useState<boolean>(isProProp);
+    useEffect(() => {
+        if (session?.role === "ADMIN") { setIsPro(true); return; }
+        fetch("/api/subscription")
+            .then(r => r.json())
+            .then((d: { subscription?: { status: string } | null }) => {
+                const status = d?.subscription?.status;
+                const active = !!status && status.toUpperCase() === "ACTIVE";
+                // 서버 prop이 true인 경우 클라이언트 일시적 오류로 false로 강등되지 않도록 함
+                setIsPro(prev => prev || active);
+            })
+            .catch(() => { /* 기본값(서버 prop) 유지 */ });
+    }, [session?.role]);
 
     // 닉네임 상태
     const currentNickname = session?.nickname ?? session?.name ?? "";
@@ -242,20 +257,26 @@ export default function MyPageClient({ session, purchasedCount: _purchasedCount,
     const handleAvatarSave = async (url: string | null) => {
         setAvatarSaving(true);
         setAvatarError("");
-        const res = await fetch("/api/user/avatar", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ avatarUrl: url }),
-        });
-        const data = await res.json() as { avatarUrl?: string | null; error?: string };
-        setAvatarSaving(false);
-        if (!res.ok) {
-            setAvatarError(data.error ?? "저장 실패");
-        } else {
-            setAvatarPreview(url);
-            setAvatarSuccess(true);
-            setTimeout(() => setAvatarSuccess(false), 3000);
-            router.refresh();
+        try {
+            const res = await fetch("/api/user/avatar", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ avatarUrl: url }),
+            });
+            let data: { avatarUrl?: string | null; error?: string } = {};
+            try { data = await res.json() as typeof data; } catch { /* non-JSON response */ }
+            if (!res.ok) {
+                setAvatarError(data.error ?? "저장 실패");
+            } else {
+                setAvatarPreview(url);
+                setAvatarSuccess(true);
+                setTimeout(() => setAvatarSuccess(false), 3000);
+                router.refresh();
+            }
+        } catch {
+            setAvatarError("네트워크 오류가 발생했습니다.");
+        } finally {
+            setAvatarSaving(false);
         }
     };
 
@@ -464,57 +485,65 @@ export default function MyPageClient({ session, purchasedCount: _purchasedCount,
                                     </div>
                                     {isPro ? (
                                         /* PRO / ADMIN: 자유롭게 변경 가능 */
-                                        <div className="flex items-center gap-6">
-                                            <button
-                                                type="button"
-                                                onClick={() => fileInputRef.current?.click()}
-                                                className="relative group shrink-0 rounded-full overflow-hidden flex items-center justify-center transition-opacity hover:opacity-80"
-                                                style={{ width: 72, height: 72, background: avatarPreview ? "transparent" : "#e7e5e4" }}
-                                            >
-                                                {avatarPreview ? (
-                                                    <Image src={avatarPreview} alt={displayNickname} width={72} height={72} className="w-full h-full object-cover" unoptimized />
-                                                ) : (
-                                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                                        <circle cx="12" cy="8" r="4" />
-                                                        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-                                                    </svg>
-                                                )}
-                                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full" style={{ background: "rgba(0,0,0,0.3)" }}>
-                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                                        <polyline points="17 8 12 3 7 8" />
-                                                        <line x1="12" y1="3" x2="12" y2="15" />
-                                                    </svg>
-                                                </div>
-                                            </button>
-                                            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-                                            <div className="flex flex-col gap-2">
-                                                <div className="flex items-center gap-2">
-                                                    <button type="button" onClick={() => fileInputRef.current?.click()} className="text-[12px] font-medium transition-opacity hover:opacity-60" style={{ color: "#78716c" }}>
-                                                        사진 선택
+                                        (() => {
+                                            // 역할에 따른 기본 이미지
+                                            const defaultImg = isCreatorOrAdmin ? "/creator.png" : "/user.png";
+                                            // 커스텀 사진: 사용자가 업로드한 data URL 또는 기본 경로가 아닌 외부 URL
+                                            const isCustomPhoto = !!avatarPreview && !avatarPreview.startsWith("/");
+                                            const displaySrc = avatarPreview ?? defaultImg;
+                                            return (
+                                                <div className="flex items-center gap-6">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => fileInputRef.current?.click()}
+                                                        className="relative group shrink-0 rounded-full overflow-hidden flex items-center justify-center transition-opacity hover:opacity-80"
+                                                        style={{ width: 72, height: 72, background: "#e7e5e4" }}
+                                                    >
+                                                        <Image
+                                                            src={displaySrc}
+                                                            alt={displayNickname}
+                                                            width={72} height={72}
+                                                            className="w-full h-full object-cover"
+                                                            unoptimized={isCustomPhoto}
+                                                        />
+                                                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full" style={{ background: "rgba(0,0,0,0.3)" }}>
+                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                                                <polyline points="17 8 12 3 7 8" />
+                                                                <line x1="12" y1="3" x2="12" y2="15" />
+                                                            </svg>
+                                                        </div>
                                                     </button>
-                                                    {avatarPreview && avatarPreview !== (session?.avatarUrl ?? null) && (
-                                                        <>
-                                                            <span style={{ color: "#e7e5e4" }}>·</span>
-                                                            <button type="button" onClick={() => handleAvatarSave(avatarPreview)} disabled={avatarSaving} className="text-[12px] font-semibold transition-opacity hover:opacity-60 disabled:opacity-30" style={{ color: "#FF9500" }}>
-                                                                {avatarSaving ? "저장 중..." : "저장"}
+                                                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                                                    <div className="flex flex-col gap-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <button type="button" onClick={() => fileInputRef.current?.click()} className="text-[12px] font-medium transition-opacity hover:opacity-60" style={{ color: "#78716c" }}>
+                                                                사진 선택
                                                             </button>
-                                                        </>
-                                                    )}
-                                                    {(avatarPreview ?? session?.avatarUrl) && (
-                                                        <>
-                                                            <span style={{ color: "#e7e5e4" }}>·</span>
-                                                            <button type="button" onClick={() => { setAvatarPreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; handleAvatarSave(null); }} disabled={avatarSaving} className="text-[12px] font-medium transition-opacity hover:opacity-60 disabled:opacity-30" style={{ color: "#ff3b30" }}>
-                                                                사진 제거
-                                                            </button>
-                                                        </>
-                                                    )}
+                                                            {avatarPreview && avatarPreview !== (session?.avatarUrl ?? defaultImg) && (
+                                                                <>
+                                                                    <span style={{ color: "#e7e5e4" }}>·</span>
+                                                                    <button type="button" onClick={() => handleAvatarSave(avatarPreview)} disabled={avatarSaving} className="text-[12px] font-semibold transition-opacity hover:opacity-60 disabled:opacity-30" style={{ color: "#FF9500" }}>
+                                                                        {avatarSaving ? "저장 중..." : "저장"}
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                            {isCustomPhoto && (
+                                                                <>
+                                                                    <span style={{ color: "#e7e5e4" }}>·</span>
+                                                                    <button type="button" onClick={() => { setAvatarPreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; handleAvatarSave(null); }} disabled={avatarSaving} className="text-[12px] font-medium transition-opacity hover:opacity-60 disabled:opacity-30" style={{ color: "#ff3b30" }}>
+                                                                        사진 제거
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                        {avatarSuccess && <p className="text-[11px]" style={{ color: "#34c759" }}>✓ 프로필 사진이 저장되었습니다.</p>}
+                                                        {avatarError && <p className="text-[11px]" style={{ color: "#ff3b30" }}>{avatarError}</p>}
+                                                        {!avatarSuccess && !avatarError && <p className="text-[11px]" style={{ color: "#a8a29e" }}>JPG, PNG, GIF · 최대 2MB</p>}
+                                                    </div>
                                                 </div>
-                                                {avatarSuccess && <p className="text-[11px]" style={{ color: "#34c759" }}>✓ 프로필 사진이 저장되었습니다.</p>}
-                                                {avatarError && <p className="text-[11px]" style={{ color: "#ff3b30" }}>{avatarError}</p>}
-                                                {!avatarSuccess && !avatarError && <p className="text-[11px]" style={{ color: "#a8a29e" }}>JPG, PNG, GIF · 최대 2MB</p>}
-                                            </div>
-                                        </div>
+                                            );
+                                        })()
                                     ) : session?.role === "CREATOR" ? (
                                         /* 크리에이터: creator.png 고정 */
                                         <div className="flex items-center gap-6">

@@ -48,10 +48,18 @@ export async function DELETE() {
             return NextResponse.json({ error: "구독 중이 아닙니다." }, { status: 400 });
         }
 
+        // 구독 취소
         await prisma.subscription.update({
             where: { userId: session.dbId },
             data: { status: "CANCELLED", cancelledAt: new Date() },
         });
+
+        // 프로필 사진 초기화 (role 기반)
+        const resetAvatarUrl = session.role === "CREATOR" ? "/creator.png" : null;
+        await prisma.$executeRaw`
+            UPDATE "User" SET "avatarUrl" = ${resetAvatarUrl}, "updatedAt" = NOW()
+            WHERE id = ${session.dbId}
+        `;
 
         return NextResponse.json({ ok: true });
     } catch (e) {

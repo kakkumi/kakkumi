@@ -21,7 +21,7 @@ const FREE_FEATURES = [
     { label: "테마 복사/복제", included: false },
     { label: "내 테마 저장 무제한", included: false },
     { label: "Pro 전용 프리셋 팔레트", included: false },
-    { label: "Pro 전용 프로필 뱃지 ✦", included: false },
+    { label: "프로필 사진 자유 변경", included: false },
     { label: "광고 없는 UI (추후 적용)", included: false },
 ];
 
@@ -33,7 +33,7 @@ const PRO_FEATURES = [
     { label: "무료 테마 다운로드", included: true },
     { label: "테마 복사/복제", included: true },
     { label: "Pro 전용 프리셋 팔레트", included: true },
-    { label: "Pro 전용 프로필 뱃지 ✦", included: true },
+    { label: "프로필 사진 자유 변경", included: true },
     { label: "광고 없는 UI (추후 적용)", included: true },
 ];
 
@@ -243,7 +243,7 @@ export default function PricingClient({ isLoggedIn, isSubscribed }: Props) {
                             { label: "꾸미 갤러리 이용", free: "✓", pro: "✓" },
                         ]},
                         { category: "혜택", rows: [
-                            { label: "Pro 전용 프로필 뱃지 ✦", free: "✗", pro: "✓" },
+                            { label: "프로필 사진 자유 변경", free: "✗", pro: "✓" },
                             { label: "광고 없는 UI", free: "✗", pro: "✓ (추후 적용)" },
                         ]},
                     ].map((section) => (
