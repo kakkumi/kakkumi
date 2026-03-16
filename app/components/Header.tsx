@@ -41,6 +41,7 @@ function getNavItems(role: string | null) {
             BASE_NAV_ITEMS[1],
             BASE_NAV_ITEMS[2],
             BASE_NAV_ITEMS[3],
+            CREATOR_APPLY,
             THEME_REGISTER,
             BASE_NAV_ITEMS[4],
             BASE_NAV_ITEMS[5],
@@ -53,6 +54,7 @@ function getNavItems(role: string | null) {
         BASE_NAV_ITEMS[2],
         BASE_NAV_ITEMS[3],
         CREATOR_APPLY,
+        THEME_REGISTER,
         BASE_NAV_ITEMS[4],
         BASE_NAV_ITEMS[5],
     ];
