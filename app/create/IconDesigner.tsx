@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { ColorPaletteRow } from "./ColorPaletteRow";
 
 // theme-icon.svg 크기
 const ICON_W = 162;
@@ -58,14 +59,13 @@ export interface IconDesignOptions {
 interface IconDesignerProps {
   options: IconDesignOptions;
   onChange: (opts: IconDesignOptions) => void;
-  /** SVG 모드에서 생성된 PNG URL */
   onSvgGenerate: (url: string) => void;
-  /** 현재 모드 변경 콜백 */
   onModeChange: (mode: "svg" | "image") => void;
   /** 이미지 업로드 탭에서 업로드된 URL */
   uploadedUrl?: string;
   onUpload: (file: File) => void;
   onRemoveUpload: () => void;
+  isPro: boolean;
 }
 
 export function IconDesigner({
@@ -76,6 +76,7 @@ export function IconDesigner({
   uploadedUrl,
   onUpload,
   onRemoveUpload,
+  isPro,
 }: IconDesignerProps) {
   const [mode, setMode] = useState<"svg" | "image">("svg");
   const [status, setStatus] = useState<"idle" | "generating" | "done">("idle");
@@ -178,46 +179,26 @@ export function IconDesigner({
           </div>
 
           {/* 배경 색상 */}
-          <div className="flex items-center justify-between px-2.5 py-1">
-            <span className="text-[12px] font-medium text-gray-500">배경 색상</span>
-            <div className="flex items-center gap-2">
-              <label className="relative cursor-pointer">
-                <input
-                  type="color"
-                  value={localBgColor}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setLocalBgColor(v);
-                    scheduleOnChange(v, pendingIcon.current);
-                  }}
-                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
-                />
-                <div className="w-5 h-5 rounded-full ring-1 ring-black/10 shadow-sm" style={{ backgroundColor: localBgColor }} />
-              </label>
-              <span className="text-[11px] font-mono text-gray-400 w-[56px] uppercase">{localBgColor}</span>
-            </div>
-          </div>
+          <ColorPaletteRow
+            label="배경 색상"
+            value={localBgColor}
+            onChange={(v) => {
+              setLocalBgColor(v);
+              scheduleOnChange(v, pendingIcon.current);
+            }}
+            isPro={isPro}
+          />
 
           {/* 아이콘 색상 */}
-          <div className="flex items-center justify-between px-2.5 py-1">
-            <span className="text-[12px] font-medium text-gray-500">아이콘 색상</span>
-            <div className="flex items-center gap-2">
-              <label className="relative cursor-pointer">
-                <input
-                  type="color"
-                  value={localIconColor}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setLocalIconColor(v);
-                    scheduleOnChange(pendingBg.current, v);
-                  }}
-                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
-                />
-                <div className="w-5 h-5 rounded-full ring-1 ring-black/10 shadow-sm" style={{ backgroundColor: localIconColor }} />
-              </label>
-              <span className="text-[11px] font-mono text-gray-400 w-[56px] uppercase">{localIconColor}</span>
-            </div>
-          </div>
+          <ColorPaletteRow
+            label="아이콘 색상"
+            value={localIconColor}
+            onChange={(v) => {
+              setLocalIconColor(v);
+              scheduleOnChange(pendingBg.current, v);
+            }}
+            isPro={isPro}
+          />
 
           {/* 미리보기 */}
           <div className="px-2.5 pb-1">

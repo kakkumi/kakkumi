@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { ColorPaletteRow } from "./ColorPaletteRow";
 
 export type BubbleSide = "send" | "receive";
 
@@ -137,9 +138,10 @@ interface BubbleDesignerProps {
   options: BubbleDesignOptions;
   onChange: (opts: BubbleDesignOptions) => void;
   onGenerate: (urls: { bubble1: string; bubble2: string }) => void;
+  isPro: boolean;
 }
 
-export function BubbleDesigner({ side, options, onChange, onGenerate }: BubbleDesignerProps) {
+export function BubbleDesigner({ side, options, onChange, onGenerate, isPro }: BubbleDesignerProps) {
   const charInputRef   = useRef<HTMLInputElement>(null);
   const [charImgEl, setCharImgEl]           = useState<HTMLImageElement | null>(null);
   const [charPreviewUrl, setCharPreviewUrl] = useState<string | null>(null);
@@ -244,25 +246,15 @@ export function BubbleDesigner({ side, options, onChange, onGenerate }: BubbleDe
       </div>
 
       {/* 말풍선 색상 */}
-      <div className="flex items-center justify-between px-2.5 py-1">
-        <span className="text-[12px] font-medium text-gray-500">말풍선 색상</span>
-        <div className="flex items-center gap-2">
-          <label className="relative cursor-pointer">
-            <input
-              type="color"
-              value={localBgColor}
-              onChange={(e) => {
-                const v = e.target.value;
-                setLocalBgColor(v);
-                scheduleOnChange(v);
-              }}
-              className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
-            />
-            <div className="w-5 h-5 rounded-full ring-1 ring-black/10 shadow-sm" style={{ backgroundColor: localBgColor }} />
-          </label>
-          <span className="text-[11px] font-mono text-gray-400 w-[56px] uppercase">{localBgColor}</span>
-        </div>
-      </div>
+      <ColorPaletteRow
+        label="말풍선 색상"
+        value={localBgColor}
+        onChange={(v) => {
+          setLocalBgColor(v);
+          scheduleOnChange(v);
+        }}
+        isPro={isPro}
+      />
 
       {/* 캐릭터 이미지 (send만 표시) */}
       {side === "send" && (

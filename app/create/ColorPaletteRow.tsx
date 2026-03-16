@@ -113,6 +113,7 @@ export const ColorPaletteRow = memo(function ColorPaletteRow({
   const handlePresetClick = (hex: string) => {
     if (!isPro) return;
     onChange(hex);
+    setHexInput(hex);
   };
 
   return (
@@ -284,5 +285,6 @@ export const ColorPaletteRow = memo(function ColorPaletteRow({
     </div>
   );
 });
+
 
 

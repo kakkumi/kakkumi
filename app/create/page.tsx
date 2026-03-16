@@ -1975,11 +1975,12 @@ export default function CreatePage() {
                         setImageUploads((prev) => ({ ...prev, icon: url }));
                         triggerImmediateAfterReset();
                       }}
-                      onRemoveUpload={() => {
+                       onRemoveUpload={() => {
                         setIconImageUrl("");
                         setImageUploads((prev) => ({ ...prev, icon: iconSvgUrl }));
                         triggerImmediateAfterReset();
                       }}
+                      isPro={isPro}
                     />
                   </div>
                 </Accordion>
@@ -2011,13 +2012,13 @@ export default function CreatePage() {
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="목록 텍스트" badge="MainViewStyle">
-                  <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={(v) => { set("primaryText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-text-color" />
+                  <ColorPaletteRow label="이름 / 아이콘" value={config.primaryText} onChange={(v) => { set("primaryText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-text-color" isPro={isPro} />
                   <div className="px-2.5 pb-1 flex items-center gap-1.5">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
                     <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>채팅탭, 더보기탭과 공유되는 값입니다</span>
                   </div>
-                  <ColorRow label="친구칩 (상태메시지)" value={config.friendsListDescText} onChange={(v) => { set("friendsListDescText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-description-text-color" />
-                  <ColorRow label="친구칩 리스트 Pressed" value={config.friendsSelectedBg} onChange={(v) => { set("friendsSelectedBg")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-selected-background-color" />
+                  <ColorPaletteRow label="친구칩 (상태메시지)" value={config.friendsListDescText} onChange={(v) => { set("friendsListDescText")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-description-text-color" isPro={isPro} />
+                  <ColorPaletteRow label="친구칩 리스트 Pressed" value={config.friendsSelectedBg} onChange={(v) => { set("friendsSelectedBg")(v); if (previewTab !== "friends") setPreviewTab("friends"); }} tooltip="-ios-selected-background-color" isPro={isPro} />
                   <MacInput label="선택 배경 투명도" hint="(-ios-selected-background-alpha)" value={config.selectedBgAlpha} onChange={set("selectedBgAlpha")} type="slider" />
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
@@ -2072,7 +2073,7 @@ export default function CreatePage() {
             {activeEditorCategory === "chat-tab" && (
               <>
                 <Accordion title="배경" badge="MainViewStyle">
-                  <ColorRow label="배경색" value={config.bodyBg} onChange={set("bodyBg")} tooltip="background-color" />
+                  <ColorPaletteRow label="배경색" value={config.bodyBg} onChange={set("bodyBg")} tooltip="background-color" isPro={isPro} />
                   <div className="px-2.5 pb-1 flex items-center gap-1.5">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
                     <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>친구탭, 더보기탭과 공유되는 값입니다</span>
@@ -2085,15 +2086,15 @@ export default function CreatePage() {
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="목록 텍스트" badge="MainViewStyle-Primary">
-                  <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={(v) => { set("primaryText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-text-color" />
+                  <ColorPaletteRow label="이름 / 아이콘" value={config.primaryText} onChange={(v) => { set("primaryText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-text-color" isPro={isPro} />
                   <div className="px-2.5 pb-1 flex items-center gap-1.5">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
                     <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>친구탭, 더보기탭과 공유되는 값입니다</span>
                   </div>
-                  <ColorRow label="이름 프레스" value={config.chatListHighlightText} onChange={(v) => { set("chatListHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-highlighted-text-color" />
-                  <ColorRow label="마지막 메시지" value={config.chatListLastMsgText} onChange={(v) => { set("chatListLastMsgText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-text-color" />
-                  <ColorRow label="마지막 메시지 프레스" value={config.chatListLastMsgHighlightText} onChange={(v) => { set("chatListLastMsgHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-highlighted-text-color" />
-                  <ColorRow label="선택 배경" value={config.friendsSelectedBg} onChange={(v) => { set("friendsSelectedBg")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-selected-background-color" />
+                  <ColorPaletteRow label="이름 프레스" value={config.chatListHighlightText} onChange={(v) => { set("chatListHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-highlighted-text-color" isPro={isPro} />
+                  <ColorPaletteRow label="마지막 메시지" value={config.chatListLastMsgText} onChange={(v) => { set("chatListLastMsgText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-text-color" isPro={isPro} />
+                  <ColorPaletteRow label="마지막 메시지 프레스" value={config.chatListLastMsgHighlightText} onChange={(v) => { set("chatListLastMsgHighlightText")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-paragraph-highlighted-text-color" isPro={isPro} />
+                  <ColorPaletteRow label="선택 배경" value={config.friendsSelectedBg} onChange={(v) => { set("friendsSelectedBg")(v); if (previewTab !== "chat") setPreviewTab("chat"); }} tooltip="-ios-selected-background-color" isPro={isPro} />
                   <div className="px-2.5 pb-1 flex items-center gap-1.5">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
                     <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>친구탭과 공유되는 값입니다</span>
@@ -2110,7 +2111,7 @@ export default function CreatePage() {
             {activeEditorCategory === "chatroom" && (
               <>
                 <Accordion title="채팅방 배경" badge="BackgroundStyle-ChatRoom">
-                  <ColorRow label="배경 컬러" value={config.chatBg} onChange={set("chatBg")} tooltip="background-color" />
+                  <ColorPaletteRow label="배경 컬러" value={config.chatBg} onChange={set("chatBg")} tooltip="background-color" isPro={isPro} />
                   <ImageUploadRow label="배경 이미지" tooltip="-ios-background-image" imgKey="chatroomBg" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
                   <div className="px-2.5 pb-1 flex flex-col gap-1">
                     <div className="flex items-start gap-1.5">
@@ -2157,14 +2158,15 @@ export default function CreatePage() {
                         set("myBubbleBg")(opts.bgColor);
                       }}
                       onGenerate={handleSendBubbleGenerate}
+                      isPro={isPro}
                     />
                   </div>
                   <div className="px-2.5 pb-1 flex items-center gap-1.5">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
                     <span className="text-[10px] text-gray-400">또는 직접 이미지 파일을 업로드할 수 있습니다</span>
                   </div>
-                  <ColorRow label="텍스트 컬러" value={config.myBubbleText} onChange={set("myBubbleText")} tooltip="-ios-text-color" />
-                  <ColorRow label="읽지않은 메시지 숫자 컬러" value={config.myBubbleUnreadText} onChange={set("myBubbleUnreadText")} tooltip="-ios-unread-text-color" />
+                  <ColorPaletteRow label="텍스트 컬러" value={config.myBubbleText} onChange={set("myBubbleText")} tooltip="-ios-text-color" isPro={isPro} />
+                  <ColorPaletteRow label="읽지않은 메시지 숫자 컬러" value={config.myBubbleUnreadText} onChange={set("myBubbleUnreadText")} tooltip="-ios-unread-text-color" isPro={isPro} />
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="받은 메시지" badge="MessageCellStyle-Receive">
@@ -2182,10 +2184,11 @@ export default function CreatePage() {
                         set("otherBubbleBg")(opts.bgColor);
                       }}
                       onGenerate={handleReceiveBubbleGenerate}
+                      isPro={isPro}
                     />
                   </div>
-                  <ColorRow label="텍스트 컬러" value={config.otherBubbleText} onChange={set("otherBubbleText")} tooltip="-ios-text-color" />
-                  <ColorRow label="읽지않은 메시지 숫자 컬러" value={config.otherBubbleUnreadText} onChange={set("otherBubbleUnreadText")} tooltip="-ios-unread-text-color" />
+                  <ColorPaletteRow label="텍스트 컬러" value={config.otherBubbleText} onChange={set("otherBubbleText")} tooltip="-ios-text-color" isPro={isPro} />
+                  <ColorPaletteRow label="읽지않은 메시지 숫자 컬러" value={config.otherBubbleUnreadText} onChange={set("otherBubbleUnreadText")} tooltip="-ios-unread-text-color" isPro={isPro} />
                 </Accordion>
 
               </>
@@ -2194,15 +2197,15 @@ export default function CreatePage() {
             {activeEditorCategory === "chat-inputbar" && (
               <>
                 <Accordion title="인풋바" badge="InputBarStyle-Chat">
-                  <ColorRow label="인풋바 배경컬러" value={config.inputBarBg} onChange={set("inputBarBg")} tooltip="background-color" />
-                  <ColorRow label="보내기 버튼 배경컬러" value={config.sendBtnBg} onChange={set("sendBtnBg")} tooltip="-ios-send-normal-background-color" />
-                  <ColorRow label="보내기 버튼 아이콘 컬러" value={config.sendBtnIcon} onChange={set("sendBtnIcon")} tooltip="-ios-send-normal-foreground-color" />
-                  <ColorRow label="보내기 버튼 프레스 컬러" value={config.sendBtnHighlightBg} onChange={set("sendBtnHighlightBg")} tooltip="-ios-send-highlighted-background-color" />
-                  <ColorRow label="보내기 버튼 아이콘 프레스 컬러" value={config.sendBtnHighlightIcon} onChange={set("sendBtnHighlightIcon")} tooltip="-ios-send-highlighted-foreground-color" />
-                  <ColorRow label="메뉴 버튼 아이콘 컬러" value={config.menuBtnColor} onChange={set("menuBtnColor")} tooltip="-ios-button-normal-foreground-color" />
-                  <ColorRow label="메뉴 버튼 아이콘 프레스 컬러" value={config.menuBtnHighlightColor} onChange={set("menuBtnHighlightColor")} tooltip="-ios-button-highlighted-foreground-color" />
-                  <ColorRow label="인풋바 텍스트 컬러" value={config.inputBarText} onChange={set("inputBarText")} tooltip="-ios-button-text-color" />
-                  <ColorRow label="메뉴 버튼 / 인풋바 배경 컬러" value={config.inputFieldBg} onChange={set("inputFieldBg")} tooltip="-ios-button-normal-background-color" />
+                  <ColorPaletteRow label="인풋바 배경컬러" value={config.inputBarBg} onChange={set("inputBarBg")} tooltip="background-color" isPro={isPro} />
+                  <ColorPaletteRow label="보내기 버튼 배경컬러" value={config.sendBtnBg} onChange={set("sendBtnBg")} tooltip="-ios-send-normal-background-color" isPro={isPro} />
+                  <ColorPaletteRow label="보내기 버튼 아이콘 컬러" value={config.sendBtnIcon} onChange={set("sendBtnIcon")} tooltip="-ios-send-normal-foreground-color" isPro={isPro} />
+                  <ColorPaletteRow label="보내기 버튼 프레스 컬러" value={config.sendBtnHighlightBg} onChange={set("sendBtnHighlightBg")} tooltip="-ios-send-highlighted-background-color" isPro={isPro} />
+                  <ColorPaletteRow label="보내기 버튼 아이콘 프레스 컬러" value={config.sendBtnHighlightIcon} onChange={set("sendBtnHighlightIcon")} tooltip="-ios-send-highlighted-foreground-color" isPro={isPro} />
+                  <ColorPaletteRow label="메뉴 버튼 아이콘 컬러" value={config.menuBtnColor} onChange={set("menuBtnColor")} tooltip="-ios-button-normal-foreground-color" isPro={isPro} />
+                  <ColorPaletteRow label="메뉴 버튼 아이콘 프레스 컬러" value={config.menuBtnHighlightColor} onChange={set("menuBtnHighlightColor")} tooltip="-ios-button-highlighted-foreground-color" isPro={isPro} />
+                  <ColorPaletteRow label="인풋바 텍스트 컬러" value={config.inputBarText} onChange={set("inputBarText")} tooltip="-ios-button-text-color" isPro={isPro} />
+                  <ColorPaletteRow label="메뉴 버튼 / 인풋바 배경 컬러" value={config.inputFieldBg} onChange={set("inputFieldBg")} tooltip="-ios-button-normal-background-color" isPro={isPro} />
                   <MacInput label="투명도" hint="(-ios-button-normal-background-alpha)" value={config.menuBtnNormalBgAlpha} onChange={set("menuBtnNormalBgAlpha")} type="slider" />
                 </Accordion>
 
@@ -2212,7 +2215,7 @@ export default function CreatePage() {
             {activeEditorCategory === "tabbar" && (
               <>
                 <Accordion title="상단바 타이틀" badge="HeaderStyle-Main">
-                  <ColorRow label="타이틀 컬러" value={config.headerText} onChange={set("headerText")} tooltip="-ios-text-color" />
+                  <ColorPaletteRow label="타이틀 컬러" value={config.headerText} onChange={set("headerText")} tooltip="-ios-text-color" isPro={isPro} />
                   <div className="px-2.5 pb-1 flex items-center gap-1.5 mt-1">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
                     <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>채팅 · 지금 · 쇼핑 · 더보기 탭과 공유되는 값입니다</span>
@@ -2256,7 +2259,7 @@ export default function CreatePage() {
                   )}
                   {tabBgMode === "color" ? (
                     <div style={{ pointerEvents: config.darkMode ? "none" : "auto", opacity: config.darkMode ? 0.4 : 1 }}>
-                      <ColorRow label="배경 컬러" value={config.darkMode ? "#000000" : config.tabBarBg} onChange={set("tabBarBg")} tooltip="background-color" />
+                      <ColorPaletteRow label="배경 컬러" value={config.darkMode ? "#000000" : config.tabBarBg} onChange={set("tabBarBg")} tooltip="background-color" isPro={isPro} />
                     </div>
                   ) : (
                     <div style={{ pointerEvents: config.darkMode ? "none" : "auto", opacity: config.darkMode ? 0.4 : 1 }}>
@@ -2270,7 +2273,7 @@ export default function CreatePage() {
             {activeEditorCategory === "more-tab" && (
               <>
                 <Accordion title="목록 텍스트" badge="MainViewStyle-Primary">
-                  <ColorRow label="이름 / 아이콘" value={config.primaryText} onChange={(v) => { set("primaryText")(v); if (previewTab !== "more") setPreviewTab("more"); }} tooltip="-ios-text-color" />
+                  <ColorPaletteRow label="이름 / 아이콘" value={config.primaryText} onChange={(v) => { set("primaryText")(v); if (previewTab !== "more") setPreviewTab("more"); }} tooltip="-ios-text-color" isPro={isPro} />
                   <div className="px-2.5 pb-1 flex items-center gap-1.5">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
                     <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>친구탭, 채팅탭과 공유되는 값입니다</span>
@@ -2278,7 +2281,7 @@ export default function CreatePage() {
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="헤더" badge="HeaderStyle-Main">
-                  <ColorRow label="탭 텍스트" value={config.headerTabText} onChange={(v) => { set("headerTabText")(v); if (previewTab !== "more") setPreviewTab("more"); }} tooltip="-ios-tab-text-color" />
+                  <ColorPaletteRow label="탭 텍스트" value={config.headerTabText} onChange={(v) => { set("headerTabText")(v); if (previewTab !== "more") setPreviewTab("more"); }} tooltip="-ios-tab-text-color" isPro={isPro} />
                 </Accordion>
               </>
             )}
@@ -2306,7 +2309,7 @@ export default function CreatePage() {
                     </button>
                   </div>
                   {passcodeBgMode === "color" ? (
-                    <ColorRow label="배경색" value={config.passcodeBg} onChange={set("passcodeBg")} tooltip="background-color" />
+                    <ColorPaletteRow label="배경색" value={config.passcodeBg} onChange={set("passcodeBg")} tooltip="background-color" isPro={isPro} />
                   ) : (
                     <div className="py-1.5 px-2.5 group">
                       <div className="flex items-center justify-between gap-3">
@@ -2336,7 +2339,7 @@ export default function CreatePage() {
                       </div>
                     </div>
                   )}
-                  <ColorRow label="타이틀 컬러" value={config.passcodeTitleText} onChange={set("passcodeTitleText")} tooltip="-ios-text-color" />
+                  <ColorPaletteRow label="타이틀 컬러" value={config.passcodeTitleText} onChange={set("passcodeTitleText")} tooltip="-ios-text-color" isPro={isPro} />
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="불릿 이미지" badge="PasscodeStyle">
@@ -2355,18 +2358,12 @@ export default function CreatePage() {
                     </button>
                   </div>
                   {bulletFillMode === "color" ? (
-                    <div className="flex items-center justify-between px-2.5 py-1 mb-2">
-                      <span className="text-[12px] font-medium text-gray-500">불릿 색상</span>
-                      <div className="flex items-center gap-2">
-                        <label className="relative cursor-pointer">
-                          <input type="color" value={bulletFillColor}
-                            onChange={(e) => { hasChangesRef.current = true; setBulletFillColorWithConfig(e.target.value); triggerDebounce(); }}
-                            className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10" />
-                          <div className="w-5 h-5 rounded-full ring-1 ring-black/10 shadow-sm" style={{ backgroundColor: bulletFillColor }} />
-                        </label>
-                        <span className="text-[11px] font-mono text-gray-400 w-[56px] uppercase">{bulletFillColor}</span>
-                      </div>
-                    </div>
+                    <ColorPaletteRow
+                      label="불릿 색상"
+                      value={bulletFillColor}
+                      onChange={(v) => { hasChangesRef.current = true; setBulletFillColorWithConfig(v); triggerDebounce(); }}
+                      isPro={isPro}
+                    />
                   ) : (
                     <ImageUploadRow label="선택 불릿 이미지" tooltip="passcodeImgCodeSelected@3x.png" imgKey="bulletFill" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
                   )}
@@ -2391,18 +2388,12 @@ export default function CreatePage() {
                     </button>
                   </div>
                   {bulletEmptyMode === "color" && (
-                    <div className="flex items-center justify-between px-2.5 py-1">
-                      <span className="text-[12px] font-medium text-gray-500">불릿 색상</span>
-                      <div className="flex items-center gap-2">
-                        <label className="relative cursor-pointer">
-                          <input type="color" value={bulletEmptyColor}
-                            onChange={(e) => { hasChangesRef.current = true; setBulletEmptyColorWithConfig(e.target.value); triggerDebounce(); }}
-                            className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10" />
-                          <div className="w-5 h-5 rounded-full ring-1 ring-black/10 shadow-sm" style={{ backgroundColor: bulletEmptyColor }} />
-                        </label>
-                        <span className="text-[11px] font-mono text-gray-400 w-[56px] uppercase">{bulletEmptyColor}</span>
-                      </div>
-                    </div>
+                    <ColorPaletteRow
+                      label="불릿 색상"
+                      value={bulletEmptyColor}
+                      onChange={(v) => { hasChangesRef.current = true; setBulletEmptyColorWithConfig(v); triggerDebounce(); }}
+                      isPro={isPro}
+                    />
                   )}
                   {bulletEmptyMode === "image" && (
                     <ImageUploadRow label="일반 불릿 이미지" tooltip="passcodeImgCode@3x.png" imgKey="bulletEmpty" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
@@ -2410,8 +2401,8 @@ export default function CreatePage() {
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="키패드" badge="PasscodeStyle">
-                  <ColorRow label="배경색" value={config.passcodeKeypadBg} onChange={set("passcodeKeypadBg")} tooltip="-ios-keypad-background-color" />
-                  <ColorRow label="숫자 컬러" value={config.passcodeKeypadText} onChange={set("passcodeKeypadText")} tooltip="-ios-keypad-text-normal-color" />
+                  <ColorPaletteRow label="배경색" value={config.passcodeKeypadBg} onChange={set("passcodeKeypadBg")} tooltip="-ios-keypad-background-color" isPro={isPro} />
+                  <ColorPaletteRow label="숫자 컬러" value={config.passcodeKeypadText} onChange={set("passcodeKeypadText")} tooltip="-ios-keypad-text-normal-color" isPro={isPro} />
                   {/* 프레스 이미지 스위치 */}
                   <div className="flex items-center justify-between px-2.5 py-1 mb-1">
                     <span className="text-[12px] font-medium text-gray-500">프레스 이미지</span>
@@ -2444,15 +2435,15 @@ export default function CreatePage() {
             {activeEditorCategory === "notification" && (
               <>
                 <Accordion title="메시지 알림 배너" badge="BackgroundStyle-MessageNotificationBar">
-                  <ColorRow label="메시지 알림 배너 - 배경 컬러" value={config.notifBannerBg} onChange={set("notifBannerBg")} tooltip="background-color" />
-                  <ColorRow label="메시지 알림 배너 - 이름 컬러" value={config.notifBannerNameText} onChange={set("notifBannerNameText")} tooltip="-ios-text-color" />
-                  <ColorRow label="메시지 알림 배너 - 텍스트 컬러" value={config.notifBannerMsgText} onChange={set("notifBannerMsgText")} tooltip="-ios-text-color" />
+                  <ColorPaletteRow label="메시지 알림 배너 - 배경 컬러" value={config.notifBannerBg} onChange={set("notifBannerBg")} tooltip="background-color" isPro={isPro} />
+                  <ColorPaletteRow label="메시지 알림 배너 - 이름 컬러" value={config.notifBannerNameText} onChange={set("notifBannerNameText")} tooltip="-ios-text-color" isPro={isPro} />
+                  <ColorPaletteRow label="메시지 알림 배너 - 텍스트 컬러" value={config.notifBannerMsgText} onChange={set("notifBannerMsgText")} tooltip="-ios-text-color" isPro={isPro} />
                 </Accordion>
                 <hr className="border-t border-gray-300 mx-2 mb-4" />
                 <Accordion title="전달완료 배너" badge="BackgroundStyle-DirectShareBar">
-                  <ColorRow label="전달완료 배너 - 배경 컬러" value={config.directShareBg} onChange={set("directShareBg")} tooltip="background-color" />
-                  <ColorRow label="전달완료 배너 - 이름 컬러" value={config.directShareNameText} onChange={set("directShareNameText")} tooltip="-ios-text-color" />
-                  <ColorRow label="전달완료 배너 - 텍스트 컬러" value={config.directShareMsgText} onChange={set("directShareMsgText")} tooltip="-ios-text-color" />
+                  <ColorPaletteRow label="전달완료 배너 - 배경 컬러" value={config.directShareBg} onChange={set("directShareBg")} tooltip="background-color" isPro={isPro} />
+                  <ColorPaletteRow label="전달완료 배너 - 이름 컬러" value={config.directShareNameText} onChange={set("directShareNameText")} tooltip="-ios-text-color" isPro={isPro} />
+                  <ColorPaletteRow label="전달완료 배너 - 텍스트 컬러" value={config.directShareMsgText} onChange={set("directShareMsgText")} tooltip="-ios-text-color" isPro={isPro} />
                 </Accordion>
               </>
             )}
