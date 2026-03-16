@@ -7,6 +7,7 @@ import Header from "../components/Header";
 import { useAutoSave } from "./useAutoSave";
 import { BubbleDesigner, DEFAULT_SEND, DEFAULT_RECEIVE, BubbleDesignOptions } from "./BubbleDesigner";
 import { IconDesigner, IconDesignOptions } from "./IconDesigner";
+import { ColorPaletteRow } from "./ColorPaletteRow";
 
 import { PreviewNewsMockup } from "@/stories/PreviewNewsMockup";
 import { PreviewChatRoomMockup } from "@/stories/PreviewChatRoomMockup";
@@ -334,6 +335,7 @@ const ColorRow = memo(function ColorRow({ label, value, onChange, tooltip, disab
     </div>
   );
 });
+
 
 /* ── 이미지 업로드 행 ── */
 const ImageUploadRow = memo(function ImageUploadRow({ label, tooltip, imgKey, imageUploads, onUpload, onRemove, badge, badgeColor }: {
@@ -1017,7 +1019,6 @@ export default function CreatePage() {
   }, []);
 
   // 채팅방 배경 밝기 계산 → isDarkChatBg
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     const imgUrl = imageUploads['chatroomBg'];
     if (imgUrl) {
@@ -1029,7 +1030,6 @@ export default function CreatePage() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config.chatBg, imageUploads['chatroomBg']]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   // ── 로그인 닉네임 → authorName 자동 설정 ──
   useEffect(() => {
@@ -1998,7 +1998,7 @@ export default function CreatePage() {
             {activeEditorCategory === "friends-tab" && (
               <>
                 <Accordion title="배경" badge="MainViewStyle">
-                  <ColorRow label="배경색" value={config.bodyBg} onChange={set("bodyBg")} tooltip="background-color" />
+                  <ColorPaletteRow label="배경색" value={config.bodyBg} onChange={set("bodyBg")} tooltip="background-color" isPro={isPro} />
                   <div className="px-2.5 pb-1 flex items-center gap-1.5">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
                     <span className="text-[10px]" style={{ color: 'rgb(251,146,60)' }}>채팅탭, 더보기탭과 공유되는 값입니다</span>
