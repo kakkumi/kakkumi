@@ -3,6 +3,7 @@ import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { createHmac } from "crypto";
 import { SESSION_COOKIE_NAME, SESSION_MAX_AGE_SECONDS } from "@/lib/constants";
+import { getUserPlan } from "@/lib/subscription";
 
 const MAX_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
 
@@ -17,6 +18,15 @@ export async function PATCH(req: NextRequest) {
     const session = await getServerSession();
     if (!session?.dbId) {
         return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
+    }
+
+    // PRO 구독자 또는 ADMIN만 프로필 사진 변경 가능
+    const plan = await getUserPlan(session.dbId, session.role ?? "USER");
+    if (plan !== "PRO" && plan !== "ADMIN") {
+        return NextResponse.json(
+            { error: "PRO 구독자만 프로필 사진을 변경할 수 있습니다." },
+            { status: 403 }
+        );
     }
 
     const body = await req.json() as { avatarUrl?: string | null };

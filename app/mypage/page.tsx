@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import Header from "../components/Header";
 import { prisma } from "@/lib/prisma";
 import MyPageClient from "./MyPageClient";
+import { getUserPlan } from "@/lib/subscription";
 
 const SESSION_COOKIE_NAME = "kakkumi_session";
 
@@ -37,6 +38,7 @@ export default async function MyPage() {
     let createdAt: string | null = null;
     let credit = 0;
     let dbAvatarUrl: string | null = null;
+    let isPro = false;
 
     if (session?.dbId) {
         purchasedCount = await prisma.purchase.count({
@@ -52,6 +54,8 @@ export default async function MyPage() {
         } catch {
             createdAt = null;
         }
+        const plan = await getUserPlan(session.dbId, session.role ?? "USER");
+        isPro = plan === "PRO" || plan === "ADMIN";
     }
 
     const sidebarMenus = [
@@ -97,6 +101,7 @@ export default async function MyPage() {
                     sidebarMenus={sidebarMenus}
                     createdAt={createdAt}
                     credit={credit}
+                    isPro={isPro}
                 />
             </Suspense>
         </div>

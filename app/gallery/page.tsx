@@ -13,6 +13,7 @@ type GalleryPost = {
     images: string[]; storeLink: string | null; themeId: string | null;
     createdAt: string; liked: boolean; likeCount: number; commentCount: number;
     userNickname: string | null; userName: string; userAvatar: string | null; userImage: string | null;
+    userRole: string;
 };
 
 function timeAgo(iso: string) {
@@ -28,72 +29,100 @@ function timeAgo(iso: string) {
     return `${dt.getFullYear()}.${String(dt.getMonth() + 1).padStart(2, "0")}.${String(dt.getDate()).padStart(2, "0")}`;
 }
 
-function Avatar({ avatar, image, name, size = 32 }: { avatar: string | null; image: string | null; name: string; size?: number }) {
-    const src = avatar ?? image ?? null;
-    if (src) return <Image src={src} alt={name} width={size} height={size} className="rounded-full object-cover" style={{ width: size, height: size }} />;
+function getAvatarSrc(role: string, avatar: string | null, image: string | null): string | null {
+    if (role === "CREATOR" || role === "ADMIN") return "/creator.png";
+    // USER: avatarUrl이 있으면 PRO 유저가 설정한 커스텀 사진
+    return avatar ?? image ?? null;
+}
+
+function Avatar({ avatar, image, name, role, size = 32, onClick }: { avatar: string | null; image: string | null; name: string; role: string; size?: number; onClick?: (e: React.MouseEvent) => void }) {
+    const src = getAvatarSrc(role, avatar, image);
+    const fallbackSrc = role === "CREATOR" || role === "ADMIN" ? "/creator.png" : "/user.png";
+    if (src) return (
+        <Image
+            src={src} alt={name} width={size} height={size}
+            className="rounded-full object-cover"
+            style={{ width: size, height: size, cursor: onClick ? "pointer" : "default" }}
+            onClick={onClick}
+            unoptimized
+        />
+    );
     return (
-        <div className="rounded-full flex items-center justify-center text-white font-bold"
-            style={{ width: size, height: size, background: "linear-gradient(135deg,#FF9500,#FF6B00)", fontSize: size * 0.38 }}>
-            {name.slice(0, 1)}
-        </div>
+        <Image
+            src={fallbackSrc} alt={name} width={size} height={size}
+            className="rounded-full object-cover"
+            style={{ width: size, height: size, cursor: onClick ? "pointer" : "default" }}
+            onClick={onClick}
+        />
     );
 }
 
 // ── 게시글 카드 ──────────────────────────────────
-function PostCard({ post, myId, onLike }: {
+function PostCard({ post, myId, onLike, onNavigate }: {
     post: GalleryPost; myId: string | null;
     onLike: (id: string) => void;
+    onNavigate: (id: string) => void;
 }) {
     const displayName = post.userNickname ?? post.userName;
 
     return (
-        <Link href={`/gallery/${post.id}`} className="block group">
-            <div className="rounded-2xl overflow-hidden transition-all duration-200 hover:shadow-md"
-                style={{ background: "#fff", border: "1px solid rgba(0,0,0,0.06)" }}>
-                {/* 이미지 */}
-                <div className="relative w-full" style={{ paddingBottom: "100%", background: "#f5f5f5" }}>
-                    {post.images[0] && (
-                        <Image src={post.images[0]} alt={post.themeName} fill className="object-cover" />
-                    )}
-                    {post.images.length > 1 && (
-                        <div className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center"
-                            style={{ background: "rgba(0,0,0,0.45)" }}>
-                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
-                            </svg>
-                        </div>
-                    )}
-                </div>
-
-                {/* 하단 정보 */}
-                <div className="px-3 py-2.5 flex items-center justify-between gap-2">
-                    {/* 프사 + 닉네임 + 시간 */}
-                    <div className="flex items-center gap-2 min-w-0">
-                        <Avatar avatar={post.userAvatar} image={post.userImage} name={displayName} size={22} />
-                        <span className="text-[12px] font-medium truncate" style={{ color: "#78716c" }}>{displayName}</span>
-                        <span className="text-[11px] shrink-0" style={{ color: "#d6d3d1" }}>{timeAgo(post.createdAt)}</span>
+        <div
+            className="group rounded-2xl overflow-hidden transition-all duration-200 hover:shadow-md cursor-pointer"
+            style={{ background: "#fff", border: "1px solid rgba(0,0,0,0.06)" }}
+            onClick={() => onNavigate(post.id)}
+        >
+            {/* 이미지 */}
+            <div className="relative w-full" style={{ paddingBottom: "100%", background: "#f5f5f5" }}>
+                {post.images[0] && (
+                    <Image src={post.images[0]} alt={post.themeName} fill className="object-cover" />
+                )}
+                {post.images.length > 1 && (
+                    <div className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center"
+                        style={{ background: "rgba(0,0,0,0.45)" }}>
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+                        </svg>
                     </div>
-                    {/* 좋아요 + 댓글 */}
-                    <div className="flex items-center gap-2.5 shrink-0">
-                        <button
-                            onClick={(e) => { e.preventDefault(); if (myId) onLike(post.id); }}
-                            className="flex items-center gap-0.5 transition-opacity hover:opacity-60"
-                            style={{ color: post.liked ? "#FF3B30" : "#c8c4c0" }}>
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill={post.liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                            </svg>
-                            <span className="text-[11px]">{post.likeCount}</span>
-                        </button>
-                        <div className="flex items-center gap-0.5" style={{ color: "#c8c4c0" }}>
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                            </svg>
-                            <span className="text-[11px]">{post.commentCount}</span>
-                        </div>
+                )}
+            </div>
+
+            {/* 하단 정보 */}
+            <div className="px-3 py-2.5 flex items-center justify-between gap-2">
+                {/* 프사 + 닉네임 + 시간 */}
+                <div className="flex items-center gap-2 min-w-0">
+                    <Link href={`/creator/${post.userId}`} onClick={(e) => e.stopPropagation()} className="shrink-0">
+                        <Avatar avatar={post.userAvatar} image={post.userImage} name={displayName} role={post.userRole} size={22} />
+                    </Link>
+                    <Link
+                        href={`/creator/${post.userId}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-[12px] font-medium truncate hover:underline"
+                        style={{ color: "#78716c" }}
+                    >
+                        {displayName}
+                    </Link>
+                    <span className="text-[11px] shrink-0" style={{ color: "#d6d3d1" }}>{timeAgo(post.createdAt)}</span>
+                </div>
+                {/* 좋아요 + 댓글 */}
+                <div className="flex items-center gap-2.5 shrink-0">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); if (myId) onLike(post.id); }}
+                        className="flex items-center gap-0.5 transition-opacity hover:opacity-60"
+                        style={{ color: post.liked ? "#FF3B30" : "#c8c4c0" }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill={post.liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                        <span className="text-[11px]">{post.likeCount}</span>
+                    </button>
+                    <div className="flex items-center gap-0.5" style={{ color: "#c8c4c0" }}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        <span className="text-[11px]">{post.commentCount}</span>
                     </div>
                 </div>
             </div>
-        </Link>
+        </div>
     );
 }
 
@@ -193,7 +222,7 @@ export default function GalleryPage() {
                 ) : (
                     <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
                         {posts.map((post) => (
-                            <PostCard key={post.id} post={post} myId={myId} onLike={handleLike} />
+                            <PostCard key={post.id} post={post} myId={myId} onLike={handleLike} onNavigate={(id) => router.push(`/gallery/${id}`)} />
                         ))}
                     </div>
                 )}

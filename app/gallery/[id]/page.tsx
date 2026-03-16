@@ -10,13 +10,14 @@ import Link from "next/link";
 type Comment = {
     id: string; content: string; isDeleted: boolean; createdAt: string; parentId: string | null;
     userId: string; userNickname: string | null; userName: string;
-    userAvatar: string | null; userImage: string | null;
+    userAvatar: string | null; userImage: string | null; userRole: string;
     reportCount: number; myReported: boolean;
 };
 type PostDetail = {
     id: string; userId: string; themeName: string; description: string | null;
     images: string[]; storeLink: string | null; themeId: string | null; createdAt: string;
     userNickname: string | null; userName: string; userAvatar: string | null; userImage: string | null;
+    userRole: string;
     likeCount: number; commentCount: number; liked: boolean;
 };
 
@@ -33,15 +34,16 @@ function timeAgo(iso: string) {
     return `${dt.getFullYear()}.${String(dt.getMonth() + 1).padStart(2, "0")}.${String(dt.getDate()).padStart(2, "0")}`;
 }
 
-function Avatar({ avatar, image, name, size = 32 }: { avatar: string | null; image: string | null; name: string; size?: number }) {
-    const src = avatar ?? image ?? null;
-    if (src) return <Image src={src} alt={name} width={size} height={size} className="rounded-full object-cover" style={{ width: size, height: size }} />;
-    return (
-        <div className="rounded-full flex items-center justify-center text-white font-bold"
-            style={{ width: size, height: size, background: "linear-gradient(135deg,#FF9500,#FF6B00)", fontSize: size * 0.38 }}>
-            {name.slice(0, 1)}
-        </div>
-    );
+function getAvatarSrc(role: string, avatar: string | null, image: string | null): string | null {
+    if (role === "CREATOR" || role === "ADMIN") return "/creator.png";
+    return avatar ?? image ?? null;
+}
+
+function Avatar({ avatar, image, name, role, size = 32 }: { avatar: string | null; image: string | null; name: string; role: string; size?: number }) {
+    const src = getAvatarSrc(role, avatar, image);
+    const fallbackSrc = role === "CREATOR" || role === "ADMIN" ? "/creator.png" : "/user.png";
+    if (src) return <Image src={src} alt={name} width={size} height={size} className="rounded-full object-cover" style={{ width: size, height: size }} unoptimized />;
+    return <Image src={fallbackSrc} alt={name} width={size} height={size} className="rounded-full object-cover" style={{ width: size, height: size }} />;
 }
 
 function Toast({ msg }: { msg: string }) {
@@ -84,10 +86,14 @@ function CommentItem({
                                 <path d="M9 18l6-6-6-6"/>
                             </svg>
                         )}
-                        <Avatar avatar={comment.userAvatar} image={comment.userImage} name={name} size={28} />
+                        <Link href={`/creator/${comment.userId}`} className="shrink-0">
+                            <Avatar avatar={comment.userAvatar} image={comment.userImage} name={name} role={comment.userRole} size={28} />
+                        </Link>
                         <div className="flex-1 min-w-0">
                             <div className="flex items-baseline gap-2 mb-0.5">
-                                <span className="text-[13px] font-semibold" style={{ color: "#1c1917" }}>{name}</span>
+                                <Link href={`/creator/${comment.userId}`} className="text-[13px] font-semibold hover:underline" style={{ color: "#1c1917" }}>
+                                    {name}
+                                </Link>
                                 <span className="text-[11px]" style={{ color: "#d6d3d1" }}>{timeAgo(comment.createdAt)}</span>
                             </div>
                             <p className="text-[13px] leading-relaxed" style={{ color: "#78716c" }}>{comment.content}</p>
@@ -286,9 +292,13 @@ export default function GalleryDetailPage() {
                 {/* 작성자 + 수정/삭제 */}
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
-                        <Avatar avatar={post.userAvatar} image={post.userImage} name={displayName} size={40} />
+                        <Link href={`/creator/${post.userId}`}>
+                            <Avatar avatar={post.userAvatar} image={post.userImage} name={displayName} role={post.userRole} size={40} />
+                        </Link>
                         <div>
-                            <p className="text-[14px] font-semibold" style={{ color: "#1c1917" }}>{displayName}</p>
+                            <Link href={`/creator/${post.userId}`} className="text-[14px] font-semibold hover:underline" style={{ color: "#1c1917" }}>
+                                {displayName}
+                            </Link>
                             <p className="text-[12px]" style={{ color: "#a8a29e" }}>{timeAgo(post.createdAt)}</p>
                         </div>
                     </div>

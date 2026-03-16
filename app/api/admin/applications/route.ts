@@ -70,7 +70,7 @@ export async function PATCH(req: NextRequest) {
 
     if (action === "APPROVED") {
         await prisma.$executeRaw`
-            UPDATE "User" SET role = 'CREATOR'::"Role", "updatedAt" = ${now}
+            UPDATE "User" SET role = 'CREATOR'::"Role", "avatarUrl" = '/creator.png', "updatedAt" = ${now}
             WHERE id = ${userId}
         `;
     }

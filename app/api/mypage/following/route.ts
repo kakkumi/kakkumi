@@ -14,6 +14,7 @@ export async function GET() {
             nickname: string | null;
             name: string;
             avatarUrl: string | null;
+            role: string;
             themeCount: number;
         }[]>`
             SELECT
@@ -21,6 +22,7 @@ export async function GET() {
                 u.nickname,
                 u.name,
                 u."avatarUrl",
+                u.role::text AS role,
                 COUNT(DISTINCT t.id)::int AS "themeCount",
                 MIN(f."createdAt") AS "followedAt"
             FROM "Follow" f
@@ -28,7 +30,7 @@ export async function GET() {
             LEFT JOIN "Theme" t ON t."creatorId" = u.id AND t.status = 'PUBLISHED'
             WHERE f."followerId" = ${session.dbId}
               AND u."deletedAt" IS NULL
-            GROUP BY u.id, u.nickname, u.name, u."avatarUrl"
+            GROUP BY u.id, u.nickname, u.name, u."avatarUrl", u.role
             ORDER BY "followedAt" DESC
         `;
 

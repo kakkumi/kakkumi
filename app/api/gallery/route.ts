@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
             id: string; userId: string; themeName: string; description: string | null;
             images: string[]; storeLink: string | null; themeId: string | null; createdAt: Date;
             userNickname: string | null; userName: string; userAvatar: string | null; userImage: string | null;
+            userRole: string;
             likeCount: bigint; commentCount: bigint;
         };
 
@@ -26,26 +27,28 @@ export async function GET(req: NextRequest) {
             ? await prisma.$queryRaw<PostRow[]>`
                 SELECT p.id, p."userId", p."themeName", p.description, p.images, p."storeLink", p."themeId", p."createdAt",
                        u.nickname AS "userNickname", u.name AS "userName", u."avatarUrl" AS "userAvatar", u.image AS "userImage",
+                       u.role::text AS "userRole",
                        COUNT(DISTINCT l.id) AS "likeCount",
                        COUNT(DISTINCT c.id) FILTER (WHERE c."isDeleted" = false) AS "commentCount"
                 FROM "GalleryPost" p
                 JOIN "User" u ON p."userId" = u.id
                 LEFT JOIN "GalleryLike" l ON l."postId" = p.id
                 LEFT JOIN "GalleryComment" c ON c."postId" = p.id
-                GROUP BY p.id, u.nickname, u.name, u."avatarUrl", u.image
+                GROUP BY p.id, u.nickname, u.name, u."avatarUrl", u.image, u.role
                 ORDER BY "likeCount" DESC, p."createdAt" DESC
                 LIMIT ${limit} OFFSET ${offset}
               `
             : await prisma.$queryRaw<PostRow[]>`
                 SELECT p.id, p."userId", p."themeName", p.description, p.images, p."storeLink", p."themeId", p."createdAt",
                        u.nickname AS "userNickname", u.name AS "userName", u."avatarUrl" AS "userAvatar", u.image AS "userImage",
+                       u.role::text AS "userRole",
                        COUNT(DISTINCT l.id) AS "likeCount",
                        COUNT(DISTINCT c.id) FILTER (WHERE c."isDeleted" = false) AS "commentCount"
                 FROM "GalleryPost" p
                 JOIN "User" u ON p."userId" = u.id
                 LEFT JOIN "GalleryLike" l ON l."postId" = p.id
                 LEFT JOIN "GalleryComment" c ON c."postId" = p.id
-                GROUP BY p.id, u.nickname, u.name, u."avatarUrl", u.image
+                GROUP BY p.id, u.nickname, u.name, u."avatarUrl", u.image, u.role
                 ORDER BY p."createdAt" DESC
                 LIMIT ${limit} OFFSET ${offset}
               `;

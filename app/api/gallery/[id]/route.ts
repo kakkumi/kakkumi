@@ -13,11 +13,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
             id: string; userId: string; themeName: string; description: string | null;
             images: string[]; storeLink: string | null; themeId: string | null; createdAt: Date;
             userNickname: string | null; userName: string; userAvatar: string | null; userImage: string | null;
+            userRole: string;
             likeCount: bigint; commentCount: bigint;
         };
         const rows = await prisma.$queryRaw<PostDetail[]>`
             SELECT p.id, p."userId", p."themeName", p.description, p.images, p."storeLink", p."themeId", p."createdAt",
                    u.nickname AS "userNickname", u.name AS "userName", u."avatarUrl" AS "userAvatar", u.image AS "userImage",
+                   u.role::text AS "userRole",
                    COUNT(DISTINCT l.id) AS "likeCount",
                    COUNT(DISTINCT c.id) FILTER (WHERE c."isDeleted" = false) AS "commentCount"
             FROM "GalleryPost" p
@@ -25,7 +27,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
             LEFT JOIN "GalleryLike" l ON l."postId" = p.id
             LEFT JOIN "GalleryComment" c ON c."postId" = p.id
             WHERE p.id = ${id}
-            GROUP BY p.id, u.nickname, u.name, u."avatarUrl", u.image
+            GROUP BY p.id, u.nickname, u.name, u."avatarUrl", u.image, u.role
         `;
         if (rows.length === 0) return NextResponse.json({ error: "게시글을 찾을 수 없습니다." }, { status: 404 });
 
@@ -45,19 +47,21 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         type CommentRow = {
             id: string; content: string; isDeleted: boolean; createdAt: Date; parentId: string | null;
             userId: string; userNickname: string | null; userName: string; userAvatar: string | null; userImage: string | null;
+            userRole: string;
             reportCount: bigint; myReported: boolean;
         };
         const comments = await prisma.$queryRaw<CommentRow[]>`
             SELECT c.id, c.content, c."isDeleted", c."createdAt", c."parentId",
                    c."userId", u.nickname AS "userNickname", u.name AS "userName",
                    u."avatarUrl" AS "userAvatar", u.image AS "userImage",
+                   u.role::text AS "userRole",
                    COUNT(r.id) AS "reportCount",
                    BOOL_OR(r."reporterId" = ${myId ?? ''}) AS "myReported"
             FROM "GalleryComment" c
             JOIN "User" u ON c."userId" = u.id
             LEFT JOIN "GalleryCommentReport" r ON r."commentId" = c.id
             WHERE c."postId" = ${id}
-            GROUP BY c.id, u.nickname, u.name, u."avatarUrl", u.image
+            GROUP BY c.id, u.nickname, u.name, u."avatarUrl", u.image, u.role
             ORDER BY c."createdAt" ASC
         `;
 

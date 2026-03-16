@@ -94,14 +94,18 @@ export default function CreatorProfileClient({ creatorId }: { creatorId: string 
     if (error || !creator) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center gap-3">
-                <p className="text-[16px]" style={{ color: "#1c1c1e" }}>크리에이터를 찾을 수 없습니다.</p>
+                <p className="text-[16px]" style={{ color: "#1c1c1e" }}>사용자를 찾을 수 없습니다.</p>
                 <button onClick={() => router.back()} className="text-[13px]" style={{ color: "#8e8e93" }}>← 뒤로 가기</button>
             </div>
         );
     }
 
     const displayName = creator.nickname ?? creator.name;
-    const avatarSrc = creator.avatarUrl ?? creator.image;
+    // role 기반 아바타: CREATOR/ADMIN → creator.png, USER → avatarUrl(PRO 커스텀) or user.png
+    const avatarSrc =
+        creator.role === "CREATOR" || creator.role === "ADMIN"
+            ? "/creator.png"
+            : (creator.avatarUrl ?? creator.image ?? "/user.png");
 
     return (
         <div className="min-h-screen" style={{ background: "#f3f3f3" }}>
@@ -132,21 +136,18 @@ export default function CreatorProfileClient({ creatorId }: { creatorId: string 
                         {/* 아바타 */}
                         <div
                             className="relative shrink-0 rounded-full overflow-hidden"
-                            style={{ width: 80, height: 80, background: "linear-gradient(135deg, #FF9500, #FF6B00)" }}
+                            style={{ width: 80, height: 80, background: "#e7e5e4" }}
                         >
-                            {avatarSrc ? (
-                                <Image src={avatarSrc} alt={displayName} fill className="object-cover" />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                    <span className="text-[28px] font-bold text-white">{displayName[0]}</span>
-                                </div>
-                            )}
+                            <Image src={avatarSrc} alt={displayName} fill className="object-cover" />
                         </div>
 
                         {/* 정보 */}
                         <div className="flex-1">
                             <div className="flex items-center gap-3 flex-wrap">
                                 <h1 className="text-[22px] font-extrabold" style={{ color: "#1c1c1e" }}>{displayName}</h1>
+                                {creator.role === "CREATOR" && (
+                                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(255,149,0,0.12)", color: "#FF9500" }}>크리에이터</span>
+                                )}
                                 {creator.role === "ADMIN" && (
                                     <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#FF3B30", color: "#fff" }}>관리자</span>
                                 )}

@@ -10,7 +10,7 @@ export async function GET(
     const session = await getServerSession();
 
     try {
-        // 크리에이터 정보
+        // 유저 정보 (role 무관하게 조회)
         const creatorRows = await prisma.$queryRaw<{
             id: string;
             nickname: string | null;
@@ -22,7 +22,7 @@ export async function GET(
         }[]>`
             SELECT id, nickname, name, "avatarUrl", image, role::text, "createdAt"
             FROM "User"
-            WHERE id = ${creatorId} AND "deletedAt" IS NULL AND role IN ('CREATOR', 'ADMIN')
+            WHERE id = ${creatorId} AND "deletedAt" IS NULL
             LIMIT 1
         `;
 

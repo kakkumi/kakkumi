@@ -46,9 +46,10 @@ type Props = {
     sidebarMenus: SidebarMenu[];
     createdAt?: string | null;
     credit?: number;
+    isPro?: boolean;
 };
 
-export default function MyPageClient({ session, purchasedCount: _purchasedCount, sidebarMenus, createdAt, credit: _credit = 0 }: Props) {
+export default function MyPageClient({ session, purchasedCount: _purchasedCount, sidebarMenus, createdAt, credit: _credit = 0, isPro = false }: Props) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const menuFromUrl = searchParams.get("menu") ?? "";
@@ -276,7 +277,7 @@ export default function MyPageClient({ session, purchasedCount: _purchasedCount,
     const isSubInfoMenu = activeMenu === "결제 정보";
     const isSubPaymentsMenu = activeMenu === "결제 내역";
 
-    type FollowingUser = { id: string; nickname: string | null; name: string; avatarUrl: string | null; themeCount: number };
+    type FollowingUser = { id: string; nickname: string | null; name: string; avatarUrl: string | null; role: string; themeCount: number };
     const [followingList, setFollowingList] = useState<FollowingUser[]>([]);
     const [followingLoading, setFollowingLoading] = useState(false);
     const [unfollowingId, setUnfollowingId] = useState<string | null>(null);
@@ -409,13 +410,16 @@ export default function MyPageClient({ session, purchasedCount: _purchasedCount,
                                                 <div className="flex items-center gap-4 py-4">
                                                     {/* 프로필 이미지 */}
                                                     <button onClick={() => router.push(`/creator/${user.id}`)} className="shrink-0 w-10 h-10 rounded-full overflow-hidden flex items-center justify-center transition-all hover:opacity-75" style={{ background: "#e7e5e4" }}>
-                                                        {user.avatarUrl ? (
-                                                            <Image src={user.avatarUrl} alt={user.nickname ?? user.name} width={40} height={40} className="w-full h-full object-cover" unoptimized />
-                                                        ) : (
-                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#78716c" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                                                <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-                                                            </svg>
-                                                        )}
+                                                        <Image
+                                                            src={
+                                                                user.role === "CREATOR" || user.role === "ADMIN"
+                                                                    ? "/creator.png"
+                                                                    : (user.avatarUrl ?? "/user.png")
+                                                            }
+                                                            alt={user.nickname ?? user.name}
+                                                            width={40} height={40}
+                                                            className="w-full h-full object-cover"
+                                                        />
                                                     </button>
                                                     {/* 이름 + 테마 수 */}
                                                     <div className="flex flex-col gap-0.5 flex-1 min-w-0">
@@ -458,57 +462,84 @@ export default function MyPageClient({ session, purchasedCount: _purchasedCount,
                                         <span className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "#a8a29e" }}>프로필 이미지</span>
                                         <div className="flex-1 h-px" style={{ backgroundColor: "#e7e5e4" }} />
                                     </div>
-                                    <div className="flex items-center gap-6">
-                                        <button
-                                            type="button"
-                                            onClick={() => fileInputRef.current?.click()}
-                                            className="relative group shrink-0 rounded-full overflow-hidden flex items-center justify-center transition-opacity hover:opacity-80"
-                                            style={{ width: 72, height: 72, background: avatarPreview ? "transparent" : "#e7e5e4" }}
-                                        >
-                                            {avatarPreview ? (
-                                                <Image src={avatarPreview} alt={displayNickname} width={72} height={72} className="w-full h-full object-cover" unoptimized />
-                                            ) : (
-                                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                                    <circle cx="12" cy="8" r="4" />
-                                                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-                                                </svg>
-                                            )}
-                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full" style={{ background: "rgba(0,0,0,0.3)" }}>
-                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                                    <polyline points="17 8 12 3 7 8" />
-                                                    <line x1="12" y1="3" x2="12" y2="15" />
-                                                </svg>
-                                            </div>
-                                        </button>
-                                        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-                                        <div className="flex flex-col gap-2">
-                                            <div className="flex items-center gap-2">
-                                                <button type="button" onClick={() => fileInputRef.current?.click()} className="text-[12px] font-medium transition-opacity hover:opacity-60" style={{ color: "#78716c" }}>
-                                                    사진 선택
-                                                </button>
-                                                {avatarPreview && avatarPreview !== (session?.avatarUrl ?? null) && (
-                                                    <>
-                                                        <span style={{ color: "#e7e5e4" }}>·</span>
-                                                        <button type="button" onClick={() => handleAvatarSave(avatarPreview)} disabled={avatarSaving} className="text-[12px] font-semibold transition-opacity hover:opacity-60 disabled:opacity-30" style={{ color: "#FF9500" }}>
-                                                            {avatarSaving ? "저장 중..." : "저장"}
-                                                        </button>
-                                                    </>
+                                    {isPro ? (
+                                        /* PRO / ADMIN: 자유롭게 변경 가능 */
+                                        <div className="flex items-center gap-6">
+                                            <button
+                                                type="button"
+                                                onClick={() => fileInputRef.current?.click()}
+                                                className="relative group shrink-0 rounded-full overflow-hidden flex items-center justify-center transition-opacity hover:opacity-80"
+                                                style={{ width: 72, height: 72, background: avatarPreview ? "transparent" : "#e7e5e4" }}
+                                            >
+                                                {avatarPreview ? (
+                                                    <Image src={avatarPreview} alt={displayNickname} width={72} height={72} className="w-full h-full object-cover" unoptimized />
+                                                ) : (
+                                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                                        <circle cx="12" cy="8" r="4" />
+                                                        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                                                    </svg>
                                                 )}
-                                                {(avatarPreview ?? session?.avatarUrl) && (
-                                                    <>
-                                                        <span style={{ color: "#e7e5e4" }}>·</span>
-                                                        <button type="button" onClick={() => { setAvatarPreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; handleAvatarSave(null); }} disabled={avatarSaving} className="text-[12px] font-medium transition-opacity hover:opacity-60 disabled:opacity-30" style={{ color: "#ff3b30" }}>
-                                                            사진 제거
-                                                        </button>
-                                                    </>
-                                                )}
+                                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full" style={{ background: "rgba(0,0,0,0.3)" }}>
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                                        <polyline points="17 8 12 3 7 8" />
+                                                        <line x1="12" y1="3" x2="12" y2="15" />
+                                                    </svg>
+                                                </div>
+                                            </button>
+                                            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                                            <div className="flex flex-col gap-2">
+                                                <div className="flex items-center gap-2">
+                                                    <button type="button" onClick={() => fileInputRef.current?.click()} className="text-[12px] font-medium transition-opacity hover:opacity-60" style={{ color: "#78716c" }}>
+                                                        사진 선택
+                                                    </button>
+                                                    {avatarPreview && avatarPreview !== (session?.avatarUrl ?? null) && (
+                                                        <>
+                                                            <span style={{ color: "#e7e5e4" }}>·</span>
+                                                            <button type="button" onClick={() => handleAvatarSave(avatarPreview)} disabled={avatarSaving} className="text-[12px] font-semibold transition-opacity hover:opacity-60 disabled:opacity-30" style={{ color: "#FF9500" }}>
+                                                                {avatarSaving ? "저장 중..." : "저장"}
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                    {(avatarPreview ?? session?.avatarUrl) && (
+                                                        <>
+                                                            <span style={{ color: "#e7e5e4" }}>·</span>
+                                                            <button type="button" onClick={() => { setAvatarPreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; handleAvatarSave(null); }} disabled={avatarSaving} className="text-[12px] font-medium transition-opacity hover:opacity-60 disabled:opacity-30" style={{ color: "#ff3b30" }}>
+                                                                사진 제거
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                {avatarSuccess && <p className="text-[11px]" style={{ color: "#34c759" }}>✓ 프로필 사진이 저장되었습니다.</p>}
+                                                {avatarError && <p className="text-[11px]" style={{ color: "#ff3b30" }}>{avatarError}</p>}
+                                                {!avatarSuccess && !avatarError && <p className="text-[11px]" style={{ color: "#a8a29e" }}>JPG, PNG, GIF · 최대 2MB</p>}
                                             </div>
-                                            {avatarSuccess && <p className="text-[11px]" style={{ color: "#34c759" }}>✓ 프로필 사진이 저장되었습니다.</p>}
-                                            {avatarError && <p className="text-[11px]" style={{ color: "#ff3b30" }}>{avatarError}</p>}
-                                            {!avatarSuccess && !avatarError && <p className="text-[11px]" style={{ color: "#a8a29e" }}>JPG, PNG, GIF · 최대 2MB</p>}
                                         </div>
-                                    </div>
+                                    ) : session?.role === "CREATOR" ? (
+                                        /* 크리에이터: creator.png 고정 */
+                                        <div className="flex items-center gap-6">
+                                            <div className="relative shrink-0 rounded-full overflow-hidden" style={{ width: 72, height: 72, background: "#e7e5e4" }}>
+                                                <Image src="/creator.png" alt="크리에이터 프로필" width={72} height={72} className="w-full h-full object-cover" />
+                                            </div>
+                                            <div className="flex flex-col gap-1">
+                                                <p className="text-[13px] font-medium" style={{ color: "#1c1917" }}>크리에이터 기본 이미지</p>
+                                                <p className="text-[12px] leading-relaxed" style={{ color: "#a8a29e" }}>크리에이터는 기본 이미지가 적용됩니다.</p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        /* 일반 유저 (FREE): user.png 고정 */
+                                        <div className="flex items-center gap-6">
+                                            <div className="relative shrink-0 rounded-full overflow-hidden" style={{ width: 72, height: 72, background: "#e7e5e4" }}>
+                                                <Image src="/user.png" alt="기본 프로필" width={72} height={72} className="w-full h-full object-cover" />
+                                            </div>
+                                            <div className="flex flex-col gap-1">
+                                                <p className="text-[13px] font-medium" style={{ color: "#1c1917" }}>기본 프로필 이미지</p>
+                                                <p className="text-[12px] leading-relaxed" style={{ color: "#a8a29e" }}>
+                                                    <a href="/pricing" className="font-semibold" style={{ color: "#FF9500" }}>PRO 구독</a> 시 프로필 사진을 자유롭게 변경할 수 있습니다.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* 닉네임 */}
