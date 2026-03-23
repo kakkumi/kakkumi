@@ -6,6 +6,88 @@ import Image from "next/image";
 
 type Tab = "mine" | "purchased";
 
+// ...existing code...
+
+// ── 환불 모달 ──
+function RefundModal({
+    theme,
+    refundReason,
+    setRefundReason,
+    onClose,
+    onConfirm,
+    loading,
+}: {
+    theme: { name: string; price: number; purchaseId: string };
+    refundReason: string;
+    setRefundReason: (v: string) => void;
+    onClose: () => void;
+    onConfirm: () => void;
+    loading: boolean;
+}) {
+    // 배경 클릭 시 닫기
+    return (
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            style={{ background: "rgba(0,0,0,0.35)" }}
+            onClick={onClose}
+        >
+            <div
+                className="w-full max-w-[400px] mx-4 rounded-2xl flex flex-col"
+                style={{ background: "#fff", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}
+                onClick={e => e.stopPropagation()}
+            >
+                {/* 헤더 */}
+                <div className="px-6 pt-6 pb-4" style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+                    <p className="text-[11px] font-semibold tracking-widest uppercase mb-1" style={{ color: "#ff3b30" }}>환불 신청</p>
+                    <p className="text-[15px] font-semibold truncate" style={{ color: "#1c1917" }}>{theme.name}</p>
+                    <p className="text-[13px] mt-0.5" style={{ color: "#a8a29e" }}>환불 금액 {theme.price.toLocaleString()}원</p>
+                </div>
+
+                {/* 본문 */}
+                <div className="px-6 py-5 flex flex-col gap-4">
+                    <p className="text-[12px] leading-relaxed" style={{ color: "#a8a29e" }}>
+                        다운로드 전에만 환불이 가능합니다.<br />
+                        카드 결제는 원결제 수단으로, 적립금 결제는 적립금으로 환불됩니다.
+                    </p>
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-[11px] font-medium" style={{ color: "#78716c" }}>환불 사유 (선택)</label>
+                        <textarea
+                            value={refundReason}
+                            onChange={e => setRefundReason(e.target.value)}
+                            placeholder="환불 사유를 입력해주세요."
+                            rows={3}
+                            className="w-full px-0 py-2 text-[13px] outline-none resize-none bg-transparent"
+                            style={{ borderBottom: "1.5px solid #e7e5e4", color: "#1c1917" }}
+                            autoFocus
+                        />
+                    </div>
+                </div>
+
+                {/* 하단 버튼 */}
+                <div className="flex" style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
+                    <button
+                        onClick={onClose}
+                        className="flex-1 py-4 text-[14px] font-medium transition-opacity hover:opacity-50"
+                        style={{ color: "#a8a29e", borderRight: "1px solid rgba(0,0,0,0.06)" }}
+                    >
+                        취소
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        disabled={loading}
+                        className="flex-1 py-4 text-[14px] font-semibold transition-opacity hover:opacity-70 disabled:opacity-30"
+                        style={{ color: "#ff3b30" }}
+                    >
+                        {loading ? "처리 중..." : `${theme.price.toLocaleString()}원 환불`}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+type Tab = "mine" | "purchased";
+
 const TABS: { key: Tab; label: string }[] = [
     { key: "mine", label: "업로드" },
     { key: "purchased", label: "구매" },
@@ -60,7 +142,7 @@ export default function ThemeVaultTabs({ initialTab, onTabChange }: { initialTab
     const [downloadingId, setDownloadingId] = useState<string | null>(null);
     const [downloadError, setDownloadError] = useState<string | null>(null);
 
-    const [refundSelectedId, setRefundSelectedId] = useState<string | null>(null);
+    const [refundModalTheme, setRefundModalTheme] = useState<{ name: string; price: number; purchaseId: string } | null>(null);
     const [refundReason, setRefundReason] = useState("");
     const [refundingId, setRefundingId] = useState<string | null>(null);
     const [refundError, setRefundError] = useState("");
@@ -131,7 +213,7 @@ export default function ThemeVaultTabs({ initialTab, onTabChange }: { initialTab
             const result = await res.json() as { ok?: boolean; error?: string };
             if (!res.ok) { setRefundError(result.error ?? "환불 처리에 실패했습니다."); return; }
             setRefundSuccess("환불이 완료되었습니다. 영업일 기준 3~5일 내 환불됩니다.");
-            setRefundSelectedId(null); setRefundReason(""); loadData();
+            setRefundModalTheme(null); setRefundReason(""); loadData();
         } catch { setRefundError("환불 처리 중 오류가 발생했습니다."); }
         finally { setRefundingId(null); }
     };
@@ -296,7 +378,6 @@ export default function ThemeVaultTabs({ initialTab, onTabChange }: { initialTab
                         isPurchased && theme.price > 0 && !theme.isDownloaded &&
                         theme.purchasedAt != null &&
                         (now - new Date(theme.purchasedAt).getTime()) / DAY_MS <= REFUND_ALLOWED_DAYS;
-                    const isRefundOpen = refundSelectedId === (theme.purchaseId ?? theme.id);
 
                     // OS 판별
                     const ver = theme.versions?.[0];
@@ -361,11 +442,16 @@ export default function ThemeVaultTabs({ initialTab, onTabChange }: { initialTab
                                     )}
                                     {canRefund && (
                                         <button
-                                            onClick={() => { setRefundSelectedId(isRefundOpen ? null : (theme.purchaseId ?? theme.id)); setRefundError(""); setRefundSuccess(""); }}
+                                            onClick={() => {
+                                                setRefundModalTheme({ name: theme.name, price: theme.price, purchaseId: theme.purchaseId! });
+                                                setRefundReason("");
+                                                setRefundError("");
+                                                setRefundSuccess("");
+                                            }}
                                             className="text-[11px] transition-opacity hover:opacity-50"
-                                            style={{ color: isRefundOpen ? "#ff3b30" : "#a8a29e" }}
+                                            style={{ color: "#a8a29e" }}
                                         >
-                                            {isRefundOpen ? "취소" : "환불"}
+                                            환불
                                         </button>
                                     )}
                                     {isPurchased && (
@@ -386,35 +472,6 @@ export default function ThemeVaultTabs({ initialTab, onTabChange }: { initialTab
                                 </div>
                             </div>
 
-                            {/* 환불 폼 */}
-                            {isRefundOpen && theme.purchaseId && (
-                                <div className="pb-4 pl-[58px] flex flex-col gap-2">
-                                    <p className="text-[11px]" style={{ color: "#c8c5c1" }}>
-                                        다운로드 전에만 환불 가능 · 결제 수단으로 환불
-                                    </p>
-                                    <textarea
-                                        value={refundReason}
-                                        onChange={e => setRefundReason(e.target.value)}
-                                        placeholder="환불 사유 (선택)"
-                                        rows={2}
-                                        className="w-full px-0 py-1.5 text-[12px] outline-none resize-none bg-transparent"
-                                        style={{ borderBottom: "1px solid #ece9e6", color: "#1c1917" }}
-                                    />
-                                    <div className="flex items-center gap-4">
-                                        <button onClick={() => { setRefundSelectedId(null); setRefundReason(""); }}
-                                            className="text-[12px] transition-opacity hover:opacity-50"
-                                            style={{ color: "#c8c5c1" }}>취소</button>
-                                        <button
-                                            onClick={() => handleRefund(theme.purchaseId!)}
-                                            disabled={refundingId === theme.purchaseId}
-                                            className="text-[12px] font-medium transition-opacity hover:opacity-60 disabled:opacity-30"
-                                            style={{ color: "#ff3b30" }}>
-                                            {refundingId === theme.purchaseId ? "처리 중..." : `${theme.price.toLocaleString()}원 환불 신청`}
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-
                             {idx < themes.length - 1 && <div style={{ height: 1, background: "rgba(0,0,0,0.1)" }} />}
                         </div>
                     );
@@ -428,6 +485,18 @@ export default function ThemeVaultTabs({ initialTab, onTabChange }: { initialTab
 
     return (
         <div className="flex flex-col">
+            {/* 환불 모달 */}
+            {refundModalTheme && (
+                <RefundModal
+                    theme={refundModalTheme}
+                    refundReason={refundReason}
+                    setRefundReason={setRefundReason}
+                    onClose={() => { setRefundModalTheme(null); setRefundReason(""); setRefundError(""); }}
+                    onConfirm={() => handleRefund(refundModalTheme.purchaseId)}
+                    loading={refundingId === refundModalTheme.purchaseId}
+                />
+            )}
+
             {/* 탭 스위처 */}
             <div className="flex items-center gap-0 mb-5">
                 {TABS.map((tab, i) => {

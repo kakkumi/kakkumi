@@ -18,6 +18,103 @@ const STATUS_LABEL: Record<string, { label: string; color: string; bg: string }>
     PENDING:   { label: "대기 중",   color: "#FF9500", bg: "rgba(255,149,0,0.12)" },
 };
 
+function RefundModal({
+    purchase,
+    reason,
+    setReason,
+    refundingId,
+    error,
+    onRefund,
+    onClose,
+}: {
+    purchase: PurchaseItem;
+    reason: string;
+    setReason: (v: string) => void;
+    refundingId: string | null;
+    error: string;
+    onRefund: (id: string) => void;
+    onClose: () => void;
+}) {
+    return (
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            style={{ background: "rgba(0,0,0,0.35)" }}
+            onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+        >
+            <div
+                className="w-full max-w-[400px] mx-4 rounded-2xl p-6 flex flex-col gap-5"
+                style={{ background: "#fff", boxShadow: "0 8px 40px rgba(0,0,0,0.13)" }}
+            >
+                {/* 헤더 */}
+                <div className="flex items-start justify-between">
+                    <div>
+                        <p className="text-[11px] font-semibold tracking-[0.12em] uppercase mb-1" style={{ color: "#ff3b30" }}>환불 신청</p>
+                        <p className="text-[16px] font-bold leading-snug" style={{ color: "#1c1917" }}>{purchase.themeTitle}</p>
+                    </div>
+                    <button onClick={onClose} className="mt-0.5 opacity-40 hover:opacity-70 transition-opacity">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1c1917" strokeWidth="2" strokeLinecap="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+
+                {/* 안내 */}
+                <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl"
+                    style={{ background: "rgba(255,149,0,0.07)", border: "1px solid rgba(255,149,0,0.18)" }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FF9500" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
+                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    <p className="text-[11px] leading-relaxed" style={{ color: "#78716c" }}>
+                        다운로드 전에만 환불이 가능합니다. 카드 결제는 원결제 수단으로, 적립금 결제는 적립금으로 환불됩니다.
+                    </p>
+                </div>
+
+                {/* 환불 금액 */}
+                <div className="flex items-center justify-between">
+                    <span className="text-[13px]" style={{ color: "#78716c" }}>환불 금액</span>
+                    <span className="text-[16px] font-bold" style={{ color: "#1c1917" }}>
+                        {purchase.amount.toLocaleString()}원
+                    </span>
+                </div>
+
+                <div className="h-px" style={{ background: "#f5f5f4" }} />
+
+                {/* 사유 */}
+                <div>
+                    <label className="text-[11px] font-semibold uppercase tracking-wide mb-2 block" style={{ color: "#a8a29e" }}>환불 사유 (선택)</label>
+                    <textarea
+                        value={reason}
+                        onChange={e => setReason(e.target.value)}
+                        placeholder="환불 사유를 입력해주세요."
+                        rows={3}
+                        className="w-full px-3 py-2.5 text-[13px] outline-none resize-none rounded-xl"
+                        style={{ background: "#fafaf9", border: "1px solid #e7e5e4", color: "#1c1917" }}
+                    />
+                </div>
+
+                {error && <p className="text-[12px]" style={{ color: "#ff3b30" }}>⚠ {error}</p>}
+
+                {/* 버튼 */}
+                <div className="flex gap-2">
+                    <button
+                        onClick={onClose}
+                        className="flex-1 py-2.5 rounded-xl text-[13px] font-semibold transition-opacity hover:opacity-60"
+                        style={{ background: "#f5f5f4", color: "#78716c" }}>
+                        취소
+                    </button>
+                    <button
+                        onClick={() => onRefund(purchase.id)}
+                        disabled={refundingId === purchase.id}
+                        className="flex-1 py-2.5 rounded-xl text-[13px] font-semibold transition-opacity hover:opacity-70 disabled:opacity-30"
+                        style={{ background: "#ff3b30", color: "#fff" }}>
+                        {refundingId === purchase.id ? "처리 중..." : "환불 신청"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function OrderPage() {
     const [purchases, setPurchases] = useState<PurchaseItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -62,6 +159,19 @@ export default function OrderPage() {
 
     return (
         <>
+            {/* 환불 모달 */}
+            {selectedId && purchases.find(p => p.id === selectedId) && (
+                <RefundModal
+                    purchase={purchases.find(p => p.id === selectedId)!}
+                    reason={reason}
+                    setReason={setReason}
+                    refundingId={refundingId}
+                    error={error}
+                    onRefund={handleRefund}
+                    onClose={() => { setSelectedId(null); setReason(""); setError(""); }}
+                />
+            )}
+
             <div className="flex items-end justify-between mb-8">
                 <div>
                     <p className="text-[11px] font-semibold tracking-[0.12em] uppercase mb-1.5" style={{ color: "#a8a29e" }}>Orders</p>
@@ -72,7 +182,6 @@ export default function OrderPage() {
                         <p className="text-[12px] mb-8" style={{ color: "#a8a29e" }}>다운로드 전에만 환불 신청이 가능하며, 원결제 수단으로 환불됩니다.</p>
 
             {success && <p className="text-[13px] mb-4" style={{ color: "#34c759" }}>✓ {success}</p>}
-            {error && <p className="text-[13px] mb-4" style={{ color: "#ff3b30" }}>{error}</p>}
 
             {loading ? (
                 <div className="flex items-center justify-center py-20">
@@ -89,7 +198,6 @@ export default function OrderPage() {
                 <div className="flex flex-col">
                     {purchases.map((p, idx) => {
                         const st = STATUS_LABEL[p.status] ?? { label: p.status, color: "#a8a29e", bg: "rgba(0,0,0,0.06)" };
-                        const isSelected = selectedId === p.id;
                         return (
                             <div key={p.id}>
                                 <div className="py-4">
@@ -119,55 +227,13 @@ export default function OrderPage() {
                                         {/* 환불 신청 버튼: 유료 & COMPLETED & 다운로드 안 한 경우만 */}
                                         {p.status === "COMPLETED" && p.amount > 0 && !p.isDownloaded && (
                                             <button
-                                                onClick={() => { setSelectedId(isSelected ? null : p.id); setError(""); setSuccess(""); }}
+                                                onClick={() => { setSelectedId(p.id); setError(""); setSuccess(""); setReason(""); }}
                                                 className="text-[12px] font-medium transition-opacity hover:opacity-50 shrink-0"
-                                                style={{ color: isSelected ? "#ff3b30" : "#78716c" }}>
-                                                {isSelected ? "취소" : "환불 신청"}
+                                                style={{ color: "#78716c" }}>
+                                                환불 신청
                                             </button>
                                         )}
                                     </div>
-
-                                    {/* 환불 신청 폼 */}
-                                    {isSelected && (
-                                        <div className="mt-4 flex flex-col gap-3">
-                                            <div className="flex items-center gap-3 mb-1">
-                                                <span className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "#ff3b30" }}>환불 신청</span>
-                                                <div className="flex-1 h-px" style={{ backgroundColor: "rgba(255,59,48,0.15)" }} />
-                                            </div>
-                                            <div className="flex items-start gap-2 px-3 py-2 rounded-xl"
-                                                style={{ background: "rgba(255,149,0,0.06)", border: "1px solid rgba(255,149,0,0.15)" }}>
-                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FF9500" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
-                                                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                                                </svg>
-                                                <p className="text-[11px] leading-relaxed" style={{ color: "#78716c" }}>
-                                                    다운로드 전에만 환불이 가능합니다. 카드 결제는 원결제 수단으로, 적립금 결제는 적립금으로 환불됩니다.
-                                                </p>
-                                            </div>
-                                            <textarea
-                                                value={reason}
-                                                onChange={e => setReason(e.target.value)}
-                                                placeholder="환불 사유를 입력해주세요. (선택)"
-                                                rows={2}
-                                                className="w-full px-0 py-2 text-[13px] outline-none resize-none bg-transparent"
-                                                style={{ borderBottom: "1.5px solid #d6d3d1", color: "#1c1917" }}
-                                            />
-                                            <p className="text-[11px]" style={{ color: "#a8a29e" }}>
-                                                환불 금액 {p.amount.toLocaleString()}원이 원결제 수단으로 환불됩니다. (적립금 결제 시 적립금으로 환불)
-                                            </p>
-                                            <div className="flex gap-3">
-                                                <button onClick={() => { setSelectedId(null); setReason(""); }}
-                                                    className="text-[13px] font-medium transition-opacity hover:opacity-50"
-                                                    style={{ color: "#78716c" }}>취소</button>
-                                                <button
-                                                    onClick={() => handleRefund(p.id)}
-                                                    disabled={refundingId === p.id}
-                                                    className="text-[13px] font-semibold transition-opacity hover:opacity-60 disabled:opacity-30"
-                                                    style={{ color: "#ff3b30" }}>
-                                                    {refundingId === p.id ? "처리 중..." : `${p.amount.toLocaleString()}원 환불 신청`}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
                                 {idx < purchases.length - 1 && <div className="h-px" style={{ background: "#f5f5f4" }} />}
                             </div>
