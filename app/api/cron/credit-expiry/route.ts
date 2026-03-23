@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { sendCreditExpiryWarning } from "@/lib/email";
 import { CREDIT_EXPIRY_WARN_DAYS, CREDIT_EXPIRY_WARN_DEDUP_DAYS, DAY_MS } from "@/lib/constants";
 import { nowKST } from "@/lib/date";
-import { notifyCreditExpiry } from "@/lib/notification";
+import { notifyCreditExpiry, createNotification } from "@/lib/notification";
 
 // 이 엔드포인트는 Vercel Cron Job에서 GET 요청으로 호출합니다.
 // Vercel은 Authorization: Bearer <CRON_SECRET> 헤더를 자동으로 추가합니다.
@@ -49,7 +49,6 @@ export async function GET(req: NextRequest) {
             const amount = Number(row.totalAmount);
             if (amount <= 0) continue;
 
-            // 적립금 차감
             await prisma.$executeRaw`
                 UPDATE "User" SET credit = GREATEST(0, credit - ${amount}), "updatedAt" = NOW()
                 WHERE id = ${row.userId}
@@ -58,19 +57,14 @@ export async function GET(req: NextRequest) {
                 INSERT INTO "PointHistory" (id, "userId", amount, type, memo, "createdAt")
                 VALUES (${crypto.randomUUID()}, ${row.userId}, ${-amount}, 'EXPIRY'::"PointType", ${'적립금 만료 소멸'}, ${now})
             `;
-            // 만료 알림
-            await prisma.$executeRaw`
-                INSERT INTO "Notification" (id, "userId", type, title, body, "linkUrl", "createdAt")
-                VALUES (
-                    ${crypto.randomUUID()},
-                    ${row.userId},
-                    'CREDIT_EXPIRY'::"NotificationType",
-                    ${'적립금 만료'},
-                    ${`${amount.toLocaleString()}원 적립금이 만료되어 소멸되었습니다.`},
-                    ${'/mypage'},
-                    ${now}
-                )
-            `;
+            // 만료 알림 — createNotification으로 사용자 알림 설정(creditExpiry) 존중
+            await createNotification({
+                userId: row.userId,
+                type: "CREDIT_EXPIRY",
+                title: "적립금 만료",
+                body: `${amount.toLocaleString()}원 적립금이 만료되어 소멸되었습니다.`,
+                linkUrl: "/mypage",
+            });
             expiredCount++;
         }
 

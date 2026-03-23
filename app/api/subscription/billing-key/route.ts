@@ -79,40 +79,49 @@ export async function POST(req: Request) {
 
     const chargeData = await chargeRes.json() as { paymentKey: string; status: string };
 
-    // 5. DB 저장
-    const subId = crypto.randomUUID();
-    const paymentId = crypto.randomUUID();
+    // 5. DB 저장 — 트랜잭션으로 원자성 보장
+    // Toss 결제는 이미 성공했으므로, DB 실패 시 paymentKey를 로그에 남겨 수동 처리 가능하도록 함
+    try {
+        const subId = crypto.randomUUID();
+        const paymentId = crypto.randomUUID();
 
-    if (existing) {
-        await prisma.$executeRaw`
-            UPDATE "Subscription"
-            SET status = 'ACTIVE'::"SubscriptionStatus",
-                "billingKey" = ${billingKey},
-                "customerKey" = ${customerKey},
-                "cardCompany" = ${cardCompany},
-                "cardNumber" = ${cardNumber},
-                "cancelledAt" = NULL,
-                "startedAt" = ${now},
-                "nextBillingAt" = ${periodEnd},
-                "updatedAt" = ${now}
-            WHERE "userId" = ${session.dbId}
-        `;
-        const sub = await prisma.subscription.findUnique({ where: { userId: session.dbId } });
-        if (sub) {
-            await prisma.$executeRaw`
-                INSERT INTO "SubscriptionPayment" (id, "subscriptionId", "userId", amount, status, "pgTransactionId", "periodStart", "periodEnd", "paidAt", "createdAt")
-                VALUES (${paymentId}, ${sub.id}, ${session.dbId}, ${amount}, 'COMPLETED'::"SubscriptionPaymentStatus", ${chargeData.paymentKey}, ${now}, ${periodEnd}, ${now}, ${now})
-            `;
-        }
-    } else {
-        await prisma.$executeRaw`
-            INSERT INTO "Subscription" (id, "userId", status, amount, "billingKey", "customerKey", "cardCompany", "cardNumber", "startedAt", "nextBillingAt", "createdAt", "updatedAt")
-            VALUES (${subId}, ${session.dbId}, 'ACTIVE'::"SubscriptionStatus", ${amount}, ${billingKey}, ${customerKey}, ${cardCompany}, ${cardNumber}, ${now}, ${periodEnd}, ${now}, ${now})
-        `;
-        await prisma.$executeRaw`
-            INSERT INTO "SubscriptionPayment" (id, "subscriptionId", "userId", amount, status, "pgTransactionId", "periodStart", "periodEnd", "paidAt", "createdAt")
-            VALUES (${paymentId}, ${subId}, ${session.dbId}, ${amount}, 'COMPLETED'::"SubscriptionPaymentStatus", ${chargeData.paymentKey}, ${now}, ${periodEnd}, ${now}, ${now})
-        `;
+        await prisma.$transaction(async (tx) => {
+            if (existing) {
+                await tx.$executeRaw`
+                    UPDATE "Subscription"
+                    SET status = 'ACTIVE'::"SubscriptionStatus",
+                        "billingKey" = ${billingKey},
+                        "customerKey" = ${customerKey},
+                        "cardCompany" = ${cardCompany},
+                        "cardNumber" = ${cardNumber},
+                        "cancelledAt" = NULL,
+                        "startedAt" = ${now},
+                        "nextBillingAt" = ${periodEnd},
+                        "updatedAt" = ${now}
+                    WHERE "userId" = ${session.dbId}
+                `;
+                await tx.$executeRaw`
+                    INSERT INTO "SubscriptionPayment" (id, "subscriptionId", "userId", amount, status, "pgTransactionId", "periodStart", "periodEnd", "paidAt", "createdAt")
+                    VALUES (${paymentId}, ${existing.id}, ${session.dbId}, ${amount}, 'COMPLETED'::"SubscriptionPaymentStatus", ${chargeData.paymentKey}, ${now}, ${periodEnd}, ${now}, ${now})
+                `;
+            } else {
+                await tx.$executeRaw`
+                    INSERT INTO "Subscription" (id, "userId", status, amount, "billingKey", "customerKey", "cardCompany", "cardNumber", "startedAt", "nextBillingAt", "createdAt", "updatedAt")
+                    VALUES (${subId}, ${session.dbId}, 'ACTIVE'::"SubscriptionStatus", ${amount}, ${billingKey}, ${customerKey}, ${cardCompany}, ${cardNumber}, ${now}, ${periodEnd}, ${now}, ${now})
+                `;
+                await tx.$executeRaw`
+                    INSERT INTO "SubscriptionPayment" (id, "subscriptionId", "userId", amount, status, "pgTransactionId", "periodStart", "periodEnd", "paidAt", "createdAt")
+                    VALUES (${paymentId}, ${subId}, ${session.dbId}, ${amount}, 'COMPLETED'::"SubscriptionPaymentStatus", ${chargeData.paymentKey}, ${now}, ${periodEnd}, ${now}, ${now})
+                `;
+            }
+        });
+    } catch (dbErr) {
+        // DB 저장 실패 — Toss 결제는 성공했으므로 paymentKey 로그 기록 후 오류 반환
+        console.error("[billing-key] DB 저장 실패. paymentKey:", chargeData.paymentKey, dbErr);
+        return NextResponse.json(
+            { error: "결제는 완료되었으나 서버 처리 중 오류가 발생했습니다. 고객센터에 문의해주세요.", paymentKey: chargeData.paymentKey },
+            { status: 500 }
+        );
     }
 
     return NextResponse.json({ ok: true });

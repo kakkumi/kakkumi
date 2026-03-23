@@ -63,7 +63,10 @@ export async function PATCH(req: NextRequest) {
         `;
 
         // 세션 쿠키 갱신
-        const sessionSecret = process.env.KAKAO_SESSION_SECRET!;
+        const sessionSecret = process.env.KAKAO_SESSION_SECRET;
+        if (!sessionSecret) {
+            return NextResponse.json({ error: "서버 설정 오류입니다." }, { status: 500 });
+        }
         const newPayload = {
             provider: session.provider,
             dbId: session.dbId,

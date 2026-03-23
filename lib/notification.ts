@@ -95,7 +95,7 @@ export async function notifyRefundComplete(userId: string, themeName: string) {
 export async function notifyNewReview(creatorId: string, themeName: string, themeId: string) {
     await createNotification({
         userId: creatorId,
-        type: "NEW_THEME",
+        type: "SYSTEM",
         title: "새 리뷰",
         body: `"${themeName}"에 새 리뷰가 등록되었습니다.`,
         linkUrl: `/store/${themeId}`,

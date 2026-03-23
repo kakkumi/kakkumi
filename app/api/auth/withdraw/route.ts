@@ -25,6 +25,16 @@ export async function DELETE(req: NextRequest) {
         `;
         const currentCredit = creditRows[0]?.credit ?? 0;
 
+        // ② ACTIVE 구독이 있으면 CANCELLED 처리 — 빌링키를 통한 추가 과금 방지
+        await prisma.$executeRaw`
+            UPDATE "Subscription"
+            SET status = 'CANCELLED'::"SubscriptionStatus",
+                "cancelledAt" = ${now},
+                "updatedAt"   = ${now}
+            WHERE "userId" = ${session.dbId}
+              AND status = 'ACTIVE'::"SubscriptionStatus"
+        `;
+
         // ② soft delete: deletedAt 설정 + 적립금 전액 소멸 + 개인정보 익명화
         await prisma.$executeRaw`
             UPDATE "User"

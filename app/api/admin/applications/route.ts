@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@/lib/session";
+import { requireAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import { sendCreatorApproved, sendCreatorRejected } from "@/lib/email";
 
 // 입점 신청 목록 조회 (관리자)
 export async function GET() {
-    const session = await getServerSession();
-    if (!session?.dbId || session.role !== "ADMIN") {
-        return NextResponse.json({ error: "권한 없음" }, { status: 403 });
-    }
+    const session = await requireAdmin();
+    if (!session) return NextResponse.json({ error: "권한 없음" }, { status: 403 });
 
     const rows = await prisma.$queryRaw<{
         id: string; status: string; reason: string; portfolio: string | null;
@@ -33,10 +31,8 @@ export async function GET() {
 
 // 신청 승인/반려 (관리자)
 export async function PATCH(req: NextRequest) {
-    const session = await getServerSession();
-    if (!session?.dbId || session.role !== "ADMIN") {
-        return NextResponse.json({ error: "권한 없음" }, { status: 403 });
-    }
+    const session = await requireAdmin();
+    if (!session) return NextResponse.json({ error: "권한 없음" }, { status: 403 });
 
     const { applicationId, action, adminNote } = (await req.json()) as {
         applicationId: string;

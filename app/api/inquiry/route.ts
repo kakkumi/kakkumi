@@ -13,7 +13,8 @@ export async function GET() {
             content: string; status: string; createdAt: Date; updatedAt: Date;
         }[]
     >`
-        SELECT * FROM "Inquiry"
+        SELECT id, "userId", category, title, content, status, "createdAt", "updatedAt"
+        FROM "Inquiry"
         WHERE "userId" = ${session.dbId}
         ORDER BY "createdAt" DESC
     `;
