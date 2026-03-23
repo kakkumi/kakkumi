@@ -15,27 +15,66 @@ const AUTH_REQUIRED = [
 const ADMIN_REQUIRED = ["/admin"];
 
 /**
- * 미들웨어 전용 세션 파싱 (서명 검증 없이 payload만 읽음)
- * 실제 인증/권한 검증은 각 API route의 getServerSession()에서 수행
- * Edge Runtime에서는 Node.js crypto 사용 불가이므로 payload 디코딩만 수행
+ * Edge Runtime용 WebCrypto API로 HMAC-SHA256 서명 검증
+ * Node.js crypto는 Edge Runtime에서 사용 불가이므로 SubtleCrypto 사용
  */
-function parseSessionPayload(token: string): { role: string; issuedAt: number } | null {
-    try {
-        const [payloadB64] = token.split(".");
-        if (!payloadB64) return null;
+async function verifySessionSignature(token: string, secret: string): Promise<boolean> {
+    const parts = token.split(".");
+    if (parts.length !== 2) return false;
+    const [payloadB64, signature] = parts;
 
-        // base64url → base64 변환 후 디코딩
+    // base64url → base64 변환 후 디코딩
+    const base64 = payloadB64.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+    let json: string;
+    try {
+        json = atob(padded);
+    } catch {
+        return false;
+    }
+
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+        "raw",
+        encoder.encode(secret),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"]
+    );
+    const sigBuffer = await crypto.subtle.sign("HMAC", key, encoder.encode(json));
+
+    // ArrayBuffer → base64url
+    const bytes = new Uint8Array(sigBuffer);
+    let binary = "";
+    for (const byte of bytes) binary += String.fromCharCode(byte);
+    const expectedSig = btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+
+    return signature === expectedSig;
+}
+
+/**
+ * 미들웨어 전용 세션 파싱 — 서명 검증 포함
+ * (이전에는 서명 없이 payload만 읽었으므로 변조 쿠키가 통과 가능했음)
+ */
+async function parseSessionPayload(
+    token: string,
+    secret: string
+): Promise<{ role: string; issuedAt: number } | null> {
+    try {
+        // 1) 서명 검증
+        const valid = await verifySessionSignature(token, secret);
+        if (!valid) return null;
+
+        // 2) payload 디코딩
+        const [payloadB64] = token.split(".");
         const base64 = payloadB64.replace(/-/g, "+").replace(/_/g, "/");
         const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
         const json = atob(padded);
-
         const parsed = JSON.parse(json) as { role?: string; issuedAt?: number };
         if (!parsed.role || !parsed.issuedAt) return null;
 
-        // 만료 검증
-        if (Date.now() - parsed.issuedAt > SESSION_MAX_AGE_SECONDS * 1000) {
-            return null;
-        }
+        // 3) 만료 검증
+        if (Date.now() - parsed.issuedAt > SESSION_MAX_AGE_SECONDS * 1000) return null;
 
         return { role: parsed.role, issuedAt: parsed.issuedAt };
     } catch {
@@ -43,7 +82,7 @@ function parseSessionPayload(token: string): { role: string; issuedAt: number } 
     }
 }
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl;
 
     const isAdminPath = ADMIN_REQUIRED.some((p) => pathname.startsWith(p));
@@ -59,7 +98,13 @@ export function middleware(req: NextRequest) {
         return NextResponse.redirect(loginUrl);
     }
 
-    const session = parseSessionPayload(sessionCookie);
+    const sessionSecret = process.env.KAKAO_SESSION_SECRET;
+    if (!sessionSecret) {
+        // 환경변수 미설정 시 접근 차단
+        return NextResponse.redirect(new URL("/", req.url));
+    }
+
+    const session = await parseSessionPayload(sessionCookie, sessionSecret);
 
     if (!session) {
         const loginUrl = new URL("/", req.url);

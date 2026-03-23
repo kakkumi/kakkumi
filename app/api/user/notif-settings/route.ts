@@ -1,20 +1,15 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { DEFAULT_NOTIF_SETTINGS, type NotifSettings, type NotifKey } from "@/lib/notifTypes";
 
-export const DEFAULT_NOTIF_SETTINGS = {
-    purchaseComplete: true,
-    newReview: true,
-    inquiryReply: true,
-    newTheme: false,
-    promotionEvent: false,
-    serviceBroadcast: true,
-    followAlert: true,
-    creditExpiry: true,
-    priceDropAlert: false,
-};
+export { DEFAULT_NOTIF_SETTINGS, type NotifSettings };
 
-export type NotifSettings = typeof DEFAULT_NOTIF_SETTINGS;
+// 허용된 알림 설정 키 목록 (화이트리스트)
+const ALLOWED_NOTIF_KEYS = new Set<NotifKey>([
+    "purchaseComplete", "newReview", "inquiryReply", "newTheme",
+    "promotionEvent", "serviceBroadcast", "followAlert", "creditExpiry", "priceDropAlert",
+]);
 
 // GET - 알림 설정 불러오기
 export async function GET() {
@@ -47,8 +42,17 @@ export async function PATCH(req: Request) {
     }
 
     try {
-        const body = await req.json() as Partial<NotifSettings>;
-        const merged = { ...DEFAULT_NOTIF_SETTINGS, ...body };
+        const body = await req.json() as Record<string, unknown>;
+
+        // 화이트리스트 검증: 허용된 키만 처리, 임의 키 주입 차단
+        const sanitized: Partial<NotifSettings> = {};
+        for (const key of ALLOWED_NOTIF_KEYS) {
+            if (key in body && typeof body[key] === "boolean") {
+                sanitized[key] = body[key] as boolean;
+            }
+        }
+
+        const merged: NotifSettings = { ...DEFAULT_NOTIF_SETTINGS, ...sanitized };
 
         await prisma.$executeRaw`
             UPDATE "User"

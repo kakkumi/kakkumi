@@ -3,6 +3,7 @@ import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { uploadFile } from "@/lib/storage";
 import { nowKST } from "@/lib/date";
+import { validateImage, validateThemeFile } from "@/lib/fileValidation";
 
 // 테마 수정 제출 (관리자 승인 필요)
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -48,20 +49,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         if (!title) return NextResponse.json({ error: "테마 이름을 입력해주세요." }, { status: 400 });
         if (!description) return NextResponse.json({ error: "테마 설명을 입력해주세요." }, { status: 400 });
 
-        const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-        const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
-        const MAX_THEME_SIZE = 30 * 1024 * 1024;
-
-        const validateImage = (file: File, label: string) => {
-            if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-                return NextResponse.json({ error: `${label}은 JPG, PNG, WEBP, GIF만 허용됩니다.` }, { status: 400 });
-            }
-            if (file.size > MAX_IMAGE_SIZE) {
-                return NextResponse.json({ error: `${label}은 5MB 이하여야 합니다.` }, { status: 400 });
-            }
-            return null;
-        };
-
+        // 파일 검증은 공통 유틸(lib/fileValidation.ts) 사용
         const now = nowKST();
         const ext = (f: File) => f.name.split(".").pop() ?? "bin";
 
@@ -147,9 +135,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
                 const pendingMyThemeId: string | null = optMyThemeId;
 
                 if (optFile && optFile.size > 0) {
-                    if (optFile.size > MAX_THEME_SIZE) {
-                        return NextResponse.json({ error: `테마 파일은 30MB 이하여야 합니다.` }, { status: 400 });
-                    }
+                    // 파일 크기 검증 (공통 유틸)
+                    const fileErr = validateThemeFile(optFile);
+                    if (fileErr) return fileErr;
                     const osFolder = optOs === "android" ? "android" : "ios";
                     pendingFileUrl = await uploadFile("theme-files", `${themeId}/${osFolder}/${optId}_edit.${ext(optFile)}`, optFile);
                 } else if (optMyThemeId) {

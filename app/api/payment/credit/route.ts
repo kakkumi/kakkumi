@@ -3,7 +3,8 @@ import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { sendPurchaseReceipt } from "@/lib/email";
 import { nowKST } from "@/lib/date";
-import { getPurchaseCredit, CREDIT_EXPIRY_DAYS, DAY_MS } from "@/lib/constants";
+import { validateVersionId, checkAlreadyPurchased, grantPurchaseCredit } from "@/lib/purchase";
+import { notifyPurchaseComplete } from "@/lib/notification";
 
 // 적립금으로 테마 구매
 export async function POST(req: NextRequest) {
@@ -25,24 +26,11 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "무료 테마는 적립금 결제가 필요하지 않습니다." }, { status: 400 });
     }
 
-    // versionId가 실제 ThemeVersion에 존재하는지 확인
-    let versionId: string | null = null;
-    if (rawVersionId) {
-        const verCheck = await prisma.$queryRaw<{ id: string }[]>`
-            SELECT id FROM "ThemeVersion" WHERE id = ${rawVersionId} LIMIT 1
-        `;
-        versionId = verCheck.length > 0 ? rawVersionId : null;
-    }
+    // versionId 검증 (공통 유틸)
+    const versionId = await validateVersionId(rawVersionId);
 
-    // 동일 테마 이미 구매 여부 확인
-    const existingRows = await prisma.$queryRaw<{ id: string }[]>`
-        SELECT id FROM "Purchase"
-        WHERE "buyerId" = ${session.dbId}
-          AND "themeId" = ${themeId}
-          AND status = 'COMPLETED'::"PurchaseStatus"
-        LIMIT 1
-    `;
-    if (existingRows.length > 0) {
+    // 중복 구매 확인 (공통 유틸)
+    if (await checkAlreadyPurchased(session.dbId, themeId)) {
         return NextResponse.json({ error: "이미 구매한 옵션입니다." }, { status: 409 });
     }
 
@@ -73,30 +61,11 @@ export async function POST(req: NextRequest) {
         VALUES (${historyId}, ${session.dbId}, ${-theme.price}, 'PURCHASE_USE'::"PointType", ${`${theme.title} 구매 (-${theme.price}원)`}, ${now})
     `;
 
-    // 구매 적립금 지급
-    const reward = getPurchaseCredit(theme.price);
-    if (reward > 0) {
-        const expiresAt = new Date(now.getTime() + CREDIT_EXPIRY_DAYS * DAY_MS);
-        await prisma.$executeRaw`
-            UPDATE "User" SET credit = credit + ${reward}, "updatedAt" = NOW() WHERE id = ${session.dbId}
-        `;
-        await prisma.$executeRaw`
-            INSERT INTO "PointHistory" (id, "userId", amount, type, memo, "expiresAt", "createdAt")
-            VALUES (${crypto.randomUUID()}, ${session.dbId}, ${reward}, 'ADMIN_GRANT'::"PointType", ${`구매 적립 (+${reward}원)`}, ${expiresAt}, ${now})
-        `;
-    }
+    // 구매 적립금 지급 (공통 유틸)
+    await grantPurchaseCredit(session.dbId, theme.price, now);
 
-    // 구매 완료 알림
-    await prisma.$executeRaw`
-        INSERT INTO "Notification" (id, "userId", type, title, body, "linkUrl", "createdAt")
-        VALUES (
-            ${crypto.randomUUID()}, ${session.dbId},
-            'PURCHASE_COMPLETE'::"NotificationType",
-            ${'구매 완료'},
-            ${`"${theme.title}" 구매가 완료되었습니다.`},
-            ${'/mypage'}, ${now}
-        )
-    `;
+    // 구매 완료 알림 (공통 유틸 — 알림 설정 체크 포함)
+    await notifyPurchaseComplete(session.dbId, theme.title, themeId);
 
     // 영수증 이메일 발송
     const userRows = await prisma.$queryRaw<{ email: string | null; name: string; nickname: string | null }[]>`

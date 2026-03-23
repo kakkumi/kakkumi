@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NotificationType } from "@prisma/client";
-import { DEFAULT_NOTIF_SETTINGS, type NotifSettings } from "@/app/api/user/notif-settings/route";
+import { DEFAULT_NOTIF_SETTINGS, type NotifSettings } from "@/lib/notifTypes";
 
 // NotificationType → NotifSettings 키 매핑
 const NOTIF_TYPE_TO_KEY: Partial<Record<NotificationType, keyof NotifSettings>> = {
@@ -13,6 +13,9 @@ const NOTIF_TYPE_TO_KEY: Partial<Record<NotificationType, keyof NotifSettings>> 
     FOLLOW: "followAlert",
     CREDIT_EXPIRY: "creditExpiry",
 };
+
+// 야간에 차단할 비중요 알림 타입 (22:00 ~ 08:00 KST)
+const NIGHT_BLOCKABLE_TYPES = new Set<NotificationType>(["FOLLOW", "NEW_THEME"]);
 
 async function getUserNotifSettings(userId: string): Promise<NotifSettings> {
     try {
@@ -40,7 +43,7 @@ type CreateNotifOptions = {
     title: string;
     body: string;
     linkUrl?: string;
-    /** true이면 알림 설정 무시하고 항상 생성 (법적 필수 공지 등) */
+    /** true이면 알림 설정/야간 차단 무시하고 항상 생성 (법적 필수 공지 등) */
     force?: boolean;
 };
 
@@ -53,6 +56,9 @@ export async function createNotification({
     force = false,
 }: CreateNotifOptions): Promise<void> {
     if (!force) {
+        // 야간 비중요 알림 차단
+        if (isNightTime() && NIGHT_BLOCKABLE_TYPES.has(type)) return;
+
         const settings = await getUserNotifSettings(userId);
         const settingKey = NOTIF_TYPE_TO_KEY[type];
         if (settingKey && !settings[settingKey]) return;
@@ -176,28 +182,27 @@ export async function notifyPriceDrop(userId: string, themeName: string, themeId
     `;
 }
 
-/** 팔로워 전체에게 신규 테마 알림 */
+/** 팔로워 전체에게 신규 테마 알림 — 단일 INSERT … SELECT 로 N+1 해소 */
 export async function notifyNewThemeToFollowers(creatorId: string, themeName: string, themeId: string) {
-    const followers = await prisma.$queryRaw<{ followerId: string; notifSettings: unknown }[]>`
-        SELECT f."followerId", u."notifSettings"
+    // 야간에는 마케팅성 알림 발송 안 함
+    if (isNightTime()) return;
+
+    // notifSettings->>'newTheme' = 'true' 인 팔로워에게만 한 번의 쿼리로 삽입
+    // 기본값(newTheme: false)이므로 명시적으로 true를 설정한 사용자만 수신
+    await prisma.$executeRaw`
+        INSERT INTO "Notification" (id, "userId", type, title, body, "linkUrl", "isRead", "createdAt")
+        SELECT
+            gen_random_uuid(),
+            f."followerId",
+            'NEW_THEME'::"NotificationType",
+            ${"새 테마가 등록됐어요!"},
+            ${`팔로우한 크리에이터가 "${themeName}" 테마를 등록했습니다.`},
+            ${`/store/${themeId}`},
+            false,
+            NOW()
         FROM "Follow" f
         JOIN "User" u ON u.id = f."followerId"
         WHERE f."followingId" = ${creatorId}
+          AND u."notifSettings"->>'newTheme' = 'true'
     `;
-
-    for (const follower of followers) {
-        const settings: NotifSettings = follower.notifSettings && typeof follower.notifSettings === "object"
-            ? { ...DEFAULT_NOTIF_SETTINGS, ...(follower.notifSettings as Partial<NotifSettings>) }
-            : DEFAULT_NOTIF_SETTINGS;
-
-        if (!settings.newTheme) continue;
-
-        await prisma.$executeRaw`
-            INSERT INTO "Notification" (id, "userId", type, title, body, "linkUrl", "isRead", "createdAt")
-            VALUES (gen_random_uuid(), ${follower.followerId}, 'NEW_THEME'::"NotificationType",
-                ${"새 테마가 등록됐어요!"},
-                ${`팔로우한 크리에이터가 "${themeName}" 테마를 등록했습니다.`},
-                ${`/store/${themeId}`}, false, NOW())
-        `;
-    }
 }

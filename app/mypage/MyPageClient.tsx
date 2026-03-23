@@ -18,6 +18,7 @@ import SubscriptionPaymentsPage from "./SubscriptionPaymentsPage";
 import { formatKST } from "@/lib/date";
 import { validateNickname } from "@/lib/nickname";
 import { WITHDRAW_CONFIRM_TEXT, AVATAR_MAX_SIZE_MB } from "@/lib/constants";
+import { type NotifSettings, type NotifKey, DEFAULT_NOTIF_SETTINGS } from "@/lib/notifTypes";
 
 type SidebarMenu = {
     category: string;
@@ -94,9 +95,6 @@ export default function MyPageClient({ session, purchasedCount: _purchasedCount,
     const [avatarSuccess, setAvatarSuccess] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // 알림 설정 상태
-    type NotifKey = "purchaseComplete" | "newReview" | "inquiryReply" | "newTheme" | "promotionEvent" | "serviceBroadcast" | "followAlert" | "creditExpiry" | "priceDropAlert";
-    type NotifSettings = Record<NotifKey, boolean>;
     const isCreatorOrAdmin = session?.role === "CREATOR" || session?.role === "ADMIN";
     const NOTIFICATION_GROUPS: { category: string; items: { key: NotifKey; label: string; desc: string }[] }[] = [
         { category: "구매 / 다운로드", items: [{ key: "purchaseComplete", label: "구매 완료 알림", desc: "테마 결제가 완료되면 알려드립니다." }] },
@@ -117,7 +115,7 @@ export default function MyPageClient({ session, purchasedCount: _purchasedCount,
         ]}] : []),
         { category: "서비스", items: [{ key: "serviceBroadcast", label: "공지 및 서비스 알림", desc: "카꾸미의 공지사항과 업데이트 소식을 알려드립니다." }] },
     ];
-    const [notifSettings, setNotifSettings] = useState<NotifSettings>({ purchaseComplete: true, newReview: true, inquiryReply: true, newTheme: false, promotionEvent: false, serviceBroadcast: true, followAlert: true, creditExpiry: true, priceDropAlert: false });
+    const [notifSettings, setNotifSettings] = useState<NotifSettings>(DEFAULT_NOTIF_SETTINGS);
     const [notifSaving, setNotifSaving] = useState(false);
     const [notifSaveSuccess, setNotifSaveSuccess] = useState(false);
     const [notifLoaded, setNotifLoaded] = useState(false);

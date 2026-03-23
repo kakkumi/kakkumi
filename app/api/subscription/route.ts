@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { resetUserAvatar } from "@/lib/subscription";
 
 // 구독 상태 조회
 export async function GET() {
@@ -54,12 +55,8 @@ export async function DELETE() {
             data: { status: "CANCELLED", cancelledAt: new Date() },
         });
 
-        // 프로필 사진 초기화 (role 기반)
-        const resetAvatarUrl = session.role === "CREATOR" ? "/creator.png" : null;
-        await prisma.$executeRaw`
-            UPDATE "User" SET "avatarUrl" = ${resetAvatarUrl}, "updatedAt" = NOW()
-            WHERE id = ${session.dbId}
-        `;
+        // 프로필 사진 초기화 (공통 유틸)
+        await resetUserAvatar(session.dbId, session.role);
 
         return NextResponse.json({ ok: true });
     } catch (e) {

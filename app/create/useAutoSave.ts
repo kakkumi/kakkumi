@@ -63,12 +63,13 @@ export function useAutoSave<T extends object>({
   const defaultAllowCreateRef = useRef(true);
   const allowCreateRef = externalAllowCreateRef ?? defaultAllowCreateRef;
   const enabledRef = useRef(enabled);
-  enabledRef.current = enabled; // 렌더 시점에 즉시 동기화
 
-  useEffect(() => { configRef.current = config; }, [config]);
-  useEffect(() => { osRef.current = os; }, [os]);
-  useEffect(() => { imageUploadsRef.current = imageUploads; }, [imageUploads]);
-  useEffect(() => { onCreatedRef.current = onCreated; }, [onCreated]);
+  // ref를 렌더 중 직접 동기화 — useEffect 사용 시 한 사이클 지연으로 stale 값 참조 가능
+  configRef.current = config;
+  osRef.current = os;
+  imageUploadsRef.current = imageUploads;
+  onCreatedRef.current = onCreated;
+  enabledRef.current = enabled;
 
   // 로컬스토리지 백업
   const backupToLocal = useCallback(() => {

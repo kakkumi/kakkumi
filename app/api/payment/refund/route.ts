@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { nowKST } from "@/lib/date";
 import { REFUND_ALLOWED_DAYS, CREDIT_EXPIRY_DAYS, DAY_MS } from "@/lib/constants";
 import { notifyRefundComplete } from "@/lib/notification";
+import { getTossAuthHeader } from "@/lib/toss";
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession();
@@ -55,17 +56,16 @@ export async function POST(req: NextRequest) {
         const isCardPayment = !!purchase.pgTransactionId;
 
         if (isCardPayment) {
-            const secretKey = process.env.TOSSPAYMENTS_SECRET_KEY;
-            if (!secretKey) {
+            const authHeader = getTossAuthHeader();
+            if (!authHeader) {
                 return NextResponse.json({ error: "결제 설정 오류입니다." }, { status: 500 });
             }
-            const encryptedSecretKey = Buffer.from(`${secretKey}:`).toString("base64");
             const cancelResponse = await fetch(
                 `https://api.tosspayments.com/v1/payments/${purchase.pgTransactionId}/cancel`,
                 {
                     method: "POST",
                     headers: {
-                        Authorization: `Basic ${encryptedSecretKey}`,
+                        Authorization: authHeader,
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({ cancelReason: reason ?? "고객 요청 환불" }),

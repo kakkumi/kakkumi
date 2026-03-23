@@ -5,10 +5,17 @@ import { CREDIT_EXPIRY_WARN_DAYS, CREDIT_EXPIRY_WARN_DEDUP_DAYS, DAY_MS } from "
 import { nowKST } from "@/lib/date";
 import { notifyCreditExpiry } from "@/lib/notification";
 
-// 이 엔드포인트는 Vercel Cron Job 또는 외부 스케줄러에서 호출합니다.
+// 이 엔드포인트는 Vercel Cron Job에서 GET 요청으로 호출합니다.
+// Vercel은 Authorization: Bearer <CRON_SECRET> 헤더를 자동으로 추가합니다.
 // 보호: CRON_SECRET 헤더 검증
-export async function POST(req: NextRequest) {
-    const secret = req.headers.get("x-cron-secret");
+export async function GET(req: NextRequest) {
+    // Vercel cron: Authorization: Bearer <CRON_SECRET>
+    // 외부 스케줄러 fallback: x-cron-secret 헤더
+    const authHeader = req.headers.get("authorization");
+    const secret = authHeader?.startsWith("Bearer ")
+        ? authHeader.slice(7)
+        : req.headers.get("x-cron-secret");
+
     if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

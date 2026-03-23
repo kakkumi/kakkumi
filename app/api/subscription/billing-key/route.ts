@@ -3,13 +3,14 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { getTossAuthHeader } from "@/lib/toss";
 
 export async function POST(req: Request) {
     const session = await getServerSession();
     if (!session?.dbId) return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
 
-    const secretKey = process.env.TOSSPAYMENTS_SECRET_KEY;
-    if (!secretKey) return NextResponse.json({ error: "결제 설정 오류입니다." }, { status: 500 });
+    const authHeader = getTossAuthHeader();
+    if (!authHeader) return NextResponse.json({ error: "결제 설정 오류입니다." }, { status: 500 });
 
     const body = await req.json() as { authKey: string; customerKey: string };
     const { authKey, customerKey } = body;
@@ -17,12 +18,10 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "필수 파라미터가 누락되었습니다." }, { status: 400 });
     }
 
-    const encKey = Buffer.from(`${secretKey}:`).toString("base64");
-
     // 1. 빌링키 발급
     const issueRes = await fetch("https://api.tosspayments.com/v1/billing/authorizations/issue", {
         method: "POST",
-        headers: { Authorization: `Basic ${encKey}`, "Content-Type": "application/json" },
+        headers: { Authorization: authHeader, "Content-Type": "application/json" },
         body: JSON.stringify({ authKey, customerKey }),
     });
 
@@ -62,7 +61,7 @@ export async function POST(req: Request) {
 
     const chargeRes = await fetch(`https://api.tosspayments.com/v1/billing/${billingKey}`, {
         method: "POST",
-        headers: { Authorization: `Basic ${encKey}`, "Content-Type": "application/json" },
+        headers: { Authorization: authHeader, "Content-Type": "application/json" },
         body: JSON.stringify({
             customerKey,
             amount,

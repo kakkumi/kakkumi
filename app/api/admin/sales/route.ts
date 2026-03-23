@@ -67,9 +67,9 @@ export async function PATCH(req: NextRequest) {
         };
 
         if (action === "refund") {
-            await prisma.$executeRaw`UPDATE "Purchase" SET status = 'REFUNDED' WHERE id = ${purchaseId}`;
+            await prisma.$executeRaw`UPDATE "Purchase" SET status = 'REFUNDED'::"PurchaseStatus" WHERE id = ${purchaseId}`;
         } else if (action === "complete") {
-            await prisma.$executeRaw`UPDATE "Purchase" SET status = 'COMPLETED' WHERE id = ${purchaseId}`;
+            await prisma.$executeRaw`UPDATE "Purchase" SET status = 'COMPLETED'::"PurchaseStatus" WHERE id = ${purchaseId}`;
         }
         return NextResponse.json({ ok: true });
     } catch (e) {

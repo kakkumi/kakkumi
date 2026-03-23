@@ -49,10 +49,21 @@ export async function PATCH(req: NextRequest) {
         } else if (action === "unsuspend") {
             await prisma.$executeRaw`UPDATE "User" SET "isSuspended" = false, "updatedAt" = NOW() WHERE id = ${userId}`;
         } else if (action === "delete") {
-            await prisma.$executeRaw`DELETE FROM "Purchase" WHERE "buyerId" = ${userId}`;
-            await prisma.$executeRaw`DELETE FROM "Purchase" WHERE "themeId" IN (SELECT id FROM "Theme" WHERE "creatorId" = ${userId})`;
-            await prisma.$executeRaw`DELETE FROM "Theme" WHERE "creatorId" = ${userId}`;
-            await prisma.$executeRaw`DELETE FROM "User" WHERE id = ${userId}`;
+            // 트랜잭션으로 관련 데이터를 모두 삭제 — 중간 실패 시 롤백 보장
+            await prisma.$transaction([
+                // 관련 데이터 순서대로 삭제 (FK 제약 고려)
+                prisma.$executeRaw`DELETE FROM "Review" WHERE "userId" = ${userId}`,
+                prisma.$executeRaw`DELETE FROM "ThemeLike" WHERE "userId" = ${userId}`,
+                prisma.$executeRaw`DELETE FROM "Follow" WHERE "followerId" = ${userId} OR "followingId" = ${userId}`,
+                prisma.$executeRaw`DELETE FROM "Notification" WHERE "userId" = ${userId}`,
+                prisma.$executeRaw`DELETE FROM "PointHistory" WHERE "userId" = ${userId}`,
+                prisma.$executeRaw`DELETE FROM "Purchase" WHERE "buyerId" = ${userId}`,
+                prisma.$executeRaw`DELETE FROM "Purchase" WHERE "themeId" IN (SELECT id FROM "Theme" WHERE "creatorId" = ${userId})`,
+                prisma.$executeRaw`DELETE FROM "ThemeLike" WHERE "themeId" IN (SELECT id FROM "Theme" WHERE "creatorId" = ${userId})`,
+                prisma.$executeRaw`DELETE FROM "Review" WHERE "themeId" IN (SELECT id FROM "Theme" WHERE "creatorId" = ${userId})`,
+                prisma.$executeRaw`DELETE FROM "Theme" WHERE "creatorId" = ${userId}`,
+                prisma.$executeRaw`DELETE FROM "User" WHERE id = ${userId}`,
+            ]);
         }
         return NextResponse.json({ ok: true });
     } catch (e) {

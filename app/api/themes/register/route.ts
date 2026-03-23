@@ -3,6 +3,7 @@ import { getServerSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { uploadFile } from "@/lib/storage";
 import { nowKST } from "@/lib/date";
+import { validateImage, validateThemeFile } from "@/lib/fileValidation";
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession();
@@ -35,22 +36,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "일반 유저는 무료 테마만 등록할 수 있습니다. 크리에이터 입점 신청 후 유료 테마를 등록할 수 있어요." }, { status: 403 });
         }
 
-        // 파일 검증 헬퍼
-        const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-        const ALLOWED_THEME_TYPES = ["application/octet-stream", "application/zip", "application/x-zip-compressed"];
-        const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
-        const MAX_THEME_SIZE = 30 * 1024 * 1024; // 30MB
-
-        const validateImage = (file: File, label: string) => {
-            if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-                return NextResponse.json({ error: `${label}은 JPG, PNG, WEBP, GIF만 허용됩니다.` }, { status: 400 });
-            }
-            if (file.size > MAX_IMAGE_SIZE) {
-                return NextResponse.json({ error: `${label}은 5MB 이하여야 합니다.` }, { status: 400 });
-            }
-            return null;
-        };
-
+        // 파일 검증 (공통 유틸 사용)
         const thumbError = validateImage(thumbnailFile, "썸네일 이미지");
         if (thumbError) return thumbError;
 
@@ -180,10 +166,9 @@ export async function POST(req: NextRequest) {
                     // 실제 .ktheme/.apk 파일은 없으므로 ThemeVersion은 configJson 표시용으로만 생성
                 }
             } else if (opt.file && opt.file.size > 0) {
-                // 파일 크기 검증
-                if (opt.file.size > MAX_THEME_SIZE) {
-                    return NextResponse.json({ error: `테마 파일은 30MB 이하여야 합니다.` }, { status: 400 });
-                }
+                // 파일 크기 검증 (공통 유틸)
+                const fileErr = validateThemeFile(opt.file);
+                if (fileErr) return fileErr;
                 // 파일 업로드
                 const osFolder = opt.os === "android" ? "android" : "ios";
                 fileUrl = await uploadFile("theme-files", `${id}/${osFolder}/${optionId}.${ext(opt.file)}`, opt.file);

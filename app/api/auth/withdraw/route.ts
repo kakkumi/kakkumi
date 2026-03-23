@@ -19,7 +19,13 @@ export async function DELETE(req: NextRequest) {
     try {
         const now = nowKST();
 
-        // soft delete: deletedAt 설정 + 적립금 전액 소멸 + 닉네임/개인정보 익명화
+        // ① 먼저 현재 적립금 조회 (UPDATE 전에 해야 올바른 값을 얻을 수 있음)
+        const creditRows = await prisma.$queryRaw<{ credit: number }[]>`
+            SELECT credit FROM "User" WHERE id = ${session.dbId} LIMIT 1
+        `;
+        const currentCredit = creditRows[0]?.credit ?? 0;
+
+        // ② soft delete: deletedAt 설정 + 적립금 전액 소멸 + 개인정보 익명화
         await prisma.$executeRaw`
             UPDATE "User"
             SET
@@ -35,17 +41,14 @@ export async function DELETE(req: NextRequest) {
             WHERE id = ${session.dbId}
         `;
 
-        // 적립금 소멸 내역 기록
-        const hadCredit = await prisma.$queryRaw<{ credit: number }[]>`
-            SELECT credit FROM "User" WHERE id = ${session.dbId} LIMIT 1
-        `;
-        if ((hadCredit[0]?.credit ?? 0) > 0) {
+        // ③ UPDATE 전에 조회한 적립금으로 소멸 이력 기록
+        if (currentCredit > 0) {
             await prisma.$executeRaw`
                 INSERT INTO "PointHistory" (id, "userId", amount, type, memo, "createdAt")
                 VALUES (
                     ${crypto.randomUUID()},
                     ${session.dbId},
-                    ${-(hadCredit[0].credit)},
+                    ${-currentCredit},
                     'REFUND'::"PointType",
                     ${'회원 탈퇴로 인한 적립금 소멸'},
                     ${now}

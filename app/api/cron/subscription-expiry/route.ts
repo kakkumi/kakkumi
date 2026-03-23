@@ -1,16 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { resetUserAvatar } from "@/lib/subscription";
 
-// Vercel Cron Job에서 매일 자정에 호출
-// 결제 갱신일이 지난 ACTIVE 구독을 EXPIRED로 처리하고 프로필 사진 초기화
-export async function POST(req: NextRequest) {
-    const secret = req.headers.get("x-cron-secret");
+// Vercel Cron Job에서 매일 자정에 GET 요청으로 호출
+// Vercel은 Authorization: Bearer <CRON_SECRET> 헤더를 자동으로 추가함
+export async function GET(req: NextRequest) {
+    // Vercel cron: Authorization: Bearer <CRON_SECRET>
+    // 외부 스케줄러 fallback: x-cron-secret 헤더
+    const authHeader = req.headers.get("authorization");
+    const secret = authHeader?.startsWith("Bearer ")
+        ? authHeader.slice(7)
+        : req.headers.get("x-cron-secret");
+
     if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     try {
-        // 다음 결제일이 지난 ACTIVE 구독 유저 조회
         const expiredRows = await prisma.$queryRaw<{ userId: string; role: string }[]>`
             SELECT s."userId", u.role::text AS role
             FROM "Subscription" s
@@ -26,7 +32,6 @@ export async function POST(req: NextRequest) {
 
         let expiredCount = 0;
         for (const row of expiredRows) {
-            // 구독 상태 EXPIRED로 변경
             await prisma.$executeRaw`
                 UPDATE "Subscription"
                 SET status = 'EXPIRED'::"SubscriptionStatus", "updatedAt" = NOW()
@@ -34,12 +39,8 @@ export async function POST(req: NextRequest) {
                   AND status = 'ACTIVE'::"SubscriptionStatus"
             `;
 
-            // 프로필 사진 초기화 (CREATOR → creator.png, USER → null)
-            const resetAvatarUrl = row.role === "CREATOR" ? "/creator.png" : null;
-            await prisma.$executeRaw`
-                UPDATE "User" SET "avatarUrl" = ${resetAvatarUrl}, "updatedAt" = NOW()
-                WHERE id = ${row.userId}
-            `;
+            // 프로필 사진 초기화 (공통 유틸)
+            await resetUserAvatar(row.userId, row.role);
 
             expiredCount++;
         }
@@ -51,4 +52,3 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "서버 오류가 발생했습니다." }, { status: 500 });
     }
 }
-

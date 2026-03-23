@@ -17,3 +17,15 @@ export function canSaveMoreThemes(currentCount: number, plan: SubscriptionPlan):
 }
 
 export const FREE_THEME_SLOT_LIMIT = 5;
+
+/**
+ * 구독 해지/만료 시 유저 아바타 초기화
+ * CREATOR → creator.png, 그 외 → null
+ */
+export async function resetUserAvatar(userId: string, role: string): Promise<void> {
+    const resetAvatarUrl = role === "CREATOR" ? "/creator.png" : null;
+    await prisma.$executeRaw`
+        UPDATE "User" SET "avatarUrl" = ${resetAvatarUrl}, "updatedAt" = NOW()
+        WHERE id = ${userId}
+    `;
+}

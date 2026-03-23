@@ -80,14 +80,20 @@ export async function GET(request: Request) {
         try {
             const existingRows = await prisma.$queryRaw<{
                 id: string; email: string | null; name: string;
-                role: string; deletedAt: Date | null;
+                role: string; deletedAt: Date | null; isSuspended: boolean;
             }[]>`
-                SELECT id, email, name, role::text, "deletedAt"
+                SELECT id, email, name, role::text, "deletedAt", "isSuspended"
                 FROM "User" WHERE "kakaoId" = ${kakaoId} LIMIT 1
             `;
 
             if (existingRows.length > 0) {
                 const existing = existingRows[0];
+
+                // 정지된 유저는 로그인 차단
+                if (existing.isSuspended) {
+                    return NextResponse.redirect(new URL("/?login=suspended", url.origin));
+                }
+
                 if (existing.deletedAt !== null) {
                     const daysSinceDelete = (Date.now() - new Date(existing.deletedAt).getTime()) / (24 * 60 * 60 * 1000);
                     if (daysSinceDelete < WITHDRAW_REREGISTER_DAYS) {
