@@ -52,7 +52,7 @@ function OsTag({ label, color, bg }: { label: string; color: string; bg: string 
     );
 }
 
-export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
+export default function ThemeVaultTabs({ initialTab, onTabChange }: { initialTab?: Tab; onTabChange?: (tab: Tab) => void }) {
     const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? "purchased");
     const [data, setData] = useState<ApiResponse | null>(null);
     const [loading, setLoading] = useState(true);
@@ -300,33 +300,79 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
 
                     // OS 판별
                     const ver = theme.versions?.[0];
-                    const hasIos = !!(ver?.kthemeFileUrl);
-                    const hasAndroid = !!(ver?.apkFileUrl);
-                    // 버전 문자열에서 OS 파싱 (fallback: version string에 "iOS"/"Android" 포함)
                     const verStr = ver?.version ?? "";
-                    const showIos = hasIos || verStr.includes("iOS");
-                    const showAndroid = hasAndroid || verStr.includes("Android");
+                    const showIos = !!(ver?.kthemeFileUrl) || verStr.includes("iOS");
+                    const showAndroid = !!(ver?.apkFileUrl) || verStr.includes("Android");
+
+                    // 도트 색상: 다운로드 완료 → 파랑, 환불 가능 → 주황, 기본 → 없음
+                    const dotColor = theme.isDownloaded ? "#4a7bf7" : canRefund ? "#FF9500" : "transparent";
 
                     return (
                         <div key={theme.purchaseId ?? theme.id}>
-                            <div className="py-3.5">
-                                {/* 1행: 썸네일 + 이름 / 다운로드 버튼 */}
-                                <div className="flex items-center gap-2.5">
-                                    {/* 원형 썸네일 */}
-                                    <div className="w-7 h-7 rounded-full overflow-hidden shrink-0" style={{ background: "#ece9e6" }}>
-                                        {theme.thumbnailUrl && (
-                                            <Image src={theme.thumbnailUrl} alt={theme.name} width={28} height={28} className="w-full h-full object-cover" unoptimized />
+                            <div className="flex items-center gap-3 py-4">
+
+                                {/* 상태 도트 */}
+                                <div className="shrink-0">
+                                    <div className="w-[6px] h-[6px] rounded-full" style={{ background: dotColor }} />
+                                </div>
+
+                                {/* 썸네일 */}
+                                <div className="shrink-0 w-10 h-10 rounded-lg overflow-hidden" style={{ background: "#f0eeec" }}>
+                                    {theme.thumbnailUrl && (
+                                        <Image src={theme.thumbnailUrl} alt={theme.name} width={40} height={40} className="w-full h-full object-cover" unoptimized />
+                                    )}
+                                </div>
+
+                                {/* 이름 + 메타 */}
+                                <div className="flex-1 min-w-0">
+                                    <Link href={`/store/${theme.id}`}>
+                                        <p className="text-[13px] font-medium truncate hover:opacity-60 transition-opacity" style={{ color: "#1c1917" }}>
+                                            {theme.name}
+                                        </p>
+                                    </Link>
+                                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                        <span className="text-[12px]" style={{ color: "#a8a29e" }}>{formatPrice(theme.price)}</span>
+                                        {showIos && (
+                                            <>
+                                                <span style={{ color: "#e0dbd6", fontSize: 10 }}>·</span>
+                                                <OsTag label="iOS" color="#5856d6" bg="rgba(88,86,214,0.1)" />
+                                            </>
                                         )}
+                                        {showAndroid && (
+                                            <>
+                                                <span style={{ color: "#e0dbd6", fontSize: 10 }}>·</span>
+                                                <OsTag label="Android" color="#22a34a" bg="rgba(34,163,74,0.1)" />
+                                            </>
+                                        )}
+                                        <span style={{ color: "#e0dbd6", fontSize: 10 }}>·</span>
+                                        <Link href={`/store/${theme.id}`}>
+                                            <span className="text-[11px] transition-opacity hover:opacity-50" style={{ color: "#c8c5c1" }}>보기</span>
+                                        </Link>
                                     </div>
-                                    <p className="text-[13px] font-medium flex-1 truncate" style={{ color: "#1c1917" }}>
-                                        {theme.name}
-                                    </p>
-                                    {/* 다운로드 — 우측에 단 하나만 */}
+                                </div>
+
+                                {/* 오른쪽: 환불불가 + 환불 + 다운로드 */}
+                                <div className="flex items-center gap-2.5 shrink-0">
+                                    {isPurchased && theme.isDownloaded && (
+                                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
+                                            style={{ background: "rgba(255,59,48,0.1)", color: "#ff3b30" }}>
+                                            환불불가
+                                        </span>
+                                    )}
+                                    {canRefund && (
+                                        <button
+                                            onClick={() => { setRefundSelectedId(isRefundOpen ? null : (theme.purchaseId ?? theme.id)); setRefundError(""); setRefundSuccess(""); }}
+                                            className="text-[11px] transition-opacity hover:opacity-50"
+                                            style={{ color: isRefundOpen ? "#ff3b30" : "#a8a29e" }}
+                                        >
+                                            {isRefundOpen ? "취소" : "환불"}
+                                        </button>
+                                    )}
                                     {isPurchased && (
                                         <button
                                             onClick={() => handleDownload(theme.id, theme.name, theme.versions ?? [], theme.purchaseId)}
                                             disabled={isDownloading}
-                                            className="flex items-center gap-1 text-[12px] font-medium shrink-0 transition-opacity hover:opacity-50 disabled:opacity-30"
+                                            className="flex items-center gap-1 text-[11px] font-medium transition-opacity hover:opacity-50 disabled:opacity-30"
                                             style={{ color: "#4a7bf7" }}
                                         >
                                             {isDownloading
@@ -338,67 +384,38 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
                                         </button>
                                     )}
                                 </div>
+                            </div>
 
-                                {/* 2행: 가격 · OS태그 · 환불불가 / 보기·환불 */}
-                                <div className="flex items-center justify-between mt-1.5 pl-[36px]">
-                                    <div className="flex items-center gap-1.5 flex-wrap">
-                                        <span className="text-[11px]" style={{ color: "#a8a29e" }}>{formatPrice(theme.price)}</span>
-                                        {showIos && <OsTag label="iOS" color="#5856d6" bg="rgba(88,86,214,0.1)" />}
-                                        {showAndroid && <OsTag label="Android" color="#22a34a" bg="rgba(34,163,74,0.1)" />}
-                                        {isPurchased && theme.isDownloaded && (
-                                            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
-                                                style={{ background: "rgba(255,59,48,0.1)", color: "#ff3b30" }}>
-                                                환불불가
-                                            </span>
-                                        )}
-                                    </div>
-                                    {/* 보기 + 환불 */}
-                                    <div className="flex items-center gap-2.5 shrink-0">
-                                        {canRefund && (
-                                            <button
-                                                onClick={() => { setRefundSelectedId(isRefundOpen ? null : (theme.purchaseId ?? theme.id)); setRefundError(""); setRefundSuccess(""); }}
-                                                className="text-[11px] transition-opacity hover:opacity-50"
-                                                style={{ color: isRefundOpen ? "#ff3b30" : "#a8a29e" }}
-                                            >
-                                                {isRefundOpen ? "취소" : "환불"}
-                                            </button>
-                                        )}
-                                        <Link href={`/store/${theme.id}`}>
-                                            <span className="text-[11px]" style={{ color: "#a8a29e" }}>보기</span>
-                                        </Link>
+                            {/* 환불 폼 */}
+                            {isRefundOpen && theme.purchaseId && (
+                                <div className="pb-4 pl-[58px] flex flex-col gap-2">
+                                    <p className="text-[11px]" style={{ color: "#c8c5c1" }}>
+                                        다운로드 전에만 환불 가능 · 결제 수단으로 환불
+                                    </p>
+                                    <textarea
+                                        value={refundReason}
+                                        onChange={e => setRefundReason(e.target.value)}
+                                        placeholder="환불 사유 (선택)"
+                                        rows={2}
+                                        className="w-full px-0 py-1.5 text-[12px] outline-none resize-none bg-transparent"
+                                        style={{ borderBottom: "1px solid #ece9e6", color: "#1c1917" }}
+                                    />
+                                    <div className="flex items-center gap-4">
+                                        <button onClick={() => { setRefundSelectedId(null); setRefundReason(""); }}
+                                            className="text-[12px] transition-opacity hover:opacity-50"
+                                            style={{ color: "#c8c5c1" }}>취소</button>
+                                        <button
+                                            onClick={() => handleRefund(theme.purchaseId!)}
+                                            disabled={refundingId === theme.purchaseId}
+                                            className="text-[12px] font-medium transition-opacity hover:opacity-60 disabled:opacity-30"
+                                            style={{ color: "#ff3b30" }}>
+                                            {refundingId === theme.purchaseId ? "처리 중..." : `${theme.price.toLocaleString()}원 환불 신청`}
+                                        </button>
                                     </div>
                                 </div>
+                            )}
 
-                                {/* 환불 폼 */}
-                                {isRefundOpen && theme.purchaseId && (
-                                    <div className="mt-3 pl-[36px] flex flex-col gap-2">
-                                        <p className="text-[11px]" style={{ color: "#c8c5c1" }}>
-                                            다운로드 전에만 환불 가능 · 결제 수단으로 환불
-                                        </p>
-                                        <textarea
-                                            value={refundReason}
-                                            onChange={e => setRefundReason(e.target.value)}
-                                            placeholder="환불 사유 (선택)"
-                                            rows={2}
-                                            className="w-full px-0 py-1.5 text-[12px] outline-none resize-none bg-transparent"
-                                            style={{ borderBottom: "1px solid #ece9e6", color: "#1c1917" }}
-                                        />
-                                        <div className="flex items-center gap-4">
-                                            <button onClick={() => { setRefundSelectedId(null); setRefundReason(""); }}
-                                                className="text-[12px] transition-opacity hover:opacity-50"
-                                                style={{ color: "#c8c5c1" }}>취소</button>
-                                            <button
-                                                onClick={() => handleRefund(theme.purchaseId!)}
-                                                disabled={refundingId === theme.purchaseId}
-                                                className="text-[12px] font-medium transition-opacity hover:opacity-60 disabled:opacity-30"
-                                                style={{ color: "#ff3b30" }}>
-                                                {refundingId === theme.purchaseId ? "처리 중..." : `${theme.price.toLocaleString()}원 환불 신청`}
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                            {idx < themes.length - 1 && <div style={{ height: 1, background: "#f5f5f4" }} />}
+                            {idx < themes.length - 1 && <div style={{ height: 1, background: "rgba(0,0,0,0.1)" }} />}
                         </div>
                     );
                 })}
@@ -419,7 +436,10 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
                     return (
                         <div key={tab.key} className="flex items-center">
                             {i > 0 && <span className="mx-2.5 text-[12px]" style={{ color: "#e7e5e4" }}>/</span>}
-                            <button onClick={() => setActiveTab(tab.key)}
+                            <button onClick={() => {
+                                    setActiveTab(tab.key);
+                                    onTabChange?.(tab.key);
+                                }}
                                 className="text-[13px] transition-colors"
                                 style={{ color: active ? "#1c1917" : "#c8c5c1", fontWeight: active ? 600 : 400 }}>
                                 {tab.label}

@@ -32,6 +32,11 @@ const THEME_TAB_MAP: Record<string, Tab> = {
     "구매 테마": "purchased",
 };
 
+const TAB_TO_MENU: Record<Tab, string> = {
+    "mine": "업로드 테마",
+    "purchased": "구매 테마",
+};
+
 type Props = {
     session: {
         name?: string | null;
@@ -382,7 +387,14 @@ export default function MyPageClient({ session, purchasedCount: _purchasedCount,
                 {session ? (
                     <>
                         {isThemeMenu ? (
-                            <ThemeVaultTabs key={activeMenu} initialTab={themeTab} />
+                            <ThemeVaultTabs
+                                key={activeMenu}
+                                initialTab={themeTab}
+                                onTabChange={(tab) => {
+                                    setActiveMenu(TAB_TO_MENU[tab]);
+                                    setThemeTab(tab);
+                                }}
+                            />
                         ) : isCreditMenu ? (
                             <CreditPage />
                         ) : isOrderMenu ? (
