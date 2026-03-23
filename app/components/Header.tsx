@@ -6,7 +6,7 @@ import AuthStatus from "./AuthStatus";
 import NotificationBell from "./NotificationBell";
 import LoginRequiredModal from "./LoginRequiredModal";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 
 const BASE_NAV_ITEMS = [
     { href: "/store", label: "테마 스토어" },
@@ -61,6 +61,21 @@ function getNavItems(role: string | null) {
 }
 
 export default function Header() {
+    return (
+        <Suspense fallback={
+            <header
+                className="sticky top-0 z-50 border-b border-black/[0.06] bg-[#f7f7f8]/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-[#f7f7f8]/80"
+                style={{ boxShadow: "0 1px 0 rgba(255,255,255,0.7) inset" }}
+            >
+                <div className="mx-auto flex h-14 max-w-[1320px] items-center gap-8" />
+            </header>
+        }>
+            <HeaderContent />
+        </Suspense>
+    );
+}
+
+function HeaderContent() {
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const isEditingTheme = pathname === "/create" && !!searchParams.get("id");

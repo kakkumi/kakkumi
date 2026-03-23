@@ -23,12 +23,17 @@ async function verifySessionSignature(token: string, secret: string): Promise<bo
     if (parts.length !== 2) return false;
     const [payloadB64, signature] = parts;
 
-    // base64url → base64 변환 후 디코딩
+    // base64url → base64 변환 후 raw 바이트로 디코딩
+    // (atob 결과를 TextEncoder로 재인코딩하면 한국어 등 다중바이트 문자가 깨지므로
+    //  반드시 Uint8Array로 변환한 뒤 그대로 서명에 사용해야 함)
     const base64 = payloadB64.replace(/-/g, "+").replace(/_/g, "/");
     const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
-    let json: string;
+    let rawBytes: Uint8Array<ArrayBuffer>;
     try {
-        json = atob(padded);
+        const binaryStr = atob(padded);
+        const buf = new ArrayBuffer(binaryStr.length);
+        rawBytes = new Uint8Array(buf);
+        for (let i = 0; i < binaryStr.length; i++) rawBytes[i] = binaryStr.charCodeAt(i);
     } catch {
         return false;
     }
@@ -41,12 +46,13 @@ async function verifySessionSignature(token: string, secret: string): Promise<bo
         false,
         ["sign"]
     );
-    const sigBuffer = await crypto.subtle.sign("HMAC", key, encoder.encode(json));
+    // raw bytes 그대로 서명 (세션 생성 시 Node.js createHmac.update(json)과 동일한 바이트)
+    const sigBuffer = await crypto.subtle.sign("HMAC", key, rawBytes);
 
     // ArrayBuffer → base64url
-    const bytes = new Uint8Array(sigBuffer);
+    const sigBytes = new Uint8Array(sigBuffer);
     let binary = "";
-    for (const byte of bytes) binary += String.fromCharCode(byte);
+    for (const byte of sigBytes) binary += String.fromCharCode(byte);
     const expectedSig = btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 
     return signature === expectedSig;
@@ -65,11 +71,15 @@ async function parseSessionPayload(
         const valid = await verifySessionSignature(token, secret);
         if (!valid) return null;
 
-        // 2) payload 디코딩
+        // 2) payload 디코딩 (UTF-8 바이트 → 유니코드 문자열)
         const [payloadB64] = token.split(".");
         const base64 = payloadB64.replace(/-/g, "+").replace(/_/g, "/");
         const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
-        const json = atob(padded);
+        const binaryStr = atob(padded);
+        const buf = new ArrayBuffer(binaryStr.length);
+        const rawBytes = new Uint8Array(buf);
+        for (let i = 0; i < binaryStr.length; i++) rawBytes[i] = binaryStr.charCodeAt(i);
+        const json = new TextDecoder().decode(rawBytes);
         const parsed = JSON.parse(json) as { role?: string; issuedAt?: number };
         if (!parsed.role || !parsed.issuedAt) return null;
 

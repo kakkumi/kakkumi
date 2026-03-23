@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, startTransition, useMemo, memo, useCallback } from "react";
+import { useEffect, useRef, useState, startTransition, useMemo, memo, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import JSZip from "jszip";
 import Header from "../components/Header";
@@ -717,6 +717,14 @@ const editorCategories: { key: EditorCategory; label: string }[] = [
 ];
 
 export default function CreatePage() {
+  return (
+    <Suspense fallback={null}>
+      <CreatePageContent />
+    </Suspense>
+  );
+}
+
+function CreatePageContent() {
   const searchParams = useSearchParams();
   const themeIdParam = searchParams.get("id");
 

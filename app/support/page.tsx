@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -232,6 +232,14 @@ const STATUS_LABEL: Record<string, { label: string; bg: string; color: string }>
 };
 
 export default function SupportPage() {
+    return (
+        <Suspense fallback={null}>
+            <SupportPageContent />
+        </Suspense>
+    );
+}
+
+function SupportPageContent() {
     const searchParams = useSearchParams();
     const tabParam = searchParams.get("tab") as Tab | null;
     const [activeTab, setActiveTab] = useState<Tab>(tabParam ?? "faq");
