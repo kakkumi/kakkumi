@@ -45,6 +45,12 @@ type CreateNotifOptions = {
     linkUrl?: string;
     /** true이면 알림 설정/야간 차단 무시하고 항상 생성 (법적 필수 공지 등) */
     force?: boolean;
+    /**
+     * NOTIF_TYPE_TO_KEY 자동 매핑 대신 사용할 설정 키를 직접 지정.
+     * notifyNewReview, notifyInquiryReply처럼 SYSTEM 타입을 쓰지만
+     * 별도 설정 키로 제어해야 할 때 사용.
+     */
+    settingKey?: keyof NotifSettings;
 };
 
 export async function createNotification({
@@ -54,13 +60,14 @@ export async function createNotification({
     body,
     linkUrl,
     force = false,
+    settingKey: overrideSettingKey,
 }: CreateNotifOptions): Promise<void> {
     if (!force) {
         // 야간 비중요 알림 차단
         if (isNightTime() && NIGHT_BLOCKABLE_TYPES.has(type)) return;
 
         const settings = await getUserNotifSettings(userId);
-        const settingKey = NOTIF_TYPE_TO_KEY[type];
+        const settingKey = overrideSettingKey ?? NOTIF_TYPE_TO_KEY[type];
         if (settingKey && !settings[settingKey]) return;
     }
 
@@ -99,6 +106,7 @@ export async function notifyNewReview(creatorId: string, themeName: string, them
         title: "새 리뷰",
         body: `"${themeName}"에 새 리뷰가 등록되었습니다.`,
         linkUrl: `/store/${themeId}`,
+        settingKey: "newReview",
     });
 }
 
@@ -110,6 +118,7 @@ export async function notifyInquiryReply(userId: string, inquiryTitle: string) {
         title: "문의 답변이 등록되었습니다.",
         body: `"${inquiryTitle}" 문의에 답변이 달렸습니다.`,
         linkUrl: "/support",
+        settingKey: "inquiryReply",
     });
 }
 

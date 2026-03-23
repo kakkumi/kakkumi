@@ -707,12 +707,7 @@ export default function MyPageClient({ session, purchasedCount: _purchasedCount,
                                     </div>
                                 ))}
 
-                                <div className="mt-12 flex items-start gap-3 pt-8" style={{ borderTop: "1px solid #e7e5e4" }}>
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4a7bf7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
-                                        <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-                                    </svg>
-                                    <p className="text-[12px] leading-relaxed" style={{ color: "#78716c" }}>알림은 서비스 내 알림으로 제공됩니다. 이메일·푸시 알림은 추후 지원 예정입니다. 법적 필수 공지(이용약관 변경 등)는 설정과 관계없이 발송될 수 있습니다.</p>
-                                </div>
+
                             </>
                         ) : isWithdrawMenu ? (
                             /* ── 회원 탈퇴 ── */
