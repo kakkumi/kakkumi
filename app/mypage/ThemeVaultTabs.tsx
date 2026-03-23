@@ -156,11 +156,17 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
 
     // ── 업로드 테마 ──
     const renderMineList = (themes: ThemeItem[]) => {
-        if (loading) return <div className="py-12 text-center"><span className="text-[12px]" style={{ color: "#d6d3d1" }}>불러오는 중</span></div>;
+        if (loading) return (
+            <div className="py-12 text-center">
+                <span className="text-[12px]" style={{ color: "#d6d3d1" }}>불러오는 중</span>
+            </div>
+        );
         if (!themes || themes.length === 0) return (
             <div className="py-12 flex flex-col items-center gap-2">
                 <p className="text-[13px]" style={{ color: "#a8a29e" }}>아직 업로드한 테마가 없어요.</p>
-                <Link href="/store/register"><span className="text-[12px]" style={{ color: "#FF9500" }}>업로드하러 가기 →</span></Link>
+                <Link href="/store/register">
+                    <span className="text-[12px]" style={{ color: "#FF9500" }}>업로드하러 가기 →</span>
+                </Link>
             </div>
         );
 
@@ -169,85 +175,96 @@ export default function ThemeVaultTabs({ initialTab }: { initialTab?: Tab }) {
                 {themes.map((theme, idx) => {
                     const isDisabled = actionLoading !== null;
                     const statusLabel =
-                        theme.status === "DRAFT" ? "심사중"
-                        : theme.status === "HIDDEN" ? "숨김"
-                        : !theme.isSelling ? "판매중단"
-                        : !theme.isPublic ? "비공개"
+                        theme.status === "DRAFT"   ? "심사중"
+                        : theme.status === "HIDDEN"  ? "숨김"
+                        : !theme.isSelling           ? "판매중단"
+                        : !theme.isPublic            ? "비공개"
                         : "공개중";
                     const statusColor =
-                        theme.status === "DRAFT" ? "#e08000"
-                        : theme.status === "HIDDEN" ? "#a8a29e"
-                        : !theme.isSelling ? "#ff3b30"
-                        : !theme.isPublic ? "#a8a29e"
+                        theme.status === "DRAFT"   ? "#e08000"
+                        : theme.status === "HIDDEN"  ? "#a8a29e"
+                        : !theme.isSelling           ? "#ff3b30"
+                        : !theme.isPublic            ? "#a8a29e"
                         : "#22a34a";
 
                     return (
                         <div key={theme.id}>
-                            <div className="py-3.5">
-                                {/* 1행: 이름 · 상태 (인라인)  /  보기 */}
-                                <div className="flex items-center justify-between gap-3">
-                                    <div className="flex items-center gap-2 min-w-0">
-                                        <p className="text-[13px] font-medium truncate" style={{ color: "#1c1917" }}>
-                                            {theme.name}
-                                        </p>
-                                        <span className="text-[11px] shrink-0 font-medium" style={{ color: statusColor }}>
-                                            {statusLabel}
-                                        </span>
-                                    </div>
-                                    <Link href={`/store/${theme.id}`} className="shrink-0">
-                                        <span className="text-[11px]" style={{ color: "#a8a29e" }}>보기</span>
-                                    </Link>
+                            <div className="flex items-center gap-3 py-4">
+
+                                {/* 상태 도트 */}
+                                <div className="shrink-0">
+                                    <div className="w-[6px] h-[6px] rounded-full" style={{ background: statusColor }} />
                                 </div>
 
-                                {/* 2행: 가격 + 관리 액션 */}
-                                <div className="flex items-center gap-2.5 mt-1.5 flex-wrap">
-                                    <span className="text-[12px]" style={{ color: "#a8a29e" }}>
-                                        {formatPrice(theme.price)}
-                                    </span>
-                                    {theme.status === "PUBLISHED" && (
-                                        <>
-                                            <span style={{ color: "#e7e5e4", fontSize: 9 }}>·</span>
-                                            {theme.isPublic ? (
-                                                <button disabled={isDisabled} onClick={() => handleThemeAction(theme.id, "setPrivate")}
-                                                    className="text-[11px] transition-opacity hover:opacity-50 disabled:opacity-30"
-                                                    style={{ color: "#a8a29e" }} title="스토어 목록에서 숨겨집니다.">
-                                                    비공개 전환
-                                                </button>
-                                            ) : (
-                                                <button disabled={isDisabled} onClick={() => handleThemeAction(theme.id, "setPublic")}
-                                                    className="text-[11px] transition-opacity hover:opacity-50 disabled:opacity-30"
-                                                    style={{ color: "#22a34a" }}>
-                                                    공개 전환
-                                                </button>
-                                            )}
-                                            <span style={{ color: "#e7e5e4", fontSize: 9 }}>·</span>
-                                            {theme.isSelling ? (
-                                                <button disabled={isDisabled} onClick={() => handleThemeAction(theme.id, "discontinue")}
-                                                    className="text-[11px] transition-opacity hover:opacity-50 disabled:opacity-30"
-                                                    style={{ color: "#ff3b30" }} title="구매 버튼이 비활성화돼요.">
-                                                    판매 중단
-                                                </button>
-                                            ) : (
-                                                <button disabled={isDisabled} onClick={() => handleThemeAction(theme.id, "resume")}
-                                                    className="text-[11px] transition-opacity hover:opacity-50 disabled:opacity-30"
-                                                    style={{ color: "#4a7bf7" }}>
-                                                    판매 재개
-                                                </button>
-                                            )}
-                                            <span style={{ color: "#e7e5e4", fontSize: 9 }}>·</span>
-                                            <Link href={`/store/edit/${theme.id}`}>
-                                                <span className="text-[11px] hover:opacity-50 transition-opacity" style={{ color: "#FF9500" }}>
-                                                    수정 신청
-                                                </span>
-                                            </Link>
-                                        </>
-                                    )}
-                                    {theme.status === "DRAFT" && (
-                                        <span className="text-[11px]" style={{ color: "#c8c5c1" }}>승인 후 스토어에 반영돼요</span>
+                                {/* 썸네일 */}
+                                <div className="shrink-0 w-10 h-10 rounded-lg overflow-hidden" style={{ background: "#f0eeec" }}>
+                                    {theme.thumbnailUrl && (
+                                        <Image src={theme.thumbnailUrl} alt={theme.name} width={40} height={40} className="w-full h-full object-cover" unoptimized />
                                     )}
                                 </div>
+
+                                {/* 이름 + 메타 */}
+                                <div className="flex-1 min-w-0">
+                                    <Link href={`/store/${theme.id}`}>
+                                        <p className="text-[13px] font-medium truncate hover:opacity-60 transition-opacity" style={{ color: "#1c1917" }}>
+                                            {theme.name}
+                                        </p>
+                                    </Link>
+                                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                        <span className="text-[12px]" style={{ color: "#a8a29e" }}>{formatPrice(theme.price)}</span>
+                                        <span style={{ color: "#e0dbd6", fontSize: 10 }}>·</span>
+                                        <span className="text-[11px] font-medium" style={{ color: statusColor }}>{statusLabel}</span>
+                                        <span style={{ color: "#e0dbd6", fontSize: 10 }}>·</span>
+                                        <Link href={`/store/${theme.id}`}>
+                                            <span className="text-[11px] transition-opacity hover:opacity-50" style={{ color: "#c8c5c1" }}>보기</span>
+                                        </Link>
+                                        {theme.status === "DRAFT" && (
+                                            <>
+                                                <span style={{ color: "#e0dbd6", fontSize: 10 }}>·</span>
+                                                <span className="text-[11px]" style={{ color: "#c8c5c1" }}>승인 후 반영</span>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* 오른쪽: 관리 액션 */}
+                                {theme.status === "PUBLISHED" && (
+                                    <div className="flex items-center gap-2.5 shrink-0">
+                                        {theme.isPublic ? (
+                                            <button disabled={isDisabled} onClick={() => handleThemeAction(theme.id, "setPrivate")}
+                                                className="text-[11px] transition-opacity hover:opacity-50 disabled:opacity-30"
+                                                style={{ color: "#a8a29e" }} title="스토어 목록에서 숨겨집니다.">
+                                                비공개
+                                            </button>
+                                        ) : (
+                                            <button disabled={isDisabled} onClick={() => handleThemeAction(theme.id, "setPublic")}
+                                                className="text-[11px] transition-opacity hover:opacity-50 disabled:opacity-30"
+                                                style={{ color: "#22a34a" }}>
+                                                공개
+                                            </button>
+                                        )}
+                                        <span style={{ color: "#e0dbd6", fontSize: 8 }}>|</span>
+                                        {theme.isSelling ? (
+                                            <button disabled={isDisabled} onClick={() => handleThemeAction(theme.id, "discontinue")}
+                                                className="text-[11px] transition-opacity hover:opacity-50 disabled:opacity-30"
+                                                style={{ color: "#ff3b30" }} title="구매 버튼이 비활성화돼요.">
+                                                판매중단
+                                            </button>
+                                        ) : (
+                                            <button disabled={isDisabled} onClick={() => handleThemeAction(theme.id, "resume")}
+                                                className="text-[11px] transition-opacity hover:opacity-50 disabled:opacity-30"
+                                                style={{ color: "#4a7bf7" }}>
+                                                판매재개
+                                            </button>
+                                        )}
+                                        <span style={{ color: "#e0dbd6", fontSize: 8 }}>|</span>
+                                        <Link href={`/store/edit/${theme.id}`}>
+                                            <span className="text-[11px] transition-opacity hover:opacity-50" style={{ color: "#FF9500" }}>수정신청</span>
+                                        </Link>
+                                    </div>
+                                )}
                             </div>
-                            {idx < themes.length - 1 && <div style={{ height: 1, background: "#f5f5f4" }} />}
+                            {idx < themes.length - 1 && <div style={{ height: 1, background: "rgba(0,0,0,0.1)" }} />}
                         </div>
                     );
                 })}
