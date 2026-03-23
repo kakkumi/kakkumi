@@ -155,25 +155,19 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
     }
 
     return (
-        <div
-            className="min-h-screen flex flex-col"
-            style={{
-                backgroundColor: "#f3f3f3",
-            }}
-        >
+        <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#fff" }}>
             <Header />
-
-            <div className="flex-1 w-full max-w-[1100px] mx-auto px-6 py-10 pb-24">
+            <div className="flex-1 w-full max-w-[1080px] mx-auto px-8 py-10 pb-24">
                 {/* 뒤로가기 */}
                 <Link
                     href="/store"
-                    className="inline-flex items-center gap-2 text-[13px] font-medium text-gray-400 hover:text-gray-800 transition-colors mb-10"
+                    className="inline-flex items-center gap-1.5 mb-10 group"
+                    style={{ fontSize: 12, color: "#aaa", textDecoration: "none" }}
                 >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M19 12H5" />
-                        <path d="M12 19l-7-7 7-7" />
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:opacity-70 transition-opacity">
+                        <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
                     </svg>
-                    스토어로 돌아가기
+                    <span className="group-hover:opacity-70 transition-opacity">스토어</span>
                 </Link>
 
                 <ThemeDetailLayout
