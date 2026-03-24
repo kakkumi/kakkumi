@@ -1,4 +1,5 @@
 import { getServerSession } from "@/lib/session";
+import { getUserPlan } from "@/lib/subscription";
 import RegisterForm from "./RegisterForm";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
@@ -43,12 +44,16 @@ export default async function RegisterPage() {
     // (CREATOR, ADMIN은 유료 포함 전체 가능)
 
     // CREATOR, ADMIN, USER 모두 등록 폼 표시 (가격 제한은 RegisterForm 내부에서)
+    const plan = await getUserPlan(session.dbId, session.role);
+    const isPro = plan === "PRO" || plan === "CREATOR" || plan === "ADMIN";
+
     return (
         <div className="min-h-screen flex flex-col" style={bgStyle}>
             <Header />
             <div className="flex-1 max-w-[1200px] mx-auto w-full px-6 pt-10 pb-20 flex flex-col gap-6">
                 <RegisterForm
                     role={session.role}
+                    isPro={isPro}
                     authorName={session.nickname ?? session.name ?? "사용자"}
                     headerSlot={
                         <div className="flex flex-col items-start gap-2">

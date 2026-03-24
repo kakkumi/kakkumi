@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/session";
+import { getUserPlan } from "@/lib/subscription";
 import { prisma } from "@/lib/prisma";
 import { uploadFile } from "@/lib/storage";
 import { nowKST } from "@/lib/date";
@@ -30,6 +31,18 @@ export async function POST(req: NextRequest) {
         if (!price) return NextResponse.json({ error: "가격을 선택해주세요." }, { status: 400 });
         if (!thumbnailFile) return NextResponse.json({ error: "미리보기 이미지를 업로드해주세요." }, { status: 400 });
         if (optionCount === 0) return NextResponse.json({ error: "옵션을 1개 이상 추가해주세요." }, { status: 400 });
+
+        // 플랜별 옵션 수 제한
+        const plan = await getUserPlan(session.dbId, session.role);
+        const isPro = plan === "PRO" || plan === "CREATOR" || plan === "ADMIN";
+        const maxOptions = isPro ? 10 : 3;
+        if (optionCount > maxOptions) {
+            return NextResponse.json({
+                error: isPro
+                    ? `옵션은 최대 ${maxOptions}개까지 등록할 수 있습니다.`
+                    : `무료 플랜은 옵션을 최대 ${maxOptions}개까지 등록할 수 있습니다. PRO 구독 시 최대 10개까지 등록 가능합니다.`,
+            }, { status: 403 });
+        }
 
         // USER 역할은 무료(0원)만 등록 가능
         if (session.role === "USER" && price !== "무료") {

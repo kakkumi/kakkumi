@@ -8,7 +8,8 @@ const RichTextEditor = dynamic(() => import("./RichTextEditor"), { ssr: false })
 
 const PRICE_OPTIONS = ["무료", "500원", "1,000원", "1,500원", "2,000원", "2,500원"];
 const MAX_MINI_PREVIEWS = 5;
-const MAX_OPTIONS = 10;
+const MAX_OPTIONS_FREE = 3;
+const MAX_OPTIONS_PRO = 10;
 
 type OptionSource = "file" | "mytheme";
 
@@ -29,10 +30,6 @@ type MyThemeItem = {
     previewImageUrl: string | null;
     trashed: boolean;
 };
-
-function newOption(): ThemeOption {
-    return { id: crypto.randomUUID(), name: "", os: "ios", source: "file", file: null, myThemeId: null, myThemeName: null };
-}
 
 function MyThemePickerModal({ myThemes, targetOs, onSelect, onClose }: {
     myThemes: MyThemeItem[];
@@ -89,11 +86,13 @@ type RegisterFormProps = {
     authorName?: string;
     headerSlot?: React.ReactNode;
     role?: string;
+    isPro?: boolean;
 };
 
-export default function RegisterForm({ headerSlot, role }: RegisterFormProps) {
+export default function RegisterForm({ headerSlot, role, isPro = false }: RegisterFormProps) {
     const router = useRouter();
     const isUserOnly = role === "USER";
+    const MAX_OPTIONS = isPro ? MAX_OPTIONS_PRO : MAX_OPTIONS_FREE;
 
     const [name, setName] = useState("");
     const [nameError, setNameError] = useState<string | null>(null);
@@ -111,6 +110,7 @@ export default function RegisterForm({ headerSlot, role }: RegisterFormProps) {
     const [miniPreviewFiles, setMiniPreviewFiles] = useState<File[]>([]);
     const [miniPreviewUrls, setMiniPreviewUrls] = useState<string[]>([]);
 
+    const [globalOs, setGlobalOs] = useState<"ios" | "android">("ios");
     const [options, setOptions] = useState<ThemeOption[]>([]);
     const [richContent, setRichContent] = useState("");
     const [submitted, setSubmitted] = useState(false);
@@ -172,7 +172,15 @@ export default function RegisterForm({ headerSlot, role }: RegisterFormProps) {
         setMiniPreviewUrls(prev => prev.filter((_, i) => i !== idx));
     };
 
-    const addOption = () => { if (options.length < MAX_OPTIONS) setOptions(prev => [...prev, newOption()]); };
+    const addOption = () => {
+        if (options.length < MAX_OPTIONS)
+            setOptions(prev => [...prev, { id: crypto.randomUUID(), name: "", os: globalOs, source: "file", file: null, myThemeId: null, myThemeName: null }]);
+    };
+
+    const handleGlobalOsChange = (os: "ios" | "android") => {
+        setGlobalOs(os);
+        setOptions(prev => prev.map(o => ({ ...o, os, file: null, myThemeId: null, myThemeName: null })));
+    };
     const removeOption = (id: string) => setOptions(prev => prev.filter(o => o.id !== id));
     const updateOption = (id: string, patch: Partial<ThemeOption>) =>
         setOptions(prev => prev.map(o => o.id === id ? { ...o, ...patch } : o));
@@ -437,16 +445,70 @@ export default function RegisterForm({ headerSlot, role }: RegisterFormProps) {
                                     <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "rgb(255,149,0)" }}>07</span>
                                     <span className="text-[15px] font-semibold" style={{ color: "#1a1a1a" }}>테마 옵션</span>
                                     <span style={{ color: "#e11d48", fontSize: 12 }}>*</span>
-                                    <span className="text-[11px]" style={{ color: "#aaa" }}>최대 {MAX_OPTIONS}개</span>
+                                    <span className="text-[11px]" style={{ color: "#aaa" }}>최대 {MAX_OPTIONS}개{!isPro && " (PRO는 10개)"}</span>
                                 </div>
-                                {options.length < MAX_OPTIONS && (
+                                {options.length < MAX_OPTIONS ? (
                                     <button type="button" onClick={addOption}
                                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all hover:opacity-75 active:scale-95"
                                         style={{ background: "rgba(255,149,0,0.07)", color: "rgb(190,100,0)", border: "1px solid rgba(255,149,0,0.15)" }}>
                                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
                                         옵션 추가
                                     </button>
-                                )}
+                                ) : !isPro ? (
+                                    <a href="/pricing" target="_blank" rel="noopener noreferrer"
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all hover:opacity-75"
+                                        style={{ background: "rgba(74,123,247,0.07)", color: "rgb(60,100,220)", border: "1px solid rgba(74,123,247,0.2)" }}>
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
+                                        PRO로 업그레이드
+                                    </a>
+                                ) : null}
+                            </div>
+
+                            {/* 비PRO 한도 안내 배너 */}
+                            {!isPro && options.length >= MAX_OPTIONS_FREE && (
+                                <div className="flex items-start gap-3 px-4 py-3 rounded-xl"
+                                    style={{ background: "rgba(74,123,247,0.06)", border: "1px solid rgba(74,123,247,0.15)" }}>
+                                    <svg className="shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgb(74,123,247)" strokeWidth="2" strokeLinecap="round">
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                    </svg>
+                                    <div className="flex flex-col gap-0.5">
+                                        <p className="text-[12px] font-semibold" style={{ color: "rgb(60,100,220)" }}>
+                                            무료 플랜은 옵션을 최대 3개까지 등록할 수 있어요.
+                                        </p>
+                                        <p className="text-[11px]" style={{ color: "#8899cc" }}>
+                                            PRO 구독 시 옵션을 최대 10개까지 등록할 수 있습니다.{" "}
+                                            <a href="/pricing" target="_blank" rel="noopener noreferrer"
+                                                className="underline hover:opacity-70 transition-opacity font-medium">
+                                                PRO 구독 보러가기 →
+                                            </a>
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 전역 OS 선택 */}
+                            <div className="flex flex-col gap-2">
+                                <span className="text-[12px] font-medium" style={{ color: "#888" }}>플랫폼 선택</span>
+                                <div className="flex rounded-xl overflow-hidden w-fit" style={{ border: "1px solid rgba(0,0,0,0.1)" }}>
+                                    {(["ios", "android"] as const).map(os => (
+                                        <button key={os} type="button"
+                                            onClick={() => handleGlobalOsChange(os)}
+                                            className="px-5 py-2 text-[13px] font-semibold transition-all"
+                                            style={{
+                                                background: globalOs === os
+                                                    ? (os === "ios" ? "rgba(255,149,0,0.12)" : "rgba(74,123,247,0.12)")
+                                                    : "transparent",
+                                                color: globalOs === os
+                                                    ? (os === "ios" ? "rgb(190,100,0)" : "rgb(60,100,220)")
+                                                    : "#bbb",
+                                            }}>
+                                            {os === "ios" ? "iOS" : "Android"}
+                                        </button>
+                                    ))}
+                                </div>
+                                <p className="text-[11px]" style={{ color: "#bbb" }}>
+                                    {globalOs === "ios" ? ".ktheme 파일을 업로드합니다." : ".apk 또는 .zip 파일을 업로드합니다."}
+                                </p>
                             </div>
 
                             {options.length === 0 && (
@@ -473,20 +535,6 @@ export default function RegisterForm({ headerSlot, role }: RegisterFormProps) {
                                             placeholder="옵션 이름 (예: 핑크 버전)" maxLength={20}
                                             className="flex-1 bg-transparent outline-none text-[13px] placeholder:text-[#d0d0d0]"
                                             style={{ color: "#1a1a1a", border: "none", borderBottom: "1px solid rgba(0,0,0,0.08)", paddingBottom: 4 }} />
-                                        {/* OS 선택 */}
-                                        <div className="flex rounded-lg overflow-hidden shrink-0" style={{ border: "1px solid rgba(0,0,0,0.1)" }}>
-                                            {(["ios", "android"] as const).map(os => (
-                                                <button key={os} type="button"
-                                                    onClick={() => updateOption(opt.id, { os, file: null, myThemeId: null, myThemeName: null })}
-                                                    className="px-2.5 py-1 text-[11px] font-medium transition-all"
-                                                    style={{
-                                                        background: opt.os === os ? (os === "ios" ? "rgba(255,149,0,0.1)" : "rgba(74,123,247,0.1)") : "transparent",
-                                                        color: opt.os === os ? (os === "ios" ? "rgb(190,100,0)" : "rgb(60,100,220)") : "#aaa",
-                                                    }}>
-                                                    {os === "ios" ? "iOS" : "Android"}
-                                                </button>
-                                            ))}
-                                        </div>
                                         <button type="button" onClick={() => removeOption(opt.id)} className="shrink-0 opacity-30 hover:opacity-70 transition-opacity">
                                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
                                         </button>
@@ -530,13 +578,13 @@ export default function RegisterForm({ headerSlot, role }: RegisterFormProps) {
                                                 style={{ background: "rgba(255,149,0,0.04)", border: "1px solid rgba(255,149,0,0.2)" }}>
                                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgb(255,149,0)" strokeWidth="2" strokeLinecap="round"><path d="M20 6L9 17l-5-5" /></svg>
                                                 <span className="text-[12px] flex-1 truncate font-medium" style={{ color: "rgb(190,100,0)" }}>{opt.myThemeName}</span>
-                                                <button type="button" onClick={() => setPickerModal({ optionId: opt.id, targetOs: opt.os })} className="text-[11px] shrink-0 transition-all hover:opacity-70" style={{ color: "#aaa" }}>변경</button>
+                                                <button type="button" onClick={() => setPickerModal({ optionId: opt.id, targetOs: globalOs })} className="text-[11px] shrink-0 transition-all hover:opacity-70" style={{ color: "#aaa" }}>변경</button>
                                                 <button type="button" onClick={() => updateOption(opt.id, { myThemeId: null, myThemeName: null })} className="shrink-0 opacity-40 hover:opacity-80 transition-opacity">
                                                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
                                                 </button>
                                             </div>
                                         ) : (
-                                            <button type="button" onClick={() => setPickerModal({ optionId: opt.id, targetOs: opt.os })}
+                                            <button type="button" onClick={() => setPickerModal({ optionId: opt.id, targetOs: globalOs })}
                                                 disabled={!myThemesLoaded}
                                                 className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-left transition-all hover:opacity-75 disabled:opacity-40"
                                                 style={{ background: "rgba(0,0,0,0.025)", border: "1px dashed rgba(0,0,0,0.1)" }}>
