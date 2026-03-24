@@ -325,7 +325,7 @@ export default function RegisterForm({ headerSlot, role, isPro = false }: Regist
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <input type="text" value={categoryInput} onChange={e => setCategoryInput(e.target.value)}
-                                        onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); const t = categoryInput.trim(); if (t && !categories.includes(t) && categories.length < 10) setCategories(prev => [...prev, t]); setCategoryInput(""); } }}
+                                        onKeyDown={e => { if (e.nativeEvent.isComposing) return; if (e.key === "Enter") { e.preventDefault(); const t = categoryInput.trim(); if (t && !categories.includes(t) && categories.length < 10) setCategories(prev => [...prev, t]); setCategoryInput(""); } }}
                                         placeholder={categories.length >= 10 ? "최대 10개" : "입력 후 Enter"} maxLength={10}
                                         className="flex-1 bg-transparent outline-none text-[14px] placeholder:text-[#d0d0d0]"
                                         style={{ color: "#1a1a1a", border: "none", borderBottom: "1.5px solid rgba(0,0,0,0.1)", paddingBottom: 6 }} />

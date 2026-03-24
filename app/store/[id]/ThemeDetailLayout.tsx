@@ -104,7 +104,16 @@ export default function ThemeDetailLayout({
                             transition: "background 0.3s ease",
                         }}
                     >
-                        {mainSrc && <Image src={mainSrc} alt={name} fill className="object-cover" />}
+                        {mainSrc && (
+                            <Image
+                                src={mainSrc}
+                                alt={name}
+                                fill
+                                className="object-cover"
+                                sizes="(max-width: 1024px) 100vw, 50vw"
+                                quality={90}
+                            />
+                        )}
                         {useColor && (
                             <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                                 <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 12, fontWeight: 500, letterSpacing: "0.06em" }}>{name}</span>
@@ -125,19 +134,21 @@ export default function ThemeDetailLayout({
 
                     {/* 썸네일 스트립 */}
                     {slots.length > 1 && (
-                        <div style={{
-                            display: "grid",
-                            gridTemplateColumns: `repeat(${Math.min(slots.length, 5)}, 1fr)`,
-                            gap: 6,
-                        }}>
+                        <div style={{ display: "flex", gap: 6 }}>
                             {slots.slice(0, 5).map((slot, i) => (
                                 <button
                                     key={i}
                                     onMouseEnter={() => setActiveIdx(i)}
                                     onClick={() => setActiveIdx(i)}
                                     style={{
-                                        aspectRatio: "1 / 1", borderRadius: 10, overflow: "hidden",
-                                        position: "relative", padding: 0, cursor: "pointer",
+                                        width: 64,
+                                        height: 64,
+                                        borderRadius: 8,
+                                        overflow: "hidden",
+                                        position: "relative",
+                                        padding: 0,
+                                        cursor: "pointer",
+                                        flexShrink: 0,
                                         background: useColor ? (slot as string) : "#e8eaf0",
                                         outline: activeIdx === i ? "2px solid rgb(74,123,247)" : "2px solid transparent",
                                         outlineOffset: 2,
@@ -145,7 +156,16 @@ export default function ThemeDetailLayout({
                                         transition: "all 0.15s",
                                     }}
                                 >
-                                    {!useColor && <Image src={slot as string} alt={`preview-${i + 1}`} fill className="object-cover" />}
+                                    {!useColor && (
+                                        <Image
+                                            src={slot as string}
+                                            alt={`preview-${i + 1}`}
+                                            fill
+                                            className="object-cover"
+                                            sizes="64px"
+                                            quality={85}
+                                        />
+                                    )}
                                 </button>
                             ))}
                         </div>
