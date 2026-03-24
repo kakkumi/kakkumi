@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Siren } from "lucide-react";
 import LoginRequiredModal from "../../components/LoginRequiredModal";
@@ -25,6 +25,14 @@ export default function ThemeActionButtons(props: Props) {
     const router = useRouter();
     const [liked, setLiked] = useState(false);
     const [result, setResult] = useState<{ success?: boolean; message?: string } | null>(null);
+
+    // 초기 찜 상태 로드
+    useEffect(() => {
+        fetch(`/api/themes/${props.themeId}/like`)
+            .then(r => r.json())
+            .then((d: { liked: boolean }) => setLiked(d.liked))
+            .catch(() => {});
+    }, [props.themeId]);
 
     const [optionModal, setOptionModal] = useState<"download" | "buy" | null>(null);
     const [selectedVersion, setSelectedVersion] = useState<Version | null>(null);
@@ -121,9 +129,18 @@ export default function ThemeActionButtons(props: Props) {
         router.push(`/store/${props.themeId}/order?themeId=${props.themeId}${versionParam}`);
     };
 
-    const handleLike = () => {
+    const handleLike = async () => {
         if (!isLoggedIn) { setLoginModal("찜하기는 로그인이 필요한 기능이에요."); return; }
+        // 낙관적 업데이트
         setLiked(prev => !prev);
+        try {
+            const res = await fetch(`/api/themes/${props.themeId}/like`, { method: "POST" });
+            const data = await res.json() as { liked: boolean };
+            setLiked(data.liked);
+        } catch {
+            // 실패 시 롤백
+            setLiked(prev => !prev);
+        }
     };
 
     const handleReport = () => {
