@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
     const id = req.nextUrl.searchParams.get("id");
+    const versionId = req.nextUrl.searchParams.get("versionId");
     if (!id) return NextResponse.json({ error: "id 없음" }, { status: 400 });
 
     try {
@@ -22,6 +23,62 @@ export async function GET(req: NextRequest) {
         if (!rows[0]) return NextResponse.json({ error: "테마 없음" }, { status: 404 });
 
         const r = rows[0];
+
+        let selectedVersion: { id: string; os: "iOS" | "Android"; optionName: string; label: string } | null = null;
+
+        if (versionId) {
+            const versionRows = await prisma.$queryRaw<{
+                id: string;
+                version: string;
+                kthemeFileUrl: string | null;
+                apkFileUrl: string | null;
+            }[]>`
+                SELECT id, version, "kthemeFileUrl", "apkFileUrl"
+                FROM "ThemeVersion"
+                WHERE id = ${versionId} AND "themeId" = ${id}
+                LIMIT 1
+            `;
+
+            const version = versionRows[0] ?? null;
+
+            if (version) {
+                const matched = version.version.match(/^(android|ios)\s*·\s*(.+)$/i);
+                const os = matched
+                    ? (matched[1].toLowerCase() === "android" ? "Android" : "iOS")
+                    : (version.apkFileUrl ? "Android" : "iOS");
+                const optionName = matched?.[2]?.trim() || version.version;
+
+                selectedVersion = {
+                    id: version.id,
+                    os,
+                    optionName,
+                    label: `${os} · ${optionName}`,
+                };
+            } else {
+                const optionRows = await prisma.$queryRaw<{
+                    id: string;
+                    os: string;
+                    name: string;
+                }[]>`
+                    SELECT id, os, name
+                    FROM "ThemeOption"
+                    WHERE id = ${versionId} AND "themeId" = ${id}
+                    LIMIT 1
+                `;
+
+                const option = optionRows[0] ?? null;
+                if (option) {
+                    const os = option.os.toLowerCase() === "android" ? "Android" : "iOS";
+                    selectedVersion = {
+                        id: option.id,
+                        os,
+                        optionName: option.name,
+                        label: `${os} · ${option.name}`,
+                    };
+                }
+            }
+        }
+
         return NextResponse.json({
             theme: {
                 id: r.id,
@@ -30,6 +87,7 @@ export async function GET(req: NextRequest) {
                 thumbnailUrl: r.thumbnailUrl,
                 author: r.creatorNickname ?? r.creatorName,
             },
+            selectedVersion,
         });
     } catch (e) {
         console.error("[themes/detail]", e);

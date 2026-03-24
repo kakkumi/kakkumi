@@ -39,6 +39,13 @@ type OrderInfo = {
     author: string;
 };
 
+type SelectedVersionInfo = {
+    id: string;
+    os: "iOS" | "Android";
+    optionName: string;
+    label: string;
+};
+
 export default function OrderPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -53,23 +60,25 @@ export default function OrderPage() {
     const [error, setError] = useState("");
     const [sdkLoaded, setSdkLoaded] = useState(false);
     const [userId, setUserId] = useState<string | undefined>();
+    const [selectedVersion, setSelectedVersion] = useState<SelectedVersionInfo | null>(null);
 
     // 세션 & 크레딧 조회
     useEffect(() => {
         Promise.all([
-            fetch("/api/themes/detail?id=" + themeId).then(r => r.json()),
+            fetch("/api/themes/detail?id=" + themeId + (versionId ? `&versionId=${encodeURIComponent(versionId)}` : "")).then(r => r.json()),
             fetch("/api/mypage/credit").then(r => r.json()),
             fetch("/api/auth/session").then(r => r.json()),
         ]).then(([themeData, creditData, sessionData]: [
-            { theme?: OrderInfo; error?: string },
+            { theme?: OrderInfo; selectedVersion?: SelectedVersionInfo | null; error?: string },
             { credit: number },
             { dbId?: string }
         ]) => {
             if (themeData.theme) setTheme(themeData.theme);
+            setSelectedVersion(themeData.selectedVersion ?? null);
             setMyCredit(creditData.credit ?? 0);
             setUserId(sessionData.dbId);
         }).catch(() => {}).finally(() => setLoading(false));
-    }, [themeId]);
+    }, [themeId, versionId]);
 
     // 토스 SDK 로드
     useEffect(() => {
@@ -155,217 +164,246 @@ export default function OrderPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col"
-            style={{
-                backgroundColor: "#f3f3f3",
-            }}>
+        <div
+            className="min-h-screen flex flex-col"
+            style={{ backgroundColor: "#f3f3f3" }}
+        >
             <Header />
 
-            <div className="flex-1 w-full max-w-[960px] mx-auto px-6 py-10 pb-24">
-                {/* 뒤로가기 */}
-                <Link href={`/store/${themeId}`}
-                    className="inline-flex items-center gap-2 text-[13px] font-medium text-gray-400 hover:text-gray-800 transition-colors mb-8">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <div className="flex-1 w-full max-w-[1120px] mx-auto px-6 lg:px-8 py-6 lg:py-8 pb-14">
+                <Link
+                    href={`/store/${themeId}`}
+                    className="inline-flex items-center gap-1.5 mb-7 group"
+                    style={{ color: "#a3a3a3", fontSize: 12, letterSpacing: "0.02em" }}
+                >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:opacity-70 transition-opacity">
                         <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
                     </svg>
-                    상세페이지로 돌아가기
+                    <span className="group-hover:opacity-70 transition-opacity">상세페이지로 돌아가기</span>
                 </Link>
-
-                <h1 className="text-[24px] font-extrabold mb-8" style={{ color: "#1c1c1e", fontFamily: "'ChosunIlboMyungjo', serif" }}>
-                    주문 확인
-                </h1>
 
                 {loading ? (
                     <div className="flex items-center justify-center py-24">
-                        <div className="w-10 h-10 rounded-full border-4 border-gray-200 border-t-gray-500 animate-spin" />
+                        <div
+                            className="w-9 h-9 rounded-full border-[3px] animate-spin"
+                            style={{ borderColor: "#e5e5e5", borderTopColor: "#3b82f6" }}
+                        />
                     </div>
                 ) : !theme ? (
-                    <div className="text-center py-24 text-gray-400">테마 정보를 불러올 수 없습니다.</div>
+                    <div className="text-center py-24 text-[14px]" style={{ color: "#a3a3a3" }}>
+                        테마 정보를 불러올 수 없습니다.
+                    </div>
                 ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+                    <>
+                        <section className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-12 lg:gap-14 items-start lg:min-h-[calc(100vh-235px)]">
+                            <div className="min-w-0 flex flex-col gap-10 lg:gap-12">
+                                <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_200px] gap-8 lg:gap-10 items-start">
+                                    <div className="min-w-0">
+                                        <p
+                                            className="text-[11px] font-semibold mb-4"
+                                            style={{ color: "#9ca3af", letterSpacing: "0.18em" }}
+                                        >
+                                            ORDER CHECK
+                                        </p>
+                                        <h1
+                                            className="text-[36px] lg:text-[46px] font-black leading-[0.98]"
+                                            style={{ color: "#111827", letterSpacing: "-0.05em" }}
+                                        >
+                                            주문 확인
+                                        </h1>
+                                        <p className="mt-5 max-w-[520px] text-[14px] leading-[1.9]" style={{ color: "#6b7280" }}>
+                                            선택한 옵션, 가격, 적립 혜택을 여유 있게 확인한 뒤 결제를 진행할 수 있어요.
+                                        </p>
+                                    </div>
 
-                        {/* 왼쪽: 주문 정보 */}
-                        <div className="flex flex-col gap-4">
+                                    <div className="flex justify-center md:justify-end">
+                                        <div
+                                            className="relative w-full max-w-[170px] overflow-hidden"
+                                            style={{
+                                                aspectRatio: "0.92 / 1",
+                                                borderRadius: 18,
+                                                background: "#e5e7eb",
+                                            }}
+                                        >
+                                            {theme.thumbnailUrl ? (
+                                                <Image src={theme.thumbnailUrl} alt={theme.title} fill className="object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center">
+                                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c4c7ce" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <rect x="3" y="3" width="18" height="18" rx="3"/>
+                                                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                                                        <path d="M21 15l-5-5L5 21"/>
+                                                    </svg>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
 
-                            {/* 주문 상품 */}
-                            <div className="flex flex-col gap-4 p-6 rounded-[20px]"
-                                style={{ background: "rgba(255,255,255,0.8)", border: "1px solid rgba(255,255,255,0.9)", boxShadow: "0 4px 20px rgba(0,0,0,0.06)", backdropFilter: "blur(20px)" }}>
-                                <h2 className="text-[14px] font-bold" style={{ color: "#1c1c1e" }}>주문 상품</h2>
-                                <div className="flex items-center gap-4">
-                                    <div className="w-20 h-20 rounded-[14px] overflow-hidden shrink-0 relative"
-                                        style={{ background: "rgba(0,0,0,0.06)" }}>
-                                        {theme.thumbnailUrl ? (
-                                            <Image src={theme.thumbnailUrl} alt={theme.title} fill className="object-cover" />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center">
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c8c8cd" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                                    <rect x="3" y="3" width="18" height="18" rx="3"/>
-                                                </svg>
+                                <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_240px] gap-10 lg:gap-12 pt-8" style={{ borderTop: "1px solid rgba(17,24,39,0.08)" }}>
+                                    <div className="min-w-0">
+                                        <div className="pb-6" style={{ borderBottom: "1px solid rgba(17,24,39,0.08)" }}>
+                                            <p className="text-[11px] font-semibold mb-4" style={{ color: "#9ca3af", letterSpacing: "0.18em" }}>
+                                                SELECTED THEME
+                                            </p>
+                                            <h2 className="text-[24px] lg:text-[30px] font-bold leading-[1.2]" style={{ color: "#111827", letterSpacing: "-0.04em" }}>
+                                                {theme.title}
+                                            </h2>
+                                            <p className="text-[13px] mt-3" style={{ color: "#6b7280" }}>
+                                                by {theme.author}
+                                            </p>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 pt-7">
+                                            {selectedVersion && (
+                                                <>
+                                                    <div className="space-y-2">
+                                                        <p className="text-[11px] font-medium" style={{ color: "#9ca3af", letterSpacing: "0.08em" }}>테마 종류</p>
+                                                        <p className="text-[15px] font-semibold" style={{ color: "#111827" }}>{selectedVersion.os}</p>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <p className="text-[11px] font-medium" style={{ color: "#9ca3af", letterSpacing: "0.08em" }}>옵션 이름</p>
+                                                        <p className="text-[15px] font-semibold" style={{ color: "#111827" }}>{selectedVersion.optionName}</p>
+                                                    </div>
+                                                </>
+                                            )}
+
+                                            <div className="space-y-2">
+                                                <p className="text-[11px] font-medium" style={{ color: "#9ca3af", letterSpacing: "0.08em" }}>상품 금액</p>
+                                                <p className="text-[15px] font-semibold" style={{ color: "#111827" }}>
+                                                    {price === 0 ? "무료" : `${price.toLocaleString()}원`}
+                                                </p>
                                             </div>
-                                        )}
+
+                                            {!isFree ? (
+                                                <div className="space-y-3">
+                                                    <div className="flex items-center justify-between gap-4">
+                                                        <p className="text-[11px] font-medium" style={{ color: "#9ca3af", letterSpacing: "0.08em" }}>적립금 사용</p>
+                                                        <button
+                                                            onClick={() => setUseCredit((v) => !v)}
+                                                            disabled={myCredit === 0}
+                                                            className="relative w-[46px] h-[25px] rounded-full transition-all duration-300 disabled:opacity-30"
+                                                            style={{ background: useCredit ? "#111827" : "#d1d5db" }}
+                                                        >
+                                                            <div
+                                                                className="absolute top-[3px] w-[19px] h-[19px] rounded-full bg-white transition-all duration-300"
+                                                                style={{
+                                                                    left: useCredit ? "calc(100% - 22px)" : "3px",
+                                                                    boxShadow: "0 1px 4px rgba(0,0,0,0.16)",
+                                                                }}
+                                                            />
+                                                        </button>
+                                                    </div>
+                                                    <p className="text-[13px]" style={{ color: "#6b7280" }}>
+                                                        보유 {myCredit.toLocaleString()}원
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-2">
+                                                    <p className="text-[11px] font-medium" style={{ color: "#9ca3af", letterSpacing: "0.08em" }}>구매 방식</p>
+                                                    <p className="text-[15px] font-semibold" style={{ color: "#111827" }}>무료 다운로드</p>
+                                                </div>
+                                            )}
+
+                                            {useCredit && creditToUse > 0 && (
+                                                <div className="space-y-2 md:col-span-2">
+                                                    <p className="text-[11px] font-medium" style={{ color: "#9ca3af", letterSpacing: "0.08em" }}>차감 예정 적립금</p>
+                                                    <p className="text-[15px] font-semibold" style={{ color: "#ef4444" }}>
+                                                        −{creditToUse.toLocaleString()}원
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            <div className="space-y-2 md:col-span-2">
+                                                <p className="text-[11px] font-medium" style={{ color: "#9ca3af", letterSpacing: "0.08em" }}>결제 후 이동</p>
+                                                <p className="text-[14px] leading-[1.7]" style={{ color: "#4b5563" }}>
+                                                    마이페이지의 구매 테마 페이지로 이동해요.
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="flex flex-col gap-1 flex-1">
-                                        <span className="text-[15px] font-bold" style={{ color: "#1c1c1e" }}>{theme.title}</span>
-                                        <span className="text-[13px]" style={{ color: "#8e8e93" }}>by {theme.author}</span>
+
+                                    <div className="min-w-0 xl:pt-[38px]">
+                                        <p className="text-[11px] font-semibold mb-5" style={{ color: "#9ca3af", letterSpacing: "0.18em" }}>
+                                            BENEFITS
+                                        </p>
+                                        <div className="space-y-7">
+                                            <div>
+                                                <p className="text-[11px] mb-2" style={{ color: "#9ca3af" }}>구매 적립</p>
+                                                <p className="text-[24px] lg:text-[26px] font-black leading-none" style={{ color: isFree ? "#9ca3af" : "#111827", letterSpacing: "-0.04em" }}>
+                                                    {isFree ? "0원" : `+${purchaseCreditReward}원`}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-[11px] mb-2" style={{ color: "#9ca3af" }}>리뷰 적립</p>
+                                                <p className="text-[24px] lg:text-[26px] font-black leading-none" style={{ color: isFree ? "#9ca3af" : "#111827", letterSpacing: "-0.04em" }}>
+                                                    {isFree ? "0원" : `+${reviewCreditReward}원`}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-[11px] mb-2" style={{ color: "#9ca3af" }}>예상 총 적립</p>
+                                                <p className="text-[24px] lg:text-[26px] font-black leading-none" style={{ color: isFree ? "#9ca3af" : "#111827", letterSpacing: "-0.04em" }}>
+                                                    {isFree ? "0원" : `+${(purchaseCreditReward + reviewCreditReward).toLocaleString()}원`}
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <span className="text-[18px] font-bold shrink-0" style={{ color: "#1c1c1e" }}>
-                                        {price === 0 ? "무료" : `${price.toLocaleString()}원`}
-                                    </span>
                                 </div>
                             </div>
 
-                            {/* 할인 / 적립금 사용 */}
-                            {!isFree && (
-                                <div className="flex flex-col gap-4 p-6 rounded-[20px]"
-                                    style={{ background: "rgba(255,255,255,0.8)", border: "1px solid rgba(255,255,255,0.9)", boxShadow: "0 4px 20px rgba(0,0,0,0.06)", backdropFilter: "blur(20px)" }}>
-                                    <h2 className="text-[14px] font-bold" style={{ color: "#1c1c1e" }}>할인 / 적립금</h2>
-
-
-                                    {/* 적립금 사용 */}
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34c759" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
-                                            </svg>
-                                            <span className="text-[13px]" style={{ color: "#3a3a3c" }}>적립금 사용</span>
-                                            <span className="text-[12px] font-semibold px-2 py-0.5 rounded-full"
-                                                style={{ background: "rgba(52,199,89,0.1)", color: "#1a7a3a" }}>
-                                                보유 {myCredit.toLocaleString()}원
-                                            </span>
-                                        </div>
-                                        <button
-                                            onClick={() => setUseCredit(v => !v)}
-                                            disabled={myCredit === 0}
-                                            className="relative w-11 h-6 rounded-full transition-all duration-200 disabled:opacity-40"
-                                            style={{ background: useCredit ? "#34c759" : "rgba(0,0,0,0.15)" }}>
-                                            <div className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-200"
-                                                style={{ left: useCredit ? "calc(100% - 22px)" : "2px" }} />
-                                        </button>
-                                    </div>
-                                    {useCredit && myCredit > 0 && (
-                                        <div className="flex items-center justify-between px-4 py-2.5 rounded-[12px]"
-                                            style={{ background: "rgba(52,199,89,0.06)", border: "1px solid rgba(52,199,89,0.2)" }}>
-                                            <span className="text-[12px]" style={{ color: "#1a7a3a" }}>
-                                                적립금 {creditToUse.toLocaleString()}원 차감
-                                            </span>
-                                            <span className="text-[13px] font-bold" style={{ color: "#ff3b30" }}>
-                                                -{creditToUse.toLocaleString()}원
-                                            </span>
-                                        </div>
+                            <div className="min-w-0 lg:pt-[6px]">
+                                <div className="pb-6" style={{ borderBottom: "1px solid rgba(17,24,39,0.08)" }}>
+                                    <p className="text-[11px] font-semibold mb-4" style={{ color: "#9ca3af", letterSpacing: "0.18em" }}>
+                                        PAYMENT
+                                    </p>
+                                    <p className="text-[12px] mb-3" style={{ color: "#9ca3af" }}>최종 결제 금액</p>
+                                    <p className="text-[32px] lg:text-[38px] font-black leading-none" style={{ color: "#111827", letterSpacing: "-0.04em" }}>
+                                        {isFree ? "무료" : payAmount === 0 ? "0원" : `${payAmount.toLocaleString()}원`}
+                                    </p>
+                                    {!isFree && payAmount !== price && (
+                                        <p className="text-[12px] font-semibold mt-4" style={{ color: "#ef4444" }}>
+                                            −{creditToUse.toLocaleString()}원 적용
+                                        </p>
                                     )}
-                                </div>
-                            )}
-
-                            {/* 최종 결제 금액 */}
-                            <div className="flex flex-col gap-3 p-6 rounded-[20px]"
-                                style={{ background: "rgba(255,255,255,0.8)", border: "1px solid rgba(255,255,255,0.9)", boxShadow: "0 4px 20px rgba(0,0,0,0.06)", backdropFilter: "blur(20px)" }}>
-                                <h2 className="text-[14px] font-bold" style={{ color: "#1c1c1e" }}>결제 금액</h2>
-                                <div className="flex flex-col gap-2">
-                                    <div className="flex justify-between">
-                                        <span className="text-[13px]" style={{ color: "#8e8e93" }}>상품 금액</span>
-                                        <span className="text-[13px]" style={{ color: "#3a3a3c" }}>
-                                            {price === 0 ? "무료" : `${price.toLocaleString()}원`}
-                                        </span>
-                                    </div>
-                                    {useCredit && creditToUse > 0 && (
-                                        <div className="flex justify-between">
-                                            <span className="text-[13px]" style={{ color: "#8e8e93" }}>적립금 할인</span>
-                                            <span className="text-[13px] font-semibold" style={{ color: "#ff3b30" }}>-{creditToUse.toLocaleString()}원</span>
-                                        </div>
-                                    )}
-                                    <div className="h-[1px] my-1" style={{ background: "rgba(0,0,0,0.07)" }} />
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-[15px] font-bold" style={{ color: "#1c1c1e" }}>최종 결제 금액</span>
-                                        <span className="text-[22px] font-extrabold" style={{ color: "#1c1c1e" }}>
-                                            {isFree ? "무료" : payAmount === 0 ? "0원 (적립금 전액 사용)" : `${payAmount.toLocaleString()}원`}
-                                        </span>
-                                    </div>
                                 </div>
 
                                 {error && (
-                                    <p className="text-[12px] font-medium px-3 py-2 rounded-lg" style={{ background: "rgba(255,59,48,0.08)", color: "#ff3b30" }}>{error}</p>
+                                    <p className="mt-5 text-[12px] font-medium" style={{ color: "#ef4444" }}>
+                                        {error}
+                                    </p>
                                 )}
 
                                 <button
                                     onClick={handlePay}
                                     disabled={paying}
-                                    className="w-full py-4 rounded-[14px] text-[16px] font-bold text-white transition-all active:scale-[0.98] disabled:opacity-60 mt-1"
-                                    style={{ background: "#4A7BF7", boxShadow: "0 4px 20px rgba(74,123,247,0.3)" }}>
-                                    {paying ? "처리 중..." : isFree ? "무료 다운로드" : payAmount === 0 ? "적립금으로 결제하기" : `${payAmount.toLocaleString()}원 결제하기`}
+                                    className="mt-8 w-full py-[16px] rounded-[14px] text-[15px] font-semibold text-white transition-all duration-150 active:scale-[0.985] disabled:opacity-40"
+                                    style={{
+                                        background: "#111827",
+                                        boxShadow: "0 12px 30px rgba(17,24,39,0.12)",
+                                        letterSpacing: "-0.01em",
+                                    }}
+                                >
+                                    {paying
+                                        ? "처리 중..."
+                                        : isFree
+                                            ? "무료 다운로드"
+                                            : payAmount === 0
+                                                ? "적립금으로 결제하기"
+                                                : `${payAmount.toLocaleString()}원 결제하기`}
                                 </button>
-                            </div>
-                        </div>
 
-                        {/* 오른쪽: 포인트 혜택 */}
-                        <div className="flex flex-col gap-4">
-                            <div className="flex flex-col gap-4 p-6 rounded-[20px]"
-                                style={{ background: "rgba(255,255,255,0.8)", border: "1px solid rgba(255,255,255,0.9)", boxShadow: "0 4px 20px rgba(0,0,0,0.06)", backdropFilter: "blur(20px)" }}>
-                                <h2 className="text-[14px] font-bold" style={{ color: "#1c1c1e" }}>포인트 혜택</h2>
-
-                                {/* 구매 적립 */}
-                                <div className="flex flex-col gap-2">
-                                    <div className="flex items-center gap-1.5">
-                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4A7BF7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                        </svg>
-                                        <span className="text-[12px] font-bold" style={{ color: "#4A7BF7" }}>구매 적립</span>
-                                    </div>
-                                    <div className="flex items-center justify-between px-4 py-3 rounded-[12px]"
-                                        style={{ background: "rgba(74,123,247,0.06)", border: "1px solid rgba(74,123,247,0.15)" }}>
-                                        <span className="text-[12px]" style={{ color: "#3a3a3c" }}>구매 완료 시 적립</span>
-                                        <span className="text-[16px] font-extrabold" style={{ color: isFree ? "#8e8e93" : "#4A7BF7" }}>
-                                            {isFree ? "0원" : `+${purchaseCreditReward}원`}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div className="h-[1px]" style={{ background: "rgba(0,0,0,0.06)" }} />
-
-                                {/* 리뷰 적립 */}
-                                <div className="flex flex-col gap-2">
-                                    <div className="flex items-center gap-1.5">
-                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FF9500" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                                        </svg>
-                                        <span className="text-[12px] font-bold" style={{ color: "#FF9500" }}>리뷰 적립</span>
-                                    </div>
-                                    <div className="flex items-center justify-between px-4 py-3 rounded-[12px]"
-                                        style={{ background: "rgba(255,149,0,0.06)", border: "1px solid rgba(255,149,0,0.15)" }}>
-                                        <span className="text-[12px]" style={{ color: "#3a3a3c" }}>리뷰 작성 시 적립</span>
-                                        <span className="text-[16px] font-extrabold" style={{ color: isFree ? "#8e8e93" : "#FF9500" }}>
-                                            {isFree ? "0원" : `+${reviewCreditReward}원`}
-                                        </span>
-                                    </div>
-                                    <p className="text-[11px]" style={{ color: "#b0b0b5" }}>리뷰 작성 후 승인 시 자동 지급됩니다.</p>
-                                </div>
-
-                                <div className="h-[1px]" style={{ background: "rgba(0,0,0,0.06)" }} />
-
-                                {/* 예상 총 적립 */}
-                                <div className="flex items-center justify-between px-4 py-3 rounded-[12px]"
-                                    style={{ background: "rgba(52,199,89,0.06)", border: "1px solid rgba(52,199,89,0.15)" }}>
-                                    <span className="text-[12px] font-semibold" style={{ color: "#1a7a3a" }}>예상 총 적립</span>
-                                    <span className="text-[16px] font-extrabold" style={{ color: isFree ? "#8e8e93" : "#34c759" }}>
-                                        {isFree ? "0원" : `+${(purchaseCreditReward + reviewCreditReward).toLocaleString()}원`}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* 안내 */}
-                            <div className="flex flex-col gap-2 px-4 py-4 rounded-[16px]"
-                                style={{ background: "rgba(0,0,0,0.025)", border: "1px solid rgba(0,0,0,0.06)" }}>
-                                <p className="text-[11px] font-semibold" style={{ color: "#3a3a3c" }}>안내사항</p>
-                                <ul className="flex flex-col gap-1 text-[11px] leading-relaxed" style={{ color: "#8e8e93" }}>
+                                <ul className="mt-8 space-y-3 text-[12px] leading-[1.7]" style={{ color: "#6b7280" }}>
                                     <li>• 구매 적립금은 결제 완료 즉시 지급됩니다.</li>
-                                    <li>• 리뷰 적립금은 리뷰 작성 및 승인 후 지급됩니다.</li>
-                                    <li>• 적립금은 테마 구매 시 현금처럼 사용 가능합니다.</li>
-                                    <li>• 회원 탈퇴 시 보유 적립금은 전액 소멸됩니다.</li>
+                                    <li>• 리뷰 적립금은 승인 후 지급됩니다.</li>
+                                    <li>• 적립금은 테마 구매 시 현금처럼 사용할 수 있습니다.</li>
+                                    <li>• 회원 탈퇴 시 보유 적립금은 소멸됩니다.</li>
                                 </ul>
                             </div>
-                        </div>
-                    </div>
+                        </section>
+                    </>
                 )}
             </div>
+
             <Footer />
         </div>
     );
