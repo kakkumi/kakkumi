@@ -85,7 +85,7 @@ export default function CreatorProfileClient({ creatorId }: { creatorId: string 
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="flex items-center justify-center py-32">
                 <span className="text-[14px]" style={{ color: "#8e8e93" }}>불러오는 중...</span>
             </div>
         );
@@ -93,7 +93,7 @@ export default function CreatorProfileClient({ creatorId }: { creatorId: string 
 
     if (error || !creator) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center gap-3">
+            <div className="flex flex-col items-center justify-center py-32 gap-3">
                 <p className="text-[16px]" style={{ color: "#1c1c1e" }}>사용자를 찾을 수 없습니다.</p>
                 <button onClick={() => router.back()} className="text-[13px]" style={{ color: "#8e8e93" }}>← 뒤로 가기</button>
             </div>
@@ -108,8 +108,8 @@ export default function CreatorProfileClient({ creatorId }: { creatorId: string 
             : (creator.role === "CREATOR" || creator.role === "ADMIN" ? "/creator.png" : "/user.png");
 
     return (
-        <div className="min-h-screen" style={{ background: "#f3f3f3" }}>
-            <div style={{ maxWidth: 900, margin: "0 auto", padding: "48px 24px" }}>
+        <div>
+            <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px" }}>
                 {/* 뒤로 가기 */}
                 <button
                     onClick={() => router.back()}
