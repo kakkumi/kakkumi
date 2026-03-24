@@ -5,7 +5,7 @@ import Link from "next/link";
 import AuthStatus from "./AuthStatus";
 import NotificationBell from "./NotificationBell";
 import LoginRequiredModal from "./LoginRequiredModal";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 
 const BASE_NAV_ITEMS = [
@@ -78,6 +78,7 @@ export default function Header() {
 function HeaderContent() {
     const pathname = usePathname();
     const searchParams = useSearchParams();
+    const router = useRouter();
     const isEditingTheme = pathname === "/create" && !!searchParams.get("id");
 
     const [role, setRole] = useState<string | null>(null);
@@ -102,14 +103,6 @@ function HeaderContent() {
         "/my-themes": "내 테마는 로그인이 필요한 기능이에요.",
         "/store/register": "테마 등록은 로그인이 필요한 기능이에요.",
         "/mypage/creator-apply": "입점 신청은 로그인이 필요한 기능이에요.",
-    };
-
-    const handleNavClick = (e: React.MouseEvent, href: string) => {
-        if (!sessionLoaded) return;
-        if (role === null && LOGIN_REQUIRED_HREFS[href]) {
-            e.preventDefault();
-            setLoginModal(LOGIN_REQUIRED_HREFS[href]);
-        }
     };
 
     const isActive = (href: string) => {
@@ -158,11 +151,27 @@ function HeaderContent() {
                             );
                         }
 
-                        return (
+                        return LOGIN_REQUIRED_HREFS[href] ? (
+                            <button
+                                key={href}
+                                onClick={() => {
+                                    if (!sessionLoaded) return;
+                                    if (role === null) { setLoginModal(LOGIN_REQUIRED_HREFS[href]); return; }
+                                    router.push(href);
+                                }}
+                                className="rounded-lg px-3 py-2 text-[13px] font-medium transition-colors duration-150"
+                                style={{
+                                    color: active ? "#ff9500" : "#3a3a3c",
+                                    background: "transparent",
+                                    fontWeight: active ? 700 : 500,
+                                }}
+                            >
+                                {label}
+                            </button>
+                        ) : (
                             <Link
                                 key={href}
                                 href={href}
-                                onClick={(e) => handleNavClick(e, href)}
                                 className="rounded-lg px-3 py-2 text-[13px] font-medium transition-colors duration-150"
                                 style={{
                                     color: active ? "#ff9500" : isAdminLink ? "#ff3b30" : "#3a3a3c",
