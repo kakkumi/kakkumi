@@ -261,7 +261,8 @@ export default function RegisterForm({ headerSlot, role, isPro = false }: Regist
     const doneCnt = completionItems.filter(i => i.done).length;
     const completionPct = Math.round((doneCnt / completionItems.length) * 100);
     const isSubmittable = nameChecked && !nameError && !nameChecking && !!price &&
-        categories.length > 0 && !!description.trim() && !!previewFile && hasAnyOptionData;
+        categories.length > 0 && !!description.trim() && !!previewFile && hasAnyOptionData &&
+        options.every(o => o.name.trim() !== "");
 
     return (
         <>
@@ -531,10 +532,16 @@ export default function RegisterForm({ headerSlot, role, isPro = false }: Regist
                                     <div className="flex items-center gap-3">
                                         <span className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0"
                                             style={{ background: "rgb(255,149,0)", color: "#fff" }}>{idx + 1}</span>
-                                        <input type="text" value={opt.name} onChange={e => updateOption(opt.id, { name: e.target.value })}
-                                            placeholder="옵션 이름 (예: 핑크 버전)" maxLength={20}
-                                            className="flex-1 bg-transparent outline-none text-[13px] placeholder:text-[#d0d0d0]"
-                                            style={{ color: "#1a1a1a", border: "none", borderBottom: "1px solid rgba(0,0,0,0.08)", paddingBottom: 4 }} />
+                                        <div className="flex-1 flex items-center gap-1 min-w-0">
+                                            <input type="text" value={opt.name} onChange={e => updateOption(opt.id, { name: e.target.value })}
+                                                placeholder="옵션 이름 입력 (필수)" maxLength={20}
+                                                className="flex-1 bg-transparent outline-none text-[13px] placeholder:text-[#d0a0a0]"
+                                                style={{
+                                                    color: "#1a1a1a", border: "none", paddingBottom: 4,
+                                                    borderBottom: opt.name.trim() === "" ? "1.5px solid #e11d48" : "1px solid rgba(0,0,0,0.08)",
+                                                }} />
+                                            <span style={{ color: "#e11d48", fontSize: 11, flexShrink: 0 }}>*</span>
+                                        </div>
                                         <button type="button" onClick={() => removeOption(opt.id)} className="shrink-0 opacity-30 hover:opacity-70 transition-opacity">
                                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
                                         </button>

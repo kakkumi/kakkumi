@@ -178,10 +178,16 @@ export default function ThemeDetailLayout({
                     {/* 크리에이터 */}
                     <Link
                         href={`/creator/${creatorId}`}
-                        style={{ fontSize: 11, color: "#b0b8c8", textDecoration: "none", display: "inline-block", marginBottom: 14 }}
-                        className="hover:text-blue-400 transition-colors"
+                        style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4, marginBottom: 14 }}
+                        className="group w-fit"
                     >
-                        {author}
+                        <span style={{ fontSize: 12, fontWeight: 600, color: "#6b7280" }} className="group-hover:text-blue-400 transition-colors">
+                            {author}
+                        </span>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                            className="group-hover:stroke-blue-400 transition-colors">
+                            <path d="M9 18l6-6-6-6" />
+                        </svg>
                     </Link>
 
                     {/* 제목 */}
@@ -198,15 +204,6 @@ export default function ThemeDetailLayout({
                         }}>
                             {price}
                         </span>
-                        {priceNum > 0 && priceNum < 2000 && (
-                            <span style={{
-                                fontSize: 10, fontWeight: 700,
-                                padding: "3px 8px", borderRadius: 999,
-                                background: "rgba(255,149,0,0.08)", color: "rgb(255,149,0)",
-                            }}>
-                                출시 기념 할인
-                            </span>
-                        )}
                     </div>
 
                     {/* 태그 */}
