@@ -4,9 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
-type Tab = "mine" | "purchased";
-
-// ...existing code...
 
 // ── 환불 모달 ──
 function RefundModal({
@@ -134,7 +131,7 @@ function OsTag({ label, color, bg }: { label: string; color: string; bg: string 
     );
 }
 
-export default function ThemeVaultTabs({ initialTab, onTabChange }: { initialTab?: Tab; onTabChange?: (tab: Tab) => void }) {
+export default function ThemeVaultTabs({ initialTab, onTabChangeAction }: { initialTab?: Tab; onTabChangeAction?: (tab: Tab) => void }) {
     const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? "purchased");
     const [data, setData] = useState<ApiResponse | null>(null);
     const [loading, setLoading] = useState(true);
@@ -507,7 +504,7 @@ export default function ThemeVaultTabs({ initialTab, onTabChange }: { initialTab
                             {i > 0 && <span className="mx-2.5 text-[12px]" style={{ color: "#e7e5e4" }}>/</span>}
                             <button onClick={() => {
                                     setActiveTab(tab.key);
-                                    onTabChange?.(tab.key);
+                                    onTabChangeAction?.(tab.key);
                                 }}
                                 className="text-[13px] transition-colors"
                                 style={{ color: active ? "#1c1917" : "#c8c5c1", fontWeight: active ? 600 : 400 }}>

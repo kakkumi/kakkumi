@@ -55,7 +55,7 @@ type Props = {
     isPro?: boolean;
 };
 
-export default function MyPageClient({ session, purchasedCount: _purchasedCount, sidebarMenus, createdAt, credit: _credit = 0, isPro: isProProp = false }: Props) {
+export default function MyPageClient({ session, sidebarMenus, createdAt, isPro: isProProp = false }: Props) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const menuFromUrl = searchParams.get("menu") ?? "";
@@ -390,7 +390,7 @@ export default function MyPageClient({ session, purchasedCount: _purchasedCount,
                             <ThemeVaultTabs
                                 key={activeMenu}
                                 initialTab={themeTab}
-                                onTabChange={(tab) => {
+                                onTabChangeAction={(tab: Tab) => {
                                     setActiveMenu(TAB_TO_MENU[tab]);
                                     setThemeTab(tab);
                                 }}
