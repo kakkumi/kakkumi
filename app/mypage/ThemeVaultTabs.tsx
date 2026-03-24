@@ -373,7 +373,7 @@ export default function ThemeVaultTabs({ initialTab, onTabChange }: { initialTab
                 {refundError && <p className="text-[12px] mb-3" style={{ color: "#ff3b30" }}>{refundError}</p>}
 
                 {themes.map((theme, idx) => {
-                    const isDownloading = downloadingId !== null;
+                    const isDownloading = downloadingId !== null && (theme.versions ?? []).some(v => v.id === downloadingId);
                     const canRefund =
                         isPurchased && theme.price > 0 && !theme.isDownloaded &&
                         theme.purchasedAt != null &&
