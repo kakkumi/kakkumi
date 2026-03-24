@@ -207,10 +207,12 @@ export async function POST(req: NextRequest) {
 
             // ThemeVersion 생성 - 다운로드 가능한 버전으로 등록
             const versionLabel = `${opt.os === "android" ? "Android" : "iOS"} · ${opt.name}`;
+            const versionConfigJson = configJson ?? "{}";
             await prisma.$executeRaw`
-                INSERT INTO "ThemeVersion" (id, "themeId", version, "kthemeFileUrl", "apkFileUrl", "buildStatus", "createdAt")
+                INSERT INTO "ThemeVersion" (id, "themeId", version, "configJson", "kthemeFileUrl", "apkFileUrl", "buildStatus", "createdAt")
                 VALUES (
                     ${versionId}, ${id}, ${versionLabel},
+                    ${versionConfigJson}::jsonb,
                     ${kthemeFileUrl},
                     ${apkFileUrl},
                     'PENDING'::"BuildStatus",

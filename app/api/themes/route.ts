@@ -22,6 +22,7 @@ export async function GET() {
                 reviewCount: number;
                 avgRating: number;
                 isSelling: boolean;
+                os: string | null;
             }[]>`
                 SELECT
                     t.id,
@@ -39,7 +40,8 @@ export async function GET() {
                     COUNT(DISTINCT p.id)::int AS "salesCount",
                     COUNT(DISTINCT l.id)::int AS "likeCount",
                     COUNT(DISTINCT r.id)::int AS "reviewCount",
-                    COALESCE(AVG(r.rating), 0)::float AS "avgRating"
+                    COALESCE(AVG(r.rating), 0)::float AS "avgRating",
+                    (SELECT STRING_AGG(DISTINCT o.os, ',') FROM "ThemeOption" o WHERE o."themeId" = t.id) AS "os"
                 FROM "Theme" t
                 JOIN "User" u ON t."creatorId" = u.id
                 LEFT JOIN "Purchase" p ON p."themeId" = t.id AND p.status = 'COMPLETED'
@@ -68,6 +70,7 @@ export async function GET() {
                 reviewCount: number;
                 avgRating: number;
                 isSelling: boolean;
+                os: string | null;
             }[]>`
                 SELECT
                     t.id,
@@ -85,7 +88,8 @@ export async function GET() {
                     COUNT(DISTINCT p.id)::int AS "salesCount",
                     0::int AS "likeCount",
                     0::int AS "reviewCount",
-                    0::float AS "avgRating"
+                    0::float AS "avgRating",
+                    (SELECT STRING_AGG(DISTINCT o.os, ',') FROM "ThemeOption" o WHERE o."themeId" = t.id) AS "os"
                 FROM "Theme" t
                 JOIN "User" u ON t."creatorId" = u.id
                 LEFT JOIN "Purchase" p ON p."themeId" = t.id AND p.status = 'COMPLETED'

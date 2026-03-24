@@ -51,6 +51,7 @@ type DbTheme = {
     reviewCount: number;
     avgRating: number;
     isSelling: boolean;
+    os: string | null;
 };
 
 // 시드 데이터용 숫자 id 테마 타입
@@ -91,6 +92,7 @@ type UnifiedTheme = {
     isLegacy: boolean;
     legacyId?: number;
     isSelling: boolean;
+    os: string | null;
 };
 
 function dbThemeToUnified(t: DbTheme): UnifiedTheme {
@@ -113,6 +115,7 @@ function dbThemeToUnified(t: DbTheme): UnifiedTheme {
         description: t.description ?? "",
         isLegacy: false,
         isSelling: t.isSelling ?? true,
+        os: t.os ?? null,
     };
 }
 
@@ -209,7 +212,8 @@ export default function StoreContent() {
     const filtered = themes.filter(t => {
         const platformMatch =
             activePlatform === "전체" ||
-            t.category.some(c => c.toLowerCase().includes(activePlatform.toLowerCase()));
+            (activePlatform === "iOS"     && (t.os?.includes("ios") ?? false)) ||
+            (activePlatform === "Android" && (t.os?.includes("android") ?? false));
 
         const catMatch =
             activeCategory === "전체" ||
@@ -412,6 +416,19 @@ export default function StoreContent() {
                                         )}
                                         {/* 배지들 */}
                                         <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                                            {/* OS 배지 */}
+                                            {theme.os?.includes("ios") && (
+                                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                                                    style={{ background: "rgba(88,86,214,0.88)", color: "#fff" }}>
+                                                    iOS
+                                                </span>
+                                            )}
+                                            {theme.os?.includes("android") && (
+                                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                                                    style={{ background: "rgba(52,199,89,0.88)", color: "#fff" }}>
+                                                    Android
+                                                </span>
+                                            )}
                                             {!theme.isSelling && (
                                                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
                                                     style={{ background: "rgba(0,0,0,0.55)", color: "#fff" }}>
