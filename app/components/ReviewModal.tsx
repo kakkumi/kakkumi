@@ -176,7 +176,7 @@ export default function ReviewModal({
                 {/* 내용 */}
                 <div className="flex flex-col gap-2">
                     <span className="text-[13px] font-bold" style={{ color: "#1c1c1e" }}>
-                        리뷰 내용 <span className="text-[11px] font-normal" style={{ color: "#8e8e93" }}>(선택)</span>
+                        리뷰 내용 <span className="text-[11px] font-normal" e={{ color: "#8e8e93" }}>(필수, 10자 이상)</span>
                     </span>
                     <textarea
                         value={content}

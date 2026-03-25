@@ -88,6 +88,7 @@ enum PointType {
   ADMIN_GRANT
   REFUND
   EXPIRY
+  REVIEW_REWARD
 }
 
 enum NotificationType {
@@ -343,6 +344,7 @@ model Review {
   rating    Int
   content   String?
   images    String[] @default([])
+  rewarded  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

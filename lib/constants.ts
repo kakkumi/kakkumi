@@ -19,6 +19,8 @@ export const CREDIT_EXPIRY_WARN_DEDUP_DAYS = 25; // 중복 발송 방지 기준 
 export const REFUND_ALLOWED_DAYS = 7;          // 환불 가능 기간 (일)
 export const REFERRAL_REWARD_AMOUNT = 500;     // 추천 적립금 (원)
 export const REFERRAL_MAX_PER_MONTH = 3;       // 추천인 월 최대 수령 횟수
+export const REVIEW_REWARD_AMOUNT = 100;       // 리뷰 작성 적립금 (원)
+export const REVIEW_MIN_LENGTH = 10;           // 리뷰 최소 글자 수
 
 // 구매 적립금 기준표
 export const PURCHASE_CREDIT_TIERS: { maxPrice: number; reward: number }[] = [
