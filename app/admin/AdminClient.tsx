@@ -69,11 +69,18 @@ type AdminGalleryReport = {
     reporterNickname: string | null; reporterName: string;
 };
 
+type DashboardCounts = {
+    themesPending: number;
+    applicationsPending: number;
+    reportsPending: number;
+    inquiriesOpen: number;
+    mailboxPending: number;
+    galleryReportsPending: number;
+};
+
 type Tab = "overview" | "themes" | "users" | "reports" | "sales" | "inquiries" | "applications" | "mailbox" | "gallery_reports";
 type Props = {
-    stats: Stats;
-    recentUsers: AdminUser[];
-    recentPurchases: AdminPurchase[];
+    dashboardCounts: DashboardCounts;
 };
 
 // ── 스타일 상수 ──────────────────────────────────
@@ -182,12 +189,12 @@ function ModalOverlay({ onClose, children }: { onClose: () => void; children: Re
 }
 
 // ── 메인 컴포넌트 ─────────────────────────────────
-export default function AdminClient({ stats, recentUsers, recentPurchases }: Props) {
+export default function AdminClient({ dashboardCounts }: Props) {
     const [activeTab, setActiveTab] = useState<Tab>("overview");
     const [themes, setThemes] = useState<AdminTheme[]>([]);
-    const [users, setUsers] = useState<AdminUser[]>(recentUsers);
+    const [users, setUsers] = useState<AdminUser[]>([]);
     const [reports, setReports] = useState<AdminReport[]>([]);
-    const [purchases, setPurchases] = useState<AdminPurchase[]>(recentPurchases);
+    const [purchases, setPurchases] = useState<AdminPurchase[]>([]);
     const [settlements, setSettlements] = useState<AdminSettlement[]>([]);
     const [inquiries, setInquiries] = useState<AdminInquiry[]>([]);
     const [applications, setApplications] = useState<AdminApplication[]>([]);
@@ -359,12 +366,59 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
         fetchTab("inquiries");
     };
 
-    const STAT_CARDS = [
-        { label: "전체 회원",  value: stats.userCount,     color: "rgb(74,123,247)" },
-        { label: "등록 테마",  value: stats.themeCount,    color: "rgb(255,149,0)"  },
-        { label: "완료 구매",  value: stats.purchaseCount, color: "#34c759"         },
-        { label: "문의 요청",  value: stats.inquiryCount,  color: "#af52de"         },
+    // ── 대시보드 항목 정의 ──────────────────────────────
+    type DashboardItem = { label: string; tab: Tab; count: number; accent: string; desc: string };
+    const CONTENT_ITEMS: DashboardItem[] = [
+        {
+            label: "테마 승인 대기",
+            tab: "themes",
+            count: dashboardCounts.themesPending,
+            accent: "#FF9500",
+            desc: "등록·수정 신청 중인 테마",
+        },
+        {
+            label: "입점 신청 대기",
+            tab: "applications",
+            count: dashboardCounts.applicationsPending,
+            accent: "#FF9500",
+            desc: "크리에이터 입점 심사 대기",
+        },
+        {
+            label: "신고 처리 대기",
+            tab: "reports",
+            count: dashboardCounts.reportsPending,
+            accent: "#ff3b30",
+            desc: "테마 신고 미처리 건수",
+        },
     ];
+    const SUPPORT_ITEMS: DashboardItem[] = [
+        {
+            label: "1:1 문의 미답변",
+            tab: "inquiries",
+            count: dashboardCounts.inquiriesOpen,
+            accent: "rgb(74,123,247)",
+            desc: "답변 대기 중인 문의",
+        },
+        {
+            label: "우체통 미처리",
+            tab: "mailbox",
+            count: dashboardCounts.mailboxPending,
+            accent: "rgb(74,123,247)",
+            desc: "건의·버그 제보 미검토 건수",
+        },
+        {
+            label: "갤러리 신고 미처리",
+            tab: "gallery_reports",
+            count: dashboardCounts.galleryReportsPending,
+            accent: "rgb(74,123,247)",
+            desc: "갤러리 댓글 신고 미처리 건수",
+        },
+    ];
+
+    const goTo = (tab: Tab) => {
+        setActiveTab(tab);
+        if (tab === "inquiries") { setSelectedInquiry(null); setReplyText(""); }
+    };
 
     return (
         <div className="flex flex-1 max-w-[1300px] mx-auto w-full pb-20">
@@ -390,10 +444,7 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
                             return (
                                 <button
                                     key={item.key}
-                                    onClick={() => {
-                                        setActiveTab(item.key);
-                                        if (item.key === "inquiries") { setSelectedInquiry(null); setReplyText(""); }
-                                    }}
+                                    onClick={() => goTo(item.key)}
                                     className="text-left px-2 py-[7px] rounded-xl text-[12.5px] font-medium transition-all"
                                     style={{ color: isActive ? "#FF9500" : "#3a3a3c", fontWeight: isActive ? 700 : 500 }}
                                 >
@@ -414,47 +465,89 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
                 {/* ───────── 대시보드 ───────── */}
                 {activeTab === "overview" && (
                     <div className="flex flex-col gap-10">
+                        {/* 헤더 */}
                         <div>
-                            <h1 className="text-[20px] font-bold tracking-tight" style={{ color: "#1c1c1e" }}>대시보드</h1>
-                            <p className="text-[13px] mt-1" style={{ color: "#aeaeb2" }}>카꾸미 서비스 전체 현황</p>
+                            <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "#1c1c1e" }}>대시보드</h1>
+                            <p className="text-[13px] mt-1" style={{ color: "#aeaeb2" }}>처리가 필요한 항목을 확인하세요</p>
                         </div>
 
-                        {/* 스탯 */}
-                        <div className="grid grid-cols-4 gap-px" style={{ background: "rgba(0,0,0,0.07)" }}>
-                            {STAT_CARDS.map((card) => (
-                                <div key={card.label} className="flex flex-col gap-1 px-6 py-5" style={{ background: "var(--bg, #fff)" }}>
-                                    <p className="text-[11px] font-medium" style={{ color: "#aeaeb2" }}>{card.label}</p>
-                                    <p className="text-[28px] font-bold tracking-tight" style={{ color: card.color, lineHeight: 1.1 }}>
-                                        {card.value.toLocaleString()}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* 최근 데이터 */}
-                        <div className="grid grid-cols-2 gap-10">
-                            <div className="flex flex-col gap-3">
-                                <SectionHeader title="최근 가입 회원" count={recentUsers.length} />
-                                {recentUsers.slice(0, 5).map((u) => (
-                                    <div key={u.id} className="flex items-center justify-between py-1">
-                                        <div>
-                                            <p className="text-[13px] font-medium" style={{ color: "#1c1c1e" }}>{u.nickname ?? u.name}</p>
-                                            <p className="text-[11px]" style={{ color: "#aeaeb2" }}>{formatKST(u.createdAt, false)}</p>
+                        {/* 콘텐츠 섹션 */}
+                        <div className="flex flex-col gap-2">
+                            <p className="text-[11px] font-bold tracking-[0.12em] uppercase" style={{ color: "#aeaeb2" }}>콘텐츠</p>
+                            <div
+                                className="rounded-2xl overflow-hidden"
+                                style={{ border: "1px solid rgba(0,0,0,0.07)", background: "#fff" }}
+                            >
+                                {CONTENT_ITEMS.map((item, idx) => (
+                                    <button
+                                        key={item.tab}
+                                        onClick={() => goTo(item.tab)}
+                                        className="w-full flex items-center justify-between px-5 py-4 text-left transition-colors hover:bg-black/[0.02] group"
+                                        style={{
+                                            borderBottom: idx < CONTENT_ITEMS.length - 1 ? "1px solid rgba(0,0,0,0.05)" : "none",
+                                        }}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            {/* 액센트 바 */}
+                                            <div
+                                                className="w-[3px] h-8 rounded-full shrink-0"
+                                                style={{ background: item.count > 0 ? item.accent : "rgba(0,0,0,0.1)" }}
+                                            />
+                                            <div>
+                                                <p className="text-[14px] font-semibold" style={{ color: "#1c1c1e" }}>{item.label}</p>
+                                                <p className="text-[11px]" style={{ color: "#aeaeb2" }}>{item.desc}</p>
+                                            </div>
                                         </div>
-                                        <Badge style={ROLE_STYLE[u.role] ?? { label: u.role, bg: "rgba(0,0,0,0.07)", color: "#8e8e93" }} />
-                                    </div>
+                                        <div className="flex items-center gap-3">
+                                            <span
+                                                className="text-[22px] font-bold tabular-nums"
+                                                style={{ color: item.count > 0 ? item.accent : "#c7c7cc" }}
+                                            >
+                                                {item.count}
+                                            </span>
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 group-hover:stroke-[#8e8e93] transition-colors"><path d="M9 18l6-6-6-6"/></svg>
+                                        </div>
+                                    </button>
                                 ))}
                             </div>
-                            <div className="flex flex-col gap-3">
-                                <SectionHeader title="최근 구매" count={recentPurchases.length} />
-                                {recentPurchases.slice(0, 5).map((p) => (
-                                    <div key={p.id} className="flex items-center justify-between py-1">
-                                        <div>
-                                            <p className="text-[13px] font-medium" style={{ color: "#1c1c1e" }}>{p.themeTitle}</p>
-                                            <p className="text-[11px]" style={{ color: "#aeaeb2" }}>{p.buyerNickname ?? p.buyerName} · {formatKST(p.createdAt, false)}</p>
+                        </div>
+
+                        {/* 지원 섹션 */}
+                        <div className="flex flex-col gap-2">
+                            <p className="text-[11px] font-bold tracking-[0.12em] uppercase" style={{ color: "#aeaeb2" }}>지원</p>
+                            <div
+                                className="rounded-2xl overflow-hidden"
+                                style={{ border: "1px solid rgba(0,0,0,0.07)", background: "#fff" }}
+                            >
+                                {SUPPORT_ITEMS.map((item, idx) => (
+                                    <button
+                                        key={item.tab}
+                                        onClick={() => goTo(item.tab)}
+                                        className="w-full flex items-center justify-between px-5 py-4 text-left transition-colors hover:bg-black/[0.02] group"
+                                        style={{
+                                            borderBottom: idx < SUPPORT_ITEMS.length - 1 ? "1px solid rgba(0,0,0,0.05)" : "none",
+                                        }}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div
+                                                className="w-[3px] h-8 rounded-full shrink-0"
+                                                style={{ background: item.count > 0 ? item.accent : "rgba(0,0,0,0.1)" }}
+                                            />
+                                            <div>
+                                                <p className="text-[14px] font-semibold" style={{ color: "#1c1c1e" }}>{item.label}</p>
+                                                <p className="text-[11px]" style={{ color: "#aeaeb2" }}>{item.desc}</p>
+                                            </div>
                                         </div>
-                                        <p className="text-[13px] font-semibold" style={{ color: "#1c1c1e" }}>{p.amount.toLocaleString()}원</p>
-                                    </div>
+                                        <div className="flex items-center gap-3">
+                                            <span
+                                                className="text-[22px] font-bold tabular-nums"
+                                                style={{ color: item.count > 0 ? item.accent : "#c7c7cc" }}
+                                            >
+                                                {item.count}
+                                            </span>
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 group-hover:stroke-[#8e8e93] transition-colors"><path d="M9 18l6-6-6-6"/></svg>
+                                        </div>
+                                    </button>
                                 ))}
                             </div>
                         </div>
@@ -469,6 +562,8 @@ export default function AdminClient({ stats, recentUsers, recentPurchases }: Pro
                         actionLoading={actionLoading}
                         onApprove={(id) => themeAction(id, "approve")}
                         onReject={(id, title) => setRejectModal({ themeId: id, title })}
+                        onHide={(id) => themeAction(id, "hide")}
+                        onUnhide={(id) => themeAction(id, "unhide")}
                     />
                 )}
 
@@ -868,12 +963,28 @@ function DiffRow({ label, before, after }: { label: string; before: string; afte
     );
 }
 
-function ThemeManageTab({ themes, loading, actionLoading, onApprove, onReject }: {
+function ThemeManageTab({ themes, loading, actionLoading, onApprove, onReject, onHide, onUnhide }: {
     themes: AdminTheme[]; loading: boolean; actionLoading: boolean;
     onApprove: (id: string) => void; onReject: (id: string, title: string) => void;
+    onHide: (id: string) => void; onUnhide: (id: string) => void;
 }) {
     const [expandedId, setExpandedId] = useState<string | null>(null);
-    const draftThemes = themes.filter((t) => t.status === "DRAFT");
+    const [statusTab, setStatusTab] = useState<"DRAFT" | "PUBLISHED" | "HIDDEN">("DRAFT");
+
+    const draftThemes     = themes.filter((t) => t.status === "DRAFT");
+    const publishedThemes = themes.filter((t) => t.status === "PUBLISHED");
+    const hiddenThemes    = themes.filter((t) => t.status === "HIDDEN");
+
+    const TAB_CONFIG: { key: "DRAFT" | "PUBLISHED" | "HIDDEN"; label: string; count: number; accent: string }[] = [
+        { key: "DRAFT",     label: "승인 대기", count: draftThemes.length,     accent: "#FF9500" },
+        { key: "PUBLISHED", label: "공개 중",   count: publishedThemes.length, accent: "#34c759" },
+        { key: "HIDDEN",    label: "숨김",      count: hiddenThemes.length,    accent: "#8e8e93" },
+    ];
+
+    const currentList =
+        statusTab === "DRAFT"     ? draftThemes :
+        statusTab === "PUBLISHED" ? publishedThemes :
+                                   hiddenThemes;
 
     return (
         <div className="flex flex-col gap-6">
@@ -881,13 +992,89 @@ function ThemeManageTab({ themes, loading, actionLoading, onApprove, onReject }:
                 <h1 className="text-[20px] font-bold tracking-tight" style={{ color: "#1c1c1e" }}>테마 관리</h1>
                 <p className="text-[13px] mt-1" style={{ color: "#aeaeb2" }}>등록 신청된 테마를 검토하고 승인 또는 반려합니다.</p>
             </div>
+
+            {/* 상태 탭 */}
+            <div className="flex gap-1.5">
+                {TAB_CONFIG.map((t) => (
+                    <button
+                        key={t.key}
+                        onClick={() => { setStatusTab(t.key); setExpandedId(null); }}
+                        className="px-4 py-1.5 rounded-full text-[13px] font-medium transition-all"
+                        style={{
+                            background: statusTab === t.key ? `${t.accent}18` : "transparent",
+                            color:      statusTab === t.key ? t.accent : "#aeaeb2",
+                            border:     `1px solid ${statusTab === t.key ? t.accent + "40" : "rgba(0,0,0,0.07)"}`,
+                        }}
+                    >
+                        {t.label}
+                        {t.count > 0 && (
+                            <span
+                                className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold"
+                                style={{ background: statusTab === t.key ? t.accent : "#aeaeb2", color: "#fff" }}
+                            >
+                                {t.count}
+                            </span>
+                        )}
+                    </button>
+                ))}
+            </div>
+
             <SectionHeader
-                title="승인 대기"
-                count={draftThemes.length}
+                title={TAB_CONFIG.find((t) => t.key === statusTab)!.label}
+                count={currentList.length}
                 action={loading ? <span className="text-[12px]" style={{ color: "#aeaeb2" }}>로딩 중...</span> : undefined}
             />
-            {draftThemes.length === 0 && !loading
-                ? <EmptyState text="승인 대기 중인 테마가 없습니다." />
+
+            {/* 공개 중 / 숨김 테마 목록 */}
+            {(statusTab === "PUBLISHED" || statusTab === "HIDDEN") && (
+                currentList.length === 0 && !loading
+                    ? <EmptyState text={statusTab === "PUBLISHED" ? "공개 중인 테마가 없습니다." : "숨김 처리된 테마가 없습니다."} />
+                    : currentList.map((t) => (
+                        <div key={t.id} className="flex items-center gap-4 py-3" style={{ borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                                {t.thumbnailUrl && (
+                                    <img src={t.thumbnailUrl} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" style={{ border: "1px solid rgba(0,0,0,0.07)" }} />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                                        <span className="text-[13px] font-medium truncate" style={{ color: "#1c1c1e" }}>{t.title}</span>
+                                        <Badge style={THEME_STATUS_STYLE[t.status] ?? { label: t.status, bg: "rgba(0,0,0,0.07)", color: "#8e8e93" }} />
+                                    </div>
+                                    <p className="text-[11px]" style={{ color: "#aeaeb2" }}>
+                                        {t.creatorNickname ?? t.creatorName} · {t.price === 0 ? "무료" : `${t.price.toLocaleString()}원`} · {formatKST(t.createdAt, false)}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex gap-2 shrink-0">
+                                {statusTab === "PUBLISHED" && (
+                                    <button
+                                        onClick={() => onHide(t.id)}
+                                        disabled={actionLoading}
+                                        className="text-[12px] font-medium px-3 py-1.5 rounded-md transition-opacity hover:opacity-70 disabled:opacity-40"
+                                        style={{ background: "rgba(0,0,0,0.05)", color: "#8e8e93" }}
+                                    >
+                                        숨김 처리
+                                    </button>
+                                )}
+                                {statusTab === "HIDDEN" && (
+                                    <button
+                                        onClick={() => onUnhide(t.id)}
+                                        disabled={actionLoading}
+                                        className="text-[12px] font-medium px-3 py-1.5 rounded-md transition-opacity hover:opacity-70 disabled:opacity-40"
+                                        style={{ background: "rgba(52,199,89,0.08)", color: "#1a7a3a" }}
+                                    >
+                                        공개 복원
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    ))
+            )}
+
+            {/* 승인 대기 테마 목록 (기존 로직) */}
+            {statusTab === "DRAFT" && (
+                draftThemes.length === 0 && !loading
+                    ? <EmptyState text="승인 대기 중인 테마가 없습니다." />
                 : draftThemes.map((t) => {
                     const isOpen = expandedId === t.id;
                     const isUpdate = !!t.pendingTitle;
@@ -1112,7 +1299,7 @@ function ThemeManageTab({ themes, loading, actionLoading, onApprove, onReject }:
                         </div>
                     );
                 })
-            }
+            )}
         </div>
     );
 }
