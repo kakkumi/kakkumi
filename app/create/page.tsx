@@ -732,7 +732,7 @@ function CreatePageContent() {
   const [os, setOs] = useState<OS>("ios");
   const [config, setConfig] = useState<ThemeConfig>(defaultConfig);
   const [previewTab, setPreviewTab] = useState<PreviewTab>("friends");
-  const [activeEditorCategory, setActiveEditorCategory] = useState<EditorCategory>("manifest");
+  const [activeEditorCategory, setActiveEditorCategory] = useState<EditorCategory | null>("manifest");
   const [imageUploads, setImageUploads] = useState<Record<string, string>>({});
   const [sendBubbleOpts, setSendBubbleOpts] = useState<BubbleDesignOptions>({ ...DEFAULT_SEND, bgColor: defaultConfig.myBubbleBg });
   const [receiveBubbleOpts, setReceiveBubbleOpts] = useState<BubbleDesignOptions>({ ...DEFAULT_RECEIVE, bgColor: defaultConfig.otherBubbleBg });
@@ -1517,89 +1517,120 @@ function CreatePageContent() {
       {/* ── 공통 헤더 ── */}
       <Header />
 
-      {/* ── 서브 툴바 ── */}
+      {/* ── 서브 툴바 (개선된 UI) ── */}
       <div
-        className="flex items-center justify-between px-6 shrink-0"
+        className="flex items-center justify-between px-5 shrink-0"
         style={{
-          height: 48,
-          background: "rgba(255,255,255,0.88)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          borderBottom: "1px solid rgba(0,0,0,0.07)",
+          height: 56,
+          background: "#ffffff",
+          borderBottom: "1px solid #e5e5e5",
+          zIndex: 10,
         }}
       >
-        {/* 왼쪽: 테마명 */}
-        <div className="flex items-center gap-3">
-          <span className="text-[13px] font-semibold" style={{ color: "#1c1c1e" }}>{config.name}</span>
+        {/* 왼쪽: 테마명 및 자동저장 상태 */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center">
+            <span className="text-[14px] font-bold text-gray-900 truncate max-w-[150px]">{config.name}</span>
+            <div className="w-px h-3.5 mx-3 bg-gray-200" />
+            <div className="flex items-center gap-1.5 text-[11px] font-medium transition-colors"
+              style={{
+                color: autoSaveStatus === "saved" ? "#52c41a"
+                  : autoSaveStatus === "saving" ? "#1890ff"
+                  : autoSaveStatus === "offline" ? "#ff4d4f"
+                  : "#8c8c8c",
+              }}
+            >
+              {autoSaveStatus === "saving" && (
+                <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M21 12a9 9 0 11-6.219-8.56"/>
+                </svg>
+              )}
+              {autoSaveStatus === "saved" && (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M20 6L9 17l-5-5"/>
+                </svg>
+              )}
+              {autoSaveStatus === "offline" && (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0119 12.55M5 12.55a10.94 10.94 0 015.17-2.39M10.71 5.05A16 16 0 0122.56 9M1.42 9a15.91 15.91 0 014.7-2.88M8.53 16.11a6 6 0 016.95 0M12 20h.01"/>
+                </svg>
+              )}
+              {autoSaveStatus === "saving" ? "저장 중..."
+                : autoSaveStatus === "saved" ? "저장됨"
+                : autoSaveStatus === "offline" ? "오프라인"
+                : autoSaveStatus === "slot_limit" ? "저장 공간 부족"
+                : "대기 중"}
+            </div>
+          </div>
         </div>
 
-        {/* 가운데: 탭 프리뷰 선택 */}
-        <div className="flex items-center gap-0.5 rounded-full px-1 py-1" style={{ background: "rgba(0,0,0,0.05)" }}>
-          {(["friends","chat","openchat","shopping","more"] as PreviewTab[]).map((tab) => {
-            const labels: Record<PreviewTab, string> = { friends:"친구", chat:"채팅", openchat:"지금", shopping:"쇼핑", more:"더보기", passcode:"암호", notification:"알림" };
-            return (
-              <button key={tab} onClick={() => setPreviewTab(tab)}
-                className="px-3.5 py-1 text-[12px] font-semibold transition-all rounded-full"
-                style={{
-                  color: previewTab === tab ? "#fff" : "#6b6b6b",
-                  background: previewTab === tab ? "rgb(255,149,0)" : "transparent",
-                  boxShadow: previewTab === tab ? "0 1px 6px rgba(255,149,0,0.35)" : "none",
-                  whiteSpace: "nowrap",
-                }}
-              >{labels[tab]}</button>
-            );
-          })}
-          <div className="w-px h-3.5 mx-0.5 self-center" style={{ background: "rgba(0,0,0,0.1)" }} />
-          <button onClick={() => setPreviewTab(previewTab === "passcode" ? "friends" : "passcode")}
-            className="px-3.5 py-1 text-[12px] font-semibold transition-all rounded-full"
-            style={{
-              color: previewTab === "passcode" ? "#fff" : "#6b6b6b",
-              background: previewTab === "passcode" ? "rgb(255,149,0)" : "transparent",
-              boxShadow: previewTab === "passcode" ? "0 1px 6px rgba(255,149,0,0.35)" : "none",
-              whiteSpace: "nowrap",
-            }}
-          >암호</button>
-          <button onClick={() => setPreviewTab(previewTab === "notification" ? "friends" : "notification")}
-            className="px-3.5 py-1 text-[12px] font-semibold transition-all rounded-full"
-            style={{
-              color: previewTab === "notification" ? "#fff" : "#6b6b6b",
-              background: previewTab === "notification" ? "rgb(255,149,0)" : "transparent",
-              boxShadow: previewTab === "notification" ? "0 1px 6px rgba(255,149,0,0.35)" : "none",
-              whiteSpace: "nowrap",
-            }}
-          >알림</button>
-        </div>
-
-        {/* 오른쪽: OS + 버튼들 */}
-        <div className="flex items-center gap-3">
+        {/* 가운데: OS 및 화면 탭 */}
+        <div className="flex items-center gap-2">
           {/* OS 토글 */}
-          <div className="flex items-center rounded-full p-0.5" style={{ background: "rgba(0,0,0,0.07)" }}>
+          <div className="flex items-center rounded-lg p-0.5" style={{ background: "#f3f4f6" }}>
             {(["ios","android"] as OS[]).map((o) => (
               <button key={o} onClick={() => { hasChangesRef.current = true; setOs(o); triggerImmediate(); }}
-                className="px-4 py-1 text-[12px] font-semibold transition-all rounded-full"
+                className="px-3 py-1.5 text-[12px] font-bold transition-all rounded-md"
                 style={{
-                  color: os === o ? "#fff" : "#8e8e93",
-                  background: os === o ? "rgb(74,123,247)" : "transparent",
-                  boxShadow: os === o ? "0 1px 4px rgba(74,123,247,0.35)" : "none",
+                  color: os === o ? "#111827" : "#9ca3af",
+                  background: os === o ? "#ffffff" : "transparent",
+                  boxShadow: os === o ? "0 1px 2px rgba(0,0,0,0.05)" : "none",
                 }}
               >{o === "ios" ? "iOS" : "Android"}</button>
             ))}
           </div>
 
+          <div className="w-px h-4 bg-gray-200 mx-2" />
+
+          {/* 화면 탭 */}
+          <div className="flex items-center gap-0.5">
+            {(["friends","chat","openchat","shopping","more"] as PreviewTab[]).map((tab) => {
+              const labels: Record<PreviewTab, string> = { friends:"친구", chat:"채팅", openchat:"지금", shopping:"쇼핑", more:"더보기", passcode:"암호", notification:"알림" };
+              return (
+                <button key={tab} onClick={() => setPreviewTab(tab)}
+                  className="px-3 py-1.5 text-[13px] font-medium transition-colors rounded-md hover:bg-gray-100"
+                  style={{
+                    color: previewTab === tab ? "#111827" : "#6b7280",
+                    fontWeight: previewTab === tab ? 600 : 500,
+                    background: previewTab === tab ? "#f3f4f6" : "transparent",
+                  }}
+                >{labels[tab]}</button>
+              );
+            })}
+            <button onClick={() => setPreviewTab(previewTab === "passcode" ? "friends" : "passcode")}
+              className="px-3 py-1.5 text-[13px] font-medium transition-colors rounded-md hover:bg-gray-100"
+              style={{
+                color: previewTab === "passcode" ? "#111827" : "#6b7280",
+                fontWeight: previewTab === "passcode" ? 600 : 500,
+                background: previewTab === "passcode" ? "#f3f4f6" : "transparent",
+              }}
+            >암호</button>
+            <button onClick={() => setPreviewTab(previewTab === "notification" ? "friends" : "notification")}
+              className="px-3 py-1.5 text-[13px] font-medium transition-colors rounded-md hover:bg-gray-100"
+              style={{
+                color: previewTab === "notification" ? "#111827" : "#6b7280",
+                fontWeight: previewTab === "notification" ? 600 : 500,
+                background: previewTab === "notification" ? "#f3f4f6" : "transparent",
+              }}
+            >알림</button>
+          </div>
+        </div>
+
+        {/* 오른쪽: 버튼들 */}
+        <div className="flex items-center gap-2.5">
           {/* 초기화 버튼 */}
           <button
             onClick={() => setResetConfirm(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all hover:opacity-80"
-            style={{ background: "rgba(255,59,48,0.08)", color: "rgb(255,59,48)", border: "1px solid rgba(255,59,48,0.15)" }}
+            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium text-gray-500 hover:text-red-500 hover:bg-red-50 transition-colors border border-transparent hover:border-red-100"
+            title="초기화"
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-              <path d="M3 3v5h5"/>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
             </svg>
             초기화
           </button>
 
-          {/* 복제 버튼 (Pro 전용, 기존 테마 편집 시에만 표시) */}
+          {/* 복제 버튼 (기존 기능 유지) */}
           {themeIdParam && (
             <button
               onClick={async () => {
@@ -1608,96 +1639,46 @@ function CreatePageContent() {
                 try {
                   const res = await fetch(`/api/my-themes/${themeIdParam}/duplicate`, { method: "POST" });
                   const data = await res.json() as { theme?: { id: string }; error?: string; limitReached?: boolean };
-                  if (!res.ok) {
-                    showProToast(data.error ?? "복제 실패");
-                  } else {
-                    showProToast("테마가 복제됐어요! 내 테마에서 확인하세요.");
-                  }
-                } finally {
-                  setDuplicating(false);
-                }
+                  if (!res.ok) { showProToast(data.error ?? "복제 실패"); }
+                  else { showProToast("테마가 복제됐어요. 마이 테마에서 확인하세요."); }
+                } finally { setDuplicating(false); }
               }}
               disabled={duplicating}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all hover:opacity-80 disabled:opacity-40"
-              style={{ background: isPro ? "rgba(74,123,247,0.08)" : "rgba(0,0,0,0.04)", color: isPro ? "rgb(74,123,247)" : "#c7c7cc", border: `1px solid ${isPro ? "rgba(74,123,247,0.2)" : "rgba(0,0,0,0.07)"}` }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium transition-colors disabled:opacity-50"
+              style={{ color: isPro ? "#2563eb" : "#9ca3af", background: isPro ? "#eff6ff" : "#f3f4f6" }}
               title={isPro ? "이 테마를 복제해 새 테마 만들기" : "Pro 전용 기능"}
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
               </svg>
               {duplicating ? "복제 중..." : "복제"}
             </button>
           )}
 
-          {/* Pro 전용 기능 토스트 */}
-          {proToast && (
-            <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-xl text-[13px] font-medium shadow-lg flex items-center gap-2"
-              style={{ background: "#18181b", color: "#fff", whiteSpace: "nowrap" }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF9500" strokeWidth="2" strokeLinecap="round">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-              </svg>
-              {proToast}
-              <a href="/pricing" className="underline ml-1" style={{ color: "#FF9500" }}>Pro 보기</a>
-            </div>
-          )}
-
-          {/* 자동저장 상태 표시 */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium"
-            style={{
-              background: autoSaveStatus === "saved" ? "rgba(52,199,89,0.1)"
-                : autoSaveStatus === "saving" ? "rgba(74,123,247,0.08)"
-                : autoSaveStatus === "offline" ? "rgba(255,59,48,0.08)"
-                : "rgba(0,0,0,0.04)",
-              color: autoSaveStatus === "saved" ? "rgb(52,199,89)"
-                : autoSaveStatus === "saving" ? "rgb(74,123,247)"
-                : autoSaveStatus === "offline" ? "rgb(255,59,48)"
-                : "#8e8e93",
-              border: `1px solid ${autoSaveStatus === "saved" ? "rgba(52,199,89,0.2)"
-                : autoSaveStatus === "saving" ? "rgba(74,123,247,0.15)"
-                : autoSaveStatus === "offline" ? "rgba(255,59,48,0.2)"
-                : "transparent"}`,
-              minWidth: 140,
-              justifyContent: "center",
-            }}
-          >
-            {autoSaveStatus === "saving" && (
-              <svg className="animate-spin" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <path d="M21 12a9 9 0 11-6.219-8.56"/>
-              </svg>
-            )}
-            {autoSaveStatus === "saved" && (
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <path d="M20 6L9 17l-5-5"/>
-              </svg>
-            )}
-            {autoSaveStatus === "offline" && (
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0119 12.55M5 12.55a10.94 10.94 0 015.17-2.39M10.71 5.05A16 16 0 0122.56 9M1.42 9a15.91 15.91 0 014.7-2.88M8.53 16.11a6 6 0 016.95 0M12 20h.01"/>
-              </svg>
-            )}
-            {autoSaveStatus === "saving" ? "저장 중..."
-              : autoSaveStatus === "saved" ? "모든 변경 사항 저장됨"
-              : autoSaveStatus === "offline" ? "오프라인 상태입니다"
-              : autoSaveStatus === "slot_limit" ? "저장 슬롯 초과"
-              : "자동 저장 대기 중"}
-          </div>
-
-          {/* 다운로드 버튼 */}
+          {/* 저장 버튼 */}
           <button onClick={() => void handleDownload()}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[12px] font-bold transition-all active:scale-95"
-            style={{
-              background: "rgb(255,149,0)",
-              color: "#fff",
-              boxShadow: "0 2px 8px rgba(255,149,0,0.35)",
-            }}
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-md text-[13px] font-semibold transition-all hover:opacity-90 active:scale-95 shadow-sm"
+            style={{ background: "#111827", color: "#fff" }}
           >
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-              <path d="M8 2v8M5 7l3 3 3-3M2 12h12" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <path d="M8 2v8M5 7l3 3 3-3M2 12h12" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            {os === "ios" ? ".ktheme 저장" : ".zip 저장"}
+            테마 저장
           </button>
         </div>
       </div>
+
+      {/* Pro 전용 기능 토스트 */}
+      {proToast && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-xl text-[13px] font-medium shadow-lg flex items-center gap-2"
+          style={{ background: "#18181b", color: "#fff", whiteSpace: "nowrap" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF9500" strokeWidth="2" strokeLinecap="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          {proToast}
+          <a href="/pricing" className="underline ml-1" style={{ color: "#FF9500" }}>Pro 보기</a>
+        </div>
+      )}
 
       {/* ── 오프라인 배너 ── */}
       {autoSaveStatus === "offline" && (
@@ -1705,7 +1686,7 @@ function CreatePageContent() {
           className="flex items-center justify-center gap-2 py-1.5 text-[12px] font-medium shrink-0"
           style={{ background: "rgba(255,59,48,0.08)", borderBottom: "1px solid rgba(255,59,48,0.15)", color: "rgb(255,59,48)" }}
         >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FF9500" strokeWidth="2" strokeLinecap="round">
             <path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0119 12.55M5 12.55a10.94 10.94 0 015.17-2.39M10.71 5.05A16 16 0 0122.56 9M1.42 9a15.91 15.91 0 014.7-2.88M8.53 16.11a6 6 0 016.95 0M12 20h.01"/>
           </svg>
           오프라인 상태입니다. 연결 시 자동 저장됩니다.
@@ -1730,48 +1711,40 @@ function CreatePageContent() {
       {/* ── 바디 ── */}
       <div className="flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 96px)" }}>
 
-        {/* ── 좌측 카테고리 패널 ── */}
+        {/* ── 좌측 카테고리 패널 (스튜디오 디자인) ── */}
         <aside
-          className="shrink-0 flex flex-col bg-white"
+          className="shrink-0 flex flex-col bg-[#fafafa]"
           style={{
-            width: 168,
-            minWidth: 168,
-            borderRight: "1px solid rgba(0,0,0,0.06)",
+            width: 220,
+            minWidth: 220,
+            borderRight: "1px solid #e5e5e5",
           }}
         >
-          <div className="pt-5 pb-3 px-4">
-            <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-gray-400">편집 메뉴</p>
+          <div className="pt-6 pb-2 px-5">
+            <p className="text-[11px] font-bold text-gray-400">에디터 메뉴</p>
           </div>
-          <div className="flex flex-col px-2 gap-0.5 overflow-y-auto flex-1">
+          <div className="flex flex-col px-3 gap-1 overflow-y-auto flex-1 pb-4">
             {editorCategories.map((category, idx) => {
               const isActive = activeEditorCategory === category.key;
-              const separatorBefore = idx === 6; // 상·하단바 앞 구분선
+              const separatorBefore = idx === 6; // 상하단바 앞 구분선
               return (
                 <div key={category.key}>
-                  {separatorBefore && (
-                    <div className="mx-3 my-2 h-px bg-gray-100" />
-                  )}
+                  {separatorBefore && <div className="h-px bg-gray-200 my-3 mx-2" />}
                   <button
-                    type="button"
                     onClick={() => {
-                      setActiveEditorCategory(category.key);
-                      if (category.key === "chat-inputbar") setPreviewTab("chat");
-                      if (category.key === "notification") setPreviewTab("notification");
+                      if (!isActive) { setActiveEditorCategory(category.key as EditorCategory); setSelectedSettingKey(null); setActiveElementId(null); }
                     }}
-                    className="w-full text-left px-3 py-2 rounded-lg text-[12.5px] transition-all duration-150 flex items-center gap-2"
+                    className="w-full text-left px-3 py-2 rounded-md text-[13px] transition-all flex items-center justify-between group"
                     style={{
-                      color: isActive ? "rgb(255, 149, 0)" : "#6b6b6b",
-                      backgroundColor: isActive ? "rgba(255, 149, 0, 0.07)" : "transparent",
-                      fontWeight: isActive ? 700 : 500,
+                      color: isActive ? "#111827" : "#6b7280",
+                      backgroundColor: isActive ? "#e5e7eb" : "transparent",
+                      fontWeight: isActive ? 600 : 500,
                     }}
                   >
-                    {isActive && (
-                      <span
-                        className="w-1 h-1 rounded-full shrink-0"
-                        style={{ backgroundColor: "rgb(255, 149, 0)" }}
-                      />
-                    )}
-                    <span className={isActive ? "" : "pl-[9px]"}>{category.label}</span>
+                    <span>{category.label}</span>
+                    <svg className={`transition-transform duration-200 ${isActive ? 'translate-x-1 opacity-100' : 'opacity-0 group-hover:opacity-100'}`} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 18l6-6-6-6"/>
+                    </svg>
                   </button>
                 </div>
               );
@@ -1819,16 +1792,16 @@ function CreatePageContent() {
         {/* ── 우측 설정 패널 ── */}
         <aside
           ref={leftAsideRef}
-          className="overflow-y-auto shrink-0 bg-[#fcfcfc]"
+          className="overflow-y-auto shrink-0 bg-[#fafafa]"
           style={{
-            width: 300,
-            minWidth: 300,
-            maxWidth: 300,
-            borderLeft: "1px solid rgba(0,0,0,0.06)",
+            width: 340,
+            minWidth: 340,
+            maxWidth: 340,
+            borderLeft: "1px solid #e5e5e5",
             boxShadow: "-4px 0 24px rgba(0,0,0,0.02)"
           }}
         >
-          <div className="px-4 py-5 pb-20">
+          <div className="px-3 py-4 pb-20">
             {activeEditorCategory === "manifest" && (
               <>
                 <Accordion title="테마 정보" badge="ManifestStyle">
@@ -2693,27 +2666,6 @@ BottomBannerStyle-Light {
 }
 `;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
