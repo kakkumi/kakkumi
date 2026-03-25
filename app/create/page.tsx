@@ -558,7 +558,7 @@ function MacInput({
 function AndroidFriendsProfileMockup({ config }: { config: ThemeConfig }) {
   return (
     <div className="relative mx-auto select-none" style={{ width: 368, height: 699 }}>
-      <div className="absolute inset-0 rounded-[28px] border-[5px] border-zinc-800"
+      <div className="absolute inset-0 rounded-[28px] border-[5px] border-zinc-800 overflow-hidden"
         style={{
           backgroundColor: config.bodyBg,
           boxShadow: "0 30px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15) inset",
@@ -566,7 +566,7 @@ function AndroidFriendsProfileMockup({ config }: { config: ThemeConfig }) {
         <div className="absolute top-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-zinc-700 z-10" />
         <div className="absolute left-0 right-0"
           style={{ top: 0, bottom: 0 }}>
-          <section style={{ ...frameStyle, borderRadius: 23, border: 'none', boxShadow: 'none' }}>
+          <section style={{ ...frameStyle, borderRadius: 0, border: 'none', boxShadow: 'none', backgroundColor: 'transparent' }}>
             <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
               <NewsScreen config={{ bodyBg: config.bodyBg, headerBg: config.headerBg, headerText: config.headerText, primaryText: config.primaryText, descText: config.descText, tabBarBg: config.tabBarBg, tabBarIcon: config.tabBarIcon, tabBarSelectedIcon: config.tabBarSelectedIcon, friendsSelectedBg: config.friendsSelectedBg, chatBg: config.chatBg, otherBubbleBg: config.otherBubbleBg, myBubbleBg: config.myBubbleBg, inputBarBg: config.inputBarBg, sendBtnBg: config.sendBtnBg, passcodeBg: config.passcodeBg, passcodeTitleText: config.passcodeTitleText, passcodeKeypadText: config.passcodeKeypadText, unreadCountColor: config.unreadCountColor, openchatBg: config.openchatBg, mainBgImageUrl: undefined }} />
             </div>
@@ -583,7 +583,7 @@ function AndroidFriendsProfileMockup({ config }: { config: ThemeConfig }) {
 function AndroidChatRoomMockup({ config }: { config: ThemeConfig }) {
   return (
     <div className="relative mx-auto select-none" style={{ width: 368, height: 699 }}>
-      <div className="absolute inset-0 rounded-[28px] border-[5px] border-zinc-800"
+      <div className="absolute inset-0 rounded-[28px] border-[5px] border-zinc-800 overflow-hidden"
         style={{
           backgroundColor: config.chatBg,
           boxShadow: "0 30px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15) inset",
@@ -591,7 +591,7 @@ function AndroidChatRoomMockup({ config }: { config: ThemeConfig }) {
         <div className="absolute top-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-zinc-700 z-10" />
         <div className="absolute left-0 right-0"
           style={{ top: 0, bottom: 0 }}>
-          <section style={{ ...frameStyle, borderRadius: 23, border: 'none', boxShadow: 'none' }}>
+          <section style={{ ...frameStyle, borderRadius: 0, border: 'none', boxShadow: 'none', backgroundColor: 'transparent' }}>
             <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
               <ChatRoomScreen config={{ bodyBg: config.bodyBg, headerBg: config.headerBg, headerText: config.headerText, primaryText: config.primaryText, descText: config.descText, tabBarBg: config.tabBarBg, tabBarIcon: config.tabBarIcon, tabBarSelectedIcon: config.tabBarSelectedIcon, friendsSelectedBg: config.friendsSelectedBg, chatBg: config.chatBg, otherBubbleBg: config.otherBubbleBg, myBubbleBg: config.myBubbleBg, inputBarBg: config.inputBarBg, sendBtnBg: config.sendBtnBg, passcodeBg: config.passcodeBg, passcodeTitleText: config.passcodeTitleText, passcodeKeypadText: config.passcodeKeypadText, unreadCountColor: config.unreadCountColor, openchatBg: config.openchatBg, mainBgImageUrl: undefined }} />
             </div>
@@ -669,7 +669,7 @@ function AndroidMockup({ config, previewTab, imageUploads, passcodeBgMode, bulle
   return (
     <div className="relative mx-auto select-none" style={{ width: 368, height: 699 }}>
       <div
-        className="absolute inset-0 rounded-[28px] border-[5px] border-zinc-800"
+        className="absolute inset-0 rounded-[28px] border-[5px] border-zinc-800 overflow-hidden"
         style={{
           backgroundColor: config.bodyBg,
           boxShadow: "0 30px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15) inset",
@@ -679,7 +679,7 @@ function AndroidMockup({ config, previewTab, imageUploads, passcodeBgMode, bulle
 
         <div className="absolute left-0 right-0"
           style={{ top: 0, bottom: 0 }}>
-          <section style={{ ...frameStyle, borderRadius: 23, border: 'none', boxShadow: 'none' }}>
+          <section style={{ ...frameStyle, borderRadius: 0, border: 'none', boxShadow: 'none', backgroundColor: 'transparent' }}>
             <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
               {renderScreen()}
             </div>

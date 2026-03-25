@@ -87,7 +87,7 @@ export const PreviewMockup = ({ disableTabNavigation = false, mainBgImageUrl }: 
           inset: 0,
           borderRadius: 40,
           border: '5px solid #27272a',
-          backgroundColor: '#fff',
+          backgroundColor: '#000',
           boxShadow: '0 32px 80px rgba(0,0,0,0.45), 0 8px 24px rgba(0,0,0,0.22), 0 0 0 1px rgba(255,255,255,0.2) inset',
           overflow: 'hidden',
         }}
@@ -108,6 +108,9 @@ export const PreviewMockup = ({ disableTabNavigation = false, mainBgImageUrl }: 
 
         <section style={{
           ...frameStyle,
+          border: 'none',
+          borderRadius: 0,
+          backgroundColor: 'transparent',
           ...(mainBgImageUrl ? {
             backgroundImage: `url(${mainBgImageUrl})`,
             backgroundSize: 'cover',

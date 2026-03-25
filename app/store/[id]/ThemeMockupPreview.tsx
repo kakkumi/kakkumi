@@ -107,7 +107,7 @@ function PhoneMockup({ config, screenKey }: { config: ScreenThemeConfig; screenK
             <div style={{
                 position: "absolute", inset: 0, borderRadius: 24,
                 border: "3px solid #27272a",
-                backgroundColor: "#fff",
+                backgroundColor: "#000",
                 boxShadow: "0 16px 48px rgba(0,0,0,0.35), 0 4px 12px rgba(0,0,0,0.18), 0 0 0 1px rgba(255,255,255,0.15) inset",
                 overflow: "hidden",
             }}>
@@ -132,11 +132,12 @@ function PhoneMockup({ config, screenKey }: { config: ScreenThemeConfig; screenK
                         ...frameStyle,
                         width: ORIG_W,
                         height: ORIG_H,
-                        borderRadius: 22,
+                        borderRadius: 0,
                         border: "none",
                         boxShadow: "none",
                         display: "flex",
                         flexDirection: "column",
+                        backgroundColor: "transparent",
                     }}>
                         <div style={{ flex: 1, minHeight: 0, display: "flex" }}>{renderScreen()}</div>
                         {showTabBar && <TabBar disabled />}
