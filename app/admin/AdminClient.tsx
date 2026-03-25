@@ -68,6 +68,42 @@ type AdminGalleryReport = {
     postId: string; postThemeName: string;
     reporterNickname: string | null; reporterName: string;
 };
+type AdminReview = {
+    id: string; rating: number; content: string | null; images: string[];
+    rewarded: boolean; createdAt: string;
+    userNickname: string | null; userName: string;
+    themeTitle: string; themeId: string;
+};
+type AdminGalleryPost = {
+    id: string; themeName: string; description: string | null;
+    images: string[]; storeLink: string | null; createdAt: string;
+    userNickname: string | null; userName: string;
+    likeCount: number; commentCount: number;
+};
+type AdminSubscription = {
+    id: string; status: string; amount: number;
+    startedAt: string; nextBillingAt: string | null; cancelledAt: string | null;
+    cardCompany: string | null; cardNumber: string | null;
+    userNickname: string | null; userName: string;
+    userEmail: string | null; userId: string;
+};
+type AdminRefund = {
+    id: string; amount: number; status: string; createdAt: string;
+    refundReason: string | null; refundedAt: string | null;
+    buyerNickname: string | null; buyerName: string;
+    themeTitle: string; creatorNickname: string | null; creatorName: string;
+};
+type AdminCreator = {
+    id: string; name: string; nickname: string | null; email: string | null;
+    isSuspended: boolean; createdAt: string;
+    themeCount: number; totalSales: number; totalRevenue: number;
+};
+type AdminStats = {
+    totals: { users: number; themes: number; purchases: number; totalRevenue: number; activeSubscriptions: number };
+    monthlyRevenue: { month: string; amount: number }[];
+    monthlySignups: { month: string; count: number }[];
+    topThemes: { id: string; title: string; salesCount: number; revenue: number; creatorName: string }[];
+};
 
 type DashboardCounts = {
     themesPending: number;
@@ -76,9 +112,10 @@ type DashboardCounts = {
     inquiriesOpen: number;
     mailboxPending: number;
     galleryReportsPending: number;
+    refundsPending: number;
 };
 
-type Tab = "overview" | "themes" | "users" | "reports" | "sales" | "inquiries" | "applications" | "mailbox" | "gallery_reports";
+type Tab = "overview" | "stats" | "themes" | "users" | "creators" | "reports" | "reviews" | "gallery_posts" | "sales" | "refunds" | "subscriptions" | "inquiries" | "applications" | "mailbox" | "gallery_reports" | "broadcast";
 type Props = {
     dashboardCounts: DashboardCounts;
 };
@@ -114,7 +151,10 @@ const INQUIRY_STATUS_STYLE: Record<string, { label: string; bg: string; color: s
 const SIDEBAR_GROUPS: { category: string; items: { key: Tab; label: string }[] }[] = [
     {
         category: "개요",
-        items: [{ key: "overview", label: "대시보드" }],
+        items: [
+            { key: "overview", label: "대시보드" },
+            { key: "stats",    label: "통계/분석" },
+        ],
     },
     {
         category: "콘텐츠",
@@ -122,22 +162,32 @@ const SIDEBAR_GROUPS: { category: string; items: { key: Tab; label: string }[] }
             { key: "themes",       label: "테마 관리" },
             { key: "applications", label: "입점 신청" },
             { key: "reports",      label: "신고 관리" },
+            { key: "reviews",      label: "리뷰 관리" },
+            { key: "gallery_posts", label: "갤러리 게시글" },
         ],
     },
     {
         category: "회원",
-        items: [{ key: "users", label: "회원 관리" }],
+        items: [
+            { key: "users",    label: "회원 관리" },
+            { key: "creators", label: "크리에이터" },
+        ],
     },
     {
         category: "정산",
-        items: [{ key: "sales", label: "매출 / 정산" }],
+        items: [
+            { key: "sales",         label: "매출 / 정산" },
+            { key: "refunds",       label: "환불 관리" },
+            { key: "subscriptions", label: "구독 관리" },
+        ],
     },
     {
         category: "지원",
         items: [
-            { key: "inquiries",      label: "1:1 문의" },
-            { key: "mailbox",        label: "우체통" },
+            { key: "inquiries",       label: "1:1 문의" },
+            { key: "mailbox",         label: "우체통" },
             { key: "gallery_reports", label: "갤러리 신고" },
+            { key: "broadcast",       label: "알림 발송" },
         ],
     },
 ];
@@ -200,6 +250,12 @@ export default function AdminClient({ dashboardCounts }: Props) {
     const [applications, setApplications] = useState<AdminApplication[]>([]);
     const [mailboxes, setMailboxes] = useState<AdminMailbox[]>([]);
     const [galleryReports, setGalleryReports] = useState<AdminGalleryReport[]>([]);
+    const [reviews, setReviews] = useState<AdminReview[]>([]);
+    const [galleryPosts, setGalleryPosts] = useState<AdminGalleryPost[]>([]);
+    const [subscriptions, setSubscriptions] = useState<AdminSubscription[]>([]);
+    const [refunds, setRefunds] = useState<AdminRefund[]>([]);
+    const [creators, setCreators] = useState<AdminCreator[]>([]);
+    const [stats, setStats] = useState<AdminStats | null>(null);
     const [loading, setLoading] = useState(false);
 
     const [rejectModal, setRejectModal] = useState<{ themeId: string; title: string } | null>(null);
@@ -256,6 +312,30 @@ export default function AdminClient({ dashboardCounts }: Props) {
                 const r = await fetch("/api/admin/gallery-reports");
                 const d = await r.json() as { reports: AdminGalleryReport[] };
                 setGalleryReports(d.reports ?? []);
+            } else if (tab === "reviews") {
+                const r = await fetch("/api/admin/reviews");
+                const d = await r.json() as { reviews: AdminReview[] };
+                setReviews(d.reviews ?? []);
+            } else if (tab === "gallery_posts") {
+                const r = await fetch("/api/admin/gallery-posts");
+                const d = await r.json() as { posts: AdminGalleryPost[] };
+                setGalleryPosts(d.posts ?? []);
+            } else if (tab === "subscriptions") {
+                const r = await fetch("/api/admin/subscriptions");
+                const d = await r.json() as { subscriptions: AdminSubscription[] };
+                setSubscriptions(d.subscriptions ?? []);
+            } else if (tab === "refunds") {
+                const r = await fetch("/api/admin/refunds");
+                const d = await r.json() as { refunds: AdminRefund[] };
+                setRefunds(d.refunds ?? []);
+            } else if (tab === "creators") {
+                const r = await fetch("/api/admin/creators");
+                const d = await r.json() as { creators: AdminCreator[] };
+                setCreators(d.creators ?? []);
+            } else if (tab === "stats") {
+                const r = await fetch("/api/admin/stats");
+                const d = await r.json() as AdminStats;
+                setStats(d);
             }
         } finally {
             setLoading(false);
@@ -316,6 +396,49 @@ export default function AdminClient({ dashboardCounts }: Props) {
         setActionLoading(false);
         showToast("처리 완료");
         fetchTab("gallery_reports");
+    };
+    const reviewAction = async (reviewId: string, action: string) => {
+        setActionLoading(true);
+        await fetch("/api/admin/reviews", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ reviewId, action }) });
+        setActionLoading(false);
+        showToast("처리 완료");
+        fetchTab("reviews");
+    };
+    const galleryPostAction = async (postId: string, action: string) => {
+        setActionLoading(true);
+        await fetch("/api/admin/gallery-posts", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ postId, action }) });
+        setActionLoading(false);
+        showToast("처리 완료");
+        fetchTab("gallery_posts");
+    };
+    const subscriptionAction = async (subscriptionId: string, action: string) => {
+        setActionLoading(true);
+        await fetch("/api/admin/subscriptions", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ subscriptionId, action }) });
+        setActionLoading(false);
+        showToast("처리 완료");
+        fetchTab("subscriptions");
+    };
+    const refundAction = async (purchaseId: string, action: string) => {
+        setActionLoading(true);
+        await fetch("/api/admin/refunds", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ purchaseId, action }) });
+        setActionLoading(false);
+        showToast(action === "approve" ? "환불 승인 완료" : "환불 거절 완료");
+        fetchTab("refunds");
+    };
+    const creatorAction = async (userId: string, action: string) => {
+        setActionLoading(true);
+        await fetch("/api/admin/creators", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId, action }) });
+        setActionLoading(false);
+        showToast("처리 완료");
+        fetchTab("creators");
+    };
+    const broadcastSend = async (form: { title: string; body: string; linkUrl: string; target: string; userId: string }) => {
+        setActionLoading(true);
+        const res = await fetch("/api/admin/broadcast", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+        const d = await res.json() as { ok?: boolean; error?: string };
+        setActionLoading(false);
+        if (d.ok) showToast("알림 발송 완료");
+        else showToast(d.error ?? "발송 실패");
     };
     const fetchInquiryDetail = async (inq: AdminInquiry) => {
         setInquiryDetailLoading(true);
@@ -389,6 +512,13 @@ export default function AdminClient({ dashboardCounts }: Props) {
             count: dashboardCounts.reportsPending,
             accent: "#ff3b30",
             desc: "테마 신고 미처리 건수",
+        },
+        {
+            label: "환불 요청 대기",
+            tab: "refunds",
+            count: dashboardCounts.refundsPending,
+            accent: "#ff3b30",
+            desc: "처리 대기 중인 환불 요청",
         },
     ];
     const SUPPORT_ITEMS: DashboardItem[] = [
@@ -895,6 +1025,70 @@ export default function AdminClient({ dashboardCounts }: Props) {
                         loading={loading}
                         actionLoading={actionLoading}
                         onAction={galleryReportAction}
+                    />
+                )}
+
+                {/* ───────── 통계/분석 ───────── */}
+                {activeTab === "stats" && (
+                    <StatsTab stats={stats} loading={loading} />
+                )}
+
+                {/* ───────── 리뷰 관리 ───────── */}
+                {activeTab === "reviews" && (
+                    <ReviewsAdminTab
+                        reviews={reviews}
+                        loading={loading}
+                        actionLoading={actionLoading}
+                        onDelete={(id) => reviewAction(id, "delete")}
+                    />
+                )}
+
+                {/* ───────── 갤러리 게시글 ───────── */}
+                {activeTab === "gallery_posts" && (
+                    <GalleryPostsAdminTab
+                        posts={galleryPosts}
+                        loading={loading}
+                        actionLoading={actionLoading}
+                        onDelete={(id) => galleryPostAction(id, "delete")}
+                    />
+                )}
+
+                {/* ───────── 구독 관리 ───────── */}
+                {activeTab === "subscriptions" && (
+                    <SubscriptionsAdminTab
+                        subscriptions={subscriptions}
+                        loading={loading}
+                        actionLoading={actionLoading}
+                        onCancel={(id) => subscriptionAction(id, "cancel")}
+                    />
+                )}
+
+                {/* ───────── 환불 관리 ───────── */}
+                {activeTab === "refunds" && (
+                    <RefundsAdminTab
+                        refunds={refunds}
+                        loading={loading}
+                        actionLoading={actionLoading}
+                        onApprove={(id) => refundAction(id, "approve")}
+                        onReject={(id) => refundAction(id, "reject")}
+                    />
+                )}
+
+                {/* ───────── 크리에이터 관리 ───────── */}
+                {activeTab === "creators" && (
+                    <CreatorsAdminTab
+                        creators={creators}
+                        loading={loading}
+                        actionLoading={actionLoading}
+                        onAction={creatorAction}
+                    />
+                )}
+
+                {/* ───────── 알림 발송 ───────── */}
+                {activeTab === "broadcast" && (
+                    <BroadcastAdminTab
+                        actionLoading={actionLoading}
+                        onSend={broadcastSend}
                     />
                 )}
 
@@ -1474,7 +1668,7 @@ function ApplicationRow({ app, onAction, actionLoading }: {
                         </div>
                     )}
                     {app.adminNote && app.status === "REJECTED" && (
-                        <div className="px-4 py-3 rounded-xl" style={{ background: "rgba(255,59,48,0.04)", border: "1px solid rgba(255,59,48,0.12)" }}>
+                        <div className="px-4 py-3 rounded-xl" style={{ background: "rgba(255,59,48,0.04)", borderLeft: "2px solid rgba(255,59,48,0.3)" }}>
                             <p className="text-[11px] font-semibold mb-1" style={{ color: "#c0392b" }}>반려 사유</p>
                             <p className="text-[13px]" style={{ color: "#3a3a3c" }}>{app.adminNote}</p>
                         </div>
@@ -1525,7 +1719,7 @@ function ApplicationRow({ app, onAction, actionLoading }: {
                         <button onClick={() => setLightboxSrc(null)}
                             className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center"
                             style={{ background: "rgba(0,0,0,0.6)" }}>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M18 6L6 18M6 6l12 12"/>
                             </svg>
                         </button>
@@ -1536,315 +1730,519 @@ function ApplicationRow({ app, onAction, actionLoading }: {
     );
 }
 
+// ── 통계/분석 탭 ─────────────────────────────────────────────────────────────
+function StatsTab({ stats, loading }: { stats: AdminStats | null; loading: boolean }) {
+    if (loading) return <EmptyState text="불러오는 중..." />;
+    if (!stats) return <EmptyState text="통계 데이터를 불러올 수 없습니다." />;
 
+    const maxRevenue = Math.max(...stats.monthlyRevenue.map(r => r.amount), 1);
+    const maxSignups = Math.max(...stats.monthlySignups.map(r => r.count), 1);
+    const fmtMonth = (m: string) => { const [y, mo] = m.split("-"); return `${y.slice(2)}년 ${Number(mo)}월`; };
 
-// ── 우체통 관리 탭 ────────────────────────────────────────────────────────────
-const MAILBOX_TYPE_STYLE: Record<string, { label: string; bg: string; color: string }> = {
-    SUGGESTION: { label: "건의해요",    bg: "rgba(255,149,0,0.10)",  color: "#c97000" },
-    BUG_REPORT: { label: "오류 신고해요", bg: "rgba(255,59,48,0.08)", color: "#c0392b" },
+    const TOTAL_CARDS = [
+        { label: "총 회원",        value: stats.totals.users.toLocaleString() + "명",          accent: "rgb(74,123,247)" },
+        { label: "공개 테마",       value: stats.totals.themes.toLocaleString() + "개",          accent: "#FF9500" },
+        { label: "총 결제",         value: stats.totals.purchases.toLocaleString() + "건",       accent: "#34c759" },
+        { label: "누적 매출",       value: stats.totals.totalRevenue.toLocaleString() + "원",    accent: "#FF9500" },
+        { label: "활성 구독",       value: stats.totals.activeSubscriptions.toLocaleString() + "명", accent: "rgb(74,123,247)" },
+    ];
+
+    return (
+        <div className="flex flex-col gap-10">
+            <div>
+                <h1 className="text-[20px] font-bold tracking-tight" style={{ color: "#1c1c1e" }}>통계 / 분석</h1>
+                <p className="text-[13px] mt-1" style={{ color: "#aeaeb2" }}>서비스 주요 지표를 한눈에 확인합니다.</p>
+            </div>
+            <div className="grid grid-cols-5 gap-3">
+                {TOTAL_CARDS.map(c => (
+                    <div key={c.label} className="flex flex-col gap-1 px-4 py-4 rounded-2xl" style={{ background: "#fff", border: "1px solid rgba(0,0,0,0.07)" }}>
+                        <p className="text-[11px] font-medium" style={{ color: "#aeaeb2" }}>{c.label}</p>
+                        <p className="text-[18px] font-bold" style={{ color: c.accent }}>{c.value}</p>
+                    </div>
+                ))}
+            </div>
+            <div className="flex flex-col gap-4 px-5 py-5 rounded-2xl" style={{ background: "#fff", border: "1px solid rgba(0,0,0,0.07)" }}>
+                <p className="text-[13px] font-semibold" style={{ color: "#1c1c1e" }}>월별 매출 (최근 6개월)</p>
+                {stats.monthlyRevenue.length === 0 ? <EmptyState text="매출 데이터가 없습니다." /> : (
+                    <div className="flex items-end gap-3 h-[120px]">
+                        {stats.monthlyRevenue.map(r => (
+                            <div key={r.month} className="flex flex-col items-center gap-1 flex-1">
+                                <span className="text-[10px]" style={{ color: "#aeaeb2" }}>{r.amount.toLocaleString()}원</span>
+                                <div className="w-full rounded-t-md" style={{ height: `${Math.max((r.amount / maxRevenue) * 80, 4)}px`, background: "rgba(255,149,0,0.7)" }} />
+                                <span className="text-[9px]" style={{ color: "#aeaeb2" }}>{fmtMonth(r.month)}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+            <div className="flex flex-col gap-4 px-5 py-5 rounded-2xl" style={{ background: "#fff", border: "1px solid rgba(0,0,0,0.07)" }}>
+                <p className="text-[13px] font-semibold" style={{ color: "#1c1c1e" }}>월별 신규 가입자 (최근 6개월)</p>
+                {stats.monthlySignups.length === 0 ? <EmptyState text="가입자 데이터가 없습니다." /> : (
+                    <div className="flex items-end gap-3 h-[120px]">
+                        {stats.monthlySignups.map(r => (
+                            <div key={r.month} className="flex flex-col items-center gap-1 flex-1">
+                                <span className="text-[10px]" style={{ color: "#aeaeb2" }}>{r.count}명</span>
+                                <div className="w-full rounded-t-md" style={{ height: `${Math.max((r.count / maxSignups) * 80, 4)}px`, background: "rgba(74,123,247,0.7)" }} />
+                                <span className="text-[9px]" style={{ color: "#aeaeb2" }}>{fmtMonth(r.month)}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+            <div className="flex flex-col gap-3">
+                <p className="text-[13px] font-semibold" style={{ color: "#1c1c1e" }}>판매량 TOP 5 테마</p>
+                {stats.topThemes.length === 0 ? <EmptyState text="데이터가 없습니다." /> : stats.topThemes.map((t, i) => (
+                    <div key={t.id} className="flex items-center gap-4 py-3" style={{ borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
+                        <span className="text-[14px] font-bold w-5 text-center shrink-0" style={{ color: i < 3 ? "#FF9500" : "#aeaeb2" }}>{i + 1}</span>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[13px] font-medium truncate" style={{ color: "#1c1c1e" }}>{t.title}</p>
+                            <p className="text-[11px]" style={{ color: "#aeaeb2" }}>{t.creatorName}</p>
+                        </div>
+                        <div className="text-right shrink-0">
+                            <p className="text-[13px] font-semibold" style={{ color: "#1c1c1e" }}>{t.revenue.toLocaleString()}원</p>
+                            <p className="text-[11px]" style={{ color: "#aeaeb2" }}>{t.salesCount}건 판매</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+// ── 리뷰 관리 탭 ─────────────────────────────────────────────────────────────
+function ReviewsAdminTab({ reviews, loading, actionLoading, onDelete }: {
+    reviews: AdminReview[]; loading: boolean; actionLoading: boolean;
+    onDelete: (id: string) => void;
+}) {
+    const STARS = [5, 4, 3, 2, 1];
+    const [filterRating, setFilterRating] = useState<number | null>(null);
+    const filtered = filterRating ? reviews.filter(r => r.rating === filterRating) : reviews;
+
+    return (
+        <div className="flex flex-col gap-6">
+            <div>
+                <h1 className="text-[20px] font-bold tracking-tight" style={{ color: "#1c1c1e" }}>리뷰 관리</h1>
+                <p className="text-[13px] mt-1" style={{ color: "#aeaeb2" }}>테마 리뷰를 검토하고 부적절한 리뷰를 삭제합니다.</p>
+            </div>
+            <div className="flex items-center gap-1.5">
+                <button onClick={() => setFilterRating(null)} className="px-3 py-1.5 rounded-full text-[12px] transition-all" style={{ background: filterRating === null ? "rgba(0,0,0,0.12)" : "rgba(0,0,0,0.05)", color: filterRating === null ? "#1c1c1e" : "#8e8e93", fontWeight: filterRating === null ? 700 : 400 }}>전체</button>
+                {STARS.map(s => (
+                    <button key={s} onClick={() => setFilterRating(s)} className="px-3 py-1.5 rounded-full text-[12px] transition-all" style={{ background: filterRating === s ? "rgba(255,149,0,0.12)" : "rgba(0,0,0,0.05)", color: filterRating === s ? "#c97000" : "#8e8e93", fontWeight: filterRating === s ? 700 : 400 }}>{"★".repeat(s)}</button>
+                ))}
+            </div>
+            <SectionHeader title="리뷰 목록" count={filtered.length} />
+            {loading ? <EmptyState text="불러오는 중..." /> : filtered.length === 0 ? <EmptyState text="리뷰가 없습니다." /> : filtered.map(r => (
+                <div key={r.id} className="flex items-start gap-4 py-3" style={{ borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                            <span style={{ color: "#FF9500", fontSize: 13 }}>{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
+                            <span className="text-[12px] font-medium" style={{ color: "#1c1c1e" }}>{r.themeTitle}</span>
+                        </div>
+                        <p className="text-[11px]" style={{ color: "#aeaeb2" }}>{r.userNickname ?? r.userName} · {formatKST(r.createdAt, false)}</p>
+                        {r.content && <p className="text-[12px] mt-1" style={{ color: "#3a3a3c" }}>{r.content}</p>}
+                    </div>
+                    <button onClick={() => { if (confirm("이 리뷰를 삭제하시겠습니까?")) onDelete(r.id); }} disabled={actionLoading} className="shrink-0 text-[12px] font-medium px-3 py-1.5 rounded-md transition-opacity hover:opacity-70 disabled:opacity-40" style={{ background: "rgba(255,59,48,0.07)", color: "#ff3b30" }}>삭제</button>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+// ── 갤러리 게시글 관리 탭 ──────────────────────────────────────────────────────
+function GalleryPostsAdminTab({ posts, loading, actionLoading, onDelete }: {
+    posts: AdminGalleryPost[]; loading: boolean; actionLoading: boolean;
+    onDelete: (id: string) => void;
+}) {
+    return (
+        <div className="flex flex-col gap-6">
+            <div>
+                <h1 className="text-[20px] font-bold tracking-tight" style={{ color: "#1c1c1e" }}>갤러리 게시글</h1>
+                <p className="text-[13px] mt-1" style={{ color: "#aeaeb2" }}>갤러리 게시글을 검토하고 부적절한 게시글을 삭제합니다.</p>
+            </div>
+            <SectionHeader title="게시글 목록" count={posts.length} />
+            {loading ? <EmptyState text="불러오는 중..." /> : posts.length === 0 ? <EmptyState text="게시글이 없습니다." /> : posts.map(p => (
+                <div key={p.id} className="flex items-start gap-4 py-3" style={{ borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
+                    {p.images?.[0] && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={p.images[0]} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0" style={{ border: "1px solid rgba(0,0,0,0.07)" }} />
+                    )}
+                    <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-medium truncate" style={{ color: "#1c1c1e" }}>{p.themeName}</p>
+                        <p className="text-[11px]" style={{ color: "#aeaeb2" }}>
+                            {p.userNickname ?? p.userName} · ♥ {p.likeCount} · 댓글 {p.commentCount} · {formatKST(p.createdAt, false)}
+                        </p>
+                        {p.description && <p className="text-[11px] mt-0.5 truncate" style={{ color: "#6e6e73" }}>{p.description}</p>}
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                        <a href={`/gallery/${p.id}`} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium px-3 py-1.5 rounded-md transition-opacity hover:opacity-70" style={{ background: "rgba(74,123,247,0.07)", color: "rgb(74,123,247)" }}>보기</a>
+                        <button onClick={() => { if (confirm("이 게시글을 삭제하시겠습니까?")) onDelete(p.id); }} disabled={actionLoading} className="text-[12px] font-medium px-3 py-1.5 rounded-md transition-opacity hover:opacity-70 disabled:opacity-40" style={{ background: "rgba(255,59,48,0.07)", color: "#ff3b30" }}>삭제</button>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+// ── 구독 관리 탭 ─────────────────────────────────────────────────────────────
+const SUB_STATUS_STYLE: Record<string, { label: string; bg: string; color: string }> = {
+    ACTIVE:    { label: "활성",    bg: "rgba(52,199,89,0.10)",  color: "#1a7a3a" },
+    CANCELLED: { label: "해지",    bg: "rgba(255,59,48,0.08)",  color: "#ff3b30" },
+    EXPIRED:   { label: "만료",    bg: "rgba(0,0,0,0.07)",      color: "#8e8e93" },
 };
-const MAILBOX_STATUS_STYLE: Record<string, { label: string; bg: string; color: string }> = {
-    PENDING:  { label: "미처리",    bg: "rgba(255,149,0,0.10)",  color: "#c97000" },
-    REVIEWED: { label: "처리 완료", bg: "rgba(52,199,89,0.10)",  color: "#1a7a3a" },
+
+function SubscriptionsAdminTab({ subscriptions, loading, actionLoading, onCancel }: {
+    subscriptions: AdminSubscription[]; loading: boolean; actionLoading: boolean;
+    onCancel: (id: string) => void;
+}) {
+    const [filter, setFilter] = useState<"ALL" | "ACTIVE" | "CANCELLED" | "EXPIRED">("ALL");
+    const filtered = filter === "ALL" ? subscriptions : subscriptions.filter(s => s.status === filter);
+    const activeCnt = subscriptions.filter(s => s.status === "ACTIVE").length;
+
+    return (
+        <div className="flex flex-col gap-6">
+            <div>
+                <h1 className="text-[20px] font-bold tracking-tight" style={{ color: "#1c1c1e" }}>구독 관리</h1>
+                <p className="text-[13px] mt-1" style={{ color: "#aeaeb2" }}>구독 현황을 확인하고 강제 해지를 처리합니다.</p>
+            </div>
+            <div className="flex items-center gap-2">
+                <Badge style={{ label: `활성 ${activeCnt}명`, bg: "rgba(52,199,89,0.10)", color: "#1a7a3a" }} />
+                <div className="flex gap-1.5 ml-2">
+                    {(["ALL", "ACTIVE", "CANCELLED", "EXPIRED"] as const).map(s => (
+                        <button key={s} onClick={() => setFilter(s)} className="px-3 py-1.5 rounded-full text-[12px] transition-all" style={{ background: filter === s ? "rgba(0,0,0,0.12)" : "rgba(0,0,0,0.05)", color: filter === s ? "#1c1c1e" : "#8e8e93", fontWeight: filter === s ? 700 : 400 }}>
+                            {s === "ALL" ? "전체" : SUB_STATUS_STYLE[s].label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+            <SectionHeader title="구독 목록" count={filtered.length} />
+            {loading ? <EmptyState text="불러오는 중..." /> : filtered.length === 0 ? <EmptyState text="구독 내역이 없습니다." /> : filtered.map(s => (
+                <div key={s.id} className="flex items-center gap-4 py-3" style={{ borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                            <span className="text-[13px] font-medium" style={{ color: "#1c1c1e" }}>{s.userNickname ?? s.userName}</span>
+                            <Badge style={SUB_STATUS_STYLE[s.status] ?? { label: s.status, bg: "rgba(0,0,0,0.07)", color: "#8e8e93" }} />
+                        </div>
+                        <p className="text-[11px]" style={{ color: "#aeaeb2" }}>
+                            {s.userEmail} · {s.amount.toLocaleString()}원/월 · 시작 {formatKST(s.startedAt, false)}
+                            {s.nextBillingAt && ` · 다음 결제 ${formatKST(s.nextBillingAt, false)}`}
+                            {s.cardCompany && ` · ${s.cardCompany} ${s.cardNumber ?? ""}`}
+                        </p>
+                    </div>
+                    {s.status === "ACTIVE" && (
+                        <button onClick={() => { if (confirm(`${s.userNickname ?? s.userName}의 구독을 강제 해지하시겠습니까?`)) onCancel(s.id); }} disabled={actionLoading} className="shrink-0 text-[12px] font-medium px-3 py-1.5 rounded-md transition-opacity hover:opacity-70 disabled:opacity-40" style={{ background: "rgba(255,59,48,0.07)", color: "#ff3b30" }}>강제 해지</button>
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+}
+
+// ── 환불 관리 탭 ─────────────────────────────────────────────────────────────
+const REFUND_STATUS_STYLE: Record<string, { label: string; bg: string; color: string }> = {
+    REFUND_REQUESTED: { label: "요청 대기", bg: "rgba(255,149,0,0.10)", color: "#c97000" },
+    REFUNDED:         { label: "환불 완료", bg: "rgba(52,199,89,0.10)",  color: "#1a7a3a" },
+};
+
+function RefundsAdminTab({ refunds, loading, actionLoading, onApprove, onReject }: {
+    refunds: AdminRefund[]; loading: boolean; actionLoading: boolean;
+    onApprove: (id: string) => void; onReject: (id: string) => void;
+}) {
+    const pending = refunds.filter(r => r.status === "REFUND_REQUESTED");
+    const done = refunds.filter(r => r.status === "REFUNDED");
+
+    const renderItem = (r: AdminRefund) => (
+        <div key={r.id} className="flex items-start gap-4 py-3" style={{ borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
+            <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                    <span className="text-[13px] font-medium truncate" style={{ color: "#1c1c1e" }}>{r.themeTitle}</span>
+                    <Badge style={REFUND_STATUS_STYLE[r.status] ?? { label: r.status, bg: "rgba(0,0,0,0.07)", color: "#8e8e93" }} />
+                </div>
+                <p className="text-[11px]" style={{ color: "#aeaeb2" }}>
+                    구매자: {r.buyerNickname ?? r.buyerName} · 크리에이터: {r.creatorNickname ?? r.creatorName} · {r.amount.toLocaleString()}원 · {formatKST(r.createdAt, false)}
+                </p>
+                {r.refundReason && <p className="text-[11px] mt-0.5" style={{ color: "#6e6e73" }}>사유: {r.refundReason}</p>}
+                {r.refundedAt && <p className="text-[11px] mt-0.5" style={{ color: "#aeaeb2" }}>환불일: {formatKST(r.refundedAt, false)}</p>}
+            </div>
+            {r.status === "REFUND_REQUESTED" && (
+                <div className="flex gap-2 shrink-0">
+                    <button onClick={() => onApprove(r.id)} disabled={actionLoading} className="text-[12px] font-medium px-3 py-1.5 rounded-md transition-opacity hover:opacity-70 disabled:opacity-40" style={{ background: "rgba(52,199,89,0.08)", color: "#1a7a3a" }}>승인</button>
+                    <button onClick={() => onReject(r.id)} disabled={actionLoading} className="text-[12px] font-medium px-3 py-1.5 rounded-md transition-opacity hover:opacity-70 disabled:opacity-40" style={{ background: "rgba(0,0,0,0.05)", color: "#8e8e93" }}>거절</button>
+                </div>
+            )}
+        </div>
+    );
+
+    return (
+        <div className="flex flex-col gap-6">
+            <div>
+                <h1 className="text-[20px] font-bold tracking-tight" style={{ color: "#1c1c1e" }}>환불 관리</h1>
+                <p className="text-[13px] mt-1" style={{ color: "#aeaeb2" }}>사용자의 환불 요청을 승인하거나 거절합니다.</p>
+            </div>
+            {loading ? <EmptyState text="불러오는 중..." /> : (
+                <>
+                    <div>
+                        <SectionHeader title="요청 대기" count={pending.length} />
+                        {pending.length === 0 ? <EmptyState text="대기 중인 환불 요청이 없습니다." /> : pending.map(renderItem)}
+                    </div>
+                    {done.length > 0 && (
+                        <div>
+                            <SectionHeader title="처리 완료" count={done.length} />
+                            {done.map(renderItem)}
+                        </div>
+                    )}
+                </>
+            )}
+        </div>
+    );
+}
+
+// ── 크리에이터 관리 탭 ────────────────────────────────────────────────────────
+function CreatorsAdminTab({ creators, loading, actionLoading, onAction }: {
+    creators: AdminCreator[]; loading: boolean; actionLoading: boolean;
+    onAction: (userId: string, action: string) => void;
+}) {
+    return (
+        <div className="flex flex-col gap-6">
+            <div>
+                <h1 className="text-[20px] font-bold tracking-tight" style={{ color: "#1c1c1e" }}>크리에이터 관리</h1>
+                <p className="text-[13px] mt-1" style={{ color: "#aeaeb2" }}>크리에이터 목록과 매출 현황을 관리합니다.</p>
+            </div>
+            <SectionHeader title="크리에이터 목록" count={creators.length} />
+            {loading ? <EmptyState text="불러오는 중..." /> : creators.length === 0 ? <EmptyState text="크리에이터가 없습니다." /> : creators.map(c => (
+                <div key={c.id} className="flex items-center gap-4 py-3" style={{ borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                            <span className="text-[13px] font-medium truncate" style={{ color: "#1c1c1e" }}>{c.nickname ?? c.name}</span>
+                            {c.isSuspended && <Badge style={{ label: "정지", bg: "rgba(255,59,48,0.10)", color: "#ff3b30" }} />}
+                        </div>
+                        <p className="text-[11px]" style={{ color: "#aeaeb2" }}>
+                            {c.email ?? "이메일 없음"} · 공개 테마 {c.themeCount}개 · 판매 {c.totalSales}건 · 매출 {c.totalRevenue.toLocaleString()}원
+                        </p>
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                        {!c.isSuspended
+                            ? <button onClick={() => onAction(c.id, "suspend")} disabled={actionLoading} className="text-[12px] font-medium px-3 py-1.5 rounded-md transition-opacity hover:opacity-70 disabled:opacity-30" style={{ background: "rgba(255,149,0,0.08)", color: "#c97000" }}>정지</button>
+                            : <button onClick={() => onAction(c.id, "unsuspend")} disabled={actionLoading} className="text-[12px] font-medium px-3 py-1.5 rounded-md transition-opacity hover:opacity-70 disabled:opacity-40" style={{ background: "rgba(52,199,89,0.08)", color: "#1a7a3a" }}>해제</button>
+                        }
+                        <button onClick={() => { if (confirm(`${c.nickname ?? c.name}의 크리에이터 자격을 박탈하시겠습니까?`)) onAction(c.id, "revoke"); }} disabled={actionLoading} className="text-[12px] font-medium px-3 py-1.5 rounded-md transition-opacity hover:opacity-70 disabled:opacity-30" style={{ background: "rgba(255,59,48,0.07)", color: "#ff3b30" }}>자격 박탈</button>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+// ── 알림 발송 탭 ─────────────────────────────────────────────────────────────
+function BroadcastAdminTab({ actionLoading, onSend }: {
+    actionLoading: boolean;
+    onSend: (form: { title: string; body: string; linkUrl: string; target: string; userId: string }) => void;
+}) {
+    const [title, setTitle] = useState("");
+    const [body, setBody] = useState("");
+    const [linkUrl, setLinkUrl] = useState("");
+    const [target, setTarget] = useState<"all" | "creators" | "user">("all");
+    const [userId, setUserId] = useState("");
+    const [sent, setSent] = useState(false);
+
+    const handleSend = async () => {
+        if (!title.trim() || !body.trim()) return;
+        const label = target === "all" ? "전체 회원" : target === "creators" ? "크리에이터 전체" : `사용자 (${userId})`;
+        if (!confirm(`${label}에게 알림을 발송하시겠습니까?`)) return;
+        await onSend({ title, body, linkUrl, target, userId });
+        setSent(true);
+        setTitle(""); setBody(""); setLinkUrl(""); setUserId("");
+        setTimeout(() => setSent(false), 3000);
+    };
+
+    const TARGET_OPTIONS: { key: "all" | "creators" | "user"; label: string; desc: string }[] = [
+        { key: "all",      label: "전체 회원",      desc: "탈퇴·정지되지 않은 모든 회원" },
+        { key: "creators", label: "크리에이터 전체", desc: "활성 크리에이터 계정" },
+        { key: "user",     label: "특정 사용자",     desc: "ID 또는 닉네임으로 검색" },
+    ];
+
+    return (
+        <div className="flex flex-col gap-6">
+            <div>
+                <h1 className="text-[20px] font-bold tracking-tight" style={{ color: "#1c1c1e" }}>알림 발송</h1>
+                <p className="text-[13px] mt-1" style={{ color: "#aeaeb2" }}>공지·이벤트 알림을 대상별로 발송합니다.</p>
+            </div>
+            <div className="flex flex-col gap-5 p-5 rounded-2xl" style={{ background: "#fff", border: "1px solid rgba(0,0,0,0.07)", maxWidth: 560 }}>
+                <div className="flex flex-col gap-2">
+                    <p className="text-[12px] font-semibold" style={{ color: "#6e6e73" }}>발송 대상</p>
+                    <div className="flex flex-col gap-1.5">
+                        {TARGET_OPTIONS.map(opt => (
+                            <button key={opt.key} type="button" onClick={() => setTarget(opt.key)}
+                                className="flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all"
+                                style={{ background: target === opt.key ? "rgba(255,149,0,0.06)" : "rgba(0,0,0,0.02)", border: `1px solid ${target === opt.key ? "rgba(255,149,0,0.3)" : "rgba(0,0,0,0.06)"}` }}>
+                                <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0" style={{ borderColor: target === opt.key ? "#FF9500" : "#d1d1d6" }}>
+                                    {target === opt.key && <div className="w-2 h-2 rounded-full" style={{ background: "#FF9500" }} />}
+                                </div>
+                                <div>
+                                    <p className="text-[13px] font-medium" style={{ color: "#1c1c1e" }}>{opt.label}</p>
+                                    <p className="text-[11px]" style={{ color: "#aeaeb2" }}>{opt.desc}</p>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                    {target === "user" && (
+                        <input type="text" value={userId} onChange={e => setUserId(e.target.value)} placeholder="사용자 ID 또는 닉네임" className="mt-1 px-3 py-2.5 rounded-xl text-[13px] outline-none" style={{ border: "1px solid rgba(0,0,0,0.10)", color: "#1c1c1e", background: "rgba(0,0,0,0.02)" }} />
+                    )}
+                </div>
+                <div className="flex flex-col gap-1.5">
+                    <p className="text-[12px] font-semibold" style={{ color: "#6e6e73" }}>알림 제목</p>
+                    <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="예: 카꾸미 업데이트 안내" className="px-3 py-2.5 rounded-xl text-[13px] outline-none" style={{ border: "1px solid rgba(0,0,0,0.10)", color: "#1c1c1e", background: "rgba(0,0,0,0.02)" }} />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                    <p className="text-[12px] font-semibold" style={{ color: "#6e6e73" }}>알림 내용</p>
+                    <textarea value={body} onChange={e => setBody(e.target.value)} placeholder="알림 본문을 입력하세요..." rows={4} className="px-3 py-2.5 rounded-xl text-[13px] outline-none resize-none" style={{ border: "1px solid rgba(0,0,0,0.10)", color: "#1c1c1e", background: "rgba(0,0,0,0.02)" }} />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                    <p className="text-[12px] font-semibold" style={{ color: "#6e6e73" }}>링크 URL <span style={{ color: "#aeaeb2", fontWeight: 400 }}>(선택)</span></p>
+                    <input type="text" value={linkUrl} onChange={e => setLinkUrl(e.target.value)} placeholder="/store 또는 https://..." className="px-3 py-2.5 rounded-xl text-[13px] outline-none" style={{ border: "1px solid rgba(0,0,0,0.10)", color: "#1c1c1e", background: "rgba(0,0,0,0.02)" }} />
+                </div>
+                <button onClick={handleSend} disabled={!title.trim() || !body.trim() || actionLoading || (target === "user" && !userId.trim())} className="py-3 rounded-xl text-[13px] font-semibold disabled:opacity-40 transition-opacity hover:opacity-80" style={{ background: "rgb(255,149,0)", color: "#fff" }}>
+                    {actionLoading ? "발송 중..." : sent ? "✓ 발송 완료" : "알림 발송"}
+                </button>
+            </div>
+        </div>
+    );
+}
+
+// ── 우체통 탭 ─────────────────────────────────────────────────────────────────
+const MAILBOX_TYPE_LABEL: Record<string, string> = {
+    SUGGESTION: "건의사항",
+    BUG_REPORT: "버그 제보",
 };
 
 function MailboxAdminTab({ mailboxes, loading, actionLoading, onAction }: {
     mailboxes: AdminMailbox[];
     loading: boolean;
     actionLoading: boolean;
-    onAction: (id: string, status: "PENDING" | "REVIEWED", adminNote?: string) => void;
+    onAction: (mailboxId: string, status: "PENDING" | "REVIEWED", adminNote?: string) => void;
 }) {
     const [filter, setFilter] = useState<"ALL" | "PENDING" | "REVIEWED">("ALL");
-    const [typeFilter, setTypeFilter] = useState<"ALL" | "SUGGESTION" | "BUG_REPORT">("ALL");
-    const [expanded, setExpanded] = useState<string | null>(null);
-    const [noteText, setNoteText] = useState("");
-
-    const filtered = mailboxes.filter((m) => {
-        if (filter !== "ALL" && m.status !== filter) return false;
-        if (typeFilter !== "ALL" && m.type !== typeFilter) return false;
-        return true;
-    });
-
-    const pendingCount = mailboxes.filter((m) => m.status === "PENDING").length;
+    const [noteMap, setNoteMap] = useState<Record<string, string>>({});
+    const filtered = filter === "ALL" ? mailboxes : mailboxes.filter(m => m.status === filter);
+    const pendingCnt = mailboxes.filter(m => m.status === "PENDING").length;
 
     return (
         <div className="flex flex-col gap-6">
             <div>
                 <h1 className="text-[20px] font-bold tracking-tight" style={{ color: "#1c1c1e" }}>우체통</h1>
-                <p className="text-[13px] mt-1" style={{ color: "#aeaeb2" }}>사용자들이 제출한 건의 및 오류 신고를 확인합니다.</p>
+                <p className="text-[13px] mt-1" style={{ color: "#aeaeb2" }}>사용자가 보낸 건의사항과 버그 제보를 확인합니다.</p>
             </div>
-
-            <SectionHeader
-                title="우체통 목록"
-                count={filtered.length}
-                action={
-                    pendingCount > 0
-                        ? <Badge style={{ label: `미처리 ${pendingCount}건`, bg: "rgba(255,149,0,0.10)", color: "#c97000" }} />
-                        : undefined
-                }
-            />
-
-            {/* 필터 */}
-            <div className="flex items-center gap-6">
-                <div className="flex items-center gap-1.5">
-                    {(["ALL", "PENDING", "REVIEWED"] as const).map((s) => (
-                        <button
-                            key={s}
-                            onClick={() => setFilter(s)}
-                            className="px-3 py-1.5 rounded-full text-[12px] transition-all"
-                            style={{
-                                background: filter === s ? "rgb(74,123,247)" : "rgba(0,0,0,0.05)",
-                                color: filter === s ? "#fff" : "#6e6e73",
-                                fontWeight: filter === s ? 700 : 400,
-                            }}
-                        >
-                            {s === "ALL" ? "전체" : MAILBOX_STATUS_STYLE[s].label}
-                        </button>
-                    ))}
-                </div>
-                <div className="flex items-center gap-1.5">
-                    {(["ALL", "SUGGESTION", "BUG_REPORT"] as const).map((t) => (
-                        <button
-                            key={t}
-                            onClick={() => setTypeFilter(t)}
-                            className="px-3 py-1.5 rounded-full text-[12px] transition-all"
-                            style={{
-                                background: typeFilter === t ? "rgba(0,0,0,0.12)" : "rgba(0,0,0,0.04)",
-                                color: typeFilter === t ? "#1c1c1e" : "#8e8e93",
-                                fontWeight: typeFilter === t ? 700 : 400,
-                            }}
-                        >
-                            {t === "ALL" ? "유형 전체" : MAILBOX_TYPE_STYLE[t].label}
+            <div className="flex items-center gap-2">
+                {pendingCnt > 0 && <Badge style={{ label: `미처리 ${pendingCnt}건`, bg: "rgba(255,149,0,0.10)", color: "#c97000" }} />}
+                <div className="flex gap-1.5 ml-2">
+                    {(["ALL", "PENDING", "REVIEWED"] as const).map(s => (
+                        <button key={s} onClick={() => setFilter(s)} className="px-3 py-1.5 rounded-full text-[12px] transition-all"
+                            style={{ background: filter === s ? "rgba(0,0,0,0.12)" : "rgba(0,0,0,0.05)", color: filter === s ? "#1c1c1e" : "#8e8e93", fontWeight: filter === s ? 700 : 400 }}>
+                            {s === "ALL" ? "전체" : s === "PENDING" ? "미처리" : "처리 완료"}
                         </button>
                     ))}
                 </div>
             </div>
-
-            {loading ? (
-                <EmptyState text="불러오는 중..." />
-            ) : filtered.length === 0 ? (
-                <EmptyState text="해당 조건의 우체통 내역이 없습니다." />
-            ) : (
-                <div className="flex flex-col gap-0" style={{ borderTop: "1px solid rgba(0,0,0,0.07)" }}>
-                    {filtered.map((m) => (
-                        <div key={m.id} className="flex flex-col gap-0" style={{ borderBottom: "1px solid rgba(0,0,0,0.07)" }}>
-                            <button
-                                className="w-full text-left flex items-start justify-between gap-4 py-4 px-1 transition-opacity hover:opacity-70"
-                                onClick={() => setExpanded(expanded === m.id ? null : m.id)}
-                            >
-                                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0"
-                                        style={{ background: MAILBOX_STATUS_STYLE[m.status]?.bg, color: MAILBOX_STATUS_STYLE[m.status]?.color }}>
-                                        {MAILBOX_STATUS_STYLE[m.status]?.label}
-                                    </span>
-                                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0"
-                                        style={{ background: MAILBOX_TYPE_STYLE[m.type]?.bg, color: MAILBOX_TYPE_STYLE[m.type]?.color }}>
-                                        {MAILBOX_TYPE_STYLE[m.type]?.label}
-                                    </span>
-                                    <span className="text-[13px] font-medium truncate" style={{ color: "#1c1c1e" }}>{m.title}</span>
-                                    <span className="text-[11px] shrink-0" style={{ color: "#aeaeb2" }}>{m.userNickname ?? m.userName}</span>
-                                </div>
-                                <div className="flex items-center gap-3 shrink-0">
-                                    <span className="text-[12px]" style={{ color: "#d1d1d6" }}>{new Date(m.createdAt).toLocaleDateString("ko-KR")}</span>
-                                    <svg
-                                        width="13" height="13" viewBox="0 0 24 24" fill="none"
-                                        stroke="#aeaeb2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                                        style={{ transform: expanded === m.id ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
-                                    >
-                                        <polyline points="6 9 12 15 18 9" />
-                                    </svg>
-                                </div>
-                            </button>
-
-                            {expanded === m.id && (
-                                <div className="flex flex-col gap-4 px-4 pb-5">
-                                    {/* 내용 */}
-                                    <div
-                                        className="px-4 py-4 rounded-xl"
-                                        style={{ background: "rgba(0,0,0,0.02)", border: "1px solid rgba(0,0,0,0.06)" }}
-                                    >
-                                        <p className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: "#3a3a3c" }}>{m.content}</p>
-                                    </div>
-
-                                    {/* 관리자 메모 */}
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-[11px] font-semibold" style={{ color: "#6e6e73" }}>관리자 메모 (선택)</label>
-                                        <textarea
-                                            rows={2}
-                                            value={expanded === m.id ? noteText : (m.adminNote ?? "")}
-                                            onChange={(e) => setNoteText(e.target.value)}
-                                            onFocus={() => setNoteText(m.adminNote ?? "")}
-                                            placeholder="내부 메모를 남겨두세요."
-                                            className="w-full px-3 py-2 rounded-lg text-[13px] outline-none resize-none"
-                                            style={{ background: "#fff", border: "1px solid rgba(0,0,0,0.09)", color: "#1c1c1e" }}
-                                        />
-                                    </div>
-
-                                    {/* 액션 버튼 */}
-                                    <div className="flex gap-2">
-                                        {m.status === "PENDING" ? (
-                                            <button
-                                                onClick={() => { onAction(m.id, "REVIEWED", noteText || undefined); setExpanded(null); setNoteText(""); }}
-                                                disabled={actionLoading}
-                                                className="px-4 py-2 rounded-lg text-[12px] font-semibold disabled:opacity-40 transition-opacity hover:opacity-80"
-                                                style={{ background: "rgba(52,199,89,0.10)", color: "#1a7a3a" }}
-                                            >
-                                                ✓ 처리 완료 표시
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={() => { onAction(m.id, "PENDING", noteText || undefined); setExpanded(null); setNoteText(""); }}
-                                                disabled={actionLoading}
-                                                className="px-4 py-2 rounded-lg text-[12px] font-semibold disabled:opacity-40 transition-opacity hover:opacity-80"
-                                                style={{ background: "rgba(255,149,0,0.08)", color: "#c97000" }}
-                                            >
-                                                ↩ 미처리로 변경
-                                            </button>
-                                        )}
-                                        {m.adminNote !== noteText && noteText !== "" && (
-                                            <button
-                                                onClick={() => { onAction(m.id, m.status as "PENDING" | "REVIEWED", noteText); }}
-                                                disabled={actionLoading}
-                                                className="px-4 py-2 rounded-lg text-[12px] font-semibold disabled:opacity-40 transition-opacity hover:opacity-80"
-                                                style={{ background: "rgba(74,123,247,0.08)", color: "rgb(74,123,247)" }}
-                                            >
-                                                메모 저장
-                                            </button>
-                                        )}
-                                    </div>
-
-                                    {m.adminNote && (
-                                        <div className="px-3 py-2 rounded-lg" style={{ background: "rgba(74,123,247,0.04)", borderLeft: "2px solid rgba(74,123,247,0.2)" }}>
-                                            <p className="text-[11px] font-semibold mb-0.5" style={{ color: "rgb(74,123,247)" }}>저장된 메모</p>
-                                            <p className="text-[12px]" style={{ color: "#3a3a3c" }}>{m.adminNote}</p>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+            <SectionHeader title="우체통 목록" count={filtered.length} />
+            {loading ? <EmptyState text="불러오는 중..." /> : filtered.length === 0 ? <EmptyState text="내역이 없습니다." /> : filtered.map(m => (
+                <div key={m.id} className="flex flex-col gap-3 p-4 rounded-2xl" style={{ border: "1px solid rgba(0,0,0,0.07)", background: "#fff" }}>
+                    <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md" style={{ background: m.type === "BUG_REPORT" ? "rgba(255,59,48,0.08)" : "rgba(74,123,247,0.08)", color: m.type === "BUG_REPORT" ? "#ff3b30" : "rgb(74,123,247)" }}>
+                                    {MAILBOX_TYPE_LABEL[m.type] ?? m.type}
+                                </span>
+                                <span className="text-[13px] font-medium truncate" style={{ color: "#1c1c1e" }}>{m.title}</span>
+                                {m.status === "REVIEWED" && <Badge style={{ label: "처리 완료", bg: "rgba(52,199,89,0.10)", color: "#1a7a3a" }} />}
+                            </div>
+                            <p className="text-[11px]" style={{ color: "#aeaeb2" }}>{m.userNickname ?? m.userName} · {formatKST(m.createdAt, false)}</p>
                         </div>
-                    ))}
+                        {m.status === "PENDING" && (
+                            <button onClick={() => onAction(m.id, "REVIEWED", noteMap[m.id])} disabled={actionLoading}
+                                className="shrink-0 text-[12px] font-medium px-3 py-1.5 rounded-md transition-opacity hover:opacity-70 disabled:opacity-40"
+                                style={{ background: "rgba(52,199,89,0.08)", color: "#1a7a3a" }}>처리 완료</button>
+                        )}
+                    </div>
+                    <p className="text-[12px] leading-relaxed" style={{ color: "#3a3a3c", whiteSpace: "pre-wrap" }}>{m.content}</p>
+                    {m.adminNote && (
+                        <div className="px-3 py-2 rounded-lg" style={{ background: "rgba(52,199,89,0.04)", borderLeft: "2px solid rgba(52,199,89,0.3)" }}>
+                            <p className="text-[11px]" style={{ color: "#1a7a3a" }}>관리자 메모: {m.adminNote}</p>
+                        </div>
+                    )}
+                    {m.status === "PENDING" && (
+                        <textarea
+                            rows={2}
+                            value={noteMap[m.id] ?? ""}
+                            onChange={e => setNoteMap(prev => ({ ...prev, [m.id]: e.target.value }))}
+                            placeholder="관리자 메모 (선택)"
+                            className="px-3 py-2 rounded-xl text-[12px] outline-none resize-none"
+                            style={{ border: "1px solid rgba(0,0,0,0.08)", color: "#1c1c1e", background: "rgba(0,0,0,0.02)" }}
+                        />
+                    )}
                 </div>
-            )}
+            ))}
         </div>
     );
 }
 
-// ── 갤러리 신고 탭 ───────────────────────────────────────────────────────────
+// ── 갤러리 신고 탭 ────────────────────────────────────────────────────────────
 function GalleryReportsTab({ reports, loading, actionLoading, onAction }: {
     reports: AdminGalleryReport[];
     loading: boolean;
     actionLoading: boolean;
     onAction: (reportId: string, action: "handle" | "delete_comment", commentId?: string) => void;
 }) {
-    const [expandedId, setExpandedId] = useState<string | null>(null);
-    const pending = reports.filter((r) => !r.isHandled);
-    const handled = reports.filter((r) => r.isHandled);
+    const pending = reports.filter(r => !r.isHandled);
+    const done = reports.filter(r => r.isHandled);
 
-    const formatDate = (iso: string) => {
-        const d = new Date(iso);
-        return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
-    };
-
-    const renderList = (list: AdminGalleryReport[], emptyMsg: string) => (
-        list.length === 0 ? (
-            <EmptyState text={emptyMsg} />
-        ) : (
-            <div className="flex flex-col" style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
-                {list.map((r) => (
-                    <div key={r.id} style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
-                        <button
-                            className="w-full flex items-center justify-between px-1 py-4 text-left transition-opacity hover:opacity-70"
-                            onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
-                        >
-                            <div className="flex items-center gap-3 min-w-0">
-                                <span className="shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-md"
-                                    style={{ background: r.isHandled ? "rgba(52,199,89,0.10)" : "rgba(255,149,0,0.10)", color: r.isHandled ? "#1a7a3a" : "#c97000" }}>
-                                    {r.isHandled ? "처리 완료" : "처리 대기"}
-                                </span>
-                                <span className="text-[13px] font-medium truncate" style={{ color: "#1c1c1e" }}>
-                                    [{r.postThemeName}] {r.commentIsDeleted ? "(삭제됨)" : r.commentContent.slice(0, 40)}{r.commentContent.length > 40 ? "…" : ""}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-3 shrink-0 ml-4">
-                                <span className="text-[12px]" style={{ color: "#aeaeb2" }}>신고자: {r.reporterNickname ?? r.reporterName}</span>
-                                <span className="text-[11px]" style={{ color: "#d1d1d6" }}>{formatDate(r.createdAt)}</span>
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d1d1d6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                                    style={{ transform: expandedId === r.id ? "rotate(90deg)" : "none", transition: "transform 0.15s" }}>
-                                    <path d="M9 18l6-6-6-6"/>
-                                </svg>
-                            </div>
-                        </button>
-
-                        {expandedId === r.id && (
-                            <div className="px-1 pb-5 flex flex-col gap-4">
-                                <div className="px-4 py-3 rounded-xl" style={{ background: "rgba(255,149,0,0.05)", border: "1px solid rgba(255,149,0,0.12)" }}>
-                                    <p className="text-[11px] font-semibold mb-1" style={{ color: "#c97000" }}>신고된 댓글</p>
-                                    <p className="text-[13px] leading-relaxed" style={{ color: r.commentIsDeleted ? "#aeaeb2" : "#1c1c1e" }}>
-                                        {r.commentIsDeleted ? "이미 삭제된 댓글입니다." : r.commentContent}
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[12px]" style={{ color: "#aeaeb2" }}>게시글:</span>
-                                    <a href={`/gallery/${r.postId}`} target="_blank" rel="noreferrer"
-                                        className="text-[12px] underline transition-opacity hover:opacity-60"
-                                        style={{ color: "rgb(74,123,247)" }}>
-                                        {r.postThemeName}
-                                    </a>
-                                </div>
-                                {!r.isHandled && (
-                                    <div className="flex items-center gap-2">
-                                        <button onClick={() => onAction(r.id, "handle")} disabled={actionLoading}
-                                            className="px-4 py-2 rounded-lg text-[12px] font-semibold disabled:opacity-40 transition-opacity hover:opacity-80"
-                                            style={{ background: "rgba(52,199,89,0.10)", color: "#1a7a3a" }}>
-                                            처리 완료
-                                        </button>
-                                        {!r.commentIsDeleted && (
-                                            <button onClick={() => onAction(r.id, "delete_comment", r.commentId)} disabled={actionLoading}
-                                                className="px-4 py-2 rounded-lg text-[12px] font-semibold disabled:opacity-40 transition-opacity hover:opacity-80"
-                                                style={{ background: "rgba(255,59,48,0.10)", color: "#ff3b30" }}>
-                                                댓글 삭제
-                                            </button>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                ))}
+    const renderItem = (r: AdminGalleryReport) => (
+        <div key={r.id} className="flex items-start gap-4 py-3" style={{ borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
+            <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                    <a href={`/gallery/${r.postId}`} target="_blank" rel="noopener noreferrer"
+                        className="text-[13px] font-medium truncate hover:opacity-70 underline"
+                        style={{ color: "rgb(74,123,247)" }}>{r.postThemeName}</a>
+                    {r.isHandled && <Badge style={{ label: "처리 완료", bg: "rgba(52,199,89,0.10)", color: "#1a7a3a" }} />}
+                    {r.commentIsDeleted && <Badge style={{ label: "댓글 삭제됨", bg: "rgba(0,0,0,0.07)", color: "#8e8e93" }} />}
+                </div>
+                <p className="text-[11px]" style={{ color: "#aeaeb2" }}>
+                    신고자: {r.reporterNickname ?? r.reporterName} · {formatKST(r.createdAt, false)}
+                </p>
+                <p className="text-[12px] mt-1 px-3 py-2 rounded-lg" style={{ color: "#3a3a3c", background: "rgba(0,0,0,0.03)", whiteSpace: "pre-wrap" }}>
+                    댓글: {r.commentIsDeleted ? "(삭제된 댓글)" : r.commentContent}
+                </p>
             </div>
-        )
+            {!r.isHandled && (
+                <div className="flex flex-col gap-1.5 shrink-0">
+                    {!r.commentIsDeleted && (
+                        <button onClick={() => { if (confirm("이 댓글을 삭제하시겠습니까?")) onAction(r.id, "delete_comment", r.commentId); }}
+                            disabled={actionLoading}
+                            className="text-[12px] font-medium px-3 py-1.5 rounded-md transition-opacity hover:opacity-70 disabled:opacity-40"
+                            style={{ background: "rgba(255,59,48,0.07)", color: "#ff3b30" }}>댓글 삭제</button>
+                    )}
+                    <button onClick={() => onAction(r.id, "handle")} disabled={actionLoading}
+                        className="text-[12px] font-medium px-3 py-1.5 rounded-md transition-opacity hover:opacity-70 disabled:opacity-40"
+                        style={{ background: "rgba(52,199,89,0.08)", color: "#1a7a3a" }}>처리 완료</button>
+                </div>
+            )}
+        </div>
     );
 
     return (
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-6">
             <div>
-                <p className="text-[11px] font-semibold tracking-[0.12em] uppercase mb-2" style={{ color: "#a8a29e" }}>Gallery</p>
-                <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "#1c1917" }}>갤러리 신고</h1>
-                <p className="text-[14px] mt-1" style={{ color: "#78716c" }}>꾸미 갤러리 댓글 신고 내역을 관리합니다.</p>
+                <h1 className="text-[20px] font-bold tracking-tight" style={{ color: "#1c1c1e" }}>갤러리 신고</h1>
+                <p className="text-[13px] mt-1" style={{ color: "#aeaeb2" }}>갤러리 댓글 신고를 검토하고 처리합니다.</p>
             </div>
-            {loading ? (
-                <div className="flex items-center gap-2 py-10" style={{ color: "#aeaeb2" }}>
-                    <div className="w-4 h-4 rounded-full border-2 border-stone-200 border-t-stone-400 animate-spin" />
-                    <span className="text-[13px]">불러오는 중…</span>
-                </div>
-            ) : (
+            {loading ? <EmptyState text="불러오는 중..." /> : (
                 <>
                     <div>
-                        <div className="flex items-center gap-3 mb-4">
-                            <span className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "#a8a29e" }}>처리 대기</span>
-                            <div className="flex-1 h-px" style={{ backgroundColor: "#e7e5e4" }} />
-                            <span className="text-[12px] font-semibold" style={{ color: "#c97000" }}>{pending.length}건</span>
-                        </div>
-                        {renderList(pending, "처리 대기 중인 신고가 없어요.")}
+                        <SectionHeader title="처리 대기" count={pending.length} />
+                        {pending.length === 0 ? <EmptyState text="처리 대기 중인 신고가 없습니다." /> : pending.map(renderItem)}
                     </div>
-                    {handled.length > 0 && (
+                    {done.length > 0 && (
                         <div>
-                            <div className="flex items-center gap-3 mb-4">
-                                <span className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "#a8a29e" }}>처리 완료</span>
-                                <div className="flex-1 h-px" style={{ backgroundColor: "#e7e5e4" }} />
-                                <span className="text-[12px] font-semibold" style={{ color: "#1a7a3a" }}>{handled.length}건</span>
-                            </div>
-                            {renderList(handled, "")}
+                            <SectionHeader title="처리 완료" count={done.length} />
+                            {done.map(renderItem)}
                         </div>
                     )}
                 </>

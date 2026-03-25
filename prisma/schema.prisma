@@ -1,6 +1,3 @@
-// AI Development Guideline 참조: 데이터 무결성을 위한 스키마 설계
-// 데이터베이스는 PostgreSQL을 사용합니다.
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,6 +6,386 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
+}
+
+model CreatorApplication {
+  id           String            @id @default(uuid())
+  userId       String
+  reason       String
+  portfolio    String?
+  status       ApplicationStatus @default(PENDING)
+  adminNote    String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  experience   Boolean           @default(false)
+  tools        String[]          @default([])
+  sampleImages String[]          @default([])
+  user         User              @relation("UserApplications", fields: [userId], references: [id])
+}
+
+model User {
+  id                    String                 @id @default(uuid())
+  email                 String?                @unique
+  name                  String
+  role                  Role                   @default(USER)
+  createdAt             DateTime               @default(now())
+  image                 String?
+  kakaoId               String                 @unique
+  updatedAt             DateTime               @updatedAt
+  nickname              String?                @unique
+  avatarUrl             String?
+  credit                Int                    @default(0)
+  deletedAt             DateTime?
+  isSuspended           Boolean                @default(false)
+  referralCode          String?                @unique
+  referralRewarded      Boolean                @default(false)
+  notifSettings         Json?
+  bankName              String?
+  accountNumber         String?
+  accountHolder         String?
+  applications          CreatorApplication[]   @relation("UserApplications")
+  followings            Follow[]               @relation("UserFollowings")
+  followers             Follow[]               @relation("UserFollowers")
+  galleryComments       GalleryComment[]
+  galleryCommentReports GalleryCommentReport[]
+  galleryLikes          GalleryLike[]
+  galleryPosts          GalleryPost[]
+  galleryReactions      GalleryReaction[]
+  inquiries             Inquiry[]              @relation("UserInquiries")
+  inquiryReplies        InquiryReply[]         @relation("UserInquiryReplies")
+  mailboxes             Mailbox[]
+  myThemes              MyTheme[]
+  myThemeFolders        MyThemeFolder[]
+  notifications         Notification[]         @relation("UserNotifications")
+  pointHistories        PointHistory[]         @relation("UserPointHistories")
+  purchases             Purchase[]             @relation("UserPurchases")
+  reports               Report[]               @relation("UserReports")
+  reviews               Review[]
+  subscription          Subscription?
+  subscriptionPayments  SubscriptionPayment[]
+  themes                Theme[]                @relation("UserThemes")
+  likes                 ThemeLike[]
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  follower    User     @relation("UserFollowings", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  linkUrl   String?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  user      User             @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PointHistory {
+  id        String    @id @default(uuid())
+  userId    String
+  amount    Int
+  type      PointType
+  memo      String?
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation("UserPointHistories", fields: [userId], references: [id])
+}
+
+model Theme {
+  id                      String         @id @default(uuid())
+  creatorId               String
+  title                   String
+  description             String?
+  price                   Int            @default(0)
+  status                  ThemeStatus    @default(DRAFT)
+  thumbnailUrl            String?
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+  adminNote               String?
+  images                  String[]       @default([])
+  tags                    String[]       @default([])
+  isPublic                Boolean        @default(true)
+  isSelling               Boolean        @default(true)
+  contentBlocks           String?
+  pendingTitle            String?
+  pendingDescription      String?
+  pendingPrice            Int?
+  pendingTags             String[]
+  pendingThumbnailUrl     String?
+  pendingImages           String[]
+  pendingContentBlocks    String?
+  pendingReviewVisibility String?
+  purchases               Purchase[]
+  reports                 Report[]       @relation("ThemeReports")
+  reviews                 Review[]
+  creator                 User           @relation("UserThemes", fields: [creatorId], references: [id])
+  likes                   ThemeLike[]
+  options                 ThemeOption[]
+  versions                ThemeVersion[]
+}
+
+model ThemeVersion {
+  id            String      @id @default(uuid())
+  themeId       String
+  version       String
+  configJson    Json
+  kthemeFileUrl String?
+  apkFileUrl    String?
+  buildStatus   BuildStatus @default(PENDING)
+  createdAt     DateTime    @default(now())
+  purchases     Purchase[]
+  theme         Theme       @relation(fields: [themeId], references: [id], onDelete: Cascade)
+}
+
+model ThemeOption {
+  id                String            @id @default(uuid())
+  themeId           String
+  os                String
+  name              String
+  status            ThemeOptionStatus @default(PENDING_NEW)
+  adminNote         String?
+  fileUrl           String?
+  configJson        Json?
+  imageData         Json?
+  myThemeId         String?
+  pendingFileUrl    String?
+  pendingConfigJson Json?
+  pendingImageData  Json?
+  pendingMyThemeId  String?
+  pendingAdminNote  String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  theme             Theme             @relation(fields: [themeId], references: [id], onDelete: Cascade)
+}
+
+model Purchase {
+  id              String         @id @default(uuid())
+  buyerId         String
+  themeId         String
+  amount          Int
+  pgTransactionId String?        @unique
+  status          PurchaseStatus @default(PENDING)
+  createdAt       DateTime       @default(now())
+  refundReason    String?
+  refundedAt      DateTime?
+  versionId       String?
+  isDownloaded    Boolean        @default(false)
+  buyer           User           @relation("UserPurchases", fields: [buyerId], references: [id])
+  theme           Theme          @relation(fields: [themeId], references: [id])
+  version         ThemeVersion?  @relation(fields: [versionId], references: [id])
+}
+
+model Inquiry {
+  id        String         @id @default(uuid())
+  userId    String
+  category  String         @default("기타")
+  title     String
+  content   String
+  status    InquiryStatus  @default(OPEN)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  user      User           @relation("UserInquiries", fields: [userId], references: [id])
+  replies   InquiryReply[]
+}
+
+model InquiryReply {
+  id        String   @id @default(uuid())
+  inquiryId String
+  authorId  String
+  content   String
+  isAdmin   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  author    User     @relation("UserInquiryReplies", fields: [authorId], references: [id])
+  inquiry   Inquiry  @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+}
+
+model Report {
+  id         String       @id @default(uuid())
+  reporterId String
+  themeId    String
+  reason     String
+  detail     String?
+  status     ReportStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+  reporter   User         @relation("UserReports", fields: [reporterId], references: [id])
+  theme      Theme        @relation("ThemeReports", fields: [themeId], references: [id])
+}
+
+model ThemeLike {
+  id        String   @id @default(uuid())
+  userId    String
+  themeId   String
+  createdAt DateTime @default(now())
+  theme     Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, themeId])
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  userId    String
+  themeId   String
+  rating    Int
+  content   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  images    String[] @default([])
+  rewarded  Boolean  @default(false)
+  theme     Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, themeId])
+}
+
+model MyThemeFolder {
+  id        String    @id @default(uuid())
+  userId    String
+  name      String
+  createdAt DateTime  @default(now())
+  sortOrder Int?      @default(0)
+  themes    MyTheme[]
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MyTheme {
+  id              String         @id @default(uuid())
+  userId          String
+  folderId        String?
+  name            String
+  os              String
+  previewImageUrl String?
+  trashed         Boolean        @default(false)
+  trashedAt       DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  configJson      Json?
+  imageData       Json?
+  themePackageId  String?        @unique
+  folder          MyThemeFolder? @relation(fields: [folderId], references: [id])
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Mailbox {
+  id        String        @id @default(uuid())
+  userId    String
+  type      MailboxType
+  title     String
+  content   String
+  status    MailboxStatus @default(PENDING)
+  adminNote String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GalleryPost {
+  id          String            @id @default(uuid())
+  userId      String
+  themeName   String
+  description String?
+  images      String[]          @default([])
+  storeLink   String?
+  themeId     String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  comments    GalleryComment[]
+  likes       GalleryLike[]
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reactions   GalleryReaction[]
+}
+
+model GalleryLike {
+  id        String      @id @default(uuid())
+  userId    String
+  postId    String
+  createdAt DateTime    @default(now())
+  post      GalleryPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+}
+
+model GalleryReaction {
+  id        String      @id @default(uuid())
+  userId    String
+  postId    String
+  emoji     String
+  createdAt DateTime    @default(now())
+  post      GalleryPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId, emoji])
+}
+
+model GalleryComment {
+  id        String                 @id @default(uuid())
+  postId    String
+  userId    String
+  content   String
+  isDeleted Boolean                @default(false)
+  createdAt DateTime               @default(now())
+  parentId  String?
+  parent    GalleryComment?        @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   GalleryComment[]       @relation("CommentReplies")
+  post      GalleryPost            @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reports   GalleryCommentReport[]
+}
+
+model GalleryCommentReport {
+  id         String         @id @default(uuid())
+  commentId  String
+  reporterId String
+  isHandled  Boolean        @default(false)
+  createdAt  DateTime       @default(now())
+  comment    GalleryComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  reporter   User           @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, reporterId])
+}
+
+model Subscription {
+  id            String                @id @default(uuid())
+  userId        String                @unique
+  status        SubscriptionStatus    @default(ACTIVE)
+  amount        Int                   @default(4900)
+  billingKey    String?
+  startedAt     DateTime              @default(now())
+  nextBillingAt DateTime?
+  cancelledAt   DateTime?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  customerKey   String?
+  cardCompany   String?
+  cardNumber    String?
+  user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments      SubscriptionPayment[]
+}
+
+model SubscriptionPayment {
+  id              String                    @id @default(uuid())
+  subscriptionId  String
+  userId          String
+  amount          Int
+  status          SubscriptionPaymentStatus @default(COMPLETED)
+  pgTransactionId String?                   @unique
+  periodStart     DateTime                  @db.Timestamptz(6)
+  periodEnd       DateTime                  @db.Timestamptz(6)
+  paidAt          DateTime                  @default(now()) @db.Timestamptz(6)
+  createdAt       DateTime                  @default(now()) @db.Timestamptz(6)
+  subscription    Subscription              @relation(fields: [subscriptionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user            User                      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 enum Role {
@@ -31,15 +408,16 @@ enum BuildStatus {
 }
 
 enum ThemeOptionStatus {
-  ACTIVE          // 스토어에 공개된 옵션
-  PENDING_UPDATE  // 업데이트 심사 중 (기존 ACTIVE 버전 유지)
-  PENDING_NEW     // 신규 등록 심사 중
+  ACTIVE
+  PENDING_UPDATE
+  PENDING_NEW
 }
 
 enum PurchaseStatus {
   PENDING
   COMPLETED
   REFUNDED
+  REFUND_REQUESTED
 }
 
 enum InquiryStatus {
@@ -49,13 +427,13 @@ enum InquiryStatus {
 }
 
 enum MailboxType {
-  SUGGESTION  // 건의해요
-  BUG_REPORT  // 오류 신고해요
+  SUGGESTION
+  BUG_REPORT
 }
 
 enum MailboxStatus {
-  PENDING    // 미처리
-  REVIEWED   // 처리 완료
+  PENDING
+  REVIEWED
 }
 
 enum ReportStatus {
@@ -101,407 +479,3 @@ enum NotificationType {
   THEME_REJECTED
   SYSTEM
 }
-
-model CreatorApplication {
-  id           String            @id @default(uuid())
-  userId       String
-  reason       String            // 자기소개 (필수)
-  portfolio    String?           // SNS/포트폴리오 링크 (선택)
-  experience   Boolean           @default(false) // 테마 제작 경험 여부
-  tools        String[]          @default([])    // 사용 툴 목록
-  sampleImages String[]          @default([])    // 샘플 이미지 URL 배열
-  status       ApplicationStatus @default(PENDING)
-  adminNote    String?           // 반려 사유 등 관리자 메모
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-
-  user User @relation("UserApplications", fields: [userId], references: [id])
-}
-
-model User {
-  id                String    @id @default(uuid())
-  kakaoId           String    @unique
-  email             String?   @unique
-  name              String
-  nickname          String?   @unique
-  avatarUrl         String?
-  image             String?
-  role              Role      @default(USER)
-  isSuspended       Boolean   @default(false)
-  credit            Int       @default(0)
-  referralCode      String?   @unique
-  referralRewarded  Boolean   @default(false)
-  notifSettings     Json?                       // 알림 설정 (null이면 기본값 사용)
-  bankName          String?                     // 정산 은행명
-  accountNumber     String?                     // 정산 계좌번호
-  accountHolder     String?                     // 정산 예금주
-  deletedAt         DateTime?                   // soft delete
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-
-  themes         Theme[]               @relation("UserThemes")
-  purchases      Purchase[]            @relation("UserPurchases")
-  inquiries      Inquiry[]             @relation("UserInquiries")
-  inquiryReplies InquiryReply[]        @relation("UserInquiryReplies")
-  reports        Report[]              @relation("UserReports")
-  pointHistories PointHistory[]        @relation("UserPointHistories")
-  applications   CreatorApplication[]  @relation("UserApplications")
-  followers      Follow[]              @relation("UserFollowers")
-  followings     Follow[]              @relation("UserFollowings")
-  notifications  Notification[]        @relation("UserNotifications")
-  likes          ThemeLike[]
-  reviews        Review[]
-  myThemes       MyTheme[]
-  myThemeFolders MyThemeFolder[]
-  mailboxes      Mailbox[]
-  galleryPosts        GalleryPost[]
-  galleryLikes        GalleryLike[]
-  galleryComments     GalleryComment[]
-  galleryReactions    GalleryReaction[]
-  galleryCommentReports GalleryCommentReport[]
-  subscription        Subscription?
-  subscriptionPayments SubscriptionPayment[]
-}
-
-model Follow {
-  id          String   @id @default(uuid())
-  followerId  String
-  followingId String
-  createdAt   DateTime @default(now())
-
-  follower  User @relation("UserFollowings", fields: [followerId], references: [id], onDelete: Cascade)
-  following User @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
-
-  @@unique([followerId, followingId])
-}
-
-model Notification {
-  id        String           @id @default(uuid())
-  userId    String
-  type      NotificationType
-  title     String
-  body      String
-  linkUrl   String?
-  isRead    Boolean          @default(false)
-  createdAt DateTime         @default(now())
-
-  user User @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model PointHistory {
-  id        String    @id @default(uuid())
-  userId    String
-  amount    Int
-  type      PointType
-  memo      String?
-  expiresAt DateTime?
-  createdAt DateTime  @default(now())
-
-  user User @relation("UserPointHistories", fields: [userId], references: [id])
-}
-
-model Theme {
-  id           String      @id @default(uuid())
-  creatorId    String
-  title        String
-  description  String?
-  price        Int         @default(0)
-  status       ThemeStatus @default(DRAFT)
-  isPublic     Boolean     @default(true)
-  isSelling    Boolean     @default(true)
-  thumbnailUrl String?
-  adminNote    String?
-  images       String[]    @default([])
-  tags         String[]    @default([])
-  contentBlocks String?
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-
-  creator   User           @relation("UserThemes", fields: [creatorId], references: [id])
-  versions  ThemeVersion[]
-  options   ThemeOption[]
-  purchases Purchase[]
-  reports   Report[]       @relation("ThemeReports")
-  likes     ThemeLike[]
-  reviews   Review[]
-}
-
-model ThemeVersion {
-  id            String      @id @default(uuid())
-  themeId       String
-  version       String
-  configJson    Json
-  kthemeFileUrl String?
-  apkFileUrl    String?
-  buildStatus   BuildStatus @default(PENDING)
-  createdAt     DateTime    @default(now())
-
-  theme     Theme      @relation(fields: [themeId], references: [id], onDelete: Cascade)
-  purchases Purchase[]
-}
-
-// 테마 옵션 (색상 변형 등) - 각 옵션마다 스냅샷 저장
-model ThemeOption {
-  id              String            @id @default(uuid())
-  themeId         String
-  os              String            // "ios" | "android"
-  name            String            // 옵션 이름 (예: 핑크 버전)
-  status          ThemeOptionStatus @default(PENDING_NEW)
-  adminNote       String?           // 반려 사유
-
-  // 현재 스토어에 공개된 스냅샷
-  fileUrl         String?           // 현재 공개 중인 파일 URL
-  configJson      Json?             // 현재 공개 중인 MyTheme configJson 스냅샷
-  imageData       Json?             // 현재 공개 중인 MyTheme imageData 스냅샷
-  myThemeId       String?           // 연결된 MyTheme id (선택)
-
-  // 업데이트 심사 중인 스냅샷 (승인 전까지 위 값 유지)
-  pendingFileUrl      String?
-  pendingConfigJson   Json?
-  pendingImageData    Json?
-  pendingMyThemeId    String?
-  pendingAdminNote    String?
-
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-
-  theme           Theme             @relation(fields: [themeId], references: [id], onDelete: Cascade)
-}
-
-model Purchase {
-  id              String         @id @default(uuid())
-  buyerId         String
-  themeId         String
-  versionId       String?        // 구매한 버전 ID
-  amount          Int
-  pgTransactionId String?        @unique
-  status          PurchaseStatus @default(PENDING)
-  isDownloaded    Boolean        @default(false)
-  refundReason    String?
-  refundedAt      DateTime?
-  createdAt       DateTime       @default(now())
-
-  buyer   User          @relation("UserPurchases", fields: [buyerId], references: [id])
-  theme   Theme         @relation(fields: [themeId], references: [id])
-  version ThemeVersion? @relation(fields: [versionId], references: [id])
-}
-
-model Inquiry {
-  id        String        @id @default(uuid())
-  userId    String
-  category  String        @default("기타")
-  title     String
-  content   String
-  status    InquiryStatus @default(OPEN)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-
-  user    User           @relation("UserInquiries", fields: [userId], references: [id])
-  replies InquiryReply[]
-}
-
-model InquiryReply {
-  id        String   @id @default(uuid())
-  inquiryId String
-  authorId  String
-  content   String
-  isAdmin   Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  inquiry Inquiry @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
-  author  User    @relation("UserInquiryReplies", fields: [authorId], references: [id])
-}
-
-model Report {
-  id         String       @id @default(uuid())
-  reporterId String
-  themeId    String
-  reason     String
-  detail     String?
-  status     ReportStatus @default(PENDING)
-  createdAt  DateTime     @default(now())
-
-  reporter User  @relation("UserReports", fields: [reporterId], references: [id])
-  theme    Theme @relation("ThemeReports", fields: [themeId], references: [id])
-}
-
-model ThemeLike {
-  id        String   @id @default(uuid())
-  userId    String
-  themeId   String
-  createdAt DateTime @default(now())
-
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  theme Theme @relation(fields: [themeId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, themeId])
-}
-
-model Review {
-  id        String   @id @default(uuid())
-  userId    String
-  themeId   String
-  rating    Int
-  content   String?
-  images    String[] @default([])
-  rewarded  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  theme Theme @relation(fields: [themeId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, themeId])
-}
-
-model MyThemeFolder {
-  id        String      @id @default(uuid())
-  userId    String
-  name      String
-  createdAt DateTime    @default(now())
-
-  user   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  themes MyTheme[]
-}
-
-model MyTheme {
-  id              String         @id @default(uuid())
-  userId          String
-  folderId        String?
-  name            String
-  os              String         // "ios" | "android"
-  previewImageUrl String?
-  themePackageId  String?        @unique // com.kakkumi.talk.theme.XXXXXXXX
-  configJson      Json?          // ThemeConfig 전체 저장
-  imageData       Json?          // { [key]: base64DataUrl } 이미지 맵
-  trashed         Boolean        @default(false)
-  trashedAt       DateTime?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-
-  user   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  folder MyThemeFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
-}
-
-model Mailbox {
-  id        String        @id @default(uuid())
-  userId    String
-  type      MailboxType
-  title     String
-  content   String
-  status    MailboxStatus @default(PENDING)
-  adminNote String?
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-// ── 꾸미 갤러리 ──────────────────────────────────
-
-model GalleryPost {
-  id          String   @id @default(uuid())
-  userId      String
-  themeName   String
-  description String?
-  images      String[] @default([])   // 최대 3장
-  storeLink   String?                 // 스토어 링크 (URL 또는 themeId)
-  themeId     String?                 // 연결된 스토어 테마 ID (선택)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  likes     GalleryLike[]
-  comments  GalleryComment[]
-  reactions GalleryReaction[]
-}
-
-model GalleryLike {
-  id        String   @id @default(uuid())
-  userId    String
-  postId    String
-  createdAt DateTime @default(now())
-
-  user User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post GalleryPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, postId])
-}
-
-model GalleryReaction {
-  id        String   @id @default(uuid())
-  userId    String
-  postId    String
-  emoji     String   // 이모지 문자
-  createdAt DateTime @default(now())
-
-  user User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post GalleryPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, postId, emoji])
-}
-
-model GalleryComment {
-  id        String   @id @default(uuid())
-  postId    String
-  userId    String
-  parentId  String?  // 대댓글이면 부모 댓글 ID
-  content   String
-  isDeleted Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  post    GalleryPost            @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user    User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reports GalleryCommentReport[]
-  parent  GalleryComment?        @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies GalleryComment[]       @relation("CommentReplies")
-}
-
-model GalleryCommentReport {
-  id         String   @id @default(uuid())
-  commentId  String
-  reporterId String
-  isHandled  Boolean  @default(false)
-  createdAt  DateTime @default(now())
-
-  comment  GalleryComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  reporter User           @relation(fields: [reporterId], references: [id], onDelete: Cascade)
-
-  @@unique([commentId, reporterId])
-}
-
-model Subscription {
-  id                String             @id @default(uuid())
-  userId            String             @unique
-  status            SubscriptionStatus @default(ACTIVE)
-  amount            Int                @default(4900)
-  billingKey        String?            // 토스페이먼츠 빌링키
-  customerKey       String?            // 토스페이먼츠 customerKey
-  cardCompany       String?            // 카드사
-  cardNumber        String?            // 마스킹된 카드 번호
-  startedAt         DateTime           @default(now())
-  nextBillingAt     DateTime?          // 다음 결제일
-  cancelledAt       DateTime?          // 해지일
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-
-  user     User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  payments SubscriptionPayment[]
-}
-
-model SubscriptionPayment {
-  id             String                    @id @default(uuid())
-  subscriptionId String
-  userId         String
-  amount         Int
-  status         SubscriptionPaymentStatus @default(COMPLETED)
-  pgTransactionId String?                  @unique
-  periodStart    DateTime
-  periodEnd      DateTime
-  paidAt         DateTime                  @default(now())
-  createdAt      DateTime                  @default(now())
-
-  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-

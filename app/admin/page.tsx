@@ -17,6 +17,7 @@ export default async function AdminPage() {
         inquiriesOpen,
         mailboxPending,
         galleryReportsPending,
+        refundsPending,
     ] = await Promise.all([
         // 테마 관리: 승인 대기 (DRAFT 상태 옵션)
         prisma.$queryRaw<{ count: bigint }[]>`
@@ -48,7 +49,12 @@ export default async function AdminPage() {
             SELECT COUNT(*) as count FROM "GalleryCommentReport"
             WHERE "isHandled" = false
         `,
-    ]).catch(() => Array(6).fill([{ count: BigInt(0) }]));
+        // 환불 요청 대기
+        prisma.$queryRaw<{ count: bigint }[]>`
+            SELECT COUNT(*) as count FROM "Purchase"
+            WHERE status = 'REFUND_REQUESTED'
+        `,
+    ]).catch(() => Array(7).fill([{ count: BigInt(0) }]));
 
     const dashboardCounts = {
         themesPending:         Number((themesPending as { count: bigint }[])[0]?.count ?? 0),
@@ -57,6 +63,7 @@ export default async function AdminPage() {
         inquiriesOpen:         Number((inquiriesOpen as { count: bigint }[])[0]?.count ?? 0),
         mailboxPending:        Number((mailboxPending as { count: bigint }[])[0]?.count ?? 0),
         galleryReportsPending: Number((galleryReportsPending as { count: bigint }[])[0]?.count ?? 0),
+        refundsPending:        Number((refundsPending as { count: bigint }[])[0]?.count ?? 0),
     };
 
     return (
