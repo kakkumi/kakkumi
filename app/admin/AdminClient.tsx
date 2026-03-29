@@ -11,7 +11,7 @@ type AdminTheme = {
     thumbnailUrl: string | null; images: string[]; tags: string[];
     contentBlocks: string | null;
     versions: { version: string; kthemeFileUrl: string | null; apkFileUrl: string | null }[];
-    options: { id: string; os: string; name: string; status: string; fileUrl: string | null; myThemeId: string | null; pendingFileUrl: string | null; pendingMyThemeId: string | null }[];
+    options: { id: string; os: string; name: string; status: string; fileUrl: string | null; myThemeId: string | null; myThemeName: string | null; myThemePreviewUrl: string | null; pendingFileUrl: string | null; pendingMyThemeId: string | null; pendingMyThemeName: string | null; pendingMyThemePreviewUrl: string | null }[];
     // 수정 신청 pending 필드
     pendingTitle: string | null;
     pendingDescription: string | null;
@@ -1514,27 +1514,98 @@ function ThemeManageTab({ themes, loading, actionLoading, onApprove, onReject, o
                                             <p className="text-[10px] font-medium" style={{ color: "#aeaeb2" }}>테마 옵션 ({t.options.length}개)</p>
                                             {t.options.map((opt, oi) => {
                                                 const hasPendingChange = !!(opt.pendingFileUrl || opt.pendingMyThemeId);
+                                                // 현재 소스 타입 판별
+                                                const isMyTheme = !!opt.myThemeId && !opt.fileUrl;
+                                                const isPendingMyTheme = !!opt.pendingMyThemeId && !opt.pendingFileUrl;
                                                 return (
                                                     <React.Fragment key={opt.id}>
-                                                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg"
+                                                        <div className="flex flex-col gap-2 px-3 py-2.5 rounded-lg"
                                                             style={{ background: hasPendingChange ? "rgba(74,123,247,0.04)" : "rgba(0,0,0,0.02)", border: `1px solid ${hasPendingChange ? "rgba(74,123,247,0.15)" : "rgba(0,0,0,0.06)"}` }}>
-                                                            <span className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0" style={{ background: "rgb(255,149,0)", color: "#fff" }}>{oi + 1}</span>
-                                                            <span className="text-[12px] font-medium flex-1" style={{ color: "#1c1c1e" }}>{opt.name || `옵션 ${oi + 1}`}</span>
-                                                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: opt.os === "ios" ? "rgba(255,149,0,0.10)" : "rgba(74,123,247,0.10)", color: opt.os === "ios" ? "#c97000" : "rgb(74,123,247)" }}>{opt.os === "ios" ? "iOS" : "Android"}</span>
-                                                            <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: opt.myThemeId ? "rgba(52,199,89,0.10)" : "rgba(0,0,0,0.05)", color: opt.myThemeId ? "#1a7a3a" : "#8e8e93" }}>{opt.myThemeId ? "내 테마" : "파일"}</span>
-                                                            {opt.fileUrl && !hasPendingChange && (
-                                                                <a href={opt.fileUrl} download target="_blank" rel="noopener noreferrer" className="text-[11px] underline hover:opacity-70" style={{ color: "rgb(74,123,247)" }}>다운로드</a>
-                                                            )}
-                                                            {hasPendingChange && (
-                                                                <>
-                                                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(74,123,247,0.12)", color: "rgb(74,123,247)" }}>파일 변경됨</span>
-                                                                    {opt.pendingFileUrl && (
-                                                                        <a href={opt.pendingFileUrl} download target="_blank" rel="noopener noreferrer" className="text-[11px] underline hover:opacity-70" style={{ color: "#34c759" }}>새 파일</a>
+                                                            {/* 옵션 헤더 행 */}
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0" style={{ background: "rgb(255,149,0)", color: "#fff" }}>{oi + 1}</span>
+                                                                <span className="text-[12px] font-medium flex-1" style={{ color: "#1c1c1e" }}>{opt.name || `옵션 ${oi + 1}`}</span>
+                                                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: opt.os === "ios" ? "rgba(255,149,0,0.10)" : "rgba(74,123,247,0.10)", color: opt.os === "ios" ? "#c97000" : "rgb(74,123,247)" }}>{opt.os === "ios" ? "iOS" : "Android"}</span>
+                                                                <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: isMyTheme ? "rgba(52,199,89,0.10)" : "rgba(0,0,0,0.05)", color: isMyTheme ? "#1a7a3a" : "#8e8e93" }}>{isMyTheme ? "내 테마" : "파일"}</span>
+                                                                {/* 파일 업로드 → 다운로드 링크 */}
+                                                                {opt.fileUrl && !hasPendingChange && (
+                                                                    <a href={opt.fileUrl} download target="_blank" rel="noopener noreferrer" className="text-[11px] underline hover:opacity-70" style={{ color: "rgb(74,123,247)" }}>다운로드</a>
+                                                                )}
+                                                                {/* 내 테마 → .ktheme 생성 다운로드 */}
+                                                                {isMyTheme && !hasPendingChange && (
+                                                                    <a
+                                                                        href={`/api/admin/themes/export-option?optionId=${opt.id}`}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="text-[11px] underline hover:opacity-70"
+                                                                        style={{ color: "#34c759" }}
+                                                                    >
+                                                                        .ktheme 다운로드
+                                                                    </a>
+                                                                )}
+                                                                {hasPendingChange && (
+                                                                    <>
+                                                                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(74,123,247,0.12)", color: "rgb(74,123,247)" }}>파일 변경됨</span>
+                                                                        {opt.pendingFileUrl && (
+                                                                            <a href={opt.pendingFileUrl} download target="_blank" rel="noopener noreferrer" className="text-[11px] underline hover:opacity-70" style={{ color: "#34c759" }}>새 파일</a>
+                                                                        )}
+                                                                        {isPendingMyTheme && (
+                                                                            <a
+                                                                                href={`/api/admin/themes/export-option?optionId=${opt.id}&pending=1`}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="text-[11px] underline hover:opacity-70"
+                                                                                style={{ color: "#34c759" }}
+                                                                            >
+                                                                                새 .ktheme 다운로드
+                                                                            </a>
+                                                                        )}
+                                                                    </>
+                                                                )}
+                                                            </div>
+
+                                                            {/* 내 테마 미리보기 (현재) */}
+                                                            {isMyTheme && !hasPendingChange && (opt.myThemeName || opt.myThemePreviewUrl) && (
+                                                                <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg" style={{ background: "rgba(52,199,89,0.06)", border: "1px solid rgba(52,199,89,0.18)" }}>
+                                                                    {opt.myThemePreviewUrl && (
+                                                                        <img src={opt.myThemePreviewUrl} alt="미리보기" className="w-8 h-8 rounded-md object-cover shrink-0" style={{ border: "1px solid rgba(0,0,0,0.08)" }} />
                                                                     )}
-                                                                </>
+                                                                    <div className="flex flex-col min-w-0 flex-1">
+                                                                        <span className="text-[10px] font-semibold truncate" style={{ color: "#1a7a3a" }}>내 테마: {opt.myThemeName ?? "이름 없음"}</span>
+                                                                        <span className="text-[9px]" style={{ color: "#aeaeb2" }}>카꾸미 테마 에디터로 제작</span>
+                                                                    </div>
+                                                                    <button
+                                                                        onClick={() => window.open(`/admin/theme-preview?optionId=${opt.id}`, "_blank")}
+                                                                        className="shrink-0 text-[10px] font-semibold px-2.5 py-1 rounded-md hover:opacity-80 transition-opacity"
+                                                                        style={{ background: "rgba(52,199,89,0.15)", color: "#1a7a3a" }}
+                                                                    >
+                                                                        🔍 목업 미리보기
+                                                                    </button>
+                                                                </div>
+                                                            )}
+
+                                                            {/* 내 테마 미리보기 (pending) */}
+                                                            {hasPendingChange && isPendingMyTheme && (opt.pendingMyThemeName || opt.pendingMyThemePreviewUrl) && (
+                                                                <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg" style={{ background: "rgba(74,123,247,0.06)", border: "1px solid rgba(74,123,247,0.18)" }}>
+                                                                    {opt.pendingMyThemePreviewUrl && (
+                                                                        <img src={opt.pendingMyThemePreviewUrl} alt="새 미리보기" className="w-8 h-8 rounded-md object-cover shrink-0" style={{ border: "1px solid rgba(0,0,0,0.08)" }} />
+                                                                    )}
+                                                                    <div className="flex flex-col min-w-0 flex-1">
+                                                                        <span className="text-[10px] font-semibold truncate" style={{ color: "rgb(74,123,247)" }}>변경될 내 테마: {opt.pendingMyThemeName ?? "이름 없음"}</span>
+                                                                        <span className="text-[9px]" style={{ color: "#aeaeb2" }}>카꾸미 테마 에디터로 제작</span>
+                                                                    </div>
+                                                                    <button
+                                                                        onClick={() => window.open(`/admin/theme-preview?optionId=${opt.id}&pending=1`, "_blank")}
+                                                                        className="shrink-0 text-[10px] font-semibold px-2.5 py-1 rounded-md hover:opacity-80 transition-opacity"
+                                                                        style={{ background: "rgba(74,123,247,0.15)", color: "rgb(74,123,247)" }}
+                                                                    >
+                                                                        🔍 목업 미리보기
+                                                                    </button>
+                                                                </div>
                                                             )}
                                                         </div>
-                                                        {/* 파일 구조 검증 */}
+
+                                                        {/* 파일 구조 검증 (파일 업로드 방식만) */}
                                                         {opt.fileUrl && !hasPendingChange && (
                                                             <ValidationBadge
                                                                 fileUrl={opt.fileUrl as string}

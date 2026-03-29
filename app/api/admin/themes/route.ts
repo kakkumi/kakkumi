@@ -24,7 +24,10 @@ export async function GET() {
             options: {
                 id: string; os: string; name: string; status: string; adminNote: string | null;
                 fileUrl: string | null; myThemeId: string | null;
-                pendingFileUrl: string | null; pendingMyThemeId: string | null; pendingAdminNote: string | null;
+                myThemeName: string | null; myThemePreviewUrl: string | null;
+                pendingFileUrl: string | null; pendingMyThemeId: string | null;
+                pendingMyThemeName: string | null; pendingMyThemePreviewUrl: string | null;
+                pendingAdminNote: string | null;
             }[];
         }[]>`
             SELECT t.id, t.title, t.description, t.price, t.status, t."adminNote", t."createdAt",
@@ -52,11 +55,18 @@ export async function GET() {
                            'adminNote', o."adminNote",
                            'fileUrl', o."fileUrl",
                            'myThemeId', o."myThemeId",
+                           'myThemeName', mt.name,
+                           'myThemePreviewUrl', mt."previewImageUrl",
                            'pendingFileUrl', o."pendingFileUrl",
                            'pendingMyThemeId', o."pendingMyThemeId",
+                           'pendingMyThemeName', pmt.name,
+                           'pendingMyThemePreviewUrl', pmt."previewImageUrl",
                            'pendingAdminNote', o."pendingAdminNote"
                        ) ORDER BY o."createdAt" ASC)
-                        FROM "ThemeOption" o WHERE o."themeId" = t.id),
+                        FROM "ThemeOption" o
+                        LEFT JOIN "MyTheme" mt ON mt.id = o."myThemeId"
+                        LEFT JOIN "MyTheme" pmt ON pmt.id = o."pendingMyThemeId"
+                        WHERE o."themeId" = t.id),
                        '[]'::json
                    ) AS options
             FROM "Theme" t
