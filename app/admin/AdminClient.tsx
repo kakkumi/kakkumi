@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { formatKST } from "@/lib/date";
 
 // ── 타입 ──────────────────────────────────────────
-type Stats = { userCount: number; themeCount: number; purchaseCount: number; inquiryCount: number };
 type AdminTheme = {
     id: string; title: string; description: string | null; price: number;
     status: string; adminNote: string | null; createdAt: string;
@@ -222,6 +221,67 @@ function EmptyState({ text }: { text: string }) {
     return (
         <div className="flex items-center justify-center py-16">
             <span className="text-[13px]" style={{ color: "#c7c7cc" }}>{text}</span>
+        </div>
+    );
+}
+
+// ── 파일 구조 검증 뱃지 ───────────────────────────────────────────────────────
+type ValidationResult = { valid: boolean; errors: string[]; warnings: string[]; fileSizeMB?: string };
+
+function ValidationBadge({ fileUrl, fileType }: { fileUrl: string; fileType: "ktheme" | "apk" }) {
+    const [loading, setLoading] = useState(true);
+    const [result, setResult] = useState<ValidationResult | null>(null);
+
+    useEffect(() => {
+        fetch(`/api/admin/validate-theme-file?url=${encodeURIComponent(fileUrl)}&type=${fileType}`)
+            .then(r => r.json() as Promise<ValidationResult>)
+            .then(d => setResult(d))
+            .catch(() => setResult({ valid: false, errors: ["검증 요청 중 오류가 발생했습니다."], warnings: [] }))
+            .finally(() => setLoading(false));
+    }, [fileUrl, fileType]);
+
+    if (loading) {
+        return (
+            <div className="flex items-center gap-1.5 mt-1.5 px-3 py-2 rounded-lg" style={{ background: "rgba(0,0,0,0.03)" }}>
+                <div className="w-3 h-3 rounded-full border-2 border-black/10 border-t-black/40 animate-spin shrink-0" />
+                <span className="text-[11px]" style={{ color: "#aeaeb2" }}>파일 구조 검증 중...</span>
+            </div>
+        );
+    }
+
+    if (!result) return null;
+
+    if (result.valid && result.warnings.length === 0) {
+        return (
+            <div className="flex items-center gap-1.5 mt-1.5 px-3 py-2 rounded-lg" style={{ background: "rgba(52,199,89,0.06)", border: "1px solid rgba(52,199,89,0.18)" }}>
+                <span style={{ fontSize: 13 }}>✅</span>
+                <span className="text-[12px] font-medium" style={{ color: "#1a7a3a" }}>아무런 문제없어요</span>
+                {result.fileSizeMB && <span className="text-[10px] ml-auto" style={{ color: "#aeaeb2" }}>{result.fileSizeMB} MB</span>}
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex flex-col gap-1.5 mt-1.5 px-3 py-2.5 rounded-lg" style={{ background: result.errors.length > 0 ? "rgba(255,59,48,0.04)" : "rgba(255,149,0,0.04)", border: `1px solid ${result.errors.length > 0 ? "rgba(255,59,48,0.18)" : "rgba(255,149,0,0.2)"}` }}>
+            <div className="flex items-center gap-1.5">
+                <span style={{ fontSize: 13 }}>{result.errors.length > 0 ? "❌" : "⚠️"}</span>
+                <span className="text-[12px] font-semibold" style={{ color: result.errors.length > 0 ? "#ff3b30" : "#c97000" }}>
+                    {result.errors.length > 0 ? `${result.errors.length + result.warnings.length}개 문제 발견` : `${result.warnings.length}개 경고`}
+                </span>
+                {result.fileSizeMB && <span className="text-[10px] ml-auto" style={{ color: "#aeaeb2" }}>{result.fileSizeMB} MB</span>}
+            </div>
+            {result.errors.map((e, i) => (
+                <div key={i} className="flex items-start gap-1.5">
+                    <span className="text-[11px] shrink-0 mt-0.5" style={{ color: "#ff3b30" }}>•</span>
+                    <span className="text-[11px]" style={{ color: "#ff3b30" }}>{e}</span>
+                </div>
+            ))}
+            {result.warnings.map((w, i) => (
+                <div key={i} className="flex items-start gap-1.5">
+                    <span className="text-[11px] shrink-0 mt-0.5" style={{ color: "#c97000" }}>⚠</span>
+                    <span className="text-[11px]" style={{ color: "#c97000" }}>{w}</span>
+                </div>
+            ))}
         </div>
     );
 }
@@ -1426,15 +1486,21 @@ function ThemeManageTab({ themes, loading, actionLoading, onApprove, onReject, o
                                                 <div key={vi} className="flex flex-col gap-1 pl-2">
                                                     <p className="text-[11px] font-semibold" style={{ color: "#6e6e73" }}>옵션 {vi + 1}: {v.version}</p>
                                                     {v.kthemeFileUrl && (
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: "rgba(255,149,0,0.10)", color: "#c97000" }}>iOS·PC</span>
-                                                            <a href={v.kthemeFileUrl} download target="_blank" rel="noopener noreferrer" className="text-[12px] truncate underline hover:opacity-70" style={{ color: "rgb(74,123,247)" }}>{v.kthemeFileUrl.split("/").pop()}</a>
+                                                        <div className="flex flex-col gap-0.5">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: "rgba(255,149,0,0.10)", color: "#c97000" }}>iOS·PC</span>
+                                                                <a href={v.kthemeFileUrl} download target="_blank" rel="noopener noreferrer" className="text-[12px] truncate underline hover:opacity-70" style={{ color: "rgb(74,123,247)" }}>{v.kthemeFileUrl.split("/").pop()}</a>
+                                                            </div>
+                                                            <ValidationBadge fileUrl={v.kthemeFileUrl} fileType="ktheme" />
                                                         </div>
                                                     )}
                                                     {v.apkFileUrl && (
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: "rgba(52,199,89,0.10)", color: "#1a7a3a" }}>Android</span>
-                                                            <a href={v.apkFileUrl} download target="_blank" rel="noopener noreferrer" className="text-[12px] truncate underline hover:opacity-70" style={{ color: "rgb(74,123,247)" }}>{v.apkFileUrl.split("/").pop()}</a>
+                                                        <div className="flex flex-col gap-0.5">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: "rgba(52,199,89,0.10)", color: "#1a7a3a" }}>Android</span>
+                                                                <a href={v.apkFileUrl} download target="_blank" rel="noopener noreferrer" className="text-[12px] truncate underline hover:opacity-70" style={{ color: "rgb(74,123,247)" }}>{v.apkFileUrl.split("/").pop()}</a>
+                                                            </div>
+                                                            <ValidationBadge fileUrl={v.apkFileUrl} fileType="apk" />
                                                         </div>
                                                     )}
                                                 </div>
@@ -1449,24 +1515,39 @@ function ThemeManageTab({ themes, loading, actionLoading, onApprove, onReject, o
                                             {t.options.map((opt, oi) => {
                                                 const hasPendingChange = !!(opt.pendingFileUrl || opt.pendingMyThemeId);
                                                 return (
-                                                    <div key={opt.id} className="flex items-center gap-2 px-3 py-2 rounded-lg"
-                                                        style={{ background: hasPendingChange ? "rgba(74,123,247,0.04)" : "rgba(0,0,0,0.02)", border: `1px solid ${hasPendingChange ? "rgba(74,123,247,0.15)" : "rgba(0,0,0,0.06)"}` }}>
-                                                        <span className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0" style={{ background: "rgb(255,149,0)", color: "#fff" }}>{oi + 1}</span>
-                                                        <span className="text-[12px] font-medium flex-1" style={{ color: "#1c1c1e" }}>{opt.name || `옵션 ${oi + 1}`}</span>
-                                                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: opt.os === "ios" ? "rgba(255,149,0,0.10)" : "rgba(74,123,247,0.10)", color: opt.os === "ios" ? "#c97000" : "rgb(74,123,247)" }}>{opt.os === "ios" ? "iOS" : "Android"}</span>
-                                                        <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: opt.myThemeId ? "rgba(52,199,89,0.10)" : "rgba(0,0,0,0.05)", color: opt.myThemeId ? "#1a7a3a" : "#8e8e93" }}>{opt.myThemeId ? "내 테마" : "파일"}</span>
+                                                    <React.Fragment key={opt.id}>
+                                                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg"
+                                                            style={{ background: hasPendingChange ? "rgba(74,123,247,0.04)" : "rgba(0,0,0,0.02)", border: `1px solid ${hasPendingChange ? "rgba(74,123,247,0.15)" : "rgba(0,0,0,0.06)"}` }}>
+                                                            <span className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0" style={{ background: "rgb(255,149,0)", color: "#fff" }}>{oi + 1}</span>
+                                                            <span className="text-[12px] font-medium flex-1" style={{ color: "#1c1c1e" }}>{opt.name || `옵션 ${oi + 1}`}</span>
+                                                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: opt.os === "ios" ? "rgba(255,149,0,0.10)" : "rgba(74,123,247,0.10)", color: opt.os === "ios" ? "#c97000" : "rgb(74,123,247)" }}>{opt.os === "ios" ? "iOS" : "Android"}</span>
+                                                            <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: opt.myThemeId ? "rgba(52,199,89,0.10)" : "rgba(0,0,0,0.05)", color: opt.myThemeId ? "#1a7a3a" : "#8e8e93" }}>{opt.myThemeId ? "내 테마" : "파일"}</span>
+                                                            {opt.fileUrl && !hasPendingChange && (
+                                                                <a href={opt.fileUrl} download target="_blank" rel="noopener noreferrer" className="text-[11px] underline hover:opacity-70" style={{ color: "rgb(74,123,247)" }}>다운로드</a>
+                                                            )}
+                                                            {hasPendingChange && (
+                                                                <>
+                                                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(74,123,247,0.12)", color: "rgb(74,123,247)" }}>파일 변경됨</span>
+                                                                    {opt.pendingFileUrl && (
+                                                                        <a href={opt.pendingFileUrl} download target="_blank" rel="noopener noreferrer" className="text-[11px] underline hover:opacity-70" style={{ color: "#34c759" }}>새 파일</a>
+                                                                    )}
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                        {/* 파일 구조 검증 */}
                                                         {opt.fileUrl && !hasPendingChange && (
-                                                            <a href={opt.fileUrl} download target="_blank" rel="noopener noreferrer" className="text-[11px] underline hover:opacity-70" style={{ color: "rgb(74,123,247)" }}>다운로드</a>
+                                                            <ValidationBadge
+                                                                fileUrl={opt.fileUrl as string}
+                                                                fileType={opt.os === "ios" ? "ktheme" : "apk"}
+                                                            />
                                                         )}
-                                                        {hasPendingChange && (
-                                                            <>
-                                                                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(74,123,247,0.12)", color: "rgb(74,123,247)" }}>파일 변경됨</span>
-                                                                {opt.pendingFileUrl && (
-                                                                    <a href={opt.pendingFileUrl} download target="_blank" rel="noopener noreferrer" className="text-[11px] underline hover:opacity-70" style={{ color: "#34c759" }}>새 파일</a>
-                                                                )}
-                                                            </>
+                                                        {hasPendingChange && opt.pendingFileUrl && (
+                                                            <ValidationBadge
+                                                                fileUrl={opt.pendingFileUrl as string}
+                                                                fileType={opt.os === "ios" ? "ktheme" : "apk"}
+                                                            />
                                                         )}
-                                                    </div>
+                                                    </React.Fragment>
                                                 );
                                             })}
                                         </div>
