@@ -1441,6 +1441,7 @@ function ThemeDetailPanel({ theme: t, statusTab, actionLoading, onApprove, onRej
     onBack: () => void;
 }) {
     const isUpdate = !!t.pendingTitle;
+    const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
     const detailGuideText =
         statusTab === "DRAFT"
             ? "좌측 요약 정보로 대상을 파악한 뒤, 우측에서 변경점·파일·옵션을 순서대로 검토하세요."
@@ -1450,6 +1451,10 @@ function ThemeDetailPanel({ theme: t, statusTab, actionLoading, onApprove, onRej
         { label: "가격", value: t.price === 0 ? "무료" : `${t.price.toLocaleString()}원` },
         { label: "신청일", value: formatKST(t.createdAt, true) },
     ];
+    const previewImages = (t.images ?? []).filter((img) => typeof img === "string" && img.trim() !== "");
+    const hasVersionFiles = (t.versions?.length ?? 0) > 0;
+    const hasOnlyFileOptions = (t.options?.length ?? 0) > 0 && t.options.every((opt) => !opt.myThemeId && !opt.pendingMyThemeId);
+    const showOptionSection = (t.options?.length ?? 0) > 0 && !(hasVersionFiles && hasOnlyFileOptions);
 
     return (
         <div className="flex flex-col h-full min-h-0 rounded-[20px] border bg-white overflow-hidden" style={{ borderColor: "rgba(15,23,42,0.08)" }}>
@@ -1545,8 +1550,10 @@ function ThemeDetailPanel({ theme: t, statusTab, actionLoading, onApprove, onRej
                                 <div className="flex items-start gap-3 mb-5">
                                     {t.thumbnailUrl
                                         ? <>
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img src={t.thumbnailUrl} alt="" className="w-20 h-20 rounded-3xl object-cover shrink-0" style={{ border: "1px solid rgba(15,23,42,0.08)" }} />
+                                            <button type="button" onClick={() => setLightboxSrc(t.thumbnailUrl!)} className="shrink-0 block leading-none transition-opacity hover:opacity-80" style={{ background: "transparent", padding: 0, margin: 0, border: "none", lineHeight: 0 }}>
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img src={t.thumbnailUrl} alt="" className="block w-20 h-20 rounded-3xl object-cover" style={{ border: "1px solid rgba(15,23,42,0.08)", display: "block", verticalAlign: "top" }} />
+                                            </button>
                                         </>
                                         : <div className="w-20 h-20 rounded-3xl shrink-0 flex items-center justify-center text-[30px]" style={{ background: "#f3f4f6", border: "1px solid rgba(15,23,42,0.08)" }}>🎨</div>
                                     }
@@ -1595,21 +1602,25 @@ function ThemeDetailPanel({ theme: t, statusTab, actionLoading, onApprove, onRej
                         </aside>
 
                         <main className="min-w-0">
-                            {(t.thumbnailUrl || t.images?.length > 0) && (
+                            {(t.thumbnailUrl || previewImages.length > 0) && (
                                 <section className="pb-8" style={{ borderBottom: "1px solid rgba(15,23,42,0.06)" }}>
                                     <p className="text-[11px] font-bold uppercase tracking-[0.08em] mb-4" style={{ color: "#9ca3af" }}>이미지</p>
                                     <div className="grid grid-cols-5 gap-3">
                                         {t.thumbnailUrl && (
-                                            <div className="col-span-2 overflow-hidden rounded-2xl" style={{ border: "1px solid rgba(15,23,42,0.08)" }}>
-                                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img src={t.thumbnailUrl} alt="대표" className="w-full h-[184px] object-cover" />
+                                            <div className="col-span-2 overflow-hidden rounded-2xl">
+                                                <button type="button" onClick={() => setLightboxSrc(t.thumbnailUrl!)} className="block w-full h-full leading-none transition-opacity hover:opacity-80" style={{ background: "transparent", padding: 0, margin: 0, border: "none", lineHeight: 0 }}>
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img src={t.thumbnailUrl} alt="대표" className="block w-full h-[184px] object-cover" style={{ display: "block", verticalAlign: "top" }} />
+                                                </button>
                                             </div>
                                         )}
                                         <div className={`${t.thumbnailUrl ? "col-span-3" : "col-span-5"} grid grid-cols-4 gap-3`}>
-                                            {t.images?.map((img, i) => (
-                                                <div key={i} className="overflow-hidden rounded-2xl" style={{ border: "1px solid rgba(15,23,42,0.08)" }}>
-                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                    <img src={img} alt={`#${i + 1}`} className="w-full h-[88px] object-cover" />
+                                            {previewImages.map((img, i) => (
+                                                <div key={i} className="overflow-hidden rounded-2xl">
+                                                    <button type="button" onClick={() => setLightboxSrc(img)} className="block w-full h-full leading-none transition-opacity hover:opacity-80" style={{ background: "transparent", padding: 0, margin: 0, border: "none", lineHeight: 0 }}>
+                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                        <img src={img} alt={`#${i + 1}`} className="block w-full h-[88px] object-cover" style={{ display: "block", verticalAlign: "top" }} />
+                                                    </button>
                                                 </div>
                                             ))}
                                         </div>
@@ -1688,11 +1699,13 @@ function ThemeDetailPanel({ theme: t, statusTab, actionLoading, onApprove, onRej
                                 </section>
                             )}
 
-                            {(t.versions?.length > 0 || t.options?.length > 0) && (
+                                    {(t.versions?.length > 0 || showOptionSection) && (
                                 <section className="py-8" style={{ borderBottom: "1px solid rgba(15,23,42,0.06)" }}>
                                     <div className="mb-5">
-                                        <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "#9ca3af" }}>파일 & 옵션</p>
-                                        <p className="text-[11px] mt-1" style={{ color: "#9ca3af" }}>다운로드, 검증, 목업 확인이 필요한 요소를 한 곳에 모았습니다.</p>
+                                                <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "#9ca3af" }}>{showOptionSection ? "파일 & 옵션" : "첨부 파일"}</p>
+                                                <p className="text-[11px] mt-1" style={{ color: "#9ca3af" }}>
+                                                    {showOptionSection ? "다운로드, 검증, 목업 확인이 필요한 요소를 한 곳에 모았습니다." : "업로드된 첨부 파일과 검증 결과를 확인합니다."}
+                                                </p>
                                     </div>
 
                                     {t.versions?.length > 0 && (
@@ -1726,7 +1739,7 @@ function ThemeDetailPanel({ theme: t, statusTab, actionLoading, onApprove, onRej
                                         </div>
                                     )}
 
-                                    {t.options?.length > 0 && (
+                                            {showOptionSection && (
                                         <div>
                                             <p className="text-[11px] font-semibold mb-3" style={{ color: "#6b7280" }}>테마 옵션 ({t.options.length})</p>
                                             <div className="flex flex-col gap-3">
@@ -1812,6 +1825,27 @@ function ThemeDetailPanel({ theme: t, statusTab, actionLoading, onApprove, onRej
                     </div>
                 </div>
             </div>
+
+            {lightboxSrc && (
+                <div
+                    className="fixed inset-0 z-[70] flex items-center justify-center"
+                    style={{ background: "rgba(15,23,42,0.82)" }}
+                    onClick={() => setLightboxSrc(null)}
+                >
+                    <div className="relative w-screen h-screen flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={lightboxSrc} alt="확대 이미지" className="block max-w-[99vw] max-h-[99vh] object-contain" style={{ display: "block", verticalAlign: "top" }} />
+                        <button
+                            type="button"
+                            onClick={() => setLightboxSrc(null)}
+                            className="absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
+                            style={{ background: "rgba(255,255,255,0.14)", color: "#fff", border: "1px solid rgba(255,255,255,0.12)" }}
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

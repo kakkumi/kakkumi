@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
 import Header from "@/app/components/Header";
-import Footer from "@/app/components/Footer";
 import AdminClient from "@/app/admin/AdminClient";
 import { prisma } from "@/lib/prisma";
 
@@ -67,8 +66,11 @@ export default async function AdminPage() {
     };
 
     return (
-        <div className="h-screen overflow-hidden bg-[#f8fafc]">
-            <AdminClient dashboardCounts={dashboardCounts} />
+        <div className="min-h-screen flex flex-col bg-[#f8fafc]">
+            <Header />
+            <main className="flex-1 min-h-0 overflow-hidden">
+                <AdminClient dashboardCounts={dashboardCounts} />
+            </main>
         </div>
     );
 }
