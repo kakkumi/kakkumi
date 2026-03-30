@@ -1443,7 +1443,7 @@ function ThemeDetailPanel({ theme: t, statusTab, actionLoading, onApprove, onRej
     const isUpdate = !!t.pendingTitle;
     const detailGuideText =
         statusTab === "DRAFT"
-            ? "왼쪽 요약 정보로 대상을 확인한 뒤, 오른쪽에서 변경점·파일·옵션을 순서대로 검토하세요."
+            ? "좌측 요약 정보로 대상을 파악한 뒤, 우측에서 변경점·파일·옵션을 순서대로 검토하세요."
             : "운영 중인 테마의 정보와 첨부 자료를 차분하게 확인할 수 있는 상세 화면입니다.";
     const summaryItems = [
         { label: "크리에이터", value: `@${t.creatorNickname ?? t.creatorName}` },
@@ -1452,85 +1452,83 @@ function ThemeDetailPanel({ theme: t, statusTab, actionLoading, onApprove, onRej
     ];
 
     return (
-        <div className="flex flex-col h-full min-h-0 gap-4">
-            <div className="rounded-[24px] border bg-white overflow-hidden shrink-0" style={{ borderColor: "rgba(15,23,42,0.08)" }}>
-                <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(15,23,42,0.06)", background: "#fcfcfd" }}>
-                    <div className="flex items-center justify-between gap-4 flex-wrap">
-                        <div className="flex items-center gap-3 min-w-0">
-                            <button
-                                onClick={onBack}
-                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-semibold transition-opacity hover:opacity-70"
-                                style={{ background: "#f1f5f9", color: "#475569", border: "1px solid rgba(15,23,42,0.06)" }}
-                            >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
-                                목록으로
-                            </button>
-                            <div className="min-w-0">
-                                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] mb-1" style={{ color: "#9ca3af" }}>
-                                    {statusTab === "DRAFT" ? "검토 상세" : statusTab === "PUBLISHED" ? "공개 테마 상세" : "숨김 테마 상세"}
-                                </p>
-                                <div className="flex items-center gap-2 flex-wrap">
-                                    <h2 className="text-[20px] font-bold tracking-tight truncate" style={{ color: "#111827" }}>{t.title}</h2>
-                                    {statusTab === "DRAFT" && (
-                                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={isUpdate ? { background: "#eef2ff", color: "#6366f1" } : { background: "#fff7ed", color: "#c2410c" }}>
-                                            {isUpdate ? "수정 신청" : "신규 등록"}
-                                        </span>
-                                    )}
-                                    {isUpdate && t.pendingReviewVisibility === "hide" && (
-                                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ background: "#fef2f2", color: "#ef4444" }}>비공개 요청</span>
-                                    )}
-                                    {statusTab === "PUBLISHED" && (
-                                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ background: "rgba(52,199,89,0.10)", color: "#1a7a3a" }}>공개 중</span>
-                                    )}
-                                    {statusTab === "HIDDEN" && (
-                                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ background: "rgba(0,0,0,0.07)", color: "#8e8e93" }}>숨김 상태</span>
-                                    )}
-                                </div>
+        <div className="flex flex-col h-full min-h-0 rounded-[20px] border bg-white overflow-hidden" style={{ borderColor: "rgba(15,23,42,0.08)" }}>
+            <div className="shrink-0 border-b" style={{ borderColor: "rgba(15,23,42,0.06)", background: "#fcfcfd" }}>
+                <div className="px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <button
+                            onClick={onBack}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-semibold transition-opacity hover:opacity-70"
+                            style={{ background: "#f1f5f9", color: "#475569", border: "1px solid rgba(15,23,42,0.06)" }}
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+                            목록으로
+                        </button>
+                        <div className="min-w-0">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] mb-1" style={{ color: "#9ca3af" }}>
+                                {statusTab === "DRAFT" ? "검토 상세" : statusTab === "PUBLISHED" ? "공개 테마 상세" : "숨김 테마 상세"}
+                            </p>
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <h2 className="text-[20px] font-bold tracking-tight truncate" style={{ color: "#111827" }}>{t.title}</h2>
+                                {statusTab === "DRAFT" && (
+                                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={isUpdate ? { background: "#eef2ff", color: "#6366f1" } : { background: "#fff7ed", color: "#c2410c" }}>
+                                        {isUpdate ? "수정 신청" : "신규 등록"}
+                                    </span>
+                                )}
+                                {isUpdate && t.pendingReviewVisibility === "hide" && (
+                                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ background: "#fef2f2", color: "#ef4444" }}>비공개 요청</span>
+                                )}
+                                {statusTab === "PUBLISHED" && (
+                                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ background: "rgba(52,199,89,0.10)", color: "#1a7a3a" }}>공개 중</span>
+                                )}
+                                {statusTab === "HIDDEN" && (
+                                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ background: "rgba(0,0,0,0.07)", color: "#8e8e93" }}>숨김 상태</span>
+                                )}
                             </div>
                         </div>
+                    </div>
 
-                        <div className="flex gap-2 shrink-0">
-                            {statusTab === "DRAFT" && (
-                                <>
-                                    <button
-                                        onClick={() => onApprove(t.id)}
-                                        disabled={actionLoading}
-                                        className="px-4 py-2.5 rounded-xl text-[12px] font-bold disabled:opacity-40"
-                                        style={{ background: "#111827", color: "#fff" }}
-                                    >
-                                        승인하기
-                                    </button>
-                                    <button
-                                        onClick={() => onReject(t.id, t.title)}
-                                        disabled={actionLoading}
-                                        className="px-4 py-2.5 rounded-xl text-[12px] font-bold disabled:opacity-40"
-                                        style={{ background: "#fef2f2", color: "#ef4444", border: "1px solid #fecaca" }}
-                                    >
-                                        반려하기
-                                    </button>
-                                </>
-                            )}
-                            {statusTab === "PUBLISHED" && (
+                    <div className="flex gap-2 shrink-0">
+                        {statusTab === "DRAFT" && (
+                            <>
                                 <button
-                                    onClick={() => onHide(t.id)}
+                                    onClick={() => onApprove(t.id)}
                                     disabled={actionLoading}
-                                    className="px-4 py-2.5 rounded-xl text-[12px] font-semibold disabled:opacity-40"
-                                    style={{ background: "#fff", color: "#6b7280", border: "1px solid rgba(15,23,42,0.10)" }}
+                                    className="px-4 py-2.5 rounded-xl text-[12px] font-bold disabled:opacity-40"
+                                    style={{ background: "#111827", color: "#fff" }}
                                 >
-                                    숨김 처리
+                                    승인하기
                                 </button>
-                            )}
-                            {statusTab === "HIDDEN" && (
                                 <button
-                                    onClick={() => onUnhide(t.id)}
+                                    onClick={() => onReject(t.id, t.title)}
                                     disabled={actionLoading}
-                                    className="px-4 py-2.5 rounded-xl text-[12px] font-semibold disabled:opacity-40"
-                                    style={{ background: "#ecfdf5", color: "#059669", border: "1px solid #a7f3d0" }}
+                                    className="px-4 py-2.5 rounded-xl text-[12px] font-bold disabled:opacity-40"
+                                    style={{ background: "#fef2f2", color: "#ef4444", border: "1px solid #fecaca" }}
                                 >
-                                    공개 복원
+                                    반려하기
                                 </button>
-                            )}
-                        </div>
+                            </>
+                        )}
+                        {statusTab === "PUBLISHED" && (
+                            <button
+                                onClick={() => onHide(t.id)}
+                                disabled={actionLoading}
+                                className="px-4 py-2.5 rounded-xl text-[12px] font-semibold disabled:opacity-40"
+                                style={{ background: "#fff", color: "#6b7280", border: "1px solid rgba(15,23,42,0.10)" }}
+                            >
+                                숨김 처리
+                            </button>
+                        )}
+                        {statusTab === "HIDDEN" && (
+                            <button
+                                onClick={() => onUnhide(t.id)}
+                                disabled={actionLoading}
+                                className="px-4 py-2.5 rounded-xl text-[12px] font-semibold disabled:opacity-40"
+                                style={{ background: "#ecfdf5", color: "#059669", border: "1px solid #a7f3d0" }}
+                            >
+                                공개 복원
+                            </button>
+                        )}
                     </div>
                 </div>
                 <div className="px-6 py-3.5 border-t" style={{ borderColor: "rgba(15,23,42,0.04)", background: "#fff" }}>
@@ -1538,284 +1536,279 @@ function ThemeDetailPanel({ theme: t, statusTab, actionLoading, onApprove, onRej
                 </div>
             </div>
 
-            <div className="flex-1 min-h-0 grid gap-4" style={{ gridTemplateColumns: "280px minmax(0, 1fr)" }}>
-                <div className="min-h-0 overflow-y-auto pr-1">
-                    <div className="flex flex-col gap-4">
-                        <section className="rounded-[20px] border bg-white p-4" style={{ borderColor: "rgba(15,23,42,0.08)" }}>
-                            <div className="flex items-center gap-2 mb-4">
-                                {t.thumbnailUrl
-                                    ? <>
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img src={t.thumbnailUrl} alt="" className="w-16 h-16 rounded-2xl object-cover shrink-0" style={{ border: "1px solid rgba(15,23,42,0.08)" }} />
-                                    </>
-                                    : <div className="w-16 h-16 rounded-2xl shrink-0 flex items-center justify-center text-[26px]" style={{ background: "#f3f4f6", border: "1px solid rgba(15,23,42,0.08)" }}>🎨</div>
-                                }
-                                <div className="min-w-0">
-                                    <p className="text-[14px] font-semibold line-clamp-2" style={{ color: "#111827" }}>{t.title}</p>
-                                    <p className="text-[11px] mt-1" style={{ color: "#9ca3af" }}>대표 미리보기</p>
+            <div className="flex-1 min-h-0 overflow-y-auto">
+                <div className="max-w-[1100px] mx-auto px-6 py-6">
+                    <div className="grid gap-8" style={{ gridTemplateColumns: "300px minmax(0, 1fr)" }}>
+                        <aside className="flex flex-col gap-6">
+                            <section>
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] mb-3" style={{ color: "#9ca3af" }}>Overview</p>
+                                <div className="flex items-start gap-3 mb-5">
+                                    {t.thumbnailUrl
+                                        ? <>
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img src={t.thumbnailUrl} alt="" className="w-20 h-20 rounded-3xl object-cover shrink-0" style={{ border: "1px solid rgba(15,23,42,0.08)" }} />
+                                        </>
+                                        : <div className="w-20 h-20 rounded-3xl shrink-0 flex items-center justify-center text-[30px]" style={{ background: "#f3f4f6", border: "1px solid rgba(15,23,42,0.08)" }}>🎨</div>
+                                    }
+                                    <div className="min-w-0">
+                                        <p className="text-[14px] font-semibold leading-[1.4]" style={{ color: "#111827" }}>{t.title}</p>
+                                        <p className="text-[11px] mt-1" style={{ color: "#9ca3af" }}>대표 미리보기</p>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {(t.thumbnailUrl || t.images?.length > 0) && (
-                                <div className="grid grid-cols-3 gap-2">
-                                    {t.thumbnailUrl && (
-                                        <div className="col-span-3 rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(15,23,42,0.08)" }}>
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img src={t.thumbnailUrl} alt="대표" className="w-full h-[152px] object-cover" />
-                                        </div>
-                                    )}
-                                    {t.images?.slice(0, 4).map((img, i) => (
-                                        <div key={i} className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(15,23,42,0.08)" }}>
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img src={img} alt={`#${i + 1}`} className="w-full h-[72px] object-cover" />
+                                <div className="flex flex-col gap-4">
+                                    {summaryItems.map((item) => (
+                                        <div key={item.label} className="flex flex-col gap-1">
+                                            <span className="text-[10px] font-semibold uppercase tracking-[0.06em]" style={{ color: "#9ca3af" }}>{item.label}</span>
+                                            <span className="text-[13px] font-semibold" style={{ color: "#111827" }}>{item.value}</span>
                                         </div>
                                     ))}
                                 </div>
-                            )}
-                        </section>
-
-                        <section className="rounded-[20px] border bg-white p-4" style={{ borderColor: "rgba(15,23,42,0.08)" }}>
-                            <p className="text-[11px] font-bold tracking-[0.08em] uppercase mb-3" style={{ color: "#9ca3af" }}>요약 정보</p>
-                            <div className="flex flex-col gap-3">
-                                {summaryItems.map((item) => (
-                                    <div key={item.label} className="flex flex-col gap-1">
-                                        <span className="text-[10px] font-semibold uppercase tracking-[0.06em]" style={{ color: "#9ca3af" }}>{item.label}</span>
-                                        <span className="text-[13px] font-semibold" style={{ color: "#111827" }}>{item.value}</span>
-                                    </div>
-                                ))}
-                            </div>
+                            </section>
 
                             {t.tags?.length > 0 && (
-                                <div className="mt-4 pt-4" style={{ borderTop: "1px solid rgba(15,23,42,0.06)" }}>
+                                <section>
                                     <p className="text-[10px] font-semibold uppercase tracking-[0.06em] mb-2" style={{ color: "#9ca3af" }}>카테고리</p>
                                     <div className="flex flex-wrap gap-1.5">
                                         {t.tags.map((tag) => (
                                             <span key={tag} className="text-[11px] font-medium px-2.5 py-1 rounded-full" style={{ background: "#f1f5f9", color: "#334155" }}>{tag}</span>
                                         ))}
                                     </div>
-                                </div>
+                                </section>
                             )}
-                        </section>
 
-                        {t.description && (
-                            <section className="rounded-[20px] border bg-white p-4" style={{ borderColor: "rgba(15,23,42,0.08)" }}>
-                                <p className="text-[11px] font-bold tracking-[0.08em] uppercase mb-3" style={{ color: "#9ca3af" }}>설명</p>
-                                <p className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: "#374151" }}>{t.description}</p>
-                            </section>
-                        )}
+                            {t.description && (
+                                <section>
+                                    <p className="text-[10px] font-semibold uppercase tracking-[0.06em] mb-2" style={{ color: "#9ca3af" }}>설명</p>
+                                    <p className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: "#374151" }}>{t.description}</p>
+                                </section>
+                            )}
 
-                        {t.adminNote && (
-                            <section className="rounded-[20px] border p-4" style={{ borderColor: "rgba(239,68,68,0.18)", background: "rgba(254,242,242,0.9)" }}>
-                                <p className="text-[11px] font-bold tracking-[0.08em] uppercase mb-2" style={{ color: "#ef4444" }}>이전 반려 메모</p>
-                                <p className="text-[12px] leading-relaxed whitespace-pre-wrap" style={{ color: "#7f1d1d" }}>{t.adminNote}</p>
-                            </section>
-                        )}
-                    </div>
-                </div>
-
-                <div className="min-h-0 overflow-y-auto pr-1">
-                    <div className="flex flex-col gap-4 min-w-0">
-                        <section className="rounded-[20px] border bg-white p-5" style={{ borderColor: "rgba(15,23,42,0.08)" }}>
-                            <p className="text-[11px] font-bold tracking-[0.08em] uppercase mb-2" style={{ color: "#9ca3af" }}>
-                                {statusTab === "DRAFT" ? "검토 메모" : "상세 요약"}
-                            </p>
-                            <p className="text-[13px] leading-relaxed" style={{ color: "#6b7280" }}>{detailGuideText}</p>
-                        </section>
-
-                        {statusTab === "DRAFT" && isUpdate && (
-                            <section className="rounded-[20px] border bg-white p-5" style={{ borderColor: "rgba(99,102,241,0.18)" }}>
-                                <div className="flex items-center gap-2 mb-4">
-                                    <div className="w-1 h-4 rounded-full" style={{ background: "#6366f1" }} />
-                                    <p className="text-[12px] font-bold tracking-[0.06em] uppercase" style={{ color: "#6366f1" }}>변경 내용 비교</p>
-                                </div>
-
-                                <div className="grid grid-cols-3 gap-5">
-                                    <DiffRow label="테마명" before={t.title} after={t.pendingTitle ?? t.title} />
-                                    <DiffRow
-                                        label="가격"
-                                        before={t.price === 0 ? "무료" : `${t.price.toLocaleString()}원`}
-                                        after={t.pendingPrice === null || t.pendingPrice === undefined
-                                            ? (t.price === 0 ? "무료" : `${t.price.toLocaleString()}원`)
-                                            : (t.pendingPrice === 0 ? "무료" : `${t.pendingPrice.toLocaleString()}원`)}
-                                    />
-                                    <DiffRow label="설명" before={t.description ?? ""} after={t.pendingDescription ?? t.description ?? ""} />
-                                </div>
-
-                                {t.pendingTags && (
-                                    <div className="mt-5 pt-5" style={{ borderTop: "1px solid rgba(15,23,42,0.06)" }}>
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <span className="text-[11px] font-semibold" style={{ color: "#6e6e73" }}>카테고리 변경</span>
-                                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ background: "#FFF3E0", color: "#E65100" }}>비교</span>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="rounded-2xl p-3" style={{ background: "#fafafa", border: "1px solid rgba(15,23,42,0.06)" }}>
-                                                <p className="text-[10px] font-semibold mb-2" style={{ color: "#9ca3af" }}>기존</p>
-                                                <div className="flex flex-wrap gap-1.5">
-                                                    {(t.tags ?? []).map((tag) => (
-                                                        <span key={tag} className="text-[11px] px-2 py-1 rounded-full line-through" style={{ background: "#f1f5f9", color: "#94a3b8" }}>{tag}</span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <div className="rounded-2xl p-3" style={{ background: "#f8fffb", border: "1px solid rgba(5,150,105,0.12)" }}>
-                                                <p className="text-[10px] font-semibold mb-2" style={{ color: "#059669" }}>변경</p>
-                                                <div className="flex flex-wrap gap-1.5">
-                                                    {t.pendingTags.map((tag) => (
-                                                        <span key={tag} className="text-[11px] px-2 py-1 rounded-full font-semibold" style={{ background: "#ecfdf5", color: "#059669" }}>{tag}</span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
+                            {t.adminNote && (
+                                <section>
+                                    <p className="text-[10px] font-semibold uppercase tracking-[0.06em] mb-2" style={{ color: "#ef4444" }}>이전 반려 메모</p>
+                                    <div className="px-4 py-3" style={{ background: "rgba(254,242,242,0.9)", borderLeft: "2px solid rgba(239,68,68,0.4)" }}>
+                                        <p className="text-[12px] leading-relaxed whitespace-pre-wrap" style={{ color: "#7f1d1d" }}>{t.adminNote}</p>
                                     </div>
-                                )}
+                                </section>
+                            )}
+                        </aside>
 
-                                {t.pendingThumbnailUrl && t.pendingThumbnailUrl !== t.thumbnailUrl && (
-                                    <div className="mt-5 pt-5" style={{ borderTop: "1px solid rgba(15,23,42,0.06)" }}>
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <span className="text-[11px] font-semibold" style={{ color: "#6e6e73" }}>대표 이미지 변경</span>
-                                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ background: "#FFF3E0", color: "#E65100" }}>비교</span>
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            <div>
-                                                <p className="text-[10px] font-semibold mb-2" style={{ color: "#9ca3af" }}>기존</p>
-                                                {t.thumbnailUrl && <>
-                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                    <img src={t.thumbnailUrl} alt="기존" className="w-20 h-20 rounded-2xl object-cover opacity-60" style={{ border: "1px solid rgba(15,23,42,0.08)" }} />
-                                                </>}
-                                            </div>
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-                                            <div>
-                                                <p className="text-[10px] font-semibold mb-2" style={{ color: "#059669" }}>변경</p>
+                        <main className="min-w-0">
+                            {(t.thumbnailUrl || t.images?.length > 0) && (
+                                <section className="pb-8" style={{ borderBottom: "1px solid rgba(15,23,42,0.06)" }}>
+                                    <p className="text-[11px] font-bold uppercase tracking-[0.08em] mb-4" style={{ color: "#9ca3af" }}>이미지</p>
+                                    <div className="grid grid-cols-5 gap-3">
+                                        {t.thumbnailUrl && (
+                                            <div className="col-span-2 overflow-hidden rounded-2xl" style={{ border: "1px solid rgba(15,23,42,0.08)" }}>
                                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img src={t.pendingThumbnailUrl} alt="변경" className="w-20 h-20 rounded-2xl object-cover" style={{ border: "2px solid #a7f3d0" }} />
+                                                <img src={t.thumbnailUrl} alt="대표" className="w-full h-[184px] object-cover" />
                                             </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </section>
-                        )}
-
-                        {(t.versions?.length > 0 || t.options?.length > 0) && (
-                            <section className="rounded-[20px] border bg-white p-5" style={{ borderColor: "rgba(15,23,42,0.08)" }}>
-                                <div className="flex items-center justify-between mb-4">
-                                    <div>
-                                        <p className="text-[11px] font-bold tracking-[0.08em] uppercase" style={{ color: "#9ca3af" }}>파일 & 옵션</p>
-                                        <p className="text-[11px] mt-1" style={{ color: "#9ca3af" }}>다운로드, 검증, 목업 확인이 필요한 요소를 한 곳에 모았습니다.</p>
-                                    </div>
-                                </div>
-
-                                {t.versions?.length > 0 && (
-                                    <div className={t.options?.length > 0 ? "mb-5" : ""}>
-                                        <p className="text-[11px] font-semibold mb-3" style={{ color: "#6b7280" }}>첨부 파일</p>
-                                        <div className="flex flex-col gap-3">
-                                            {t.versions.map((v, vi) => (
-                                                <div key={vi} className="rounded-2xl p-4" style={{ background: "#fafafa", border: "1px solid rgba(15,23,42,0.07)" }}>
-                                                    <p className="text-[12px] font-bold mb-3" style={{ color: "#374151" }}>옵션 {vi + 1} — {v.version}</p>
-                                                    {v.kthemeFileUrl && (
-                                                        <div className="mb-2">
-                                                            <div className="flex items-center gap-2 mb-2">
-                                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md" style={{ background: "#fffbeb", color: "#d97706" }}>iOS · PC</span>
-                                                                <a href={v.kthemeFileUrl} download target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium hover:underline truncate" style={{ color: "#6366f1" }}>{v.kthemeFileUrl.split("/").pop()}</a>
-                                                            </div>
-                                                            <ValidationBadge fileUrl={v.kthemeFileUrl} fileType="ktheme" />
-                                                        </div>
-                                                    )}
-                                                    {v.apkFileUrl && (
-                                                        <div>
-                                                            <div className="flex items-center gap-2 mb-2">
-                                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md" style={{ background: "#ecfdf5", color: "#059669" }}>Android</span>
-                                                                <a href={v.apkFileUrl} download target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium hover:underline truncate" style={{ color: "#6366f1" }}>{v.apkFileUrl.split("/").pop()}</a>
-                                                            </div>
-                                                            <ValidationBadge fileUrl={v.apkFileUrl} fileType="apk" />
-                                                        </div>
-                                                    )}
+                                        )}
+                                        <div className={`${t.thumbnailUrl ? "col-span-3" : "col-span-5"} grid grid-cols-4 gap-3`}>
+                                            {t.images?.map((img, i) => (
+                                                <div key={i} className="overflow-hidden rounded-2xl" style={{ border: "1px solid rgba(15,23,42,0.08)" }}>
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img src={img} alt={`#${i + 1}`} className="w-full h-[88px] object-cover" />
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
-                                )}
+                                </section>
+                            )}
 
-                                {t.options?.length > 0 && (
-                                    <div>
-                                        <p className="text-[11px] font-semibold mb-3" style={{ color: "#6b7280" }}>테마 옵션 ({t.options.length})</p>
-                                        <div className="flex flex-col gap-3">
-                                            {t.options.map((opt, oi) => {
-                                                const hasPendingChange = !!(opt.pendingFileUrl || opt.pendingMyThemeId);
-                                                const isMyTheme = !!opt.myThemeId && !opt.fileUrl;
-                                                const isPendingMyTheme = !!opt.pendingMyThemeId && !opt.pendingFileUrl;
-
-                                                return (
-                                                    <React.Fragment key={opt.id}>
-                                                        <div className="rounded-2xl p-4" style={{ background: "#fafafa", border: hasPendingChange ? "1px solid #c7d2fe" : "1px solid rgba(15,23,42,0.07)" }}>
-                                                            <div className="flex items-start gap-3 flex-wrap mb-3">
-                                                                <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shrink-0" style={{ background: "#111827", color: "#fff" }}>{oi + 1}</span>
-                                                                <div className="flex-1 min-w-0">
-                                                                    <p className="text-[13px] font-bold" style={{ color: "#111827" }}>{opt.name || `옵션 ${oi + 1}`}</p>
-                                                                    <div className="flex items-center gap-1.5 flex-wrap mt-2">
-                                                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={opt.os === "ios" ? { background: "#fffbeb", color: "#d97706" } : { background: "#eff6ff", color: "#3b82f6" }}>{opt.os === "ios" ? "iOS" : "Android"}</span>
-                                                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={isMyTheme ? { background: "#ecfdf5", color: "#059669" } : { background: "#f1f5f9", color: "#64748b" }}>{isMyTheme ? "내 테마" : "파일"}</span>
-                                                                        {hasPendingChange && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#eef2ff", color: "#6366f1" }}>변경 신청</span>}
-                                                                    </div>
-                                                                </div>
-                                                                <div className="flex items-center gap-2 flex-wrap">
-                                                                    {opt.fileUrl && !hasPendingChange && <a href={opt.fileUrl} download target="_blank" rel="noopener noreferrer" className="text-[11px] font-semibold hover:underline" style={{ color: "#6366f1" }}>다운로드</a>}
-                                                                    {isMyTheme && !hasPendingChange && <a href={`/api/admin/themes/export-option?optionId=${opt.id}`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-semibold hover:underline" style={{ color: "#059669" }}>.ktheme</a>}
-                                                                    {hasPendingChange && opt.pendingFileUrl && <a href={opt.pendingFileUrl} download target="_blank" rel="noopener noreferrer" className="text-[11px] font-semibold hover:underline" style={{ color: "#059669" }}>새 파일</a>}
-                                                                    {hasPendingChange && isPendingMyTheme && <a href={`/api/admin/themes/export-option?optionId=${opt.id}&pending=1`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-semibold hover:underline" style={{ color: "#059669" }}>새 .ktheme</a>}
-                                                                </div>
-                                                            </div>
-
-                                                            {isMyTheme && !hasPendingChange && (opt.myThemeName || opt.myThemePreviewUrl) && (
-                                                                <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
-                                                                    {opt.myThemePreviewUrl && <>
-                                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                                        <img src={opt.myThemePreviewUrl} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0" style={{ border: "1px solid #a7f3d0" }} />
-                                                                    </>}
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <p className="text-[11px] font-bold truncate" style={{ color: "#059669" }}>내 테마: {opt.myThemeName ?? "이름 없음"}</p>
-                                                                        <p className="text-[9px]" style={{ color: "#6ee7b7" }}>카꾸미 에디터 제작</p>
-                                                                    </div>
-                                                                    <button onClick={() => window.open(`/admin/theme-preview?optionId=${opt.id}`, "_blank")} className="text-[11px] font-bold px-3 py-1.5 rounded-lg shrink-0" style={{ background: "#059669", color: "#fff" }}>목업 보기</button>
-                                                                </div>
-                                                            )}
-
-                                                            {hasPendingChange && isPendingMyTheme && (opt.pendingMyThemeName || opt.pendingMyThemePreviewUrl) && (
-                                                                <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl" style={{ background: "#eef2ff", border: "1px solid #c7d2fe" }}>
-                                                                    {opt.pendingMyThemePreviewUrl && <>
-                                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                                        <img src={opt.pendingMyThemePreviewUrl} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0" style={{ border: "1px solid #a5b4fc" }} />
-                                                                    </>}
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <p className="text-[11px] font-bold truncate" style={{ color: "#6366f1" }}>변경 내 테마: {opt.pendingMyThemeName ?? "이름 없음"}</p>
-                                                                        <p className="text-[9px]" style={{ color: "#a5b4fc" }}>카꾸미 에디터 제작</p>
-                                                                    </div>
-                                                                    <button onClick={() => window.open(`/admin/theme-preview?optionId=${opt.id}&pending=1`, "_blank")} className="text-[11px] font-bold px-3 py-1.5 rounded-lg shrink-0" style={{ background: "#6366f1", color: "#fff" }}>목업 보기</button>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                        {opt.fileUrl && !hasPendingChange && <ValidationBadge fileUrl={opt.fileUrl as string} fileType={opt.os === "ios" ? "ktheme" : "apk"} />}
-                                                        {hasPendingChange && opt.pendingFileUrl && <ValidationBadge fileUrl={opt.pendingFileUrl as string} fileType={opt.os === "ios" ? "ktheme" : "apk"} />}
-                                                    </React.Fragment>
-                                                );
-                                            })}
-                                        </div>
+                            {statusTab === "DRAFT" && isUpdate && (
+                                <section className="py-8" style={{ borderBottom: "1px solid rgba(15,23,42,0.06)" }}>
+                                    <div className="flex items-center gap-2 mb-5">
+                                        <div className="w-1 h-4 rounded-full" style={{ background: "#6366f1" }} />
+                                        <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6366f1" }}>변경 내용 비교</p>
                                     </div>
-                                )}
-                            </section>
-                        )}
+                                    <div className="grid grid-cols-3 gap-6">
+                                        <DiffRow label="테마명" before={t.title} after={t.pendingTitle ?? t.title} />
+                                        <DiffRow
+                                            label="가격"
+                                            before={t.price === 0 ? "무료" : `${t.price.toLocaleString()}원`}
+                                            after={t.pendingPrice === null || t.pendingPrice === undefined
+                                                ? (t.price === 0 ? "무료" : `${t.price.toLocaleString()}원`)
+                                                : (t.pendingPrice === 0 ? "무료" : `${t.pendingPrice.toLocaleString()}원`)}
+                                        />
+                                        <DiffRow label="설명" before={t.description ?? ""} after={t.pendingDescription ?? t.description ?? ""} />
+                                    </div>
 
-                        {t.contentBlocks && t.contentBlocks.trim() !== "" && t.contentBlocks !== "<p></p>" && (
-                            <section className="rounded-[20px] border bg-white p-5" style={{ borderColor: "rgba(15,23,42,0.08)" }}>
-                                <div className="mb-4">
-                                    <p className="text-[11px] font-bold tracking-[0.08em] uppercase" style={{ color: "#9ca3af" }}>테마 상세 정보</p>
-                                    <p className="text-[11px] mt-1" style={{ color: "#9ca3af" }}>사용자에게 노출되는 상세 소개 영역입니다.</p>
-                                </div>
-                                <div
-                                    className="admin-theme-content rounded-2xl px-4 py-4"
-                                    style={{ border: "1px solid rgba(15,23,42,0.07)", background: "#fafafa", fontSize: 13, lineHeight: 1.7, color: "#374151" }}
-                                    dangerouslySetInnerHTML={{ __html: t.contentBlocks }}
-                                />
-                            </section>
-                        )}
+                                    {t.pendingTags && (
+                                        <div className="mt-6 pt-6" style={{ borderTop: "1px solid rgba(15,23,42,0.06)" }}>
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <span className="text-[11px] font-semibold" style={{ color: "#6e6e73" }}>카테고리 변경</span>
+                                                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ background: "#FFF3E0", color: "#E65100" }}>비교</span>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="px-3 py-3" style={{ background: "#fafafa", border: "1px solid rgba(15,23,42,0.06)" }}>
+                                                    <p className="text-[10px] font-semibold mb-2" style={{ color: "#9ca3af" }}>기존</p>
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        {(t.tags ?? []).map((tag) => (
+                                                            <span key={tag} className="text-[11px] px-2 py-1 rounded-full line-through" style={{ background: "#f1f5f9", color: "#94a3b8" }}>{tag}</span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div className="px-3 py-3" style={{ background: "#f8fffb", border: "1px solid rgba(5,150,105,0.12)" }}>
+                                                    <p className="text-[10px] font-semibold mb-2" style={{ color: "#059669" }}>변경</p>
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        {t.pendingTags.map((tag) => (
+                                                            <span key={tag} className="text-[11px] px-2 py-1 rounded-full font-semibold" style={{ background: "#ecfdf5", color: "#059669" }}>{tag}</span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {t.pendingThumbnailUrl && t.pendingThumbnailUrl !== t.thumbnailUrl && (
+                                        <div className="mt-6 pt-6" style={{ borderTop: "1px solid rgba(15,23,42,0.06)" }}>
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <span className="text-[11px] font-semibold" style={{ color: "#6e6e73" }}>대표 이미지 변경</span>
+                                                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ background: "#FFF3E0", color: "#E65100" }}>비교</span>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <div>
+                                                    <p className="text-[10px] font-semibold mb-2" style={{ color: "#9ca3af" }}>기존</p>
+                                                    {t.thumbnailUrl && <>
+                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                        <img src={t.thumbnailUrl} alt="기존" className="w-20 h-20 rounded-2xl object-cover opacity-60" style={{ border: "1px solid rgba(15,23,42,0.08)" }} />
+                                                    </>}
+                                                </div>
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                                                <div>
+                                                    <p className="text-[10px] font-semibold mb-2" style={{ color: "#059669" }}>변경</p>
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img src={t.pendingThumbnailUrl} alt="변경" className="w-20 h-20 rounded-2xl object-cover" style={{ border: "2px solid #a7f3d0" }} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </section>
+                            )}
+
+                            {(t.versions?.length > 0 || t.options?.length > 0) && (
+                                <section className="py-8" style={{ borderBottom: "1px solid rgba(15,23,42,0.06)" }}>
+                                    <div className="mb-5">
+                                        <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "#9ca3af" }}>파일 & 옵션</p>
+                                        <p className="text-[11px] mt-1" style={{ color: "#9ca3af" }}>다운로드, 검증, 목업 확인이 필요한 요소를 한 곳에 모았습니다.</p>
+                                    </div>
+
+                                    {t.versions?.length > 0 && (
+                                        <div className={t.options?.length > 0 ? "mb-6" : ""}>
+                                            <p className="text-[11px] font-semibold mb-3" style={{ color: "#6b7280" }}>첨부 파일</p>
+                                            <div className="flex flex-col gap-3">
+                                                {t.versions.map((v, vi) => (
+                                                    <div key={vi} className="px-4 py-4" style={{ background: "#fafafa", border: "1px solid rgba(15,23,42,0.07)" }}>
+                                                        <p className="text-[12px] font-bold mb-3" style={{ color: "#374151" }}>옵션 {vi + 1} — {v.version}</p>
+                                                        {v.kthemeFileUrl && (
+                                                            <div className="mb-2">
+                                                                <div className="flex items-center gap-2 mb-2">
+                                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md" style={{ background: "#fffbeb", color: "#d97706" }}>iOS · PC</span>
+                                                                    <a href={v.kthemeFileUrl} download target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium hover:underline truncate" style={{ color: "#6366f1" }}>{v.kthemeFileUrl.split("/").pop()}</a>
+                                                                </div>
+                                                                <ValidationBadge fileUrl={v.kthemeFileUrl} fileType="ktheme" />
+                                                            </div>
+                                                        )}
+                                                        {v.apkFileUrl && (
+                                                            <div>
+                                                                <div className="flex items-center gap-2 mb-2">
+                                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md" style={{ background: "#ecfdf5", color: "#059669" }}>Android</span>
+                                                                    <a href={v.apkFileUrl} download target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium hover:underline truncate" style={{ color: "#6366f1" }}>{v.apkFileUrl.split("/").pop()}</a>
+                                                                </div>
+                                                                <ValidationBadge fileUrl={v.apkFileUrl} fileType="apk" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {t.options?.length > 0 && (
+                                        <div>
+                                            <p className="text-[11px] font-semibold mb-3" style={{ color: "#6b7280" }}>테마 옵션 ({t.options.length})</p>
+                                            <div className="flex flex-col gap-3">
+                                                {t.options.map((opt, oi) => {
+                                                    const hasPendingChange = !!(opt.pendingFileUrl || opt.pendingMyThemeId);
+                                                    const isMyTheme = !!opt.myThemeId && !opt.fileUrl;
+                                                    const isPendingMyTheme = !!opt.pendingMyThemeId && !opt.pendingFileUrl;
+
+                                                    return (
+                                                        <React.Fragment key={opt.id}>
+                                                            <div className="px-4 py-4" style={{ background: "#fafafa", border: hasPendingChange ? "1px solid #c7d2fe" : "1px solid rgba(15,23,42,0.07)" }}>
+                                                                <div className="flex items-start gap-3 flex-wrap mb-3">
+                                                                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shrink-0" style={{ background: "#111827", color: "#fff" }}>{oi + 1}</span>
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <p className="text-[13px] font-bold" style={{ color: "#111827" }}>{opt.name || `옵션 ${oi + 1}`}</p>
+                                                                        <div className="flex items-center gap-1.5 flex-wrap mt-2">
+                                                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={opt.os === "ios" ? { background: "#fffbeb", color: "#d97706" } : { background: "#eff6ff", color: "#3b82f6" }}>{opt.os === "ios" ? "iOS" : "Android"}</span>
+                                                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={isMyTheme ? { background: "#ecfdf5", color: "#059669" } : { background: "#f1f5f9", color: "#64748b" }}>{isMyTheme ? "내 테마" : "파일"}</span>
+                                                                            {hasPendingChange && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#eef2ff", color: "#6366f1" }}>변경 신청</span>}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                                        {opt.fileUrl && !hasPendingChange && <a href={opt.fileUrl} download target="_blank" rel="noopener noreferrer" className="text-[11px] font-semibold hover:underline" style={{ color: "#6366f1" }}>다운로드</a>}
+                                                                        {isMyTheme && !hasPendingChange && <a href={`/api/admin/themes/export-option?optionId=${opt.id}`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-semibold hover:underline" style={{ color: "#059669" }}>.ktheme</a>}
+                                                                        {hasPendingChange && opt.pendingFileUrl && <a href={opt.pendingFileUrl} download target="_blank" rel="noopener noreferrer" className="text-[11px] font-semibold hover:underline" style={{ color: "#059669" }}>새 파일</a>}
+                                                                        {hasPendingChange && isPendingMyTheme && <a href={`/api/admin/themes/export-option?optionId=${opt.id}&pending=1`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-semibold hover:underline" style={{ color: "#059669" }}>새 .ktheme</a>}
+                                                                    </div>
+                                                                </div>
+
+                                                                {isMyTheme && !hasPendingChange && (opt.myThemeName || opt.myThemePreviewUrl) && (
+                                                                    <div className="flex items-center gap-3 px-3 py-2.5" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
+                                                                        {opt.myThemePreviewUrl && <>
+                                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                            <img src={opt.myThemePreviewUrl} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0" style={{ border: "1px solid #a7f3d0" }} />
+                                                                        </>}
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <p className="text-[11px] font-bold truncate" style={{ color: "#059669" }}>내 테마: {opt.myThemeName ?? "이름 없음"}</p>
+                                                                            <p className="text-[9px]" style={{ color: "#6ee7b7" }}>카꾸미 에디터 제작</p>
+                                                                        </div>
+                                                                        <button onClick={() => window.open(`/admin/theme-preview?optionId=${opt.id}`, "_blank")} className="text-[11px] font-bold px-3 py-1.5 rounded-lg shrink-0" style={{ background: "#059669", color: "#fff" }}>목업 보기</button>
+                                                                    </div>
+                                                                )}
+
+                                                                {hasPendingChange && isPendingMyTheme && (opt.pendingMyThemeName || opt.pendingMyThemePreviewUrl) && (
+                                                                    <div className="flex items-center gap-3 px-3 py-2.5" style={{ background: "#eef2ff", border: "1px solid #c7d2fe" }}>
+                                                                        {opt.pendingMyThemePreviewUrl && <>
+                                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                            <img src={opt.pendingMyThemePreviewUrl} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0" style={{ border: "1px solid #a5b4fc" }} />
+                                                                        </>}
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <p className="text-[11px] font-bold truncate" style={{ color: "#6366f1" }}>변경 내 테마: {opt.pendingMyThemeName ?? "이름 없음"}</p>
+                                                                            <p className="text-[9px]" style={{ color: "#a5b4fc" }}>카꾸미 에디터 제작</p>
+                                                                        </div>
+                                                                        <button onClick={() => window.open(`/admin/theme-preview?optionId=${opt.id}&pending=1`, "_blank")} className="text-[11px] font-bold px-3 py-1.5 rounded-lg shrink-0" style={{ background: "#6366f1", color: "#fff" }}>목업 보기</button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            {opt.fileUrl && !hasPendingChange && <ValidationBadge fileUrl={opt.fileUrl as string} fileType={opt.os === "ios" ? "ktheme" : "apk"} />}
+                                                            {hasPendingChange && opt.pendingFileUrl && <ValidationBadge fileUrl={opt.pendingFileUrl as string} fileType={opt.os === "ios" ? "ktheme" : "apk"} />}
+                                                        </React.Fragment>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+                                </section>
+                            )}
+
+                            {t.contentBlocks && t.contentBlocks.trim() !== "" && t.contentBlocks !== "<p></p>" && (
+                                <section className="py-8">
+                                    <div className="mb-4">
+                                        <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "#9ca3af" }}>테마 상세 정보</p>
+                                        <p className="text-[11px] mt-1" style={{ color: "#9ca3af" }}>사용자에게 노출되는 상세 소개 영역입니다.</p>
+                                    </div>
+                                    <div
+                                        className="admin-theme-content px-4 py-4"
+                                        style={{ border: "1px solid rgba(15,23,42,0.07)", background: "#fafafa", fontSize: 13, lineHeight: 1.7, color: "#374151" }}
+                                        dangerouslySetInnerHTML={{ __html: t.contentBlocks }}
+                                    />
+                                </section>
+                            )}
+                        </main>
                     </div>
                 </div>
             </div>
