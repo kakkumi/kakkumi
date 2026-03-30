@@ -67,10 +67,8 @@ export default async function AdminPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#f3f3f3" }}>
-            <Header />
+        <div className="h-screen overflow-hidden bg-[#f8fafc]">
             <AdminClient dashboardCounts={dashboardCounts} />
-            <Footer />
         </div>
     );
 }
