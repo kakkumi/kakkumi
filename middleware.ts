@@ -28,7 +28,7 @@ async function verifySessionSignature(token: string, secret: string): Promise<bo
     //  반드시 Uint8Array로 변환한 뒤 그대로 서명에 사용해야 함)
     const base64 = payloadB64.replace(/-/g, "+").replace(/_/g, "/");
     const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
-    let rawBytes: Uint8Array<ArrayBuffer>;
+    let rawBytes: Uint8Array;
     try {
         const binaryStr = atob(padded);
         const buf = new ArrayBuffer(binaryStr.length);
