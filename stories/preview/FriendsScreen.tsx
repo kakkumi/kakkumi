@@ -2,7 +2,7 @@ import React from 'react';
 import { Search, UserPlus, Music, Settings, ChevronDown, ArrowRight } from 'lucide-react';
 
 // --- 외부 파일 의존성 제거 (미리보기를 위한 통합 모의 데이터 및 스타일) ---
-const myProfile = { name: '카꾸미', message: '테마 수정 중입니다 ✨' };
+const myProfile = { name: '카꾸미', message: '테마 수정 중입니다' };
 
 const personSVG = (
   <svg width="23" height="23" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -175,7 +175,7 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       }}
     >
-      
+
       {/* 1. 상단 헤더 */}
       <header style={{ ...headerBaseStyle, color: global.textColor }}>
         <div data-active-element-id="header-title-icon" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -209,10 +209,10 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
 
       {/* 2. 친구 / 소식 토글 */}
       <div style={{ display: 'flex', gap: 7, padding: '2px 14px 12px 14px' }}>
-        <button style={{ 
+        <button style={{
           backgroundColor: global.textColor,
           color: global.backgroundColor,
-          borderRadius: 999, 
+          borderRadius: 999,
           padding: '5px 12px',
           fontSize: 12,
           fontWeight: 400,
@@ -220,10 +220,10 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
         }}>
           친구
         </button>
-        <button style={{ 
-          backgroundColor: 'transparent', 
-          color: global.textColor, 
-          borderRadius: 999, 
+        <button style={{
+          backgroundColor: 'transparent',
+          color: global.textColor,
+          borderRadius: 999,
           padding: '5px 12px',
           fontSize: 12,
           fontWeight: 400,
@@ -235,7 +235,7 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
 
       {/* 스크롤 영역 */}
       <div className="friends-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
-        
+
         {/* 3. 상단 배너 영역 */}
         <div style={{ padding: '0 14px 12px 14px' }}>
           <div style={{
@@ -281,7 +281,7 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
                   }}>
                     {getProfileImg(friend.id)}
                   </div>
-                  
+
                   {/* 빨간색 업데이트 점 (좌측 상단) */}
                   {friend.hasNew && (
                     <div style={{
@@ -290,13 +290,13 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
                       border: '1px solid #f61010'
                     }} />
                   )}
-                  
+
                   {/* AD 배지 제거 */}
                 </div>
                 <span style={{ fontSize: 11, color: global.textColor, fontWeight: 400, opacity: 0.9 }}>{friend.name}</span>
               </div>
             ))}
-            
+
             {/* 소식 더보기 버튼 */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
               <div style={{
@@ -320,7 +320,7 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
           <p style={{ margin: '0 14px 10px 14px', fontSize: 11, fontWeight: 600, color: global.descriptionColor }}>
             생일인 친구 5
           </p>
-          
+
           {birthdayFriends.map((friend) => {
             const alpha = parseFloat(config.friendsSelectedBgAlpha ?? '1.0');
             const hexAlpha = Math.round(alpha * 255).toString(16).padStart(2, '0');
@@ -360,13 +360,13 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
                 </div>
               </div>
               {/* 선물하기 버튼 - 스크린샷과 동일한 타원형 */}
-              <button style={{ 
-                backgroundColor: 'transparent', 
+              <button style={{
+                backgroundColor: 'transparent',
                 border: `1px solid ${global.textColor}30`,
                 borderRadius: 999,
-                padding: '5px 10px', 
-                fontSize: 11, 
-                fontWeight: 600, 
+                padding: '5px 10px',
+                fontSize: 11,
+                fontWeight: 600,
                 color: global.textColor,
                 cursor: 'pointer'
               }}>
@@ -378,7 +378,7 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
 
           {/* 더보기 토글 버튼 */}
           <div style={{ padding: '10px 14px 6px 14px', display: 'flex', justifyContent: 'center' }}>
-            <button style={{ 
+            <button style={{
               width: 'auto',
               padding: '4px 12px',
               backgroundColor: 'transparent',
@@ -387,8 +387,8 @@ export const FriendsScreen = React.memo(function FriendsScreen({ config }: { con
               color: global.listDescColor,
               fontSize: 12,
               fontWeight: 500,
-              display: 'inline-flex', 
-              alignItems: 'center', 
+              display: 'inline-flex',
+              alignItems: 'center',
               gap: 3,
               cursor: 'pointer'
             }}>
