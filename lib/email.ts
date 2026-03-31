@@ -1,7 +1,10 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = process.env.RESEND_FROM ?? "카꾸미 <kakkumi.official@gmail.com>";
+
+function getResend() {
+    return new Resend(process.env.RESEND_API_KEY);
+}
 
 export async function sendPurchaseReceipt({
     to,
@@ -26,7 +29,7 @@ export async function sendPurchaseReceipt({
         minute: "2-digit",
     });
 
-    await resend.emails.send({
+    await getResend().emails.send({
         from: FROM,
         to,
         subject: `[카꾸미] "${themeTitle}" 구매 영수증`,
@@ -80,7 +83,7 @@ export async function sendThemeRejectionEmail({
 }) {
     if (!process.env.RESEND_API_KEY) return;
 
-    await resend.emails.send({
+    await getResend().emails.send({
         from: FROM,
         to,
         subject: `[카꾸미] "${themeTitle}" 테마 등록 반려 안내`,
@@ -132,7 +135,7 @@ export async function sendCreditExpiryWarning({
         day: "numeric",
     });
 
-    await resend.emails.send({
+    await getResend().emails.send({
         from: FROM,
         to,
         subject: "[카꾸미] 적립금 만료 예정 안내 (30일 이내)",
@@ -165,7 +168,7 @@ export async function sendCreditExpiryWarning({
 export async function sendCreatorApproved({ to, name }: { to: string; name: string }) {
     if (!process.env.RESEND_API_KEY) return;
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kakkumi.com";
-    await resend.emails.send({
+    await getResend().emails.send({
         from: FROM,
         to,
         subject: "[카꾸미] 크리에이터 입점 신청이 승인되었어요! 🎉",
@@ -193,7 +196,7 @@ export async function sendCreatorApproved({ to, name }: { to: string; name: stri
 export async function sendCreatorRejected({ to, name, reason }: { to: string; name: string; reason: string }) {
     if (!process.env.RESEND_API_KEY) return;
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kakkumi.com";
-    await resend.emails.send({
+    await getResend().emails.send({
         from: FROM,
         to,
         subject: "[카꾸미] 크리에이터 입점 신청 결과 안내",
