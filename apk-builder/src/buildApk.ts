@@ -123,23 +123,27 @@ export async function buildApk(options: BuildOptions): Promise<Buffer> {
     }
 
     // ── 7. apktool 리빌드 ─────────────────────────────────────────────────
-    execSync(`apktool b "${tmpDir}" -o "${unsignedApk}" --use-aapt2`, {
-      timeout: 180_000, // 3분
-      stdio: "pipe",
-    });
+    try {
+      execSync(`apktool b "${tmpDir}" -o "${unsignedApk}"`, {
+        timeout: 180_000,
+        encoding: "utf8",
+        cwd: os.tmpdir(),
+      });
+    } catch (e: unknown) {
+      const err = e as { stdout?: string; stderr?: string; message?: string };
+      throw new Error(`apktool 실패: ${err.stderr ?? err.stdout ?? err.message}`);
+    }
 
     // ── 8. jarsigner로 v1 서명 ────────────────────────────────────────────
-    //   (minSdk=28, 사이드로딩 배포이므로 v1 서명으로 설치 가능)
-    execSync(
-      `jarsigner -verbose \
-        -sigalg SHA256withRSA \
-        -digestalg SHA-256 \
-        -keystore "${KEYSTORE_PATH}" \
-        -storepass "${KEYSTORE_STOREPASS}" \
-        -keypass "${KEYSTORE_KEYPASS}" \
-        "${unsignedApk}" "${KEYSTORE_ALIAS}"`,
-      { timeout: 60_000, stdio: "pipe" }
-    );
+    try {
+      execSync(
+        `jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore "${KEYSTORE_PATH}" -storepass "${KEYSTORE_STOREPASS}" "${unsignedApk}" "${KEYSTORE_ALIAS}"`,
+        { timeout: 60_000, encoding: "utf8", cwd: os.tmpdir() }
+      );
+    } catch (e: unknown) {
+      const err = e as { stdout?: string; stderr?: string; message?: string };
+      throw new Error(`jarsigner 실패: ${err.stderr ?? err.stdout ?? err.message}`);
+    }
 
     const apkBuffer = fs.readFileSync(unsignedApk);
     return apkBuffer;
