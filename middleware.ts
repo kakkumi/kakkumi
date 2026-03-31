@@ -47,7 +47,7 @@ async function verifySessionSignature(token: string, secret: string): Promise<bo
         ["sign"]
     );
     // raw bytes 그대로 서명 (세션 생성 시 Node.js createHmac.update(json)과 동일한 바이트)
-    const sigBuffer = await crypto.subtle.sign("HMAC", key, rawBytes);
+    const sigBuffer = await crypto.subtle.sign("HMAC", key, rawBytes as Uint8Array<ArrayBuffer>);
 
     // ArrayBuffer → base64url
     const sigBytes = new Uint8Array(sigBuffer);
