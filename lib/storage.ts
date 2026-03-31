@@ -1,13 +1,13 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseUrl || !supabaseServiceKey) {
-    throw new Error("[storage] SUPABASE_URL 또는 SUPABASE_SERVICE_ROLE_KEY 환경변수가 설정되지 않았습니다.");
+function getSupabaseStorage() {
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!supabaseUrl || !supabaseServiceKey) {
+        throw new Error("[storage] SUPABASE_URL 또는 SUPABASE_SERVICE_ROLE_KEY 환경변수가 설정되지 않았습니다.");
+    }
+    return createClient(supabaseUrl, supabaseServiceKey);
 }
-
-export const supabaseStorage = createClient(supabaseUrl, supabaseServiceKey);
 
 /**
  * 경로에서 한글 및 특수문자를 제거해 Supabase Storage에서 허용하는 안전한 경로로 변환
@@ -39,7 +39,7 @@ export async function uploadFile(bucket: string, path: string, file: File): Prom
     const safePath = sanitizePath(path);
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    const { error } = await supabaseStorage.storage
+    const { error } = await getSupabaseStorage().storage
         .from(bucket)
         .upload(safePath, buffer, {
             contentType: file.type || "application/octet-stream",
@@ -48,6 +48,6 @@ export async function uploadFile(bucket: string, path: string, file: File): Prom
 
     if (error) throw new Error(`Storage upload failed: ${error.message}`);
 
-    const { data } = supabaseStorage.storage.from(bucket).getPublicUrl(safePath);
+    const { data } = getSupabaseStorage().storage.from(bucket).getPublicUrl(safePath);
     return data.publicUrl;
 }
