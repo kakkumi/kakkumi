@@ -130,7 +130,7 @@ export async function GET(request: Request) {
             } else {
                 // 신규 가입
                 dbUser = await prisma.user.create({
-                    data: { kakaoId, email, name },
+                    data: { kakaoId, email: email ?? "", name },
                 });
             }
         } catch (upsertErr) {
