@@ -852,6 +852,7 @@ function CreatePageContent() {
   const [selectedSettingKey, setSelectedSettingKey] = useState<string | null>(null);
   const [themeLoaded, setThemeLoaded] = useState(false);
   const [resetConfirm, setResetConfirm] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const setCurrentScreen = usePreviewThemeStore((state) => state.setCurrentScreen);
   const activeElementId = usePreviewThemeStore((state) => state.activeElementId);
   const setActiveElementId = usePreviewThemeStore((state) => state.setActiveElementId);
@@ -1310,6 +1311,8 @@ function CreatePageContent() {
   }, [bulletFillColor, bulletFillMode, generateBulletPng]);
 
   const handleDownload = async () => {
+    setIsDownloading(true);
+    try {
     if (os === "ios") {
       // iOS: KakaoTalkTheme.css + Images/ 구조를 ZIP으로 묶어 .ktheme로 저장
       const zip = new JSZip();
@@ -1383,552 +1386,120 @@ function CreatePageContent() {
       a.click();
     } else {
       // ══════════════════════════════════════════
-      // Android: 공식 가이드 기반 완전한 Android Studio 프로젝트 ZIP
+      // Android: APK 빌더 서비스로 .apk 생성
       // ══════════════════════════════════════════
-      const zip = new JSZip();
       const themeName = config.name.replace(/[^a-zA-Z0-9가-힣_\-]/g, "_");
       const ns = config.namespace || "com.kakao.talk.theme.mytheme";
-      const pkgPath = ns.replace(/\./g, "/");
-      const compileSdk = parseInt(config.compileSdk) || 35;
-      const targetSdk  = parseInt(config.targetSdk)  || 35;
-      const version    = config.version || "1.0.0";
-      const darkMeta   = config.darkMode
-        ? `\n        <meta-data android:name="com.kakao.talk.theme_style" android:value="dark" />`
-        : "";
 
-      // ── 헬퍼: blob → zip ──
-      const addUrl = async (objectUrl: string, path: string) => {
-        try {
-          const res = await fetch(objectUrl);
-          const blob = await res.blob();
-          zip.file(path, blob);
-        } catch { /* skip */ }
-      };
-
-      // ── 헬퍼: alpha(0~1) → 2자리 hex ──
+      // ── alpha(0~1) → 2자리 hex ──
       const alphaHex = (a: number) =>
         Math.round(Math.max(0, Math.min(1, a)) * 255).toString(16).padStart(2, "0").toUpperCase();
-
       const borderAlphaVal = parseFloat(config.borderAlpha) || 1.0;
       const borderColorHex = config.friendsBorderColor.replace("#", "").toUpperCase();
       const borderWithAlpha = `#${alphaHex(borderAlphaVal)}${borderColorHex}`;
 
-      // ────────────────────────────────────────────
-      // 1. 프로젝트 설정 파일들
-      // ────────────────────────────────────────────
-      zip.file("build.gradle.kts", `import com.android.build.gradle.internal.dsl.BaseAppModuleExtension
-
-buildscript {
-    repositories { google(); mavenCentral() }
-    dependencies {
-        classpath("com.android.tools.build:gradle:8.7.2")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.25")
-    }
-}
-
-allprojects {
-    repositories { google(); mavenCentral() }
-
-    apply(plugin = "com.android.application")
-    apply(plugin = "kotlin-android")
-
-    plugins.withId("com.android.application") {
-        extensions.configure<BaseAppModuleExtension> {
-            namespace = "${ns}"
-            compileSdk = ${compileSdk}
-            buildToolsVersion = "${compileSdk}.0.0"
-
-            defaultConfig {
-                minSdk = 28
-                targetSdk = ${targetSdk}
-                versionName = "${version}"
-                versionCode = 100
-                applicationId = "${ns}"
-
-                sourceSets {
-                    getByName("main") {
-                        res.srcDirs("src/main/theme", "src/main/theme-adv")
-                    }
-                }
-            }
-
-            compileOptions {
-                sourceCompatibility = JavaVersion.VERSION_21
-                targetCompatibility = JavaVersion.VERSION_21
-            }
-
-            buildFeatures { viewBinding = true }
-
-            dependencies.add("implementation", "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.25")
-            dependencies.add("implementation", "androidx.annotation:annotation:1.9.1")
-        }
-    }
-}
-`);
-
-      zip.file("gradle.properties", `org.gradle.jvmargs=-Xmx1536m
-android.useAndroidX=true
-androidBuildSdkVersion=${compileSdk}
-androidBuildToolsVersion=${compileSdk}.0.0
-androidMinSdkVersion=28
-androidTargetSdkVersion=${targetSdk}
-kotlinVersion=1.9.25
-`);
-
-      zip.file("gradle/wrapper/gradle-wrapper.properties", `distributionBase=GRADLE_USER_HOME
-distributionPath=wrapper/dists
-distributionUrl=https\\://services.gradle.org/distributions/gradle-8.10.2-bin.zip
-zipStoreBase=GRADLE_USER_HOME
-zipStorePath=wrapper/dists
-`);
-
-      // ────────────────────────────────────────────
-      // 2. AndroidManifest.xml
-      // ────────────────────────────────────────────
-      zip.file("src/main/AndroidManifest.xml", `<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="${ns}">
-
-    <uses-permission android:name="com.kakao.talk.v2.theme" />
-
-    <queries>
-        <package android:name="com.kakao.talk" />
-    </queries>
-
-    <application
-        android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        tools:ignore="AllowBackup">${darkMeta}
-
-        <meta-data
-            android:name="android.max_aspect"
-            android:value="2.1" />
-
-        <activity
-            android:name=".MainActivity"
-            android:excludeFromRecents="true"
-            android:exported="true"
-            android:launchMode="singleTop"
-            android:theme="@style/noAnimTheme">
-
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="com.kakao.talk.theme.action.MAIN" />
-            </intent-filter>
-
-        </activity>
-    </application>
-</manifest>
-`);
-
-      // ────────────────────────────────────────────
-      // 3. MainActivity.kt
-      // ────────────────────────────────────────────
-      zip.file(`src/main/java/${pkgPath}/MainActivity.kt`, `package ${ns}
-
-import android.app.Activity
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
-import android.os.Build
-import android.os.Bundle
-import android.view.View
-import ${ns}.databinding.MainActivityBinding
-
-open class MainActivity : Activity() {
-    private lateinit var binding: MainActivityBinding
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        binding = MainActivityBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        setInsetListener(binding.root)
-
-        binding.apply.setOnClickListener {
-            val intent = Intent(Intent.ACTION_VIEW)
-            intent.data = Uri.parse("kakaotalk://settings/theme/" + packageName)
-            startActivity(intent)
-            finish()
-        }
-        binding.market.setOnClickListener {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.kakao.talk"))
-            startActivity(intent)
-            finish()
-        }
-        if (isKakaoTalkInstalled()) {
-            binding.apply.visibility  = View.VISIBLE
-            binding.market.visibility = View.GONE
-        } else {
-            binding.apply.visibility  = View.GONE
-            binding.market.visibility = View.VISIBLE
-        }
-    }
-
-    private fun enableEdgeToEdge() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.setDecorFitsSystemWindows(false)
-        } else {
-            @Suppress("DEPRECATION")
-            window.decorView.systemUiVisibility = (
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-            )
-        }
-    }
-
-    private fun setInsetListener(rootView: View) {
-        rootView.setOnApplyWindowInsetsListener { view, insets ->
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                val bars = insets.getInsets(android.view.WindowInsets.Type.systemBars())
-                view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
-                android.view.WindowInsets.CONSUMED
-            } else {
-                @Suppress("DEPRECATION")
-                view.setPadding(insets.systemWindowInsetLeft, insets.systemWindowInsetTop,
-                    insets.systemWindowInsetRight, insets.systemWindowInsetBottom)
-                insets.consumeSystemWindowInsets()
-            }
-        }
-    }
-
-    open fun isKakaoTalkInstalled(): Boolean = try {
-        packageManager.getPackageInfo("com.kakao.talk", 0); true
-    } catch (e: PackageManager.NameNotFoundException) { false }
-}
-`);
-
-      // ────────────────────────────────────────────
-      // 4. res/ 기본 리소스
-      // ────────────────────────────────────────────
-      zip.file("src/main/res/drawable/btn_action.xml", `<?xml version="1.0" encoding="utf-8"?>
-<ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="@color/actionButtonPressedColor">
-    <item android:id="@android:id/mask">
-        <shape android:shape="rectangle">
-            <solid android:color="@color/actionButtonPressedColor" />
-            <corners android:radius="6dp" />
-        </shape>
-    </item>
-    <item android:id="@android:id/background">
-        <shape android:shape="rectangle">
-            <solid android:color="@android:color/white" />
-            <stroke android:width="0.5dp" android:color="@color/actionButtonBorderColor" />
-            <corners android:radius="6dp" />
-        </shape>
-    </item>
-</ripple>
-`);
-
-      zip.file("src/main/res/layout/main_activity.xml", `<?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="centerCrop"
-        android:src="@drawable/theme_background_image"
-        tools:ignore="ContentDescription" />
-
-    <Button
-        android:id="@+id/apply"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_margin="18dp"
-        android:background="@drawable/btn_action"
-        android:paddingTop="16dp"
-        android:paddingBottom="16dp"
-        android:text="@string/apply"
-        android:textColor="@android:color/black"
-        android:textSize="17sp"
-        android:textStyle="bold" />
-
-    <Button
-        android:id="@+id/market"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_margin="18dp"
-        android:background="@drawable/btn_action"
-        android:paddingTop="16dp"
-        android:paddingBottom="16dp"
-        android:text="@string/install_kakaotalk"
-        android:textColor="@android:color/black"
-        android:textSize="17sp"
-        android:textStyle="bold"
-        android:visibility="gone" />
-
-</RelativeLayout>
-`);
-
-      zip.file("src/main/res/values/colors.xml", `<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <color name="statusBarColor">${config.bodyBg}</color>
-    <color name="actionButtonBorderColor">#24000000</color>
-    <color name="actionButtonPressedColor">#F6F6F6</color>
-</resources>
-`);
-
-      zip.file("src/main/res/values/strings.xml", `<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">${config.name}</string>
-    <string name="apply">지금 적용하기</string>
-    <string name="install_kakaotalk">카카오톡 설치하기</string>
-</resources>
-`);
-
-      zip.file("src/main/res/values-ko/strings.xml", `<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="apply">지금 적용하기</string>
-    <string name="install_kakaotalk">카카오톡 설치하기</string>
-</resources>
-`);
-
-      zip.file("src/main/res/values/styles.xml", `<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <style name="noAnimTheme" parent="android:Theme.NoTitleBar">
-        <item name="android:windowAnimationStyle">@null</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:windowTranslucentNavigation">false</item>
-    </style>
-</resources>
-`);
-
-      // ────────────────────────────────────────────
-      // 5. theme/values/colors.xml (★ 공식 카카오 변수명 사용)
-      // ────────────────────────────────────────────
-      zip.file("src/main/theme/values/colors.xml", `<?xml version="1.0" encoding="utf-8"?>
-<resources>
-
-    <!-- 헤더 -->
-    <color name="theme_header_color">${config.headerText}</color>
-    <color name="theme_section_title_color">${config.androidSectionTitleColor}</color>
-
-    <!-- 타이틀 -->
-    <color name="theme_title_color">${config.primaryText}</color>
-    <color name="theme_title_pressed_color">${config.chatListHighlightText}</color>
-
-    <!-- 단락 (채팅 마지막 메시지) -->
-    <color name="theme_paragraph_color">${config.chatListLastMsgText}</color>
-    <color name="theme_paragraph_pressed_color">${config.chatListLastMsgHighlightText}</color>
-
-    <!-- 설명 (상태메시지 등) -->
-    <color name="theme_description_color">${config.descText}</color>
-    <color name="theme_description_pressed_color">${config.androidDescriptionPressedColor}</color>
-
-    <!-- 피처 서비스 컬러 -->
-    <color name="theme_feature_primary_color">${config.androidFeaturePrimaryColor}</color>
-    <color name="theme_feature_primary_pressed_color">${config.androidFeaturePrimaryPressedColor}</color>
-    <color name="theme_feature_browse_tab_color">${config.androidFeatureBrowseTabColor}</color>
-    <color name="theme_feature_browse_tab_focused_color">${config.androidFeatureBrowseTabFocusedColor}</color>
-
-    <!-- 배경 -->
-    <color name="theme_background_color">${config.bodyBg}</color>
-    <color name="theme_chatroom_background_color">${config.chatBg}</color>
-    <color name="theme_passcode_background_color">${config.passcodeBg}</color>
-
-    <!-- 셀 컬러 -->
-    <color name="theme_header_cell_color">${config.androidHeaderCellColor}</color>
-    <color name="theme_body_cell_color">${config.androidBodyCellColor}</color>
-    <color name="theme_body_cell_pressed_color">${config.friendsSelectedBg}</color>
-    <color name="theme_body_cell_border_color">${borderWithAlpha}</color>
-    <color name="theme_body_secondary_cell_color">${config.bodyBg}</color>
-    <color name="theme_maintab_cell_color">${config.androidMaintabCellColor}</color>
-    <color name="theme_tab_lightbannerbadge_background_color">${config.androidTabLightBannerBadgeBg}</color>
-    <color name="theme_tab_bannerbadge_background_color">${config.unreadCountColor}</color>
-
-    <!-- 전달완료 배너 -->
-    <color name="theme_direct_share_color">${config.directShareNameText}</color>
-    <color name="theme_direct_share_button_color">${config.directShareMsgText}</color>
-    <color name="theme_direct_share_background_color">${config.directShareBg}</color>
-
-    <!-- 메시지 알림 팝업/토스트 -->
-    <color name="theme_notification_color">${config.notifBannerNameText}</color>
-    <color name="theme_notification_background_color">${config.notifBannerBg}</color>
-    <color name="theme_notification_background_pressed_color">${config.androidNotifBgPressedColor}</color>
-
-    <!-- 잠금화면 -->
-    <color name="theme_passcode_color">${config.passcodeTitleText}</color>
-    <color name="theme_passcode_keypad_color">${config.passcodeKeypadText}</color>
-    <color name="theme_passcode_keypad_pressed_color">${config.androidPasscodeKeypadPressedColor}</color>
-    <color name="theme_passcode_keypad_background_color">${config.passcodeKeypadBg}</color>
-    <color name="theme_passcode_keypad_pressed_background_color">${config.androidPasscodeKeypadPressedBgColor}</color>
-    <color name="theme_passcode_pattern_line_color">${config.androidPasscodePatternLineColor}</color>
-
-    <!-- 채팅방 말풍선 텍스트 -->
-    <color name="theme_chatroom_bubble_me_color">${config.myBubbleText}</color>
-    <color name="theme_chatroom_bubble_you_color">${config.otherBubbleText}</color>
-    <color name="theme_chatroom_unread_count_color">${config.unreadCountColor}</color>
-
-    <!-- 채팅방 입력바 -->
-    <color name="theme_chatroom_input_bar_color">${config.inputBarText}</color>
-    <color name="theme_chatroom_input_bar_background_color">${config.inputBarBg}</color>
-    <color name="theme_chatroom_input_bar_menu_icon_color">${config.menuBtnColor}</color>
-    <color name="theme_chatroom_input_bar_menu_button_color">${config.inputFieldBg}</color>
-    <color name="theme_chatroom_input_bar_send_icon_color">${config.sendBtnIcon}</color>
-    <color name="theme_chatroom_input_bar_send_button_color">${config.sendBtnBg}</color>
-
-</resources>
-`);
-
-      zip.file("src/main/theme/values/strings.xml", `<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="theme_title">${config.name}</string>
-    <string name="app_name">${config.name}</string>
-</resources>
-`);
-
-      zip.file("src/main/theme/values-ko/strings.xml", `<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="theme_title">${config.name}</string>
-    <string name="app_name">${config.name}</string>
-</resources>
-`);
-
-      // ────────────────────────────────────────────
-      // 6. theme-adv/color/ 셀렉터 XML
-      // ────────────────────────────────────────────
-      const colorSelector = (name: string, pressedName: string) =>
-        `<?xml version="1.0" encoding="utf-8"?>\n<selector xmlns:android="http://schemas.android.com/apk/res/android">\n    <item android:state_pressed="true" android:color="@color/${pressedName}" />\n    <item android:color="@color/${name}" />\n</selector>\n`;
-
-      zip.file("src/main/theme-adv/color/theme_title_color_selector.xml",
-        colorSelector("theme_title_color", "theme_title_pressed_color"));
-      zip.file("src/main/theme-adv/color/theme_paragraph_color_selector.xml",
-        colorSelector("theme_paragraph_color", "theme_paragraph_pressed_color"));
-      zip.file("src/main/theme-adv/color/theme_description_color_selector.xml",
-        colorSelector("theme_description_color", "theme_description_pressed_color"));
-      zip.file("src/main/theme-adv/color/theme_feature_primary_color_selector.xml",
-        colorSelector("theme_feature_primary_color", "theme_feature_primary_pressed_color"));
-      zip.file("src/main/theme-adv/color/theme_feature_gift_color_selector.xml",
-        colorSelector("theme_feature_primary_color", "theme_feature_primary_pressed_color"));
-      zip.file("src/main/theme-adv/color/theme_feature_music_color_selector.xml",
-        colorSelector("theme_feature_primary_color", "theme_feature_primary_pressed_color"));
-      zip.file("src/main/theme-adv/color/theme_passcode_keypad_color_selector.xml",
-        colorSelector("theme_passcode_keypad_color", "theme_passcode_keypad_pressed_color"));
-
-      // ────────────────────────────────────────────
-      // 7. theme-adv/drawable/ 셀렉터 XML
-      // ────────────────────────────────────────────
-      zip.file("src/main/theme-adv/drawable/theme_body_cell_color_selector.xml", `<?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@color/theme_body_cell_pressed_color" android:state_selected="true" />
-    <item android:drawable="@color/theme_body_cell_pressed_color" android:state_focused="true" />
-    <item>
-        <ripple android:color="@color/theme_body_cell_pressed_color">
-            <item android:id="@android:id/mask" android:drawable="@android:color/white" />
-            <item android:drawable="@color/theme_body_cell_color" />
-        </ripple>
-    </item>
-</selector>
-`);
-
-      zip.file("src/main/theme-adv/drawable/theme_background_image.xml", `<?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="@color/theme_background_color" />
-</shape>
-`);
-
-      zip.file("src/main/theme-adv/drawable/theme_notification_background.xml", `<?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_pressed="true" android:drawable="@color/theme_notification_background_pressed_color"/>
-    <item android:drawable="@color/theme_notification_background_color" />
-</selector>
-`);
-
-      zip.file("src/main/theme-adv/drawable/theme_passcode_keypad_background_color_land.xml", `<?xml version="1.0" encoding="UTF-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="@color/theme_passcode_keypad_background_color" />
-    <corners android:radius="4dp" />
-</shape>
-`);
-
-      zip.file("src/main/theme-adv/drawable/theme_passcode_keypad_pressed_background_color_selector.xml", `<?xml version="1.0" encoding="UTF-8"?>
-<ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="@color/theme_passcode_keypad_pressed_background_color">
-    <item android:id="@android:id/mask" android:gravity="center">
-        <shape android:shape="oval">
-            <solid android:color="@color/theme_passcode_keypad_pressed_background_color" />
-            <size android:width="58dp" android:height="58dp" />
-        </shape>
-    </item>
-    <item android:drawable="@color/theme_passcode_keypad_background_color" />
-</ripple>
-`);
-
-      // 탭 아이콘 셀렉터
-      const tabIconSelector = (normal: string, focused: string) =>
-        `<?xml version="1.0" encoding="utf-8"?>\n<selector xmlns:android="http://schemas.android.com/apk/res/android">\n    <item android:state_selected="true" android:drawable="@drawable/${focused}"/>\n    <item android:drawable="@drawable/${normal}"/>\n</selector>\n`;
-
-      zip.file("src/main/theme-adv/drawable/theme_tab_friend_icon.xml",
-        tabIconSelector("theme_maintab_ico_friends_image", "theme_maintab_ico_friends_focused_image"));
-      zip.file("src/main/theme-adv/drawable/theme_tab_chats_icon.xml",
-        tabIconSelector("theme_maintab_ico_chats_image", "theme_maintab_ico_chats_focused_image"));
-      zip.file("src/main/theme-adv/drawable/theme_tab_now_icon.xml",
-        tabIconSelector("theme_maintab_ico_now_image", "theme_maintab_ico_now_focused_image"));
-      zip.file("src/main/theme-adv/drawable/theme_tab_shopping_icon.xml",
-        tabIconSelector("theme_maintab_ico_shopping_image", "theme_maintab_ico_shopping_focused_image"));
-      zip.file("src/main/theme-adv/drawable/theme_tab_more_icon.xml",
-        tabIconSelector("theme_maintab_ico_more_image", "theme_maintab_ico_more_focused_image"));
-      zip.file("src/main/theme-adv/drawable/theme_tab_call_icon.xml",
-        tabIconSelector("theme_maintab_ico_call_image", "theme_maintab_ico_call_focused_image"));
-      zip.file("src/main/theme-adv/drawable/theme_tab_piccoma_icon.xml",
-        tabIconSelector("theme_maintab_ico_piccoma_image", "theme_maintab_ico_piccoma_focused_image"));
-
-      // ────────────────────────────────────────────
-      // 8. 이미지 파일 생성 및 추가
-      // ────────────────────────────────────────────
-
-      // (a) 9-patch 말풍선 자동 생성 (색상 기반)
-      const xxhdpi = "src/main/theme/drawable-xxhdpi";
-      await addUrl(drawAndroid9PatchBubble(config.myBubbleBg, "send", true),
-        `${xxhdpi}/theme_chatroom_bubble_me_01_image.9.png`);
-      await addUrl(drawAndroid9PatchBubble(config.myBubbleBg, "send", false),
-        `${xxhdpi}/theme_chatroom_bubble_me_02_image.9.png`);
-      await addUrl(drawAndroid9PatchBubble(config.otherBubbleBg, "receive", true),
-        `${xxhdpi}/theme_chatroom_bubble_you_01_image.9.png`);
-      await addUrl(drawAndroid9PatchBubble(config.otherBubbleBg, "receive", false),
-        `${xxhdpi}/theme_chatroom_bubble_you_02_image.9.png`);
-
-      // (b) 탭바 배경 9-patch
-      if (tabBgMode === "image" && imageUploads["tabBg"]) {
-        const tabNine = await drawAndroidImageNinePatch(imageUploads["tabBg"]);
-        await addUrl(tabNine, `${xxhdpi}/theme_maintab_cell_image.9.png`);
-      } else {
-        await addUrl(
-          drawAndroidSolidNinePatch(config.tabBarBg, 3, 56),
-          `${xxhdpi}/theme_maintab_cell_image.9.png`
-        );
-      }
-
-      // (c) 업로드된 이미지 파일 → Android 공식 파일명으로 매핑
+      // ── URL(blob/data) → base64 data URL 변환 헬퍼 ──
+      const urlToBase64 = async (url: string): Promise<string | null> => {
+        try {
+          const res = await fetch(url);
+          const blob = await res.blob();
+          return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+        } catch { return null; }
+      };
+
+      // ── 색상 맵 (카카오 공식 변수명) ──
+      const colors: Record<string, string> = {
+        statusBarColor: config.bodyBg,
+        theme_header_color: config.headerText,
+        theme_section_title_color: config.androidSectionTitleColor,
+        theme_title_color: config.primaryText,
+        theme_title_pressed_color: config.chatListHighlightText,
+        theme_paragraph_color: config.chatListLastMsgText,
+        theme_paragraph_pressed_color: config.chatListLastMsgHighlightText,
+        theme_description_color: config.descText,
+        theme_description_pressed_color: config.androidDescriptionPressedColor,
+        theme_feature_primary_color: config.androidFeaturePrimaryColor,
+        theme_feature_primary_pressed_color: config.androidFeaturePrimaryPressedColor,
+        theme_feature_browse_tab_color: config.androidFeatureBrowseTabColor,
+        theme_feature_browse_tab_focused_color: config.androidFeatureBrowseTabFocusedColor,
+        theme_background_color: config.bodyBg,
+        theme_chatroom_background_color: config.chatBg,
+        theme_passcode_background_color: config.passcodeBg,
+        theme_header_cell_color: config.androidHeaderCellColor,
+        theme_body_cell_color: config.androidBodyCellColor,
+        theme_body_cell_pressed_color: config.friendsSelectedBg,
+        theme_body_cell_border_color: borderWithAlpha,
+        theme_body_secondary_cell_color: config.bodyBg,
+        theme_maintab_cell_color: config.androidMaintabCellColor,
+        theme_tab_lightbannerbadge_background_color: config.androidTabLightBannerBadgeBg,
+        theme_tab_bannerbadge_background_color: config.unreadCountColor,
+        theme_direct_share_color: config.directShareNameText,
+        theme_direct_share_button_color: config.directShareMsgText,
+        theme_direct_share_background_color: config.directShareBg,
+        theme_notification_color: config.notifBannerNameText,
+        theme_notification_background_color: config.notifBannerBg,
+        theme_notification_background_pressed_color: config.androidNotifBgPressedColor,
+        theme_passcode_color: config.passcodeTitleText,
+        theme_passcode_keypad_color: config.passcodeKeypadText,
+        theme_passcode_keypad_pressed_color: config.androidPasscodeKeypadPressedColor,
+        theme_passcode_keypad_background_color: config.passcodeKeypadBg,
+        theme_passcode_keypad_pressed_background_color: config.androidPasscodeKeypadPressedBgColor,
+        theme_passcode_pattern_line_color: config.androidPasscodePatternLineColor,
+        theme_chatroom_bubble_me_color: config.myBubbleText,
+        theme_chatroom_bubble_you_color: config.otherBubbleText,
+        theme_chatroom_unread_count_color: config.unreadCountColor,
+        theme_chatroom_input_bar_color: config.inputBarText,
+        theme_chatroom_input_bar_background_color: config.inputBarBg,
+        theme_chatroom_input_bar_menu_icon_color: config.menuBtnColor,
+        theme_chatroom_input_bar_menu_button_color: config.inputFieldBg,
+        theme_chatroom_input_bar_send_icon_color: config.sendBtnIcon,
+        theme_chatroom_input_bar_send_button_color: config.sendBtnBg,
+      };
+
+      // ── 이미지 맵 (파일명 → base64 data URL) ──
+      const images: Record<string, string> = {};
+
+      // 9-patch 말풍선 자동 생성
+      const bubbles = await Promise.all([
+        urlToBase64(drawAndroid9PatchBubble(config.myBubbleBg, "send", true)),
+        urlToBase64(drawAndroid9PatchBubble(config.myBubbleBg, "send", false)),
+        urlToBase64(drawAndroid9PatchBubble(config.otherBubbleBg, "receive", true)),
+        urlToBase64(drawAndroid9PatchBubble(config.otherBubbleBg, "receive", false)),
+      ]);
+      if (bubbles[0]) images["theme_chatroom_bubble_me_01_image.9.png"] = bubbles[0];
+      if (bubbles[1]) images["theme_chatroom_bubble_me_02_image.9.png"] = bubbles[1];
+      if (bubbles[2]) images["theme_chatroom_bubble_you_01_image.9.png"] = bubbles[2];
+      if (bubbles[3]) images["theme_chatroom_bubble_you_02_image.9.png"] = bubbles[3];
+
+      // 탭바 배경 9-patch
+      const tabBgSrc = tabBgMode === "image" && imageUploads["tabBg"]
+        ? await drawAndroidImageNinePatch(imageUploads["tabBg"])
+        : drawAndroidSolidNinePatch(config.tabBarBg, 3, 56);
+      const tabBgB64 = await urlToBase64(tabBgSrc);
+      if (tabBgB64) images["theme_maintab_cell_image.9.png"] = tabBgB64;
+
+      // 업로드 이미지 → APK drawable 파일명 매핑
       const androidImgMap: Record<string, string> = {
-        icon:              "src/main/theme/drawable-nodpi/icon.png",
-        mainBg:            `${xxhdpi}/theme_background_image.png`,
-        chatroomBg:        `${xxhdpi}/theme_chatroom_background_image.png`,
-        passcodeBgImg:     `${xxhdpi}/theme_passcode_background_image.png`,
-        splash:            `${xxhdpi}/theme_splash_image.png`,
-        profileImg01:      `${xxhdpi}/theme_profile_01_image.png`,
-        profileImg02:      `${xxhdpi}/theme_profile_02_image.png`,
-        profileImg03:      `${xxhdpi}/theme_profile_03_image.png`,
-        tabFriendsNormal:  `${xxhdpi}/theme_maintab_ico_friends_image.png`,
-        tabFriendsSelected:`${xxhdpi}/theme_maintab_ico_friends_focused_image.png`,
-        tabChatNormal:     `${xxhdpi}/theme_maintab_ico_chats_image.png`,
-        tabChatSelected:   `${xxhdpi}/theme_maintab_ico_chats_focused_image.png`,
-        tabOpenNormal:     `${xxhdpi}/theme_maintab_ico_now_image.png`,
-        tabOpenSelected:   `${xxhdpi}/theme_maintab_ico_now_focused_image.png`,
-        tabShopNormal:     `${xxhdpi}/theme_maintab_ico_shopping_image.png`,
-        tabShopSelected:   `${xxhdpi}/theme_maintab_ico_shopping_focused_image.png`,
-        tabMoreNormal:     `${xxhdpi}/theme_maintab_ico_more_image.png`,
-        tabMoreSelected:   `${xxhdpi}/theme_maintab_ico_more_focused_image.png`,
+        mainBg:             "theme_background_image.png",
+        chatroomBg:         "theme_chatroom_background_image.png",
+        passcodeBgImg:      "theme_passcode_background_image.png",
+        profileImg01:       "theme_profile_01_image.png",
+        profileImg02:       "theme_profile_02_image.png",
+        profileImg03:       "theme_profile_03_image.png",
+        tabFriendsNormal:   "theme_maintab_ico_friends_image.png",
+        tabFriendsSelected: "theme_maintab_ico_friends_focused_image.png",
+        tabChatNormal:      "theme_maintab_ico_chats_image.png",
+        tabChatSelected:    "theme_maintab_ico_chats_focused_image.png",
+        tabOpenNormal:      "theme_maintab_ico_now_image.png",
+        tabOpenSelected:    "theme_maintab_ico_now_focused_image.png",
+        tabShopNormal:      "theme_maintab_ico_shopping_image.png",
+        tabShopSelected:    "theme_maintab_ico_shopping_focused_image.png",
+        tabMoreNormal:      "theme_maintab_ico_more_image.png",
+        tabMoreSelected:    "theme_maintab_ico_more_focused_image.png",
       };
 
       await Promise.all(
@@ -1938,59 +1509,39 @@ open class MainActivity : Activity() {
             if (key === "passcodeBgImg" && passcodeBgMode === "color") return false;
             return !!imageUploads[key];
           })
-          .map(([key, zipPath]) => addUrl(imageUploads[key], zipPath))
+          .map(async ([key, filename]) => {
+            const b64 = await urlToBase64(imageUploads[key]);
+            if (b64) images[filename] = b64;
+          })
       );
 
-      // (d) 런처 아이콘 (mipmap)
-      if (imageUploads["icon"]) {
-        for (const dpi of ["hdpi", "mdpi", "xhdpi", "xxhdpi", "xxxhdpi"]) {
-          await addUrl(imageUploads["icon"], `src/main/res/mipmap-${dpi}/ic_launcher.png`);
-        }
+      // ── APK 빌더 서비스 호출 ──
+      const apkRes = await fetch("/api/download/apk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          themeName: config.name,
+          packageId: ns,
+          colors,
+          images,
+          versionName: config.version || "1.0.0",
+        }),
+      });
+
+      if (!apkRes.ok) {
+        const errJson = await apkRes.json().catch(() => ({ error: "APK 빌드 실패" }));
+        alert((errJson as { error?: string }).error ?? "APK 빌드에 실패했습니다. 잠시 후 다시 시도해주세요.");
+        return;
       }
 
-      // ────────────────────────────────────────────
-      // 9. README
-      // ────────────────────────────────────────────
-      zip.file("README.md", `# ${config.name} - 카카오톡 Android 테마
-
-> 카꾸미(kakkumi.com)에서 제작한 카카오톡 Android 테마입니다.
-
-## 제작 정보
-- **테마명**: ${config.name}
-- **제작자**: ${config.authorName}
-- **패키지**: ${ns}
-- **모드**: ${config.darkMode ? "Dark" : "Light"}
-
-## Android Studio에서 빌드하기
-
-1. **Android Studio**에서 이 폴더를 프로젝트로 열기
-2. \`gradle/wrapper/gradle-wrapper.jar\` 파일이 없으면 Android Studio가 자동으로 다운로드합니다
-3. **Build > Build Bundle(s) / APK(s) > Build APK(s)** 실행
-4. 생성된 APK를 기기에 설치하면 카카오톡 더보기 탭 > 설정 > 테마에서 확인 가능
-
-## 파일 구조
-\`\`\`
-src/main/
-├── AndroidManifest.xml
-├── java/${pkgPath}/MainActivity.kt
-├── res/ (앱 기본 리소스)
-├── theme/
-│   ├── values/colors.xml     ← 모든 테마 색상 (카카오 공식 변수명)
-│   └── drawable-xxhdpi/      ← 이미지 리소스
-└── theme-adv/                ← 색상/드로어블 셀렉터
-\`\`\`
-
-## 이미지 추가 방법
-- \`src/main/theme/drawable-xxhdpi/\` 폴더에 이미지를 추가하세요
-- 이미지 파일명은 카카오 공식 가이드의 변수명을 따릅니다
-- 9-patch 이미지(\`.9.png\`)는 자동 생성됩니다
-`);
-
-      const content = await zip.generateAsync({ type: "blob" });
+      const apkBlob = await apkRes.blob();
       const a = document.createElement("a");
-      a.href = URL.createObjectURL(content);
-      a.download = `${themeName}_android_theme.zip`;
+      a.href = URL.createObjectURL(apkBlob);
+      a.download = `${themeName}.apk`;
       a.click();
+    }
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -2204,15 +1755,38 @@ src/main/
 
           {/* 저장 버튼 */}
           <button onClick={() => void handleDownload()}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-md text-[13px] font-semibold transition-all hover:opacity-90 active:scale-95 shadow-sm"
+            disabled={isDownloading}
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-md text-[13px] font-semibold transition-all hover:opacity-90 active:scale-95 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
             style={{ background: "#111827", color: "#fff" }}
           >
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-              <path d="M8 2v8M5 7l3 3 3-3M2 12h12" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            테마 저장
+            {isDownloading ? (
+              <>
+                <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M21 12a9 9 0 11-6.219-8.56"/>
+                </svg>
+                {os === "android" ? "APK 빌드 중..." : "생성 중..."}
+              </>
+            ) : (
+              <>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 2v8M5 7l3 3 3-3M2 12h12" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                {os === "android" ? "APK 다운로드" : "테마 저장"}
+              </>
+            )}
           </button>
         </div>
+
+        {/* Android APK 설치 안내 */}
+        {os === "android" && (
+          <div className="mx-3 mb-1 px-3 py-2 rounded-lg text-[11px] flex items-start gap-2"
+            style={{ background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.3)", color: "#92400e" }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2" strokeLinecap="round" className="mt-0.5 shrink-0">
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <span>설치 시 <b>&#34;출처를 알 수 없는 앱&#34;</b> 경고가 뜰 수 있어요. 설정 &gt; 보안에서 허용 후 설치하면 됩니다.</span>
+          </div>
+        )}
       </div>
 
       {/* Pro 전용 기능 토스트 */}
