@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jdk-slim
+FROM eclipse-temurin:21-jdk-jammy
 
 # 기본 도구 설치
 RUN apt-get update && apt-get install -y curl unzip && rm -rf /var/lib/apt/lists/*
