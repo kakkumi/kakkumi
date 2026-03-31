@@ -1,0 +1,4 @@
+com.kakao.talk.theme.apeach.test-androidTest-0 /Users/nayun/Desktop/kakkumi/docs/Android/apeach-26.1.0-source/build/generated/res/resValues/androidTest/debug
+com.kakao.talk.theme.apeach.test-mergeDebugAndroidTestResources-1 /Users/nayun/Desktop/kakkumi/docs/Android/apeach-26.1.0-source/build/intermediates/incremental/debugAndroidTest/mergeDebugAndroidTestResources/merged.dir
+com.kakao.talk.theme.apeach.test-mergeDebugAndroidTestResources-2 /Users/nayun/Desktop/kakkumi/docs/Android/apeach-26.1.0-source/build/intermediates/incremental/debugAndroidTest/mergeDebugAndroidTestResources/stripped.dir
+com.kakao.talk.theme.apeach.test-debugAndroidTest-3 /Users/nayun/Desktop/kakkumi/docs/Android/apeach-26.1.0-source/build/intermediates/merged_res/debugAndroidTest/mergeDebugAndroidTestResources

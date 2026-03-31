@@ -1,0 +1,43 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.kakao.talk.theme.apeach-mergeDebugResources-2:/values-ja/values-ja.xml",
+            "map": [
+                {
+                    "source": "/Users/nayun/Desktop/kakkumi/docs/Android/apeach-26.1.0-source/src/main/theme/values-ja/strings.xml",
+                    "from": {
+                        "startLines": "3,2",
+                        "startColumns": "4,4",
+                        "startOffsets": "102,55",
+                        "endColumns": "43,46",
+                        "endOffsets": "141,97"
+                    },
+                    "to": {
+                        "startLines": "2,5",
+                        "startColumns": "4,4",
+                        "startOffsets": "55,199",
+                        "endColumns": "43,46",
+                        "endOffsets": "94,241"
+                    }
+                },
+                {
+                    "source": "/Users/nayun/Desktop/kakkumi/docs/Android/apeach-26.1.0-source/src/main/res/values-ja/strings.xml",
+                    "from": {
+                        "startLines": "2,3",
+                        "startColumns": "4,4",
+                        "startOffsets": "55,96",
+                        "endColumns": "40,58",
+                        "endOffsets": "91,150"
+                    },
+                    "to": {
+                        "startLines": "3,4",
+                        "startColumns": "4,4",
+                        "startOffsets": "99,140",
+                        "endColumns": "40,58",
+                        "endOffsets": "135,194"
+                    }
+                }
+            ]
+        }
+    ]
+}

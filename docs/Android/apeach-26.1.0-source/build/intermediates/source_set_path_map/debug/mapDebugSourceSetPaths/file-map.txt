@@ -1,0 +1,9 @@
+com.kakao.talk.theme.apeach-pngs-0 /Users/nayun/Desktop/kakkumi/docs/Android/apeach-26.1.0-source/build/generated/res/pngs/debug
+com.kakao.talk.theme.apeach-resValues-1 /Users/nayun/Desktop/kakkumi/docs/Android/apeach-26.1.0-source/build/generated/res/resValues/debug
+com.kakao.talk.theme.apeach-packageDebugResources-2 /Users/nayun/Desktop/kakkumi/docs/Android/apeach-26.1.0-source/build/intermediates/incremental/debug/packageDebugResources/merged.dir
+com.kakao.talk.theme.apeach-packageDebugResources-3 /Users/nayun/Desktop/kakkumi/docs/Android/apeach-26.1.0-source/build/intermediates/incremental/debug/packageDebugResources/stripped.dir
+com.kakao.talk.theme.apeach-debug-4 /Users/nayun/Desktop/kakkumi/docs/Android/apeach-26.1.0-source/build/intermediates/merged_res/debug/mergeDebugResources
+com.kakao.talk.theme.apeach-debug-5 /Users/nayun/Desktop/kakkumi/docs/Android/apeach-26.1.0-source/src/debug/res
+com.kakao.talk.theme.apeach-main-6 /Users/nayun/Desktop/kakkumi/docs/Android/apeach-26.1.0-source/src/main/res
+com.kakao.talk.theme.apeach-main-7 /Users/nayun/Desktop/kakkumi/docs/Android/apeach-26.1.0-source/src/main/theme
+com.kakao.talk.theme.apeach-main-8 /Users/nayun/Desktop/kakkumi/docs/Android/apeach-26.1.0-source/src/main/theme-adv

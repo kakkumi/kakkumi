@@ -1,0 +1,4 @@
+#Tue Mar 31 22:22:03 KST 2026
+base.0=/Users/nayun/Desktop/kakkumi/docs/Android/apeach-26.1.0-source/build/intermediates/dex/debugAndroidTest/mergeProjectDexDebugAndroidTest/0/classes.dex
+path.0=0/classes.dex
+renamed.0=classes.dex

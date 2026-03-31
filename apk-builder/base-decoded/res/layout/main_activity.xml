@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/theme_splash_image" android:scaleType="centerCrop" />
+    <Button android:textSize="17.0sp" android:textStyle="bold" android:textColor="@android:color/black" android:id="@id/apply" android:background="@drawable/btn_action" android:paddingTop="16.0dp" android:paddingBottom="16.0dp" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_margin="18.0dp" android:text="@string/apply" android:layout_alignParentBottom="true" />
+    <Button android:textSize="17.0sp" android:textStyle="bold" android:textColor="@android:color/black" android:id="@id/market" android:background="@drawable/btn_action" android:paddingTop="16.0dp" android:paddingBottom="16.0dp" android:visibility="gone" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_margin="18.0dp" android:text="@string/install_kakaotalk" android:layout_alignParentBottom="true" />
+</RelativeLayout>

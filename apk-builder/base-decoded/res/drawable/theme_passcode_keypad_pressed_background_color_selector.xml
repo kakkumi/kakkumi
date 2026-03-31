@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple android:color="@color/theme_passcode_keypad_pressed_background_color"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:gravity="center" android:id="@android:id/mask">
+        <shape android:shape="oval">
+            <solid android:color="@color/theme_passcode_keypad_pressed_background_color" />
+            <size android:height="58.0dp" android:width="58.0dp" />
+        </shape>
+    </item>
+    <item android:drawable="@android:color/transparent" />
+</ripple>
