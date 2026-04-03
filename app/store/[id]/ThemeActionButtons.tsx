@@ -11,6 +11,7 @@ type Props = {
     themeId: string;
     priceNum: number;
     priceName: string;
+    discountPrice?: number | null;
     isLoggedIn: boolean;
     userId?: string;
     isOwned?: boolean;
@@ -21,7 +22,9 @@ type Props = {
 };
 
 export default function ThemeActionButtons(props: Props) {
-    const { priceNum, priceName, isLoggedIn, ownedVersionIds = [], versions = [], onInquiryAction, isSelling = true } = props;
+    const { priceNum, discountPrice, isLoggedIn, ownedVersionIds = [], versions = [], onInquiryAction, isSelling = true } = props;
+    const effectivePrice = (discountPrice != null && priceNum > 0 && discountPrice < priceNum) ? discountPrice : priceNum;
+    const effectivePriceName = effectivePrice === 0 ? "무료" : `${effectivePrice.toLocaleString()}원`;
     const router = useRouter();
     const [liked, setLiked] = useState(false);
     const [result, setResult] = useState<{ success?: boolean; message?: string } | null>(null);
@@ -47,7 +50,7 @@ export default function ThemeActionButtons(props: Props) {
     const [reportError, setReportError] = useState("");
     const [loginModal, setLoginModal] = useState<string | null>(null);
 
-    const isFree = priceNum === 0;
+    const isFree = effectivePrice === 0;
     const hasVersions = versions.length > 0;
     // __ktheme_generate__ 마커도 다운로드 가능한 옵션으로 취급
     const iosVersions = versions.filter(v =>
@@ -308,7 +311,7 @@ export default function ThemeActionButtons(props: Props) {
                                     disabled={!selectedVersion}
                                     className="w-full py-3.5 rounded-[14px] text-[15px] font-bold text-white transition-all active:scale-[0.98] disabled:opacity-40 mt-1"
                                     style={{ background: "#4A7BF7", boxShadow: "0 4px 20px rgba(74,123,247,0.3)" }}>
-                                    {selectedVersion ? `${priceName} 구매하기` : "옵션을 선택해주세요"}
+                                    {selectedVersion ? `${effectivePriceName} 구매하기` : "옵션을 선택해주세요"}
                                 </button>
                             )}
                         </div>
@@ -454,7 +457,7 @@ export default function ThemeActionButtons(props: Props) {
                             boxShadow: "0 4px 20px rgba(74,123,247,0.3)",
                         }}
                     >
-                        {isFree ? "무료 다운로드" : `${priceName} 구매하기`}
+                        {isFree ? "무료 다운로드" : `${effectivePriceName} 구매하기`}
                     </button>
                 )}
                 <button

@@ -10,6 +10,7 @@ export async function GET() {
                 title: string;
                 description: string | null;
                 price: number;
+                discountPrice: number | null;
                 thumbnailUrl: string | null;
                 images: string[];
                 tags: string[];
@@ -29,6 +30,7 @@ export async function GET() {
                     t.title,
                     t.description,
                     t.price,
+                    t."discountPrice",
                     t."thumbnailUrl",
                     t.images,
                     t.tags,
@@ -58,6 +60,7 @@ export async function GET() {
                 title: string;
                 description: string | null;
                 price: number;
+                discountPrice: number | null;
                 thumbnailUrl: string | null;
                 images: string[];
                 tags: string[];
@@ -77,6 +80,7 @@ export async function GET() {
                     t.title,
                     t.description,
                     t.price,
+                    t."discountPrice",
                     t."thumbnailUrl",
                     t.images,
                     t.tags,

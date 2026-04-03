@@ -23,13 +23,13 @@ export async function GET() {
         ORDER BY p."createdAt" DESC
     `;
 
-    let myThemes: { id: string; title: string; price: number; status: string; isPublic: boolean; isSelling: boolean; thumbnailUrl: string | null }[];
+    let myThemes: { id: string; title: string; price: number; discountPrice: number | null; status: string; isPublic: boolean; isSelling: boolean; thumbnailUrl: string | null }[];
     try {
         myThemes = await prisma.$queryRaw<{
-            id: string; title: string; price: number;
+            id: string; title: string; price: number; discountPrice: number | null;
             status: string; isPublic: boolean; isSelling: boolean; thumbnailUrl: string | null;
         }[]>`
-            SELECT id, title, price, status, "isPublic", "isSelling", "thumbnailUrl"
+            SELECT id, title, price, "discountPrice", status, "isPublic", "isSelling", "thumbnailUrl"
             FROM "Theme"
             WHERE "creatorId" = ${session.dbId}
             ORDER BY "createdAt" DESC
@@ -41,7 +41,7 @@ export async function GET() {
             WHERE "creatorId" = ${session.dbId}
             ORDER BY "createdAt" DESC
         `;
-        myThemes = rows.map(r => ({ ...r, isPublic: true, isSelling: true, thumbnailUrl: null }));
+        myThemes = rows.map(r => ({ ...r, discountPrice: null, isPublic: true, isSelling: true, thumbnailUrl: null }));
     }
 
     // 구매한 버전 정보 조회 (구매별로 정확한 버전 1개씩 매핑)
@@ -111,6 +111,7 @@ export async function GET() {
         id: t.id,
         name: t.title,
         price: t.price,
+        discountPrice: t.discountPrice ?? null,
         thumbnailUrl: t.thumbnailUrl ?? null,
         status: t.status,
         isPublic: t.isPublic ?? true,

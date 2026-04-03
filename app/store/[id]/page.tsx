@@ -18,6 +18,7 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
         title: string;
         description: string | null;
         price: number;
+        discountPrice: number | null;
         thumbnailUrl: string | null;
         images: string[];
         tags: string[];
@@ -37,7 +38,7 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
     if (isUuid) {
         const rows = await prisma.$queryRaw<DbThemeRow[]>`
             SELECT
-                t.id, t.title, t.description, t.price,
+                t.id, t.title, t.description, t.price, t."discountPrice",
                 t."thumbnailUrl", t.images, t.tags, t."createdAt",
                 t."creatorId", t."contentBlocks",
                 COALESCE(t."isSelling", true) AS "isSelling",
@@ -177,6 +178,7 @@ export default async function ThemeDetailPage(props: { params: Promise<{ id: str
                     tag={dbTheme.price === 0 ? "무료" : undefined}
                     price={dbTheme.price === 0 ? "무료" : `${dbTheme.price.toLocaleString()}원`}
                     priceNum={dbTheme.price}
+                    discountPrice={dbTheme.discountPrice ?? null}
                     author={dbTheme.creatorNickname ?? dbTheme.creatorName}
                     creatorId={dbTheme.creatorId}
                     description={dbTheme.description ?? ""}

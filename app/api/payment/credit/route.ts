@@ -18,11 +18,20 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "테마 정보가 없습니다." }, { status: 400 });
     }
 
-    const theme = await prisma.theme.findUnique({ where: { id: themeId } });
+    const themeRows = await prisma.$queryRaw<{ price: number; discountPrice: number | null; status: string; title: string }[]>`
+        SELECT price, "discountPrice", status, title FROM "Theme" WHERE id = ${themeId} LIMIT 1
+    `;
+    const theme = themeRows[0];
     if (!theme || theme.status !== "PUBLISHED") {
         return NextResponse.json({ error: "테마를 찾을 수 없습니다." }, { status: 404 });
     }
-    if (theme.price === 0) {
+
+    // 실제 결제 금액 = 할인가 있으면 할인가, 없으면 원가
+    const effectivePrice = (theme.discountPrice != null && theme.price > 0 && theme.discountPrice < theme.price)
+        ? theme.discountPrice
+        : theme.price;
+
+    if (effectivePrice === 0) {
         return NextResponse.json({ error: "무료 테마는 적립금 결제가 필요하지 않습니다." }, { status: 400 });
     }
 
@@ -40,44 +49,39 @@ export async function POST(req: NextRequest) {
     `;
     const credit = rows[0]?.credit ?? 0;
 
-    if (credit < theme.price) {
-        return NextResponse.json({ error: `적립금이 부족합니다. (보유: ${credit}원, 필요: ${theme.price}원)` }, { status: 400 });
+    if (credit < effectivePrice) {
+        return NextResponse.json({ error: `적립금이 부족합니다. (보유: ${credit}원, 필요: ${effectivePrice}원)` }, { status: 400 });
     }
 
     const now = nowKST();
     const purchaseId = crypto.randomUUID();
     const historyId = crypto.randomUUID();
 
-    // 적립금 차감 + 구매 기록 + 포인트 차감 내역
     await prisma.$executeRaw`
-        UPDATE "User" SET credit = credit - ${theme.price}, "updatedAt" = NOW() WHERE id = ${session.dbId}
+        UPDATE "User" SET credit = credit - ${effectivePrice}, "updatedAt" = NOW() WHERE id = ${session.dbId}
     `;
     await prisma.$executeRaw`
         INSERT INTO "Purchase" (id, "buyerId", "themeId", "versionId", amount, status, "isDownloaded", "createdAt")
-        VALUES (${purchaseId}, ${session.dbId}, ${themeId}, ${versionId ?? null}, ${theme.price}, 'COMPLETED'::"PurchaseStatus", false, ${now})
+        VALUES (${purchaseId}, ${session.dbId}, ${themeId}, ${versionId ?? null}, ${effectivePrice}, 'COMPLETED'::"PurchaseStatus", false, ${now})
     `;
     await prisma.$executeRaw`
         INSERT INTO "PointHistory" (id, "userId", amount, type, memo, "createdAt")
-        VALUES (${historyId}, ${session.dbId}, ${-theme.price}, 'PURCHASE_USE'::"PointType", ${`${theme.title} 구매 (-${theme.price}원)`}, ${now})
+        VALUES (${historyId}, ${session.dbId}, ${-effectivePrice}, 'PURCHASE_USE'::"PointType", ${`${theme.title} 구매 (-${effectivePrice}원)`}, ${now})
     `;
 
-    // 구매 적립금 지급 (공통 유틸)
-    await grantPurchaseCredit(session.dbId, theme.price, now);
-
-    // 구매 완료 알림 (공통 유틸 — 알림 설정 체크 포함)
+    await grantPurchaseCredit(session.dbId, effectivePrice, now);
     await notifyPurchaseComplete(session.dbId, theme.title, themeId);
 
-    // 영수증 이메일 발송
     const userRows = await prisma.$queryRaw<{ email: string | null; name: string; nickname: string | null }[]>`
         SELECT email, name, nickname FROM "User" WHERE id = ${session.dbId} LIMIT 1
     `;
     const user = userRows[0];
-    if (user?.email && theme.price > 0) {
+    if (user?.email && effectivePrice > 0) {
         await sendPurchaseReceipt({
             to: user.email,
             name: user.nickname ?? user.name,
             themeTitle: theme.title,
-            amount: theme.price,
+            amount: effectivePrice,
             purchaseDate: now,
         }).catch(e => console.error("[receipt email credit]", e));
     }

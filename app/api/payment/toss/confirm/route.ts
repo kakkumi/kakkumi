@@ -39,13 +39,21 @@ export async function POST(request: Request) {
     const versionId = await validateVersionId(rawVersionId);
 
     // DB에서 테마 확인 및 금액 검증 (SSOT: 클라이언트 금액을 신뢰하지 않음)
-    const theme = await prisma.theme.findUnique({ where: { id: themeId } });
+    const themeRows = await prisma.$queryRaw<{ price: number; discountPrice: number | null; status: string; title: string }[]>`
+        SELECT price, "discountPrice", status, title FROM "Theme" WHERE id = ${themeId} LIMIT 1
+    `;
+    const theme = themeRows[0];
 
     if (!theme) {
         return NextResponse.json({ error: "테마를 찾을 수 없습니다." }, { status: 404 });
     }
 
-    if (theme.price !== amount) {
+    // 실제 결제 금액 = 할인가 있으면 할인가, 없으면 원가
+    const effectivePrice = (theme.discountPrice != null && theme.price > 0 && theme.discountPrice < theme.price)
+        ? theme.discountPrice
+        : theme.price;
+
+    if (effectivePrice !== amount) {
         return NextResponse.json({ error: "결제 금액이 올바르지 않습니다." }, { status: 400 });
     }
 
@@ -84,7 +92,7 @@ export async function POST(request: Request) {
     `;
 
     // 구매 적립금 지급 (공통 유틸)
-    await grantPurchaseCredit(session.dbId, theme.price, now);
+    await grantPurchaseCredit(session.dbId, effectivePrice, now);
 
     // 구매 완료 알림 (알림 설정 체크)
     await notifyPurchaseComplete(session.dbId, theme.title, themeId);
@@ -94,7 +102,7 @@ export async function POST(request: Request) {
         SELECT email, name, nickname FROM "User" WHERE id = ${session.dbId} LIMIT 1
     `;
     const user = userRows[0];
-    if (user?.email && theme.price > 0) {
+    if (user?.email && effectivePrice > 0) {
         await sendPurchaseReceipt({
             to: user.email,
             name: user.nickname ?? user.name,

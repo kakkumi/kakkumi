@@ -44,6 +44,7 @@ type OrderInfo = {
     id: string;
     title: string;
     price: number;
+    discountPrice: number | null;
     thumbnailUrl: string | null;
     author: string;
 };
@@ -102,7 +103,11 @@ export default function OrderPage() {
 
     if (!themeId) { router.push("/store"); return null; }
 
-    const price = theme?.price ?? 0;
+    const price = (theme?.discountPrice != null && (theme?.price ?? 0) > 0)
+        ? theme.discountPrice
+        : (theme?.price ?? 0);
+    const originalPrice = theme?.price ?? 0;
+    const hasDiscount = theme?.discountPrice != null && originalPrice > 0 && theme.discountPrice < originalPrice;
     const isFree = price === 0;
     const purchaseCreditReward = getPurchaseCredit(price);
     const reviewCreditReward = getReviewCredit(price);
@@ -312,7 +317,19 @@ export default function OrderPage() {
                             <div className="pt-10 space-y-6">
                                 <div>
                                     <p style={{ fontSize: 12, fontWeight: 600, color: COLORS.TEXT_TERTIARY, marginBottom: 4 }}>최종 결제 금액</p>
-                                    <p style={{ fontSize: 32, fontWeight: 800, color: COLORS.TEXT_PRIMARY, letterSpacing: "-0.02em" }}>{payAmount.toLocaleString()}원</p>
+                                    {hasDiscount && (
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className="text-[11px] font-bold px-2 py-0.5 rounded" style={{ background: "rgb(255,59,48)", color: "#fff" }}>
+                                                {Math.round((1 - price / originalPrice) * 100)}% 할인
+                                            </span>
+                                            <span className="text-[14px]" style={{ color: COLORS.TEXT_TERTIARY, textDecoration: "line-through" }}>
+                                                {originalPrice.toLocaleString()}원
+                                            </span>
+                                        </div>
+                                    )}
+                                    <p style={{ fontSize: 32, fontWeight: 800, color: hasDiscount ? "rgb(255,59,48)" : COLORS.TEXT_PRIMARY, letterSpacing: "-0.02em" }}>
+                                        {payAmount.toLocaleString()}원
+                                    </p>
                                 </div>
 
                                 {error && <p className="text-red-500 text-[12px] font-medium">{error}</p>}

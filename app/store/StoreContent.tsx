@@ -39,6 +39,7 @@ type DbTheme = {
     title: string;
     description: string | null;
     price: number;
+    discountPrice: number | null;
     thumbnailUrl: string | null;
     images: string[];
     tags: string[];
@@ -80,6 +81,7 @@ type UnifiedTheme = {
     creatorId: string;
     price: string;
     priceNum: number;
+    discountPrice: number | null;
     tag: string;
     category: string[];
     sales: number;
@@ -104,6 +106,7 @@ function dbThemeToUnified(t: DbTheme): UnifiedTheme {
         creatorId: t.creatorId,
         price: t.price === 0 ? "무료" : `${t.price.toLocaleString()}원`,
         priceNum: t.price,
+        discountPrice: t.discountPrice ?? null,
         tag: t.price === 0 ? "무료" : "",
         category: t.tags,
         sales: t.salesCount,
@@ -481,7 +484,24 @@ export default function StoreContent() {
                                     <div className="flex flex-col gap-1 pt-3">
                                         <div className="flex items-start justify-between gap-2">
                                             <h3 className="text-[13px] font-semibold leading-tight truncate" style={{ color: "#1c1c1e" }}>{theme.name}</h3>
-                                            <span className="text-[13px] font-semibold shrink-0" style={{ color: "#1c1c1e" }}>{theme.price}</span>
+                                            {/* 가격 표시 */}
+                                            <div className="flex flex-col items-end shrink-0">
+                                                {theme.discountPrice != null && theme.priceNum > 0 ? (
+                                                    <>
+                                                        <div className="flex items-center gap-1">
+                                                            <span className="text-[9px] font-bold px-1 py-0.5 rounded" style={{ background: "rgb(255,59,48)", color: "#fff" }}>
+                                                                {Math.round((1 - theme.discountPrice / theme.priceNum) * 100)}%
+                                                            </span>
+                                                            <span className="text-[11px] font-semibold" style={{ color: "rgb(255,59,48)" }}>
+                                                                {theme.discountPrice === 0 ? "무료" : `${theme.discountPrice.toLocaleString()}원`}
+                                                            </span>
+                                                        </div>
+                                                        <span className="text-[10px]" style={{ color: "#c7c7cc", textDecoration: "line-through" }}>{theme.price}</span>
+                                                    </>
+                                                ) : (
+                                                    <span className="text-[13px] font-semibold" style={{ color: "#1c1c1e" }}>{theme.price}</span>
+                                                )}
+                                            </div>
                                         </div>
                                         <span
                                             className="text-[12px] hover:underline cursor-pointer w-fit"

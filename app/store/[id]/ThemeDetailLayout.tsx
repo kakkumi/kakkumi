@@ -44,6 +44,7 @@ type Props = {
     themeId?: number;
     price: string;
     priceNum: number;
+    discountPrice?: number | null;
     author: string;
     creatorId: string;
     description: string;
@@ -60,7 +61,7 @@ type Props = {
 
 export default function ThemeDetailLayout({
     images, previews, name, tag, themeId,
-    price, priceNum, author, creatorId, description, category,
+    price, priceNum, discountPrice, author, creatorId, description, category,
     stats, dbId, isLoggedIn, userId, isOwned, ownedVersionIds = [], versions = [],
     isSelling = true,
 }: Props) {
@@ -82,8 +83,9 @@ export default function ThemeDetailLayout({
 
     const mainBg = useColor ? (slots[activeIdx] as string) ?? colors!.main : undefined;
     const mainSrc = useColor ? null : (realImages[activeIdx] ?? null);
-    const purchaseCredit = getPurchaseCredit(priceNum);
-    const reviewCredit = getReviewCredit(priceNum);
+    const effectivePrice = (discountPrice != null && priceNum > 0) ? discountPrice : priceNum;
+    const purchaseCredit = getPurchaseCredit(effectivePrice);
+    const reviewCredit = getReviewCredit(effectivePrice);
 
     return (
         <>
@@ -197,13 +199,38 @@ export default function ThemeDetailLayout({
 
                     {/* 가격 */}
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
-                        <span style={{
-                            fontSize: 24, fontWeight: 800,
-                            color: priceNum === 0 ? "rgb(74,123,247)" : "#111827",
-                            letterSpacing: "-0.03em",
-                        }}>
-                            {price}
-                        </span>
+                        {discountPrice != null && priceNum > 0 ? (
+                            <>
+                                {/* 할인율 배지 */}
+                                <span style={{
+                                    fontSize: 12, fontWeight: 800,
+                                    padding: "3px 8px", borderRadius: 6,
+                                    background: "rgb(255,59,48)", color: "#fff",
+                                }}>
+                                    {Math.round((1 - discountPrice / priceNum) * 100)}%
+                                </span>
+                                {/* 원가 취소선 */}
+                                <span style={{ fontSize: 14, color: "#c7c7cc", textDecoration: "line-through" }}>
+                                    {price}
+                                </span>
+                                {/* 할인가 */}
+                                <span style={{
+                                    fontSize: 24, fontWeight: 800,
+                                    color: "rgb(255,59,48)",
+                                    letterSpacing: "-0.03em",
+                                }}>
+                                    {discountPrice === 0 ? "무료" : `${discountPrice.toLocaleString()}원`}
+                                </span>
+                            </>
+                        ) : (
+                            <span style={{
+                                fontSize: 24, fontWeight: 800,
+                                color: priceNum === 0 ? "rgb(74,123,247)" : "#111827",
+                                letterSpacing: "-0.03em",
+                            }}>
+                                {price}
+                            </span>
+                        )}
                     </div>
 
                     {/* 태그 */}
@@ -257,6 +284,7 @@ export default function ThemeDetailLayout({
                         themeId={dbId}
                         priceNum={priceNum}
                         priceName={price}
+                        discountPrice={discountPrice}
                         isLoggedIn={isLoggedIn}
                         userId={userId}
                         isOwned={isOwned}

@@ -8,11 +8,11 @@ export async function GET(req: NextRequest) {
 
     try {
         const rows = await prisma.$queryRaw<{
-            id: string; title: string; price: number;
+            id: string; title: string; price: number; discountPrice: number | null;
             thumbnailUrl: string | null;
             creatorNickname: string | null; creatorName: string;
         }[]>`
-            SELECT t.id, t.title, t.price, t."thumbnailUrl",
+            SELECT t.id, t.title, t.price, t."discountPrice", t."thumbnailUrl",
                    u.nickname AS "creatorNickname", u.name AS "creatorName"
             FROM "Theme" t
             JOIN "User" u ON t."creatorId" = u.id
@@ -84,6 +84,7 @@ export async function GET(req: NextRequest) {
                 id: r.id,
                 title: r.title,
                 price: r.price,
+                discountPrice: r.discountPrice ?? null,
                 thumbnailUrl: r.thumbnailUrl,
                 author: r.creatorNickname ?? r.creatorName,
             },

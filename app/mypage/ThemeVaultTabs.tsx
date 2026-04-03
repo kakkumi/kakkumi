@@ -97,6 +97,7 @@ type ThemeItem = {
     id: string;
     name: string;
     price: number;
+    discountPrice?: number | null;
     thumbnailUrl?: string | null;
     tag?: "내 테마" | "구매";
     purchasedAt?: string;
@@ -144,6 +145,12 @@ export default function ThemeVaultTabs({ initialTab, onTabChangeAction }: { init
     const [refundingId, setRefundingId] = useState<string | null>(null);
     const [refundError, setRefundError] = useState("");
     const [refundSuccess, setRefundSuccess] = useState("");
+
+    // 할인 모달 상태
+    const [discountModal, setDiscountModal] = useState<{ id: string; name: string; price: number; current: number | null } | null>(null);
+    const [discountInput, setDiscountInput] = useState("");
+    const [discountLoading, setDiscountLoading] = useState(false);
+    const [discountError, setDiscountError] = useState("");
 
     const handleDownload = (themeId: string, themeName: string, versions: Version[], purchaseId?: string) => {
         setDownloadError(null);
@@ -213,6 +220,24 @@ export default function ThemeVaultTabs({ initialTab, onTabChangeAction }: { init
             setRefundModalTheme(null); setRefundReason(""); loadData();
         } catch { setRefundError("환불 처리 중 오류가 발생했습니다."); }
         finally { setRefundingId(null); }
+    };
+
+    const handleDiscountSave = async () => {
+        if (!discountModal) return;
+        setDiscountLoading(true); setDiscountError("");
+        const val = discountInput.trim() === "" ? null : parseInt(discountInput, 10);
+        if (val !== null && (isNaN(val) || val < 0)) { setDiscountError("올바른 금액을 입력하세요."); setDiscountLoading(false); return; }
+        if (val !== null && val >= discountModal.price) { setDiscountError("할인가는 원가보다 낮아야 합니다."); setDiscountLoading(false); return; }
+        try {
+            const res = await fetch(`/api/themes/${discountModal.id}/discount`, {
+                method: "PATCH", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ discountPrice: val }),
+            });
+            const data = await res.json() as { ok?: boolean; error?: string };
+            if (!res.ok) { setDiscountError(data.error ?? "저장에 실패했습니다."); return; }
+            setDiscountModal(null); setDiscountInput(""); loadData();
+        } catch { setDiscountError("오류가 발생했습니다."); }
+        finally { setDiscountLoading(false); }
     };
 
     useEffect(() => { loadData(); }, []);
@@ -290,7 +315,20 @@ export default function ThemeVaultTabs({ initialTab, onTabChangeAction }: { init
                                         </p>
                                     </Link>
                                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                        <span className="text-[12px]" style={{ color: "#a8a29e" }}>{formatPrice(theme.price)}</span>
+                                        {/* 가격 표시 */}
+                                        {theme.discountPrice != null && theme.price > 0 ? (
+                                            <>
+                                                <span className="text-[11px] font-bold" style={{ color: "rgb(255,59,48)" }}>
+                                                    {theme.discountPrice === 0 ? "무료" : `${theme.discountPrice.toLocaleString()}원`}
+                                                </span>
+                                                <span className="text-[10px]" style={{ color: "#c8c5c1", textDecoration: "line-through" }}>{formatPrice(theme.price)}</span>
+                                                <span className="text-[10px] font-bold px-1 rounded" style={{ background: "rgba(255,59,48,0.1)", color: "rgb(255,59,48)" }}>
+                                                    {Math.round((1 - theme.discountPrice / theme.price) * 100)}%
+                                                </span>
+                                            </>
+                                        ) : (
+                                            <span className="text-[12px]" style={{ color: "#a8a29e" }}>{formatPrice(theme.price)}</span>
+                                        )}
                                         <span style={{ color: "#e0dbd6", fontSize: 10 }}>·</span>
                                         <span className="text-[11px] font-medium" style={{ color: statusColor }}>{statusLabel}</span>
                                         <span style={{ color: "#e0dbd6", fontSize: 10 }}>·</span>
@@ -337,6 +375,21 @@ export default function ThemeVaultTabs({ initialTab, onTabChangeAction }: { init
                                             </button>
                                         )}
                                         <span style={{ color: "#e0dbd6", fontSize: 8 }}>|</span>
+                                        {theme.price > 0 && (
+                                            <>
+                                                <button
+                                                    onClick={() => {
+                                                        setDiscountModal({ id: theme.id, name: theme.name, price: theme.price, current: theme.discountPrice ?? null });
+                                                        setDiscountInput(theme.discountPrice != null ? String(theme.discountPrice) : "");
+                                                        setDiscountError("");
+                                                    }}
+                                                    className="text-[11px] transition-opacity hover:opacity-50"
+                                                    style={{ color: theme.discountPrice != null ? "rgb(255,59,48)" : "#a8a29e" }}>
+                                                    {theme.discountPrice != null ? "할인중" : "할인"}
+                                                </button>
+                                                <span style={{ color: "#e0dbd6", fontSize: 8 }}>|</span>
+                                            </>
+                                        )}
                                         <Link href={`/store/edit/${theme.id}`}>
                                             <span className="text-[11px] transition-opacity hover:opacity-50" style={{ color: "#FF9500" }}>수정신청</span>
                                         </Link>
@@ -492,6 +545,62 @@ export default function ThemeVaultTabs({ initialTab, onTabChangeAction }: { init
                     onConfirm={() => handleRefund(refundModalTheme.purchaseId)}
                     loading={refundingId === refundModalTheme.purchaseId}
                 />
+            )}
+
+            {/* 할인 모달 */}
+            {discountModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.35)" }}
+                    onClick={() => { setDiscountModal(null); setDiscountError(""); }}>
+                    <div className="w-full max-w-[360px] mx-4 rounded-2xl flex flex-col"
+                        style={{ background: "#fff", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}
+                        onClick={e => e.stopPropagation()}>
+                        <div className="px-6 pt-6 pb-4" style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+                            <p className="text-[11px] font-semibold tracking-widest uppercase mb-1" style={{ color: "rgb(255,59,48)" }}>할인 설정</p>
+                            <p className="text-[15px] font-semibold truncate" style={{ color: "#1c1917" }}>{discountModal.name}</p>
+                            <p className="text-[12px] mt-0.5" style={{ color: "#a8a29e" }}>원가: {discountModal.price.toLocaleString()}원</p>
+                        </div>
+                        <div className="px-6 py-5 flex flex-col gap-3">
+                            <p className="text-[12px]" style={{ color: "#a8a29e" }}>할인가를 입력하면 스토어에 할인이 표시됩니다. 비워두면 할인이 해제됩니다.</p>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="number" min="0" max={discountModal.price - 1}
+                                    value={discountInput}
+                                    onChange={e => setDiscountInput(e.target.value)}
+                                    placeholder={`0 ~ ${discountModal.price - 1} 사이 금액`}
+                                    className="flex-1 px-0 py-2 text-[14px] outline-none bg-transparent"
+                                    style={{ borderBottom: "1.5px solid #e7e5e4", color: "#1c1917" }}
+                                    autoFocus
+                                />
+                                <span className="text-[13px]" style={{ color: "#a8a29e" }}>원</span>
+                            </div>
+                            {/* 미리보기 */}
+                            {discountInput.trim() !== "" && !isNaN(parseInt(discountInput)) && parseInt(discountInput) >= 0 && parseInt(discountInput) < discountModal.price && (
+                                <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: "rgba(255,59,48,0.05)" }}>
+                                    <span className="text-[11px] font-bold px-1.5 py-0.5 rounded" style={{ background: "rgb(255,59,48)", color: "#fff" }}>
+                                        {Math.round((1 - parseInt(discountInput) / discountModal.price) * 100)}% 할인
+                                    </span>
+                                    <span className="text-[12px]" style={{ color: "#a8a29e", textDecoration: "line-through" }}>{discountModal.price.toLocaleString()}원</span>
+                                    <span className="text-[13px] font-bold" style={{ color: "rgb(255,59,48)" }}>
+                                        → {parseInt(discountInput) === 0 ? "무료" : `${parseInt(discountInput).toLocaleString()}원`}
+                                    </span>
+                                </div>
+                            )}
+                            {discountError && <p className="text-[12px]" style={{ color: "#ff3b30" }}>{discountError}</p>}
+                        </div>
+                        <div className="flex" style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
+                            <button onClick={() => { setDiscountModal(null); setDiscountError(""); }}
+                                className="flex-1 py-4 text-[14px] font-medium transition-opacity hover:opacity-50"
+                                style={{ color: "#a8a29e", borderRight: "1px solid rgba(0,0,0,0.06)" }}>
+                                취소
+                            </button>
+                            <button onClick={handleDiscountSave} disabled={discountLoading}
+                                className="flex-1 py-4 text-[14px] font-semibold transition-opacity hover:opacity-70 disabled:opacity-30"
+                                style={{ color: discountInput.trim() === "" ? "#a8a29e" : "rgb(255,59,48)" }}>
+                                {discountLoading ? "저장 중..." : discountInput.trim() === "" ? "할인 해제" : "저장"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* 탭 스위처 */}

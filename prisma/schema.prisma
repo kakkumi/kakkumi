@@ -125,6 +125,7 @@ model Theme {
   pendingImages           String[]
   pendingContentBlocks    String?
   pendingReviewVisibility String?
+  discountPrice           Int?
   purchases               Purchase[]
   reports                 Report[]       @relation("ThemeReports")
   reviews                 Review[]
