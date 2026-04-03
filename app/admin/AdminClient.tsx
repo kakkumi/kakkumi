@@ -303,6 +303,7 @@ function ModalOverlay({ onClose, children }: { onClose: () => void; children: Re
 // ── 메인 컴포넌트 ─────────────────────────────────
 export default function AdminClient({ dashboardCounts }: Props) {
     const [activeTab, setActiveTab] = useState<Tab>("overview");
+    const [liveCounts, setLiveCounts] = useState(dashboardCounts);
     const [themes, setThemes] = useState<AdminTheme[]>([]);
     const [users, setUsers] = useState<AdminUser[]>([]);
     const [reports, setReports] = useState<AdminReport[]>([]);
@@ -353,6 +354,7 @@ export default function AdminClient({ dashboardCounts }: Props) {
                 const r = await fetch("/api/admin/reports");
                 const d = await r.json() as { reports: AdminReport[] };
                 setReports(d.reports ?? []);
+                setLiveCounts(prev => ({ ...prev, reportsPending: (d.reports ?? []).filter(r => r.status === "PENDING").length }));
             } else if (tab === "sales") {
                 const r = await fetch("/api/admin/sales");
                 const d = await r.json() as { purchases: AdminPurchase[]; settlements: AdminSettlement[] };
@@ -362,18 +364,22 @@ export default function AdminClient({ dashboardCounts }: Props) {
                 const r = await fetch("/api/admin/inquiries");
                 const d = await r.json() as { inquiries: AdminInquiry[] };
                 setInquiries(d.inquiries ?? []);
+                setLiveCounts(prev => ({ ...prev, inquiriesOpen: (d.inquiries ?? []).filter(i => i.status === "OPEN").length }));
             } else if (tab === "applications") {
                 const r = await fetch("/api/admin/applications");
                 const d = await r.json() as { applications: AdminApplication[] };
                 setApplications(d.applications ?? []);
+                setLiveCounts(prev => ({ ...prev, applicationsPending: (d.applications ?? []).filter(a => a.status === "PENDING").length }));
             } else if (tab === "mailbox") {
                 const r = await fetch("/api/admin/mailbox");
                 const d = await r.json() as { mailboxes: AdminMailbox[] };
                 setMailboxes(d.mailboxes ?? []);
+                setLiveCounts(prev => ({ ...prev, mailboxPending: (d.mailboxes ?? []).filter(m => m.status === "PENDING").length }));
             } else if (tab === "gallery_reports") {
                 const r = await fetch("/api/admin/gallery-reports");
                 const d = await r.json() as { reports: AdminGalleryReport[] };
                 setGalleryReports(d.reports ?? []);
+                setLiveCounts(prev => ({ ...prev, galleryReportsPending: (d.reports ?? []).filter(r => !r.isHandled).length }));
             } else if (tab === "reviews") {
                 const r = await fetch("/api/admin/reviews");
                 const d = await r.json() as { reviews: AdminReview[] };
@@ -390,6 +396,7 @@ export default function AdminClient({ dashboardCounts }: Props) {
                 const r = await fetch("/api/admin/refunds");
                 const d = await r.json() as { refunds: AdminRefund[] };
                 setRefunds(d.refunds ?? []);
+                setLiveCounts(prev => ({ ...prev, refundsPending: (d.refunds ?? []).filter(r => r.status === "REFUND_REQUESTED").length }));
             } else if (tab === "creators") {
                 const r = await fetch("/api/admin/creators");
                 const d = await r.json() as { creators: AdminCreator[] };
@@ -557,28 +564,28 @@ export default function AdminClient({ dashboardCounts }: Props) {
         {
             label: "테마 승인 대기",
             tab: "themes",
-            count: dashboardCounts.themesPending,
+            count: liveCounts.themesPending,
             accent: "#FF9500",
             desc: "등록·수정 신청 중인 테마",
         },
         {
             label: "입점 신청 대기",
             tab: "applications",
-            count: dashboardCounts.applicationsPending,
+            count: liveCounts.applicationsPending,
             accent: "#FF9500",
             desc: "크리에이터 입점 심사 대기",
         },
         {
             label: "신고 처리 대기",
             tab: "reports",
-            count: dashboardCounts.reportsPending,
+            count: liveCounts.reportsPending,
             accent: "#ff3b30",
             desc: "테마 신고 미처리 건수",
         },
         {
             label: "환불 요청 대기",
             tab: "refunds",
-            count: dashboardCounts.refundsPending,
+            count: liveCounts.refundsPending,
             accent: "#ff3b30",
             desc: "처리 대기 중인 환불 요청",
         },
@@ -587,21 +594,21 @@ export default function AdminClient({ dashboardCounts }: Props) {
         {
             label: "1:1 문의 미답변",
             tab: "inquiries",
-            count: dashboardCounts.inquiriesOpen,
+            count: liveCounts.inquiriesOpen,
             accent: "rgb(74,123,247)",
             desc: "답변 대기 중인 문의",
         },
         {
             label: "우체통 미처리",
             tab: "mailbox",
-            count: dashboardCounts.mailboxPending,
+            count: liveCounts.mailboxPending,
             accent: "rgb(74,123,247)",
             desc: "건의·버그 제보 미검토 건수",
         },
         {
             label: "갤러리 신고 미처리",
             tab: "gallery_reports",
-            count: dashboardCounts.galleryReportsPending,
+            count: liveCounts.galleryReportsPending,
             accent: "rgb(74,123,247)",
             desc: "갤러리 댓글 신고 미처리 건수",
         },
