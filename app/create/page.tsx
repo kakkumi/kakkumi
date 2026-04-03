@@ -1525,6 +1525,7 @@ function CreatePageContent() {
           colors,
           images,
           versionName: config.version || "1.0.0",
+          darkMode: config.darkMode,
         }),
       });
 

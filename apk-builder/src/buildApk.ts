@@ -31,6 +31,8 @@ export interface BuildOptions {
   images?: Record<string, string>;
   versionName?: string;
   versionCode?: number;
+  /** 다크모드 여부 — true 이면 AndroidManifest 에 com.kakao.talk.theme_style=dark 주입 */
+  darkMode?: boolean;
 }
 
 /**
@@ -46,11 +48,28 @@ export async function buildApk(options: BuildOptions): Promise<Buffer> {
     // ── 1. 베이스 템플릿 복사 ──────────────────────────────────────────────
     fs.cpSync(BASE_DECODED_PATH, tmpDir, { recursive: true });
 
-    // ── 2. AndroidManifest.xml — 패키지 ID 교체 ───────────────────────────
+    // ── 2. AndroidManifest.xml — 패키지 ID 교체 + 다크모드 meta-data 주입 ──
     const manifestPath = path.join(tmpDir, "AndroidManifest.xml");
     if (fs.existsSync(manifestPath)) {
       let manifest = fs.readFileSync(manifestPath, "utf8");
+
+      // 패키지 ID 교체
       manifest = manifest.replace(/package="[^"]*"/, `package="${options.packageId}"`);
+
+      // 기존 theme_style meta-data 제거 (중복 방지)
+      manifest = manifest.replace(
+        /\s*<meta-data\s+android:name="com\.kakao\.talk\.theme_style"[^>]*\/>/g,
+        ""
+      );
+
+      // 다크모드일 때 <application ...> 직후에 theme_style meta-data 삽입
+      if (options.darkMode) {
+        manifest = manifest.replace(
+          /(<application[^>]*>)/,
+          `$1\n        <meta-data android:name="com.kakao.talk.theme_style" android:value="dark"/>`
+        );
+      }
+
       fs.writeFileSync(manifestPath, manifest);
     }
 

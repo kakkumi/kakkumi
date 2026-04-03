@@ -9,6 +9,7 @@ export interface ApkBuildRequest {
   images?: Record<string, string>;
   versionName?: string;
   versionCode?: number;
+  darkMode?: boolean;
 }
 
 export async function POST(request: Request) {
