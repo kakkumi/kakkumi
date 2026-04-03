@@ -586,7 +586,12 @@ function MacInput({
 
 /* ── 채팅 탭 전용: 목업 2개 나란히 ── */
 /* ── Android 친구 프로필 목업 (친구 탭 듀얼용 — 오른쪽) ── */
-function AndroidFriendsProfileMockup({ config }: { config: ThemeConfig }) {
+function AndroidFriendsProfileMockup({ config, imageUploads, defaultProfileOn }: { config: ThemeConfig; imageUploads: Record<string, string>; defaultProfileOn: boolean }) {
+  const profileImgUrls = defaultProfileOn ? [
+    imageUploads['profileImg01'],
+    imageUploads['profileImg02'],
+    imageUploads['profileImg03'],
+  ].filter(Boolean) as string[] : undefined;
   return (
     <div className="relative mx-auto select-none" style={{ width: 368, height: 699 }}>
       <div className="absolute inset-0 rounded-[28px] border-[5px] border-zinc-800 overflow-hidden"
@@ -599,7 +604,7 @@ function AndroidFriendsProfileMockup({ config }: { config: ThemeConfig }) {
           style={{ top: 0, bottom: 0 }}>
           <section style={{ ...frameStyle, borderRadius: 0, border: 'none', boxShadow: 'none', backgroundColor: 'transparent' }}>
             <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
-              <NewsScreen config={{ bodyBg: config.bodyBg, headerBg: config.headerBg, headerText: config.headerText, primaryText: config.primaryText, descText: config.descText, tabBarBg: config.tabBarBg, tabBarIcon: config.tabBarIcon, tabBarSelectedIcon: config.tabBarSelectedIcon, friendsSelectedBg: config.friendsSelectedBg, chatBg: config.chatBg, otherBubbleBg: config.otherBubbleBg, myBubbleBg: config.myBubbleBg, inputBarBg: config.inputBarBg, sendBtnBg: config.sendBtnBg, passcodeBg: config.passcodeBg, passcodeTitleText: config.passcodeTitleText, passcodeKeypadText: config.passcodeKeypadText, unreadCountColor: config.unreadCountColor, openchatBg: config.openchatBg, mainBgImageUrl: undefined }} />
+              <NewsScreen config={{ bodyBg: config.bodyBg, headerBg: config.headerBg, headerText: config.headerText, primaryText: config.primaryText, descText: config.descText, tabBarBg: config.tabBarBg, tabBarIcon: config.tabBarIcon, tabBarSelectedIcon: config.tabBarSelectedIcon, friendsSelectedBg: config.friendsSelectedBg, chatBg: config.chatBg, otherBubbleBg: config.otherBubbleBg, myBubbleBg: config.myBubbleBg, inputBarBg: config.inputBarBg, sendBtnBg: config.sendBtnBg, passcodeBg: config.passcodeBg, passcodeTitleText: config.passcodeTitleText, passcodeKeypadText: config.passcodeKeypadText, unreadCountColor: config.unreadCountColor, openchatBg: config.openchatBg, mainBgImageUrl: undefined, profileImgUrls }} />
             </div>
             <TabBar disabled darkMode={config.darkMode} />
           </section>
@@ -611,7 +616,12 @@ function AndroidFriendsProfileMockup({ config }: { config: ThemeConfig }) {
 }
 
 /* ── iOS 채팅방 목업 (채팅 탭 듀얼용) ── */
-function AndroidChatRoomMockup({ config }: { config: ThemeConfig }) {
+function AndroidChatRoomMockup({ config, imageUploads, defaultProfileOn }: { config: ThemeConfig; imageUploads: Record<string, string>; defaultProfileOn: boolean }) {
+  const profileImgUrls = defaultProfileOn ? [
+    imageUploads['profileImg01'],
+    imageUploads['profileImg02'],
+    imageUploads['profileImg03'],
+  ].filter(Boolean) as string[] : undefined;
   return (
     <div className="relative mx-auto select-none" style={{ width: 368, height: 699 }}>
       <div className="absolute inset-0 rounded-[28px] border-[5px] border-zinc-800 overflow-hidden"
@@ -624,7 +634,7 @@ function AndroidChatRoomMockup({ config }: { config: ThemeConfig }) {
           style={{ top: 0, bottom: 0 }}>
           <section style={{ ...frameStyle, borderRadius: 0, border: 'none', boxShadow: 'none', backgroundColor: 'transparent' }}>
             <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
-              <ChatRoomScreen config={{ bodyBg: config.bodyBg, headerBg: config.headerBg, headerText: config.headerText, primaryText: config.primaryText, descText: config.descText, tabBarBg: config.tabBarBg, tabBarIcon: config.tabBarIcon, tabBarSelectedIcon: config.tabBarSelectedIcon, friendsSelectedBg: config.friendsSelectedBg, chatBg: config.chatBg, otherBubbleBg: config.otherBubbleBg, myBubbleBg: config.myBubbleBg, inputBarBg: config.inputBarBg, sendBtnBg: config.sendBtnBg, passcodeBg: config.passcodeBg, passcodeTitleText: config.passcodeTitleText, passcodeKeypadText: config.passcodeKeypadText, unreadCountColor: config.unreadCountColor, openchatBg: config.openchatBg, mainBgImageUrl: undefined }} />
+              <ChatRoomScreen config={{ bodyBg: config.bodyBg, headerBg: config.headerBg, headerText: config.headerText, primaryText: config.primaryText, descText: config.descText, tabBarBg: config.tabBarBg, tabBarIcon: config.tabBarIcon, tabBarSelectedIcon: config.tabBarSelectedIcon, friendsSelectedBg: config.friendsSelectedBg, chatBg: config.chatBg, otherBubbleBg: config.otherBubbleBg, myBubbleBg: config.myBubbleBg, inputBarBg: config.inputBarBg, sendBtnBg: config.sendBtnBg, passcodeBg: config.passcodeBg, passcodeTitleText: config.passcodeTitleText, passcodeKeypadText: config.passcodeKeypadText, unreadCountColor: config.unreadCountColor, openchatBg: config.openchatBg, mainBgImageUrl: undefined, profileImgUrls }} />
             </div>
           </section>
         </div>
@@ -634,7 +644,7 @@ function AndroidChatRoomMockup({ config }: { config: ThemeConfig }) {
   );
 }
 
-function AndroidMockup({ config, previewTab, imageUploads, passcodeBgMode, bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor, keypadPressedOn }: { config: ThemeConfig; previewTab: PreviewTab; imageUploads: Record<string, string>; passcodeBgMode: "color" | "image"; bulletEmptyMode: "default" | "color" | "image"; bulletFillMode: "color" | "image"; bulletEmptyColor: string; bulletFillColor: string; keypadPressedOn: boolean }) {
+function AndroidMockup({ config, previewTab, imageUploads, passcodeBgMode, bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor, keypadPressedOn, defaultProfileOn }: { config: ThemeConfig; previewTab: PreviewTab; imageUploads: Record<string, string>; passcodeBgMode: "color" | "image"; bulletEmptyMode: "default" | "color" | "image"; bulletFillMode: "color" | "image"; bulletEmptyColor: string; bulletFillColor: string; keypadPressedOn: boolean; defaultProfileOn: boolean }) {
   const passcodeBgImgUrl = imageUploads["passcodeBgImg"];
   const screenConfig = useMemo(() => ({
     bodyBg: config.bodyBg,
@@ -658,6 +668,11 @@ function AndroidMockup({ config, previewTab, imageUploads, passcodeBgMode, bulle
     unreadCountColor: config.unreadCountColor,
     openchatBg: config.openchatBg,
     mainBgImageUrl: undefined,
+    profileImgUrls: defaultProfileOn ? [
+      imageUploads['profileImg01'],
+      imageUploads['profileImg02'],
+      imageUploads['profileImg03'],
+    ].filter(Boolean) as string[] : undefined,
     chatListLastMsgText: config.chatListLastMsgText,
     chatListNamePressColor: config.chatListHighlightText,
     chatListLastMsgPressColor: config.chatListLastMsgHighlightText,
@@ -680,7 +695,7 @@ function AndroidMockup({ config, previewTab, imageUploads, passcodeBgMode, bulle
     config.chatListHighlightText, config.chatListLastMsgHighlightText, config.selectedBgAlpha,
     passcodeBgImgUrl, passcodeBgMode,
     bulletEmptyMode, bulletFillMode, bulletEmptyColor, bulletFillColor,
-    imageUploads, keypadPressedOn,
+    imageUploads, keypadPressedOn, defaultProfileOn,
   ]);
 
   const renderScreen = () => {
@@ -1897,16 +1912,16 @@ function CreatePageContent() {
               <PreviewMockup disableTabNavigation mainBgImageUrl={imageUploads.mainBg} />
             ) : previewTab === "friends" ? (
               <div className="flex items-start gap-8">
-                <AndroidMockup config={config} previewTab="friends" imageUploads={imageUploads} passcodeBgMode={passcodeBgMode} bulletEmptyMode={bulletEmptyMode} bulletFillMode={bulletFillMode} bulletEmptyColor={bulletEmptyColor} bulletFillColor={bulletFillColor} keypadPressedOn={keypadPressedOn} />
-                <AndroidFriendsProfileMockup config={config} />
+                <AndroidMockup config={config} previewTab="friends" imageUploads={imageUploads} passcodeBgMode={passcodeBgMode} bulletEmptyMode={bulletEmptyMode} bulletFillMode={bulletFillMode} bulletEmptyColor={bulletEmptyColor} bulletFillColor={bulletFillColor} keypadPressedOn={keypadPressedOn} defaultProfileOn={defaultProfileOn} />
+                <AndroidFriendsProfileMockup config={config} imageUploads={imageUploads} defaultProfileOn={defaultProfileOn} />
               </div>
             ) : previewTab === "chat" ? (
               <div className="flex items-start gap-8">
-                <AndroidMockup config={config} previewTab="chat" imageUploads={imageUploads} passcodeBgMode={passcodeBgMode} bulletEmptyMode={bulletEmptyMode} bulletFillMode={bulletFillMode} bulletEmptyColor={bulletEmptyColor} bulletFillColor={bulletFillColor} keypadPressedOn={keypadPressedOn} />
-                <AndroidChatRoomMockup config={config} />
+                <AndroidMockup config={config} previewTab="chat" imageUploads={imageUploads} passcodeBgMode={passcodeBgMode} bulletEmptyMode={bulletEmptyMode} bulletFillMode={bulletFillMode} bulletEmptyColor={bulletEmptyColor} bulletFillColor={bulletFillColor} keypadPressedOn={keypadPressedOn} defaultProfileOn={defaultProfileOn} />
+                <AndroidChatRoomMockup config={config} imageUploads={imageUploads} defaultProfileOn={defaultProfileOn} />
               </div>
             ) : (
-              <AndroidMockup config={config} previewTab={previewTab} imageUploads={imageUploads} passcodeBgMode={passcodeBgMode} bulletEmptyMode={bulletEmptyMode} bulletFillMode={bulletFillMode} bulletEmptyColor={bulletEmptyColor} bulletFillColor={bulletFillColor} keypadPressedOn={keypadPressedOn} />
+              <AndroidMockup config={config} previewTab={previewTab} imageUploads={imageUploads} passcodeBgMode={passcodeBgMode} bulletEmptyMode={bulletEmptyMode} bulletFillMode={bulletFillMode} bulletEmptyColor={bulletEmptyColor} bulletFillColor={bulletFillColor} keypadPressedOn={keypadPressedOn} defaultProfileOn={defaultProfileOn} />
             )}
           </div>
         </main>
