@@ -122,8 +122,22 @@ export async function buildApk(options: BuildOptions): Promise<Buffer> {
 
     // ── 6. 이미지 교체 (drawable-xxhdpi / drawable-xhdpi) ─────────────────
     if (options.images) {
+      const xxhdpiDir = path.join(tmpDir, "res", "drawable-xxhdpi");
+
+      // profile_02, profile_03가 base 템플릿에 없으면 profile_01에서 복사해 플레이스홀더 생성
+      // (없는 파일은 교체 불가 → 재배포 전에도 정상 동작하기 위한 안전장치)
+      const profile01 = path.join(xxhdpiDir, "theme_profile_01_image.png");
+      if (fs.existsSync(profile01)) {
+        for (const n of ["02", "03"]) {
+          const profileN = path.join(xxhdpiDir, `theme_profile_0${n}_image.png`);
+          if (!fs.existsSync(profileN)) {
+            fs.copyFileSync(profile01, profileN);
+          }
+        }
+      }
+
       const drawableDirs = [
-        path.join(tmpDir, "res", "drawable-xxhdpi"),
+        xxhdpiDir,
         path.join(tmpDir, "res", "drawable-xhdpi"),
         path.join(tmpDir, "res", "drawable-sw600dp"),
       ];
