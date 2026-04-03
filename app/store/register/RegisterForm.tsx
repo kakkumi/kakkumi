@@ -508,7 +508,7 @@ export default function RegisterForm({ headerSlot, role, isPro = false }: Regist
                                     ))}
                                 </div>
                                 <p className="text-[11px]" style={{ color: "#bbb" }}>
-                                    {globalOs === "ios" ? ".ktheme 파일을 업로드합니다." : ".apk 또는 .zip 파일을 업로드합니다."}
+                                    {globalOs === "ios" ? ".ktheme 파일을 업로드합니다." : ".apk 파일을 업로드합니다."}
                                 </p>
                             </div>
 
@@ -569,14 +569,14 @@ export default function RegisterForm({ headerSlot, role, isPro = false }: Regist
                                                 <path d="M12 3v13M7 11l5 5 5-5" /><path d="M5 20h14" />
                                             </svg>
                                             <span className="text-[12px] flex-1 truncate" style={{ color: opt.file ? "#1a1a1a" : "#ccc" }}>
-                                                {opt.file ? opt.file.name : `파일 선택 (${opt.os === "ios" ? ".ktheme" : ".apk, .zip"})`}
+                                                {opt.file ? opt.file.name : `파일 선택 (${opt.os === "ios" ? ".ktheme" : ".apk"})`}
                                             </span>
                                             {opt.file && (
                                                 <button type="button" onClick={e => { e.preventDefault(); updateOption(opt.id, { file: null }); }} className="shrink-0 opacity-40 hover:opacity-80 transition-opacity">
                                                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
                                                 </button>
                                             )}
-                                            <input type="file" accept={opt.os === "ios" ? ".ktheme" : ".apk,.zip"} className="hidden"
+                                            <input type="file" accept={opt.os === "ios" ? ".ktheme" : ".apk"} className="hidden"
                                                 onChange={e => updateOption(opt.id, { file: e.target.files?.[0] ?? null })} />
                                         </label>
                                     ) : (
