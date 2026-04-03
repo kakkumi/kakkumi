@@ -9,10 +9,11 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-        const { type, title, content } = await req.json() as {
+        const { type, title, content, images } = await req.json() as {
             type: string;
             title: string;
             content: string;
+            images?: string[];
         };
 
         if (!type || !title?.trim() || !content?.trim()) {
@@ -28,15 +29,17 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "내용은 최대 500자까지 입력할 수 있습니다." }, { status: 400 });
         }
 
+        const imgArr = Array.isArray(images) ? images.slice(0, 5) : [];
         const id = crypto.randomUUID();
         await prisma.$executeRaw`
-            INSERT INTO "Mailbox" (id, "userId", type, title, content, status, "createdAt", "updatedAt")
+            INSERT INTO "Mailbox" (id, "userId", type, title, content, images, status, "createdAt", "updatedAt")
             VALUES (
                 ${id},
                 ${session.dbId},
                 ${type}::"MailboxType",
                 ${title.trim()},
                 ${content.trim()},
+                ${imgArr}::text[],
                 'PENDING'::"MailboxStatus",
                 NOW(),
                 NOW()

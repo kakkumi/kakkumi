@@ -192,6 +192,7 @@ model Inquiry {
   category  String         @default("기타")
   title     String
   content   String
+  images    String[]       @default([])
   status    InquiryStatus  @default(OPEN)
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
@@ -283,6 +284,7 @@ model Mailbox {
   type      MailboxType
   title     String
   content   String
+  images    String[]      @default([])
   status    MailboxStatus @default(PENDING)
   adminNote String?
   createdAt DateTime      @default(now())

@@ -13,6 +13,7 @@ export async function GET(req: NextRequest) {
 
         type MailboxRow = {
             id: string; type: string; title: string; content: string;
+            images: string[];
             status: string; adminNote: string | null; createdAt: Date;
             userNickname: string | null; userName: string;
         };
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest) {
         let mailboxes: MailboxRow[];
         if (typeFilter === "SUGGESTION" || typeFilter === "BUG_REPORT") {
             mailboxes = await prisma.$queryRaw<MailboxRow[]>`
-                SELECT m.id, m.type::text, m.title, m.content, m.status::text,
+                SELECT m.id, m.type::text, m.title, m.content, m.images, m.status::text,
                        m."adminNote", m."createdAt",
                        u.nickname AS "userNickname", u.name AS "userName"
                 FROM "Mailbox" m
@@ -30,7 +31,7 @@ export async function GET(req: NextRequest) {
             `;
         } else {
             mailboxes = await prisma.$queryRaw<MailboxRow[]>`
-                SELECT m.id, m.type::text, m.title, m.content, m.status::text,
+                SELECT m.id, m.type::text, m.title, m.content, m.images, m.status::text,
                        m."adminNote", m."createdAt",
                        u.nickname AS "userNickname", u.name AS "userName"
                 FROM "Mailbox" m

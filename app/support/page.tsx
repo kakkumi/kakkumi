@@ -218,6 +218,7 @@ type Inquiry = {
     title: string;
     content: string;
     category: string;
+    images: string[];
     status: "OPEN" | "ANSWERED" | "CLOSED";
     createdAt: string;
     replies: InquiryReply[];
@@ -262,12 +263,18 @@ function SupportPageContent() {
     const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
     const [showForm, setShowForm] = useState(false);
     const [contactForm, setContactForm] = useState({ title: "", content: "", category: "" });
+    const [contactImages, setContactImages] = useState<File[]>([]);
+    const [contactImagePreviews, setContactImagePreviews] = useState<string[]>([]);
+    const [contactImageUploading, setContactImageUploading] = useState(false);
     const [replyText, setReplyText] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     // 우체통 상태
     const [mailboxForm, setMailboxForm] = useState({ type: "", title: "", content: "" });
+    const [mailboxImages, setMailboxImages] = useState<File[]>([]);
+    const [mailboxImagePreviews, setMailboxImagePreviews] = useState<string[]>([]);
+    const [mailboxImageUploading, setMailboxImageUploading] = useState(false);
     const [mailboxSubmitting, setMailboxSubmitting] = useState(false);
     const [mailboxDone, setMailboxDone] = useState(false);
 
@@ -296,13 +303,16 @@ function SupportPageContent() {
         if (!contactForm.category) return;
         setSubmitting(true);
         try {
+            const imageUrls = await uploadImages(contactImages, setContactImageUploading);
             const res = await fetch("/api/inquiry", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...contactForm, category: contactForm.category || "기타" }),
+                body: JSON.stringify({ ...contactForm, category: contactForm.category || "기타", images: imageUrls }),
             });
             if (res.ok) {
                 setContactForm({ title: "", content: "", category: "" });
+                setContactImages([]);
+                setContactImagePreviews([]);
                 setShowForm(false);
                 loadInquiries();
             }
@@ -339,19 +349,67 @@ function SupportPageContent() {
         return formatKST(iso);
     }
 
+    const MAX_IMAGES = 5;
+
+    const handleContactImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files ?? []);
+        const combined = [...contactImages, ...files].slice(0, MAX_IMAGES);
+        setContactImages(combined);
+        setContactImagePreviews(combined.map((f) => URL.createObjectURL(f)));
+        e.target.value = "";
+    };
+
+    const removeContactImage = (idx: number) => {
+        const next = contactImages.filter((_, i) => i !== idx);
+        setContactImages(next);
+        setContactImagePreviews(next.map((f) => URL.createObjectURL(f)));
+    };
+
+    const handleMailboxImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files ?? []);
+        const combined = [...mailboxImages, ...files].slice(0, MAX_IMAGES);
+        setMailboxImages(combined);
+        setMailboxImagePreviews(combined.map((f) => URL.createObjectURL(f)));
+        e.target.value = "";
+    };
+
+    const removeMailboxImage = (idx: number) => {
+        const next = mailboxImages.filter((_, i) => i !== idx);
+        setMailboxImages(next);
+        setMailboxImagePreviews(next.map((f) => URL.createObjectURL(f)));
+    };
+
+    const uploadImages = async (files: File[], onUploading: (v: boolean) => void): Promise<string[]> => {
+        if (files.length === 0) return [];
+        onUploading(true);
+        try {
+            const formData = new FormData();
+            files.forEach((f) => formData.append("files", f));
+            const res = await fetch("/api/upload/support-image", { method: "POST", body: formData });
+            const data = await res.json() as { urls?: string[]; error?: string };
+            if (!res.ok) throw new Error(data.error ?? "업로드 실패");
+            return data.urls ?? [];
+        } finally {
+            onUploading(false);
+        }
+    };
+
     const handleSubmitMailbox = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!mailboxForm.type || !mailboxForm.title.trim() || !mailboxForm.content.trim()) return;
         setMailboxSubmitting(true);
         try {
+            const imageUrls = await uploadImages(mailboxImages, setMailboxImageUploading);
             const res = await fetch("/api/mailbox", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(mailboxForm),
+                body: JSON.stringify({ ...mailboxForm, images: imageUrls }),
             });
             if (res.ok) {
                 setMailboxDone(true);
                 setMailboxForm({ type: "", title: "", content: "" });
+                setMailboxImages([]);
+                setMailboxImagePreviews([]);
             }
         } finally {
             setMailboxSubmitting(false);
@@ -641,6 +699,21 @@ function SupportPageContent() {
                                         </div>
                                         <h2 className="text-[18px] font-semibold" style={{ color: "#1c1917" }}>{selectedInquiry.title}</h2>
                                         <p className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: "#78716c" }}>{selectedInquiry.content}</p>
+                                        {selectedInquiry.images && selectedInquiry.images.length > 0 && (
+                                            <div className="flex items-center gap-2 flex-wrap mt-2">
+                                                {selectedInquiry.images.map((url, idx) => (
+                                                    <a key={idx} href={url} target="_blank" rel="noopener noreferrer">
+                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                        <img
+                                                            src={url}
+                                                            alt={`첨부이미지 ${idx + 1}`}
+                                                            className="w-20 h-20 rounded-xl object-cover transition-opacity hover:opacity-70"
+                                                            style={{ border: "1px solid rgba(0,0,0,0.08)" }}
+                                                        />
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* 답변 스레드 */}
@@ -770,14 +843,59 @@ function SupportPageContent() {
                                         />
                                     </div>
 
+                                    {/* 이미지 첨부 */}
+                                    <div className="flex flex-col gap-3">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "#a8a29e" }}>
+                                                이미지 첨부 <span className="normal-case font-normal" style={{ color: "#d6d3d1" }}>선택 · 최대 5장</span>
+                                            </label>
+                                        </div>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            {contactImagePreviews.map((src, idx) => (
+                                                <div key={idx} className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0" style={{ border: "1px solid rgba(0,0,0,0.08)" }}>
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img src={src} alt="" className="w-full h-full object-cover" />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeContactImage(idx)}
+                                                        className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full flex items-center justify-center"
+                                                        style={{ background: "rgba(0,0,0,0.55)" }}
+                                                    >
+                                                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            {contactImages.length < MAX_IMAGES && (
+                                                <label
+                                                    className="w-16 h-16 rounded-xl flex flex-col items-center justify-center cursor-pointer shrink-0 transition-opacity hover:opacity-60"
+                                                    style={{ border: "1.5px dashed rgba(0,0,0,0.13)", background: "rgba(0,0,0,0.02)" }}
+                                                >
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                                                    </svg>
+                                                    <span className="text-[10px] mt-1" style={{ color: "#c7c7cc" }}>추가</span>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/jpeg,image/png,image/gif,image/webp"
+                                                        multiple
+                                                        className="hidden"
+                                                        onChange={handleContactImageChange}
+                                                    />
+                                                </label>
+                                            )}
+                                        </div>
+                                    </div>
+
                                     <div className="flex justify-end">
                                         <button
                                             type="submit"
-                                            disabled={submitting || !contactForm.category}
+                                            disabled={submitting || contactImageUploading || !contactForm.category}
                                             className="px-5 py-2 text-[13px] font-medium transition-opacity hover:opacity-70 disabled:opacity-30"
                                             style={{ backgroundColor: "#1c1917", color: "#fafaf9", borderRadius: 99 }}
                                         >
-                                            {submitting ? "접수 중…" : "문의 접수하기"}
+                                            {submitting || contactImageUploading ? "접수 중…" : "문의 접수하기"}
                                         </button>
                                     </div>
                                 </form>
@@ -952,6 +1070,51 @@ function SupportPageContent() {
                                         />
                                     </div>
 
+                                    {/* 이미지 첨부 */}
+                                    <div className="flex flex-col gap-3">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "#a8a29e" }}>
+                                                이미지 첨부 <span className="normal-case font-normal" style={{ color: "#d6d3d1" }}>선택 · 최대 5장</span>
+                                            </label>
+                                        </div>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            {mailboxImagePreviews.map((src, idx) => (
+                                                <div key={idx} className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0" style={{ border: "1px solid rgba(0,0,0,0.08)" }}>
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img src={src} alt="" className="w-full h-full object-cover" />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeMailboxImage(idx)}
+                                                        className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full flex items-center justify-center"
+                                                        style={{ background: "rgba(0,0,0,0.55)" }}
+                                                    >
+                                                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            {mailboxImages.length < MAX_IMAGES && (
+                                                <label
+                                                    className="w-16 h-16 rounded-xl flex flex-col items-center justify-center cursor-pointer shrink-0 transition-opacity hover:opacity-60"
+                                                    style={{ border: "1.5px dashed rgba(0,0,0,0.13)", background: "rgba(0,0,0,0.02)" }}
+                                                >
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                                                    </svg>
+                                                    <span className="text-[10px] mt-1" style={{ color: "#c7c7cc" }}>추가</span>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/jpeg,image/png,image/gif,image/webp"
+                                                        multiple
+                                                        className="hidden"
+                                                        onChange={handleMailboxImageChange}
+                                                    />
+                                                </label>
+                                            )}
+                                        </div>
+                                    </div>
+
                                     {/* 안내 + 제출 */}
                                     <div className="flex items-center justify-between">
                                         <p className="text-[12px] leading-relaxed" style={{ color: "#a8a29e" }}>
@@ -967,7 +1130,7 @@ function SupportPageContent() {
                                         </p>
                                         <button
                                             type="submit"
-                                            disabled={mailboxSubmitting || !mailboxForm.type || !mailboxForm.title.trim() || !mailboxForm.content.trim()}
+                                            disabled={mailboxSubmitting || mailboxImageUploading || !mailboxForm.type || !mailboxForm.title.trim() || !mailboxForm.content.trim()}
                                             className="shrink-0 px-5 py-2 text-[13px] font-medium transition-all hover:opacity-80 disabled:opacity-30"
                                             style={{
                                                 backgroundColor: "#1c1917",
@@ -975,7 +1138,7 @@ function SupportPageContent() {
                                                 borderRadius: 99,
                                             }}
                                         >
-                                            {mailboxSubmitting ? "제출 중…" : "제출하기"}
+                                            {mailboxSubmitting || mailboxImageUploading ? "제출 중…" : "제출하기"}
                                         </button>
                                     </div>
                                 </form>

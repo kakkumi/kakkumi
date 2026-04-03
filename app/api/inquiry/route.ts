@@ -10,10 +10,10 @@ export async function GET() {
     const inquiries = await prisma.$queryRaw<
         {
             id: string; userId: string; category: string; title: string;
-            content: string; status: string; createdAt: Date; updatedAt: Date;
+            content: string; images: string[]; status: string; createdAt: Date; updatedAt: Date;
         }[]
     >`
-        SELECT id, "userId", category, title, content, status, "createdAt", "updatedAt"
+        SELECT id, "userId", category, title, content, images, status, "createdAt", "updatedAt"
         FROM "Inquiry"
         WHERE "userId" = ${session.dbId}
         ORDER BY "createdAt" DESC
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession();
     if (!session?.dbId) return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
 
-    const { title, content, category } = (await req.json()) as { title: string; content: string; category: string };
+    const { title, content, category, images } = (await req.json()) as { title: string; content: string; category: string; images?: string[] };
 
     if (!title?.trim() || !content?.trim()) {
         return NextResponse.json({ error: "제목과 내용을 입력해주세요." }, { status: 400 });
@@ -66,13 +66,14 @@ export async function POST(req: NextRequest) {
     const id = crypto.randomUUID();
     const now = new Date();
     const cat = category ?? "기타";
+    const imgArr = Array.isArray(images) ? images.slice(0, 5) : [];
 
     try {
         await prisma.$executeRaw`
-            INSERT INTO "Inquiry" (id, "userId", category, title, content, status, "createdAt", "updatedAt")
-            VALUES (${id}, ${session.dbId}, ${cat}, ${title.trim()}, ${content.trim()}, 'OPEN'::"InquiryStatus", ${now}, ${now})
+            INSERT INTO "Inquiry" (id, "userId", category, title, content, images, status, "createdAt", "updatedAt")
+            VALUES (${id}, ${session.dbId}, ${cat}, ${title.trim()}, ${content.trim()}, ${imgArr}::text[], 'OPEN'::"InquiryStatus", ${now}, ${now})
         `;
-        return NextResponse.json({ inquiry: { id, userId: session.dbId, category: cat, title, content, status: "OPEN", createdAt: now, updatedAt: now, replies: [] } });
+        return NextResponse.json({ inquiry: { id, userId: session.dbId, category: cat, title, content, images: imgArr, status: "OPEN", createdAt: now, updatedAt: now, replies: [] } });
     } catch (e) {
         console.error("[inquiry POST]", e);
         return NextResponse.json({ error: "문의 접수에 실패했습니다." }, { status: 500 });

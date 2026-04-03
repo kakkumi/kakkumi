@@ -15,10 +15,11 @@ export async function GET(req: NextRequest) {
         try {
             const [inquiry] = await prisma.$queryRaw<{
                 id: string; title: string; content: string; category: string;
+                images: string[];
                 status: string; createdAt: Date;
                 userNickname: string | null; userName: string; userId: string;
             }[]>`
-                SELECT i.id, i.title, i.content, i.category, i.status, i."createdAt",
+                SELECT i.id, i.title, i.content, i.category, i.images, i.status, i."createdAt",
                        i."userId",
                        u.nickname AS "userNickname", u.name AS "userName"
                 FROM "Inquiry" i
@@ -68,11 +69,12 @@ export async function GET(req: NextRequest) {
     try {
         const inquiries = await prisma.$queryRaw<{
             id: string; title: string; content: string; category: string;
+            images: string[];
             status: string; createdAt: Date;
             userNickname: string | null; userName: string;
             replyCount: bigint;
         }[]>`
-            SELECT i.id, i.title, i.content, i.category, i.status, i."createdAt",
+            SELECT i.id, i.title, i.content, i.category, i.images, i.status, i."createdAt",
                    u.nickname AS "userNickname", u.name AS "userName",
                    COUNT(r.id) AS "replyCount"
             FROM "Inquiry" i

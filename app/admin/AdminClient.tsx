@@ -46,6 +46,7 @@ type AdminInquiryReply = {
 };
 type AdminInquiry = {
     id: string; title: string; content: string; category: string;
+    images?: string[];
     status: string; createdAt: string; replyCount: number;
     userNickname: string | null; userName: string;
     replies?: AdminInquiryReply[];
@@ -58,6 +59,7 @@ type AdminApplication = {
 };
 type AdminMailbox = {
     id: string; type: "SUGGESTION" | "BUG_REPORT"; title: string; content: string;
+    images?: string[];
     status: "PENDING" | "REVIEWED"; adminNote: string | null; createdAt: string;
     userNickname: string | null; userName: string;
 };
@@ -936,6 +938,16 @@ export default function AdminClient({ dashboardCounts }: Props) {
                                     <h2 className="text-[17px] font-semibold" style={{ color: "#1c1c1e" }}>{selectedInquiry.title}</h2>
                                     <p className="text-[12px]" style={{ color: "#aeaeb2" }}>작성자: {selectedInquiry.userNickname ?? selectedInquiry.userName}</p>
                                     <p className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: "#3a3a3c" }}>{selectedInquiry.content}</p>
+                                    {selectedInquiry.images && selectedInquiry.images.length > 0 && (
+                                        <div className="flex items-center gap-2 flex-wrap mt-1">
+                                            {selectedInquiry.images.map((url, idx) => (
+                                                <a key={idx} href={url} target="_blank" rel="noopener noreferrer">
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img src={url} alt={`첨부이미지 ${idx + 1}`} className="w-16 h-16 rounded-xl object-cover transition-opacity hover:opacity-70" style={{ border: "1px solid rgba(0,0,0,0.08)" }} />
+                                                </a>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* 답변 스레드 */}
@@ -2502,6 +2514,16 @@ function MailboxAdminTab({ mailboxes, loading, actionLoading, onAction }: {
                         )}
                     </div>
                     <p className="text-[12px] leading-relaxed" style={{ color: "#3a3a3c", whiteSpace: "pre-wrap" }}>{m.content}</p>
+                    {m.images && m.images.length > 0 && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                            {m.images.map((url, idx) => (
+                                <a key={idx} href={url} target="_blank" rel="noopener noreferrer">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={url} alt={`첨부이미지 ${idx + 1}`} className="w-14 h-14 rounded-xl object-cover transition-opacity hover:opacity-70" style={{ border: "1px solid rgba(0,0,0,0.08)" }} />
+                                </a>
+                            ))}
+                        </div>
+                    )}
                     {m.adminNote && (
                         <div className="px-3 py-2 rounded-lg" style={{ background: "rgba(52,199,89,0.04)", borderLeft: "2px solid rgba(52,199,89,0.3)" }}>
                             <p className="text-[11px]" style={{ color: "#1a7a3a" }}>관리자 메모: {m.adminNote}</p>
