@@ -11,6 +11,25 @@ const KEYSTORE_STOREPASS = process.env.KEYSTORE_STOREPASS ?? "kakkumi_apk_store"
 const KEYSTORE_KEYPASS = process.env.KEYSTORE_KEYPASS ?? "kakkumi_apk_key";
 const KEYSTORE_ALIAS = process.env.KEYSTORE_ALIAS ?? "kakkumi";
 
+/**
+ * 사전 빌드된 DEX 캐시 경로.
+ * Docker 빌드 시 base-decoded를 apktool b로 한 번 빌드하여
+ * classes*.dex 파일을 이 디렉토리에 캐시합니다.
+ * 매 요청마다 smali→DEX 재컴파일을 건너뛰어 빌드 시간을 대폭 단축합니다.
+ */
+const DEX_CACHE_PATH =
+  process.env.DEX_CACHE_PATH ?? path.join(__dirname, "../dex-cache");
+
+const hasDexCache = fs.existsSync(DEX_CACHE_PATH) &&
+  fs.readdirSync(DEX_CACHE_PATH).some(f => f.endsWith(".dex"));
+
+if (hasDexCache) {
+  const dexFiles = fs.readdirSync(DEX_CACHE_PATH).filter(f => f.endsWith(".dex"));
+  console.log(`[INIT] DEX 캐시 활성화 — ${dexFiles.length}개 DEX 파일 (smali 컴파일 생략)`);
+} else {
+  console.log("[INIT] DEX 캐시 없음 — 전체 빌드 모드 (느림)");
+}
+
 /** POST /build 에서 받는 요청 타입 */
 export interface BuildOptions {
   /** 테마 이름 (예: "나의 봄 테마") */
@@ -46,7 +65,21 @@ export async function buildApk(options: BuildOptions): Promise<Buffer> {
 
   try {
     // ── 1. 베이스 템플릿 복사 ──────────────────────────────────────────────
-    fs.cpSync(BASE_DECODED_PATH, tmpDir, { recursive: true });
+    // DEX 캐시가 있으면 smali 디렉토리를 제외하여 복사 시간을 절약하고
+    // apktool이 smali→DEX 재컴파일을 건너뛰도록 합니다.
+    const normalizedBase = path.resolve(BASE_DECODED_PATH);
+    fs.cpSync(BASE_DECODED_PATH, tmpDir, {
+      recursive: true,
+      filter: hasDexCache
+        ? (src: string) => {
+            if (path.dirname(path.resolve(src)) === normalizedBase) {
+              const basename = path.basename(src);
+              if (/^smali(_classes\d+)?$/.test(basename)) return false;
+            }
+            return true;
+          }
+        : () => true,
+    });
 
     // ── 2. AndroidManifest.xml — 패키지 ID 교체 + 다크모드 meta-data 주입 ──
     const manifestPath = path.join(tmpDir, "AndroidManifest.xml");
@@ -156,8 +189,10 @@ export async function buildApk(options: BuildOptions): Promise<Buffer> {
     }
 
     // ── 7. apktool 리빌드 ─────────────────────────────────────────────────
+    // --no-crunch: PNG 최적화 건너뛰기 (이미 최적화된 이미지이므로 불필요)
+    // DEX 캐시가 있으면 smali 디렉토리가 없어 DEX 컴파일을 건너뜁니다.
     try {
-      execSync(`apktool b "${tmpDir}" -o "${unsignedApk}"`, {
+      execSync(`apktool b "${tmpDir}" -o "${unsignedApk}" --no-crunch`, {
         timeout: 180_000,
         encoding: "utf8",
         cwd: os.tmpdir(),
@@ -167,10 +202,23 @@ export async function buildApk(options: BuildOptions): Promise<Buffer> {
       throw new Error(`apktool 실패: ${err.stderr ?? err.stdout ?? err.message}`);
     }
 
+    // ── 7.5. 캐시된 DEX 파일 주입 (smali 컴파일을 건너뛴 경우) ─────────
+    if (hasDexCache) {
+      try {
+        execSync(`jar uMf "${unsignedApk}" -C "${DEX_CACHE_PATH}" .`, {
+          timeout: 30_000,
+          encoding: "utf8",
+        });
+      } catch (e: unknown) {
+        const err = e as { stdout?: string; stderr?: string; message?: string };
+        throw new Error(`DEX 주입 실패: ${err.stderr ?? err.stdout ?? err.message}`);
+      }
+    }
+
     // ── 8. jarsigner로 v1 서명 ────────────────────────────────────────────
     try {
       execSync(
-        `jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore "${KEYSTORE_PATH}" -storepass "${KEYSTORE_STOREPASS}" "${unsignedApk}" "${KEYSTORE_ALIAS}"`,
+        `jarsigner -sigalg SHA256withRSA -digestalg SHA-256 -keystore "${KEYSTORE_PATH}" -storepass "${KEYSTORE_STOREPASS}" "${unsignedApk}" "${KEYSTORE_ALIAS}"`,
         { timeout: 60_000, encoding: "utf8", cwd: os.tmpdir() }
       );
     } catch (e: unknown) {

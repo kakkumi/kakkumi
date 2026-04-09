@@ -36,6 +36,18 @@ RUN npm run build
 # ────────────────────────────────────────────
 COPY base-decoded/ /app/base-decoded/
 
+# ────────────────────────────────────────────
+# DEX 캐시 생성 (빌드 시 1회만 실행)
+# base-decoded를 apktool b로 빌드하여 classes*.dex를 추출합니다.
+# 런타임에 smali→DEX 재컴파일을 건너뛰어 빌드 시간을 ~12초 단축합니다.
+# ────────────────────────────────────────────
+RUN apktool b /app/base-decoded -o /tmp/base-prebuilt.apk && \
+    mkdir -p /app/dex-cache && \
+    cd /app/dex-cache && \
+    unzip -o /tmp/base-prebuilt.apk 'classes*.dex' && \
+    rm -f /tmp/base-prebuilt.apk && \
+    echo "[Docker] DEX cache created: $(ls /app/dex-cache/)"
+
 # 서명 키스토어 생성 (최초 배포 시 한 번만; 실서비스는 별도 keystore.jks를 COPY 또는 Secret Manager 사용)
 ARG KEYSTORE_STOREPASS=kakkumi_apk_store
 ARG KEYSTORE_KEYPASS=kakkumi_apk_key
@@ -54,6 +66,7 @@ ENV KEYSTORE_STOREPASS=kakkumi_apk_store
 ENV KEYSTORE_KEYPASS=kakkumi_apk_key
 ENV KEYSTORE_ALIAS=kakkumi
 ENV BASE_DECODED_PATH=/app/base-decoded
+ENV DEX_CACHE_PATH=/app/dex-cache
 ENV PORT=8080
 
 EXPOSE 8080
