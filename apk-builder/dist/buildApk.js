@@ -43,6 +43,10 @@ const KEYSTORE_PATH = process.env.KEYSTORE_PATH ?? path.join(__dirname, "../keys
 const KEYSTORE_STOREPASS = process.env.KEYSTORE_STOREPASS ?? "kakkumi_apk_store";
 const KEYSTORE_KEYPASS = process.env.KEYSTORE_KEYPASS ?? "kakkumi_apk_key";
 const KEYSTORE_ALIAS = process.env.KEYSTORE_ALIAS ?? "kakkumi";
+/** zipalign 경로 (v2 서명 전 4바이트 정렬 필수) */
+const ZIPALIGN_PATH = process.env.ZIPALIGN_PATH ?? "zipalign";
+/** apksigner 경로 (v1+v2 서명 — Android 11+ 필수) */
+const APKSIGNER_PATH = process.env.APKSIGNER_PATH ?? "apksigner";
 /**
  * 베이스 디코딩 APK에 색상·이미지를 주입하고,
  * apktool로 리빌드 → jarsigner로 서명한 APK Buffer를 반환합니다.
@@ -151,15 +155,26 @@ async function buildApk(options) {
             const err = e;
             throw new Error(`apktool 실패: ${err.stderr ?? err.stdout ?? err.message}`);
         }
-        // ── 8. jarsigner로 v1 서명 ────────────────────────────────────────────
+        // ── 9. zipalign (v2 서명 전 필수 — 4바이트 정렬) ────────────────────
+        const alignedApk = path.join(os.tmpdir(), `aligned-${id}.apk`);
         try {
-            (0, child_process_1.execSync)(`jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore "${KEYSTORE_PATH}" -storepass "${KEYSTORE_STOREPASS}" "${unsignedApk}" "${KEYSTORE_ALIAS}"`, { timeout: 60_000, encoding: "utf8", cwd: os.tmpdir() });
+            (0, child_process_1.execSync)(`"${ZIPALIGN_PATH}" -f 4 "${unsignedApk}" "${alignedApk}"`, { timeout: 60_000, encoding: "utf8" });
         }
         catch (e) {
             const err = e;
-            throw new Error(`jarsigner 실패: ${err.stderr ?? err.stdout ?? err.message}`);
+            throw new Error(`zipalign 실패: ${err.stderr ?? err.stdout ?? err.message}`);
         }
-        const apkBuffer = fs.readFileSync(unsignedApk);
+        // ── 10. apksigner로 v1+v2 서명 ───────────────────────────────────────
+        // Android 11+(API 30+)에서 targetSdkVersion 30+ APK는 v2 서명 필수.
+        // jarsigner는 v1만 지원하므로 apksigner를 사용합니다.
+        try {
+            (0, child_process_1.execSync)(`"${APKSIGNER_PATH}" sign --ks "${KEYSTORE_PATH}" --ks-pass "pass:${KEYSTORE_STOREPASS}" --ks-key-alias "${KEYSTORE_ALIAS}" --key-pass "pass:${KEYSTORE_STOREPASS}" "${alignedApk}"`, { timeout: 60_000, encoding: "utf8", cwd: os.tmpdir() });
+        }
+        catch (e) {
+            const err = e;
+            throw new Error(`apksigner 실패: ${err.stderr ?? err.stdout ?? err.message}`);
+        }
+        const apkBuffer = fs.readFileSync(alignedApk);
         return apkBuffer;
     }
     finally {
@@ -170,6 +185,10 @@ async function buildApk(options) {
         catch { /* ignore */ }
         try {
             fs.rmSync(unsignedApk, { force: true });
+        }
+        catch { /* ignore */ }
+        try {
+            fs.rmSync(path.join(os.tmpdir(), `aligned-${id}.apk`), { force: true });
         }
         catch { /* ignore */ }
     }
