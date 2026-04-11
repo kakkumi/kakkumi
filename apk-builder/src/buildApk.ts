@@ -125,9 +125,9 @@ export async function buildApk(options: BuildOptions): Promise<Buffer> {
       const xxhdpiDir = path.join(tmpDir, "res", "drawable-xxhdpi");
 
       // profile_02, profile_03가 base 템플릿에 없으면 profile_01에서 복사해 플레이스홀더 생성
-      // (없는 파일은 교체 불가 → 재배포 전에도 정상 동작하기 위한 안전장치)
+      // (유효한 PNG일 때만 복사 — apktool 2.9.3 내부 aapt2가 PNG 시그니처를 엄격히 검증)
       const profile01 = path.join(xxhdpiDir, "theme_profile_01_image.png");
-      if (fs.existsSync(profile01)) {
+      if (fs.existsSync(profile01) && isValidPng(profile01)) {
         for (const n of ["02", "03"]) {
           const profileN = path.join(xxhdpiDir, `theme_profile_0${n}_image.png`);
           if (!fs.existsSync(profileN)) {
@@ -155,7 +155,12 @@ export async function buildApk(options: BuildOptions): Promise<Buffer> {
       }
     }
 
-    // ── 7. apktool 리빌드 ─────────────────────────────────────────────────
+    // ── 7. 잘못된 PNG 파일 제거 (apktool 내부 aapt2 호환) ──────────────────
+    // apktool 2.9.3은 내부적으로 aapt2를 사용하며, .png 확장자이지만
+    // 실제 PNG가 아닌 파일(WebP 등)이 있으면 빌드가 실패합니다.
+    removeInvalidPngs(path.join(tmpDir, "res"));
+
+    // ── 8. apktool 리빌드 ─────────────────────────────────────────────────
     try {
       execSync(`apktool b "${tmpDir}" -o "${unsignedApk}"`, {
         timeout: 180_000,
@@ -205,4 +210,36 @@ function dataUrlToBuffer(dataUrl: string): Buffer | null {
     return null;
   }
 }
+
+const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
+
+/** 파일이 유효한 PNG인지 시그니처(매직 바이트)로 확인 */
+function isValidPng(filePath: string): boolean {
+  try {
+    const fd = fs.openSync(filePath, "r");
+    const header = Buffer.alloc(8);
+    fs.readSync(fd, header, 0, 8, 0);
+    fs.closeSync(fd);
+    return header.subarray(0, 8).equals(PNG_SIGNATURE);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * res/ 내 .png 확장자이지만 실제 PNG가 아닌 파일을 삭제.
+ * apktool 2.9.3 내부 aapt2가 PNG 시그니처를 엄격히 검증하므로,
+ * 비표준 파일(WebP/JPEG를 .png 확장자로 저장한 경우)을 제거합니다.
+ */
+function removeInvalidPngs(dir: string): void {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      removeInvalidPngs(fullPath);
+    } else if (entry.name.endsWith(".png") && !isValidPng(fullPath)) {
+      fs.unlinkSync(fullPath);
+    }
+  }
+}
+
 
