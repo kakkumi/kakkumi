@@ -1066,8 +1066,11 @@ function CreatePageContent() {
         primaryText: config.primaryText,
         descText: config.descText,
         headerTabText: config.headerTabText,
-        profileImgUrls: defaultProfileOn && imageUploads['profileImg01']
-          ? [imageUploads['profileImg01']] : undefined,
+        profileImgUrls: defaultProfileOn ? (
+          os === "ios"
+            ? [imageUploads['profileImg01'], imageUploads['profileImg02'], imageUploads['profileImg03']].filter(Boolean) as string[]
+            : imageUploads['profileImg01'] ? [imageUploads['profileImg01']] : undefined
+        ) : undefined,
       },
       friendsTab: {
         updateSectionBg: '#F2F2F7',
@@ -1100,7 +1103,7 @@ function CreatePageContent() {
         keypadTextColor: config.passcodeKeypadText,
       },
     });
-  }, [config, setTheme, tabBgMode, imageUploads]);
+  }, [config, setTheme, tabBgMode, imageUploads, os, defaultProfileOn]);
 
   useEffect(() => {
     setTheme({
@@ -1350,6 +1353,8 @@ function CreatePageContent() {
         bulletFill: "passcodeImgCodeSelected@3x.png",
         passcodeKeypadPressed: "passcodeKeypadPressed@3x.png",
         profileImg01: "profileImg01@3x.png",
+        profileImg02: "profileImg02@3x.png",
+        profileImg03: "profileImg03@3x.png",
       };
 
       // 모드에 따라 실제 사용할 imageUploads 키 결정
@@ -1367,7 +1372,7 @@ function CreatePageContent() {
           if (key === "tabBg" && tabBgMode === "color") return false;
           if (key === "bulletEmpty" && bulletEmptyMode === "default") return false;
           if (key === "passcodeKeypadPressed" && !keypadPressedOn) return false;
-          if (key === "profileImg01" && !defaultProfileOn) return false;
+          if ((key === "profileImg01" || key === "profileImg02" || key === "profileImg03") && !defaultProfileOn) return false;
           return !!resolvedUploads[key];
         })
         .map(async ([key, filename]) => {
@@ -2109,6 +2114,8 @@ function CreatePageContent() {
                             setImageUploads(u => {
                               const next = { ...u };
                               delete next['profileImg01'];
+                              delete next['profileImg02'];
+                              delete next['profileImg03'];
                               return next;
                             });
                           }
@@ -2133,7 +2140,13 @@ function CreatePageContent() {
                   </div>
                   {defaultProfileOn && (
                     <>
-                      <ImageUploadRow label="프로필 이미지" badge="(필수)" badgeColor="rgb(248,113,113)" tooltip="profileImg01@3x.png" imgKey="profileImg01" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                      <ImageUploadRow label={os === "ios" ? "프로필 이미지 01" : "프로필 이미지"} badge="(필수)" badgeColor="rgb(248,113,113)" tooltip="profileImg01@3x.png" imgKey="profileImg01" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                      {os === "ios" && (
+                        <>
+                          <ImageUploadRow label="프로필 이미지 02" badge="(선택)" tooltip="profileImg02@3x.png" imgKey="profileImg02" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                          <ImageUploadRow label="프로필 이미지 03" badge="(선택)" tooltip="profileImg03@3x.png" imgKey="profileImg03" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                        </>
+                      )}
                     </>
                   )}
                 </Accordion>
@@ -2719,8 +2732,12 @@ SectionTitleStyle-Main
 DefaultProfileStyle
 {${(() => {
   if (!defaultProfileOn) return '';
-  const img = imageUploads['profileImg01'] ? `'profileImg01@3x.png'` : '';
-  return img ? `\n    -ios-profile-images: ${img};` : '';
+  const imgs = [
+    imageUploads['profileImg01'] ? `'profileImg01@3x.png'` : '',
+    imageUploads['profileImg02'] ? `'profileImg02@3x.png'` : '',
+    imageUploads['profileImg03'] ? `'profileImg03@3x.png'` : '',
+  ].filter(Boolean);
+  return imgs.length > 0 ? `\n    -ios-profile-images: ${imgs.join(' ')};` : '';
 })()}
 }
 
