@@ -2,6 +2,7 @@ import { execSync } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
+import sharp from "sharp";
 
 const BASE_DECODED_PATH =
   process.env.BASE_DECODED_PATH ?? path.join(__dirname, "../base-decoded");
@@ -125,45 +126,74 @@ export async function buildApk(options: BuildOptions): Promise<Buffer> {
       fs.writeFileSync(colorsPath, colors);
     }
 
-    // ── 6. 이미지 교체 (drawable-xxhdpi / drawable-xhdpi) ─────────────────
+    // ── 6. 이미지 교체 ───────────────────────────────────────────────────
+    // 프로필 이미지: xxhdpi(220×220) + nodpi(_full, 320×320) — 공식 가이드 규격
+    // 일반 이미지  : xxhdpi / xhdpi / sw600dp — 이미 존재하는 파일만 교체
+    const userWrittenFiles = new Set<string>();
+
     if (options.images) {
       const xxhdpiDir = path.join(tmpDir, "res", "drawable-xxhdpi");
+      const nodpiDir  = path.join(tmpDir, "res", "drawable-nodpi");
 
-      // profile_02, profile_03가 base 템플릿에 없으면 profile_01에서 복사해 플레이스홀더 생성
-      // (유효한 PNG일 때만 복사 — apktool 2.9.3 내부 aapt2가 PNG 시그니처를 엄격히 검증)
-      const profile01 = path.join(xxhdpiDir, "theme_profile_01_image.png");
-      if (fs.existsSync(profile01) && isValidPng(profile01)) {
-        for (const n of ["02", "03"]) {
-          const profileN = path.join(xxhdpiDir, `theme_profile_0${n}_image.png`);
-          if (!fs.existsSync(profileN)) {
-            fs.copyFileSync(profile01, profileN);
-          }
-        }
-      }
+      // 프로필 파일명 상수
+      const profileFilenames = new Set([
+        "theme_profile_01_image.png",
+        "theme_profile_02_image.png",
+        "theme_profile_03_image.png",
+      ]);
 
-      const drawableDirs = [
+      // 일반(비-프로필) 이미지를 교체할 drawable 디렉토리 목록
+      const generalDrawableDirs = [
         xxhdpiDir,
         path.join(tmpDir, "res", "drawable-xhdpi"),
         path.join(tmpDir, "res", "drawable-sw600dp"),
       ];
+
       for (const [filename, dataUrl] of Object.entries(options.images)) {
         const buf = dataUrlToBuffer(dataUrl);
         if (!buf) continue;
-        for (const dir of drawableDirs) {
-          if (!fs.existsSync(dir)) continue;
-          const dest = path.join(dir, filename);
-          // 원본 파일이 존재할 때만 교체 (없는 파일을 새로 추가하면 apktool 오류 가능)
-          if (fs.existsSync(dest)) {
-            fs.writeFileSync(dest, buf);
+
+        if (profileFilenames.has(filename)) {
+          // ── 프로필 이미지 ──────────────────────────────────────────────
+          // xxhdpi: 220×220 PNG (공식 가이드 규격, aapt2 시그니처 검증 통과)
+          if (fs.existsSync(xxhdpiDir)) {
+            const dest = path.join(xxhdpiDir, filename);
+            const pngBuf = await toPng(buf, 220, 220);
+            fs.writeFileSync(dest, pngBuf);
+            userWrittenFiles.add(dest);
+          }
+
+          // nodpi: _full.png — 320×320 PNG (프로필 상세 보기용, 공식 가이드 규격)
+          if (fs.existsSync(nodpiDir)) {
+            const fullFilename = filename.replace("_image.png", "_image_full.png");
+            const dest = path.join(nodpiDir, fullFilename);
+            const fullPngBuf = await toPng(buf, 320, 320);
+            fs.writeFileSync(dest, fullPngBuf);
+            userWrittenFiles.add(dest);
+          }
+        } else {
+          // ── 일반 이미지 (배경, 아이콘 등) ─────────────────────────────
+          // 베이스 템플릿에 이미 존재하는 파일만 교체 (없는 파일 추가 시 apktool 오류)
+          for (const dir of generalDrawableDirs) {
+            if (!fs.existsSync(dir)) continue;
+            const dest = path.join(dir, filename);
+            if (fs.existsSync(dest)) {
+              fs.writeFileSync(dest, buf);
+              userWrittenFiles.add(dest);
+            }
           }
         }
       }
+
+      // ── 6-1. public.xml에 프로필 리소스 등록 확인 (누락 시 주입) ──────
+      // KakaoTalk은 xxhdpi 프로필 이미지를 Android 리소스 시스템으로 조회.
+      // public.xml에 등록되지 않으면 리소스 테이블에서 누락될 수 있음.
+      ensureProfileResourcesInPublicXml(path.join(tmpDir, "res", "values", "public.xml"));
     }
 
     // ── 7. 잘못된 PNG 파일 제거 (apktool 내부 aapt2 호환) ──────────────────
-    // apktool 2.9.3은 내부적으로 aapt2를 사용하며, .png 확장자이지만
-    // 실제 PNG가 아닌 파일(WebP 등)이 있으면 빌드가 실패합니다.
-    removeInvalidPngs(path.join(tmpDir, "res"));
+    // 사용자가 직접 기록한 파일은 건너뛴다 (sharp 변환 통과 또는 의도적 교체)
+    removeInvalidPngs(path.join(tmpDir, "res"), userWrittenFiles);
 
     // ── 8. apktool 리빌드 ─────────────────────────────────────────────────
     try {
@@ -231,6 +261,26 @@ function dataUrlToBuffer(dataUrl: string): Buffer | null {
   }
 }
 
+/**
+ * 이미지 버퍼를 유효한 PNG로 변환 (JPEG, WebP 등 → PNG).
+ * aapt2가 drawable PNG 파일의 시그니처를 엄격히 검증하므로 필수.
+ *
+ * @param width  0 이면 리사이즈 없이 원본 크기 유지
+ * @param height 0 이면 리사이즈 없이 원본 크기 유지
+ */
+async function toPng(buf: Buffer, width: number, height: number): Promise<Buffer> {
+  try {
+    let pipeline = sharp(buf);
+    if (width > 0 && height > 0) {
+      pipeline = pipeline.resize(width, height, { fit: "cover", position: "center" });
+    }
+    return await pipeline.png().toBuffer();
+  } catch {
+    // 변환 실패 시 원본 반환 (apktool이 처리하도록)
+    return buf;
+  }
+}
+
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
 
 /** 파일이 유효한 PNG인지 시그니처(매직 바이트)로 확인 */
@@ -248,18 +298,58 @@ function isValidPng(filePath: string): boolean {
 
 /**
  * res/ 내 .png 확장자이지만 실제 PNG가 아닌 파일을 삭제.
- * apktool 2.9.3 내부 aapt2가 PNG 시그니처를 엄격히 검증하므로,
- * 비표준 파일(WebP/JPEG를 .png 확장자로 저장한 경우)을 제거합니다.
+ * skipFiles에 포함된 파일(사용자가 직접 업로드한 이미지)은 건너뜁니다.
  */
-function removeInvalidPngs(dir: string): void {
+function removeInvalidPngs(dir: string, skipFiles: Set<string> = new Set()): void {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      removeInvalidPngs(fullPath);
-    } else if (entry.name.endsWith(".png") && !isValidPng(fullPath)) {
+      removeInvalidPngs(fullPath, skipFiles);
+    } else if (entry.name.endsWith(".png") && !skipFiles.has(fullPath) && !isValidPng(fullPath)) {
       fs.unlinkSync(fullPath);
     }
   }
 }
 
+/**
+ * public.xml에 프로필 02/03 및 _full 리소스가 누락된 경우 주입.
+ * KakaoTalk은 xxhdpi 프로필 이미지를 Android 리소스 시스템(getIdentifier)으로 조회하므로
+ * public.xml에 등록되어 있어야 리소스 테이블(resources.arsc)에 포함됩니다.
+ */
+function ensureProfileResourcesInPublicXml(publicXmlPath: string): void {
+  if (!fs.existsSync(publicXmlPath)) return;
 
+  let xml = fs.readFileSync(publicXmlPath, "utf8");
+
+  // 이미 모든 프로필이 등록되어 있으면 스킵
+  const requiredNames = [
+    "theme_profile_01_image",
+    "theme_profile_01_image_full",
+    "theme_profile_02_image",
+    "theme_profile_02_image_full",
+    "theme_profile_03_image",
+    "theme_profile_03_image_full",
+  ];
+
+  const missing = requiredNames.filter(name => !xml.includes(`name="${name}"`));
+  if (missing.length === 0) return;
+
+  // 현재 drawable 리소스 중 가장 큰 ID를 찾아서 이어붙이기
+  const idRegex = /<public type="drawable"[^>]+id="0x([0-9a-fA-F]+)"/g;
+  let maxId = 0;
+  let match: RegExpExecArray | null;
+  while ((match = idRegex.exec(xml)) !== null) {
+    const id = parseInt(match[1], 16);
+    if (id > maxId) maxId = id;
+  }
+
+  // 누락된 엔트리를 </resources> 직전에 삽입
+  const newEntries = missing.map(name => {
+    maxId++;
+    const hexId = "0x" + maxId.toString(16).padStart(8, "0");
+    return `    <public type="drawable" name="${name}" id="${hexId}" />`;
+  }).join("\n");
+
+  xml = xml.replace("</resources>", newEntries + "\n</resources>");
+  fs.writeFileSync(publicXmlPath, xml);
+}

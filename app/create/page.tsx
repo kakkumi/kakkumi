@@ -1517,6 +1517,12 @@ function CreatePageContent() {
         tabMoreSelected:    "theme_maintab_ico_more_focused_image.png",
       };
 
+      // ── DEBUG: imageUploads 상태 확인 ──
+      console.log("[APK DEBUG] imageUploads profileImg01:", imageUploads["profileImg01"]?.slice(0, 60));
+      console.log("[APK DEBUG] imageUploads profileImg02:", imageUploads["profileImg02"]?.slice(0, 60));
+      console.log("[APK DEBUG] imageUploads profileImg03:", imageUploads["profileImg03"]?.slice(0, 60));
+      console.log("[APK DEBUG] defaultProfileOn:", defaultProfileOn);
+
       await Promise.all(
         Object.entries(androidImgMap)
           .filter(([key]) => {
@@ -1529,6 +1535,13 @@ function CreatePageContent() {
             if (b64) images[filename] = b64;
           })
       );
+
+      // ── DEBUG: 프로필 이미지 전송 데이터 확인 ──
+      for (const pf of ["theme_profile_01_image.png", "theme_profile_02_image.png", "theme_profile_03_image.png"]) {
+        const d = images[pf];
+        if (d) console.log(`[APK DEBUG] ${pf}: length=${d.length}, first80=${d.slice(0, 80)}`);
+        else console.log(`[APK DEBUG] ${pf}: NOT INCLUDED`);
+      }
 
       // ── APK 빌더 서비스 호출 ──
       const apkRes = await fetch("/api/download/apk", {
@@ -2902,9 +2915,3 @@ BottomBannerStyle-Light {
 }
 `;
 }
-
-
-
-
-
-
