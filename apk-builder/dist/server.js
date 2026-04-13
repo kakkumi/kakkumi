@@ -57,4 +57,5 @@ app.post("/build", async (req, res) => {
 });
 app.listen(PORT, () => {
     console.log(`apk-builder 서버 시작 — port ${PORT}`);
+    console.log(`ANDROID_HOME: ${process.env.ANDROID_HOME ?? "(미설정)"}`);
 });

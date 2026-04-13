@@ -587,11 +587,8 @@ function MacInput({
 /* ── 채팅 탭 전용: 목업 2개 나란히 ── */
 /* ── Android 친구 프로필 목업 (친구 탭 듀얼용 — 오른쪽) ── */
 function AndroidFriendsProfileMockup({ config, imageUploads, defaultProfileOn }: { config: ThemeConfig; imageUploads: Record<string, string>; defaultProfileOn: boolean }) {
-  const profileImgUrls = defaultProfileOn ? [
-    imageUploads['profileImg01'],
-    imageUploads['profileImg02'],
-    imageUploads['profileImg03'],
-  ].filter(Boolean) as string[] : undefined;
+  const profileImgUrls = defaultProfileOn && imageUploads['profileImg01']
+    ? [imageUploads['profileImg01']] : undefined;
   return (
     <div className="relative mx-auto select-none" style={{ width: 368, height: 699 }}>
       <div className="absolute inset-0 rounded-[28px] border-[5px] border-zinc-800 overflow-hidden"
@@ -617,11 +614,8 @@ function AndroidFriendsProfileMockup({ config, imageUploads, defaultProfileOn }:
 
 /* ── iOS 채팅방 목업 (채팅 탭 듀얼용) ── */
 function AndroidChatRoomMockup({ config, imageUploads, defaultProfileOn }: { config: ThemeConfig; imageUploads: Record<string, string>; defaultProfileOn: boolean }) {
-  const profileImgUrls = defaultProfileOn ? [
-    imageUploads['profileImg01'],
-    imageUploads['profileImg02'],
-    imageUploads['profileImg03'],
-  ].filter(Boolean) as string[] : undefined;
+  const profileImgUrls = defaultProfileOn && imageUploads['profileImg01']
+    ? [imageUploads['profileImg01']] : undefined;
   return (
     <div className="relative mx-auto select-none" style={{ width: 368, height: 699 }}>
       <div className="absolute inset-0 rounded-[28px] border-[5px] border-zinc-800 overflow-hidden"
@@ -668,11 +662,8 @@ function AndroidMockup({ config, previewTab, imageUploads, passcodeBgMode, bulle
     unreadCountColor: config.unreadCountColor,
     openchatBg: config.openchatBg,
     mainBgImageUrl: undefined,
-    profileImgUrls: defaultProfileOn ? [
-      imageUploads['profileImg01'],
-      imageUploads['profileImg02'],
-      imageUploads['profileImg03'],
-    ].filter(Boolean) as string[] : undefined,
+    profileImgUrls: defaultProfileOn && imageUploads['profileImg01']
+      ? [imageUploads['profileImg01']] : undefined,
     chatListLastMsgText: config.chatListLastMsgText,
     chatListNamePressColor: config.chatListHighlightText,
     chatListLastMsgPressColor: config.chatListLastMsgHighlightText,
@@ -1075,11 +1066,8 @@ function CreatePageContent() {
         primaryText: config.primaryText,
         descText: config.descText,
         headerTabText: config.headerTabText,
-        profileImgUrls: defaultProfileOn ? [
-          imageUploads['profileImg01'],
-          imageUploads['profileImg02'],
-          imageUploads['profileImg03'],
-        ].filter(Boolean) as string[] : undefined,
+        profileImgUrls: defaultProfileOn && imageUploads['profileImg01']
+          ? [imageUploads['profileImg01']] : undefined,
       },
       friendsTab: {
         updateSectionBg: '#F2F2F7',
@@ -1362,8 +1350,6 @@ function CreatePageContent() {
         bulletFill: "passcodeImgCodeSelected@3x.png",
         passcodeKeypadPressed: "passcodeKeypadPressed@3x.png",
         profileImg01: "profileImg01@3x.png",
-        profileImg02: "profileImg02@3x.png",
-        profileImg03: "profileImg03@3x.png",
       };
 
       // 모드에 따라 실제 사용할 imageUploads 키 결정
@@ -1381,7 +1367,7 @@ function CreatePageContent() {
           if (key === "tabBg" && tabBgMode === "color") return false;
           if (key === "bulletEmpty" && bulletEmptyMode === "default") return false;
           if (key === "passcodeKeypadPressed" && !keypadPressedOn) return false;
-          if ((key === "profileImg01" || key === "profileImg02" || key === "profileImg03") && !defaultProfileOn) return false;
+          if (key === "profileImg01" && !defaultProfileOn) return false;
           return !!resolvedUploads[key];
         })
         .map(async ([key, filename]) => {
@@ -1503,8 +1489,6 @@ function CreatePageContent() {
         chatroomBg:         "theme_chatroom_background_image.png",
         passcodeBgImg:      "theme_passcode_background_image.png",
         profileImg01:       "theme_profile_01_image.png",
-        profileImg02:       "theme_profile_02_image.png",
-        profileImg03:       "theme_profile_03_image.png",
         tabFriendsNormal:   "theme_maintab_ico_friends_image.png",
         tabFriendsSelected: "theme_maintab_ico_friends_focused_image.png",
         tabChatNormal:      "theme_maintab_ico_chats_image.png",
@@ -1519,14 +1503,12 @@ function CreatePageContent() {
 
       // ── DEBUG: imageUploads 상태 확인 ──
       console.log("[APK DEBUG] imageUploads profileImg01:", imageUploads["profileImg01"]?.slice(0, 60));
-      console.log("[APK DEBUG] imageUploads profileImg02:", imageUploads["profileImg02"]?.slice(0, 60));
-      console.log("[APK DEBUG] imageUploads profileImg03:", imageUploads["profileImg03"]?.slice(0, 60));
       console.log("[APK DEBUG] defaultProfileOn:", defaultProfileOn);
 
       await Promise.all(
         Object.entries(androidImgMap)
           .filter(([key]) => {
-            if ((key === "profileImg01" || key === "profileImg02" || key === "profileImg03") && !defaultProfileOn) return false;
+            if (key === "profileImg01" && !defaultProfileOn) return false;
             if (key === "passcodeBgImg" && passcodeBgMode === "color") return false;
             return !!imageUploads[key];
           })
@@ -1537,11 +1519,9 @@ function CreatePageContent() {
       );
 
       // ── DEBUG: 프로필 이미지 전송 데이터 확인 ──
-      for (const pf of ["theme_profile_01_image.png", "theme_profile_02_image.png", "theme_profile_03_image.png"]) {
-        const d = images[pf];
-        if (d) console.log(`[APK DEBUG] ${pf}: length=${d.length}, first80=${d.slice(0, 80)}`);
-        else console.log(`[APK DEBUG] ${pf}: NOT INCLUDED`);
-      }
+      const pfData = images["theme_profile_01_image.png"];
+      if (pfData) console.log(`[APK DEBUG] theme_profile_01_image.png: length=${pfData.length}`);
+      else console.log(`[APK DEBUG] theme_profile_01_image.png: NOT INCLUDED`);
 
       // ── APK 빌더 서비스 호출 ──
       const apkRes = await fetch("/api/download/apk", {
@@ -2129,8 +2109,6 @@ function CreatePageContent() {
                             setImageUploads(u => {
                               const next = { ...u };
                               delete next['profileImg01'];
-                              delete next['profileImg02'];
-                              delete next['profileImg03'];
                               return next;
                             });
                           }
@@ -2155,9 +2133,7 @@ function CreatePageContent() {
                   </div>
                   {defaultProfileOn && (
                     <>
-                      <ImageUploadRow label="프로필 이미지 01" badge="(필수)" badgeColor="rgb(248,113,113)" tooltip="profileImg01@3x.png" imgKey="profileImg01" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
-                      <ImageUploadRow label="프로필 이미지 02" badge="(선택)" tooltip="profileImg02@3x.png" imgKey="profileImg02" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
-                      <ImageUploadRow label="프로필 이미지 03" badge="(선택)" tooltip="profileImg03@3x.png" imgKey="profileImg03" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
+                      <ImageUploadRow label="프로필 이미지" badge="(필수)" badgeColor="rgb(248,113,113)" tooltip="profileImg01@3x.png" imgKey="profileImg01" imageUploads={imageUploads} onUpload={handleImageUpload} onRemove={handleImageRemove} />
                     </>
                   )}
                 </Accordion>
@@ -2743,12 +2719,8 @@ SectionTitleStyle-Main
 DefaultProfileStyle
 {${(() => {
   if (!defaultProfileOn) return '';
-  const imgs = [
-    imageUploads['profileImg01'] ? `'profileImg01@3x.png'` : '',
-    imageUploads['profileImg02'] ? `'profileImg02@3x.png'` : '',
-    imageUploads['profileImg03'] ? `'profileImg03@3x.png'` : '',
-  ].filter(Boolean);
-  return imgs.length > 0 ? `\n    -ios-profile-images: ${imgs.join(' ')};` : '';
+  const img = imageUploads['profileImg01'] ? `'profileImg01@3x.png'` : '';
+  return img ? `\n    -ios-profile-images: ${img};` : '';
 })()}
 }
 

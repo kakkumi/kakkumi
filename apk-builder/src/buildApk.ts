@@ -12,10 +12,39 @@ const KEYSTORE_STOREPASS = process.env.KEYSTORE_STOREPASS ?? "kakkumi_apk_store"
 const KEYSTORE_KEYPASS = process.env.KEYSTORE_KEYPASS ?? "kakkumi_apk_key";
 const KEYSTORE_ALIAS = process.env.KEYSTORE_ALIAS ?? "kakkumi";
 
+/**
+ * Android SDK build-tools 디렉토리에서 최신 버전의 도구 경로를 자동 감지.
+ * ANDROID_HOME 또는 ANDROID_SDK_ROOT 환경변수를 기반으로 찾습니다.
+ */
+function findBuildToolPath(toolName: string): string {
+  const sdkRoot =
+    process.env.ANDROID_HOME ??
+    process.env.ANDROID_SDK_ROOT ??
+    path.join(os.homedir(), "Library", "Android", "sdk"); // macOS 기본 경로
+
+  const buildToolsDir = path.join(sdkRoot, "build-tools");
+  if (fs.existsSync(buildToolsDir)) {
+    const versions = fs
+      .readdirSync(buildToolsDir)
+      .filter((v) => fs.statSync(path.join(buildToolsDir, v)).isDirectory())
+      .sort()
+      .reverse(); // 최신 버전 우선
+
+    for (const ver of versions) {
+      const toolPath = path.join(buildToolsDir, ver, toolName);
+      if (fs.existsSync(toolPath)) {
+        return toolPath;
+      }
+    }
+  }
+  // 찾지 못하면 시스템 PATH에서 실행 시도
+  return toolName;
+}
+
 /** zipalign 경로 (v2 서명 전 4바이트 정렬 필수) */
-const ZIPALIGN_PATH = process.env.ZIPALIGN_PATH ?? "zipalign";
+const ZIPALIGN_PATH = process.env.ZIPALIGN_PATH ?? findBuildToolPath("zipalign");
 /** apksigner 경로 (v1+v2 서명 — Android 11+ 필수) */
-const APKSIGNER_PATH = process.env.APKSIGNER_PATH ?? "apksigner";
+const APKSIGNER_PATH = process.env.APKSIGNER_PATH ?? findBuildToolPath("apksigner");
 
 /** POST /build 에서 받는 요청 타입 */
 export interface BuildOptions {
@@ -135,11 +164,9 @@ export async function buildApk(options: BuildOptions): Promise<Buffer> {
       const xxhdpiDir = path.join(tmpDir, "res", "drawable-xxhdpi");
       const nodpiDir  = path.join(tmpDir, "res", "drawable-nodpi");
 
-      // 프로필 파일명 상수
+      // 프로필 파일명 상수 (Android는 01만 사용)
       const profileFilenames = new Set([
         "theme_profile_01_image.png",
-        "theme_profile_02_image.png",
-        "theme_profile_03_image.png",
       ]);
 
       // 일반(비-프로필) 이미지를 교체할 drawable 디렉토리 목록
@@ -325,10 +352,6 @@ function ensureProfileResourcesInPublicXml(publicXmlPath: string): void {
   const requiredNames = [
     "theme_profile_01_image",
     "theme_profile_01_image_full",
-    "theme_profile_02_image",
-    "theme_profile_02_image_full",
-    "theme_profile_03_image",
-    "theme_profile_03_image_full",
   ];
 
   const missing = requiredNames.filter(name => !xml.includes(`name="${name}"`));
