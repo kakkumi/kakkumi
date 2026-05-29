@@ -6,35 +6,23 @@ import Image from "next/image";
 import ThemeVaultTabs from "./ThemeVaultTabs";
 import CreditPage from "./CreditPage";
 import RefundPage from "./RefundPage";
-import OrderPage from "./OrderPage";
-import LikePage from "./LikePage";
-import SalesStatsPage from "./SalesStatsPage";
-import SettlementPage from "./SettlementPage";
-import BankAccountPage from "./BankAccountPage";
 import MyReviewsPage from "./MyReviewsPage";
 import ReviewablePage from "./ReviewablePage";
-import SubscriptionInfoPage from "./SubscriptionInfoPage";
-import SubscriptionPaymentsPage from "./SubscriptionPaymentsPage";
 import { formatKST } from "@/lib/date";
 import { validateNickname } from "@/lib/nickname";
 import { WITHDRAW_CONFIRM_TEXT, AVATAR_MAX_SIZE_MB } from "@/lib/constants";
-import { type NotifSettings, type NotifKey, DEFAULT_NOTIF_SETTINGS } from "@/lib/notifTypes";
 
 type SidebarMenu = {
     category: string;
     items: { label: string; href?: string }[];
 };
 
-type Tab = "mine" | "purchased";
+type Tab = "mine" | "purchased" | "all";
 
 const THEME_TAB_MAP: Record<string, Tab> = {
-    "업로드 테마": "mine",
+    "내 테마": "mine",
     "구매 테마": "purchased",
-};
-
-const TAB_TO_MENU: Record<Tab, string> = {
-    "mine": "업로드 테마",
-    "purchased": "구매 테마",
+    "전체 테마": "all",
 };
 
 type Props = {
@@ -52,38 +40,14 @@ type Props = {
     sidebarMenus: SidebarMenu[];
     createdAt?: string | null;
     credit?: number;
-    isPro?: boolean;
 };
 
-export default function MyPageClient({ session, sidebarMenus, createdAt, isPro: isProProp = false }: Props) {
+export default function MyPageClient({ session, purchasedCount: _purchasedCount, sidebarMenus, createdAt, credit: _credit = 0 }: Props) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const menuFromUrl = searchParams.get("menu") ?? "";
     const [activeMenu, setActiveMenu] = useState<string>(menuFromUrl || "회원 정보");
     const [themeTab, setThemeTab] = useState<Tab>(() => THEME_TAB_MAP[menuFromUrl] ?? "purchased");
-
-    // URL menu 파라미터가 바뀌면 activeMenu, themeTab 동기화
-    useEffect(() => {
-        if (!menuFromUrl) return;
-        setActiveMenu(menuFromUrl);
-        const tab = THEME_TAB_MAP[menuFromUrl];
-        if (tab) setThemeTab(tab);
-    }, [menuFromUrl]);
-
-    // 구독 상태 클라이언트에서 재확인 (서버 캐시 우회)
-    const [isPro, setIsPro] = useState<boolean>(isProProp);
-    useEffect(() => {
-        if (session?.role === "ADMIN") { setIsPro(true); return; }
-        fetch("/api/subscription")
-            .then(r => r.json())
-            .then((d: { subscription?: { status: string } | null }) => {
-                const status = d?.subscription?.status;
-                const active = !!status && status.toUpperCase() === "ACTIVE";
-                // 서버 prop이 true인 경우 클라이언트 일시적 오류로 false로 강등되지 않도록 함
-                setIsPro(prev => prev || active);
-            })
-            .catch(() => { /* 기본값(서버 prop) 유지 */ });
-    }, [session?.role]);
 
     // 닉네임 상태
     const currentNickname = session?.nickname ?? session?.name ?? "";
@@ -100,6 +64,9 @@ export default function MyPageClient({ session, sidebarMenus, createdAt, isPro: 
     const [avatarSuccess, setAvatarSuccess] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // 알림 설정 상태
+    type NotifKey = "purchaseComplete" | "newReview" | "inquiryReply" | "newTheme" | "promotionEvent" | "serviceBroadcast" | "followAlert" | "creditExpiry" | "priceDropAlert";
+    type NotifSettings = Record<NotifKey, boolean>;
     const isCreatorOrAdmin = session?.role === "CREATOR" || session?.role === "ADMIN";
     const NOTIFICATION_GROUPS: { category: string; items: { key: NotifKey; label: string; desc: string }[] }[] = [
         { category: "구매 / 다운로드", items: [{ key: "purchaseComplete", label: "구매 완료 알림", desc: "테마 결제가 완료되면 알려드립니다." }] },
@@ -120,7 +87,7 @@ export default function MyPageClient({ session, sidebarMenus, createdAt, isPro: 
         ]}] : []),
         { category: "서비스", items: [{ key: "serviceBroadcast", label: "공지 및 서비스 알림", desc: "카꾸미의 공지사항과 업데이트 소식을 알려드립니다." }] },
     ];
-    const [notifSettings, setNotifSettings] = useState<NotifSettings>(DEFAULT_NOTIF_SETTINGS);
+    const [notifSettings, setNotifSettings] = useState<NotifSettings>({ purchaseComplete: true, newReview: true, inquiryReply: true, newTheme: false, promotionEvent: false, serviceBroadcast: true, followAlert: true, creditExpiry: true, priceDropAlert: false });
     const [notifSaving, setNotifSaving] = useState(false);
     const [notifSaveSuccess, setNotifSaveSuccess] = useState(false);
     const [notifLoaded, setNotifLoaded] = useState(false);
@@ -260,30 +227,20 @@ export default function MyPageClient({ session, sidebarMenus, createdAt, isPro: 
     const handleAvatarSave = async (url: string | null) => {
         setAvatarSaving(true);
         setAvatarError("");
-        try {
-            const res = await fetch("/api/user/avatar", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ avatarUrl: url }),
-            });
-            let data: { avatarUrl?: string | null; error?: string } = {};
-            try { data = await res.json() as typeof data; } catch { /* non-JSON response */ }
-            if (!res.ok) {
-                setAvatarError(data.error ?? "저장 실패");
-            } else {
-                setAvatarPreview(url);
-                setAvatarSuccess(true);
-                setTimeout(() => setAvatarSuccess(false), 3000);
-                // 헤더 등 사이트 전체 프로필 사진 즉시 갱신
-                window.dispatchEvent(new CustomEvent("avatar-updated"));
-                router.refresh();
-                // refresh 이후에도 한 번 더 발생시켜 타이밍 문제 방지
-                setTimeout(() => window.dispatchEvent(new CustomEvent("avatar-updated")), 400);
-            }
-        } catch {
-            setAvatarError("네트워크 오류가 발생했습니다.");
-        } finally {
-            setAvatarSaving(false);
+        const res = await fetch("/api/user/avatar", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ avatarUrl: url }),
+        });
+        const data = await res.json() as { avatarUrl?: string | null; error?: string };
+        setAvatarSaving(false);
+        if (!res.ok) {
+            setAvatarError(data.error ?? "저장 실패");
+        } else {
+            setAvatarPreview(url);
+            setAvatarSuccess(true);
+            setTimeout(() => setAvatarSuccess(false), 3000);
+            router.refresh();
         }
     };
 
@@ -291,21 +248,14 @@ export default function MyPageClient({ session, sidebarMenus, createdAt, isPro: 
     const isThemeMenu = activeMenu !== null && THEME_TAB_MAP[activeMenu] !== undefined;
     const isCreditMenu = activeMenu === "적립금";
     const isRefundMenu = activeMenu === "취소/환불 내역";
-    const isOrderMenu = activeMenu === "주문 내역";
-    const isLikeMenu = activeMenu === "좋아요";
-    const isSalesStatsMenu = activeMenu === "판매 통계";
-    const isSettlementMenu = activeMenu === "정산 내역";
-    const isBankMenu = activeMenu === "정산 계좌";
     const isSettingsMenu = activeMenu === "회원 정보";
     const isNotifMenu = activeMenu === "알림 설정";
     const isWithdrawMenu = activeMenu === "회원 탈퇴";
     const isFollowMenu = activeMenu === "팔로우";
     const isReviewMenu = activeMenu === "리뷰";
     const isReviewableMenu = activeMenu === "작성 가능한 후기";
-    const isSubInfoMenu = activeMenu === "결제 정보";
-    const isSubPaymentsMenu = activeMenu === "결제 내역";
 
-    type FollowingUser = { id: string; nickname: string | null; name: string; avatarUrl: string | null; role: string; themeCount: number };
+    type FollowingUser = { id: string; nickname: string | null; name: string; avatarUrl: string | null; themeCount: number };
     const [followingList, setFollowingList] = useState<FollowingUser[]>([]);
     const [followingLoading, setFollowingLoading] = useState(false);
     const [unfollowingId, setUnfollowingId] = useState<string | null>(null);
@@ -387,36 +337,15 @@ export default function MyPageClient({ session, sidebarMenus, createdAt, isPro: 
                 {session ? (
                     <>
                         {isThemeMenu ? (
-                            <ThemeVaultTabs
-                                key={activeMenu}
-                                initialTab={themeTab}
-                                onTabChangeAction={(tab: Tab) => {
-                                    setActiveMenu(TAB_TO_MENU[tab]);
-                                    setThemeTab(tab);
-                                }}
-                            />
+                            <ThemeVaultTabs initialTab={themeTab} />
                         ) : isCreditMenu ? (
                             <CreditPage />
-                        ) : isOrderMenu ? (
-                            <OrderPage />
                         ) : isRefundMenu ? (
                             <RefundPage />
-                        ) : isLikeMenu ? (
-                            <LikePage />
-                        ) : isSalesStatsMenu ? (
-                            <SalesStatsPage />
-                        ) : isSettlementMenu ? (
-                            <SettlementPage role={session?.role} />
-                        ) : isBankMenu ? (
-                            <BankAccountPage role={session?.role} />
                         ) : isReviewMenu ? (
                             <MyReviewsPage />
                         ) : isReviewableMenu ? (
                             <ReviewablePage />
-                        ) : isSubInfoMenu ? (
-                            <SubscriptionInfoPage />
-                        ) : isSubPaymentsMenu ? (
-                            <SubscriptionPaymentsPage />
                         ) : isFollowMenu ? (
                             <>
                                 {/* 섹션 헤더 */}
@@ -445,17 +374,13 @@ export default function MyPageClient({ session, sidebarMenus, createdAt, isPro: 
                                                 <div className="flex items-center gap-4 py-4">
                                                     {/* 프로필 이미지 */}
                                                     <button onClick={() => router.push(`/creator/${user.id}`)} className="shrink-0 w-10 h-10 rounded-full overflow-hidden flex items-center justify-center transition-all hover:opacity-75" style={{ background: "#e7e5e4" }}>
-                                                        <Image
-                                                            src={
-                                                                (user.avatarUrl && !user.avatarUrl.startsWith("/"))
-                                                                    ? user.avatarUrl
-                                                                    : (user.role === "CREATOR" || user.role === "ADMIN" ? "/creator.png" : "/user.png")
-                                                            }
-                                                            alt={user.nickname ?? user.name}
-                                                            width={40} height={40}
-                                                            className="w-full h-full object-cover"
-                                                            unoptimized={!!user.avatarUrl && !user.avatarUrl.startsWith("/")}
-                                                        />
+                                                        {user.avatarUrl ? (
+                                                            <Image src={user.avatarUrl} alt={user.nickname ?? user.name} width={40} height={40} className="w-full h-full object-cover" unoptimized />
+                                                        ) : (
+                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#78716c" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                                                <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                                                            </svg>
+                                                        )}
                                                     </button>
                                                     {/* 이름 + 테마 수 */}
                                                     <div className="flex flex-col gap-0.5 flex-1 min-w-0">
@@ -498,92 +423,57 @@ export default function MyPageClient({ session, sidebarMenus, createdAt, isPro: 
                                         <span className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "#a8a29e" }}>프로필 이미지</span>
                                         <div className="flex-1 h-px" style={{ backgroundColor: "#e7e5e4" }} />
                                     </div>
-                                    {isPro ? (
-                                        /* PRO / ADMIN: 자유롭게 변경 가능 */
-                                        (() => {
-                                            // 역할에 따른 기본 이미지
-                                            const defaultImg = isCreatorOrAdmin ? "/creator.png" : "/user.png";
-                                            // 커스텀 사진: 사용자가 업로드한 data URL 또는 기본 경로가 아닌 외부 URL
-                                            const isCustomPhoto = !!avatarPreview && !avatarPreview.startsWith("/");
-                                            const displaySrc = avatarPreview ?? defaultImg;
-                                            return (
-                                                <div className="flex items-center gap-6">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => fileInputRef.current?.click()}
-                                                        className="relative group shrink-0 rounded-full overflow-hidden flex items-center justify-center transition-opacity hover:opacity-80"
-                                                        style={{ width: 72, height: 72, background: "#e7e5e4" }}
-                                                    >
-                                                        <Image
-                                                            src={displaySrc}
-                                                            alt={displayNickname}
-                                                            width={72} height={72}
-                                                            className="w-full h-full object-cover"
-                                                            unoptimized={isCustomPhoto}
-                                                        />
-                                                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full" style={{ background: "rgba(0,0,0,0.3)" }}>
-                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                                                <polyline points="17 8 12 3 7 8" />
-                                                                <line x1="12" y1="3" x2="12" y2="15" />
-                                                            </svg>
-                                                        </div>
-                                                    </button>
-                                                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-                                                    <div className="flex flex-col gap-2">
-                                                        <div className="flex items-center gap-2">
-                                                            <button type="button" onClick={() => fileInputRef.current?.click()} className="text-[12px] font-medium transition-opacity hover:opacity-60" style={{ color: "#78716c" }}>
-                                                                사진 선택
-                                                            </button>
-                                                            {avatarPreview && avatarPreview !== (session?.avatarUrl ?? defaultImg) && (
-                                                                <>
-                                                                    <span style={{ color: "#e7e5e4" }}>·</span>
-                                                                    <button type="button" onClick={() => handleAvatarSave(avatarPreview)} disabled={avatarSaving} className="text-[12px] font-semibold transition-opacity hover:opacity-60 disabled:opacity-30" style={{ color: "#FF9500" }}>
-                                                                        {avatarSaving ? "저장 중..." : "저장"}
-                                                                    </button>
-                                                                </>
-                                                            )}
-                                                            {isCustomPhoto && (
-                                                                <>
-                                                                    <span style={{ color: "#e7e5e4" }}>·</span>
-                                                                    <button type="button" onClick={() => { setAvatarPreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; handleAvatarSave(null); }} disabled={avatarSaving} className="text-[12px] font-medium transition-opacity hover:opacity-60 disabled:opacity-30" style={{ color: "#ff3b30" }}>
-                                                                        사진 제거
-                                                                    </button>
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                        {avatarSuccess && <p className="text-[11px]" style={{ color: "#34c759" }}>✓ 프로필 사진이 저장되었습니다.</p>}
-                                                        {avatarError && <p className="text-[11px]" style={{ color: "#ff3b30" }}>{avatarError}</p>}
-                                                        {!avatarSuccess && !avatarError && <p className="text-[11px]" style={{ color: "#a8a29e" }}>JPG, PNG, GIF · 최대 2MB</p>}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })()
-                                    ) : session?.role === "CREATOR" ? (
-                                        /* 크리에이터: creator.png 고정 */
-                                        <div className="flex items-center gap-6">
-                                            <div className="relative shrink-0 rounded-full overflow-hidden" style={{ width: 72, height: 72, background: "#e7e5e4" }}>
-                                                <Image src="/creator.png" alt="크리에이터 프로필" width={72} height={72} className="w-full h-full object-cover" />
+                                    <div className="flex items-center gap-6">
+                                        <button
+                                            type="button"
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="relative group shrink-0 rounded-full overflow-hidden flex items-center justify-center transition-opacity hover:opacity-80"
+                                            style={{ width: 72, height: 72, background: avatarPreview ? "transparent" : "#e7e5e4" }}
+                                        >
+                                            {avatarPreview ? (
+                                                <Image src={avatarPreview} alt={displayNickname} width={72} height={72} className="w-full h-full object-cover" unoptimized />
+                                            ) : (
+                                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                                    <circle cx="12" cy="8" r="4" />
+                                                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                                                </svg>
+                                            )}
+                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full" style={{ background: "rgba(0,0,0,0.3)" }}>
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                                    <polyline points="17 8 12 3 7 8" />
+                                                    <line x1="12" y1="3" x2="12" y2="15" />
+                                                </svg>
                                             </div>
-                                            <div className="flex flex-col gap-1">
-                                                <p className="text-[13px] font-medium" style={{ color: "#1c1917" }}>크리에이터 기본 이미지</p>
-                                                <p className="text-[12px] leading-relaxed" style={{ color: "#a8a29e" }}>크리에이터는 기본 이미지가 적용됩니다.</p>
+                                        </button>
+                                        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex items-center gap-2">
+                                                <button type="button" onClick={() => fileInputRef.current?.click()} className="text-[12px] font-medium transition-opacity hover:opacity-60" style={{ color: "#78716c" }}>
+                                                    사진 선택
+                                                </button>
+                                                {avatarPreview && avatarPreview !== (session?.avatarUrl ?? null) && (
+                                                    <>
+                                                        <span style={{ color: "#e7e5e4" }}>·</span>
+                                                        <button type="button" onClick={() => handleAvatarSave(avatarPreview)} disabled={avatarSaving} className="text-[12px] font-semibold transition-opacity hover:opacity-60 disabled:opacity-30" style={{ color: "#FF9500" }}>
+                                                            {avatarSaving ? "저장 중..." : "저장"}
+                                                        </button>
+                                                    </>
+                                                )}
+                                                {(avatarPreview ?? session?.avatarUrl) && (
+                                                    <>
+                                                        <span style={{ color: "#e7e5e4" }}>·</span>
+                                                        <button type="button" onClick={() => { setAvatarPreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; handleAvatarSave(null); }} disabled={avatarSaving} className="text-[12px] font-medium transition-opacity hover:opacity-60 disabled:opacity-30" style={{ color: "#ff3b30" }}>
+                                                            사진 제거
+                                                        </button>
+                                                    </>
+                                                )}
                                             </div>
+                                            {avatarSuccess && <p className="text-[11px]" style={{ color: "#34c759" }}>✓ 프로필 사진이 저장되었습니다.</p>}
+                                            {avatarError && <p className="text-[11px]" style={{ color: "#ff3b30" }}>{avatarError}</p>}
+                                            {!avatarSuccess && !avatarError && <p className="text-[11px]" style={{ color: "#a8a29e" }}>JPG, PNG, GIF · 최대 2MB</p>}
                                         </div>
-                                    ) : (
-                                        /* 일반 유저 (FREE): user.png 고정 */
-                                        <div className="flex items-center gap-6">
-                                            <div className="relative shrink-0 rounded-full overflow-hidden" style={{ width: 72, height: 72, background: "#e7e5e4" }}>
-                                                <Image src="/user.png" alt="기본 프로필" width={72} height={72} className="w-full h-full object-cover" />
-                                            </div>
-                                            <div className="flex flex-col gap-1">
-                                                <p className="text-[13px] font-medium" style={{ color: "#1c1917" }}>기본 프로필 이미지</p>
-                                                <p className="text-[12px] leading-relaxed" style={{ color: "#a8a29e" }}>
-                                                    <a href="/pricing" className="font-semibold" style={{ color: "#FF9500" }}>PRO 구독</a> 시 프로필 사진을 자유롭게 변경할 수 있습니다.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
+                                    </div>
                                 </div>
 
                                 {/* 닉네임 */}
@@ -719,7 +609,12 @@ export default function MyPageClient({ session, sidebarMenus, createdAt, isPro: 
                                     </div>
                                 ))}
 
-
+                                <div className="mt-12 flex items-start gap-3 pt-8" style={{ borderTop: "1px solid #e7e5e4" }}>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4a7bf7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
+                                        <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                                    </svg>
+                                    <p className="text-[12px] leading-relaxed" style={{ color: "#78716c" }}>알림은 서비스 내 알림으로 제공됩니다. 이메일·푸시 알림은 추후 지원 예정입니다. 법적 필수 공지(이용약관 변경 등)는 설정과 관계없이 발송될 수 있습니다.</p>
+                                </div>
                             </>
                         ) : isWithdrawMenu ? (
                             /* ── 회원 탈퇴 ── */

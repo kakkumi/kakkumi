@@ -10,7 +10,7 @@ export async function GET(
     const session = await getServerSession();
 
     try {
-        // 유저 정보 (role 무관하게 조회)
+        // 크리에이터 정보
         const creatorRows = await prisma.$queryRaw<{
             id: string;
             nickname: string | null;
@@ -22,7 +22,7 @@ export async function GET(
         }[]>`
             SELECT id, nickname, name, "avatarUrl", image, role::text, "createdAt"
             FROM "User"
-            WHERE id = ${creatorId} AND "deletedAt" IS NULL
+            WHERE id = ${creatorId} AND "deletedAt" IS NULL AND role IN ('CREATOR', 'ADMIN')
             LIMIT 1
         `;
 
@@ -41,21 +41,11 @@ export async function GET(
             tags: string[];
             salesCount: number;
             createdAt: Date;
-            os: string | null;
-            likeCount: number;
-            reviewCount: number;
-            avgRating: number;
         }[]>`
             SELECT t.id, t.title, t.price, t."thumbnailUrl", t.tags, t."createdAt",
-                   COUNT(DISTINCT p.id)::int AS "salesCount",
-                   COUNT(DISTINCT l.id)::int AS "likeCount",
-                   COUNT(DISTINCT r.id)::int AS "reviewCount",
-                   COALESCE(AVG(r.rating), 0)::float AS "avgRating",
-                   (SELECT STRING_AGG(DISTINCT o.os, ',') FROM "ThemeOption" o WHERE o."themeId" = t.id) AS "os"
+                   COUNT(p.id)::int AS "salesCount"
             FROM "Theme" t
             LEFT JOIN "Purchase" p ON p."themeId" = t.id AND p.status = 'COMPLETED'
-            LEFT JOIN "ThemeLike" l ON l."themeId" = t.id
-            LEFT JOIN "Review" r ON r."themeId" = t.id
             WHERE t."creatorId" = ${creatorId} AND t.status = 'PUBLISHED'
             GROUP BY t.id
             ORDER BY t."createdAt" DESC

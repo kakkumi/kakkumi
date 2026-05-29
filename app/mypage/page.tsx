@@ -5,8 +5,6 @@ import Header from "../components/Header";
 import { prisma } from "@/lib/prisma";
 import MyPageClient from "./MyPageClient";
 
-export const dynamic = "force-dynamic";
-
 const SESSION_COOKIE_NAME = "kakkumi_session";
 
 function verifySession(token: string, secret: string) {
@@ -39,7 +37,6 @@ export default async function MyPage() {
     let createdAt: string | null = null;
     let credit = 0;
     let dbAvatarUrl: string | null = null;
-    let isPro = false;
 
     if (session?.dbId) {
         purchasedCount = await prisma.purchase.count({
@@ -55,16 +52,6 @@ export default async function MyPage() {
         } catch {
             createdAt = null;
         }
-
-        // 구독 상태 직접 확인 (CREATOR 포함 모든 role 체크)
-        const role = session.role ?? "USER";
-        if (role === "ADMIN") {
-            isPro = true;
-        } else {
-            // USER, CREATOR 모두 PRO 구독 여부 확인
-            const sub = await prisma.subscription.findUnique({ where: { userId: session.dbId } });
-            isPro = !!sub && String(sub.status).toUpperCase() === "ACTIVE";
-        }
     }
 
     const sidebarMenus = [
@@ -74,22 +61,22 @@ export default async function MyPage() {
         },
         {
             category: "테마",
-            items: [{ label: "업로드 테마" }, { label: "구매 테마" }],
+            items: [{ label: "내 테마" }, { label: "구매 테마" }, { label: "전체 테마" }],
         },
         {
             category: "쇼핑",
             items: [
                 { label: "리뷰" }, { label: "적립금" }, { label: "작성 가능한 후기" },
-                { label: "주문 내역" }, { label: "취소/환불 내역" }, { label: "좋아요" }, { label: "팔로우" },
+                { label: "주문 내역" }, { label: "취소/환불 내역" }, { label: "최근 본 상품" }, { label: "좋아요" }, { label: "팔로우" },
             ],
         },
         {
             category: "수익",
-            items: [{ label: "정산 내역" }, { label: "판매 통계" }, { label: "정산 계좌" }],
+            items: [{ label: "정산 내역" }, { label: "판매 통계" }],
         },
         {
             category: "계정",
-            items: [{ label: "결제 정보" }, { label: "결제 내역" }, { label: "회원 탈퇴" }],
+            items: [{ label: "회원 탈퇴" }],
         },
     ];
 
@@ -110,7 +97,6 @@ export default async function MyPage() {
                     sidebarMenus={sidebarMenus}
                     createdAt={createdAt}
                     credit={credit}
-                    isPro={isPro}
                 />
             </Suspense>
         </div>

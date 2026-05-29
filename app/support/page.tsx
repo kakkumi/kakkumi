@@ -34,8 +34,8 @@ const faqs: { q: string; a: string; category: FaqCategory }[] = [
     },
     {
         category: "기타",
-        q: "iOS와 Android 모두 지원하나요?",
-        a: "네, iOS용 .ktheme 파일과 Android APK 빌드 모두 지원합니다. 제작 화면 상단에서 원하는 플랫폼을 선택해 주세요.",
+        q: "어떤 플랫폼을 지원하나요?",
+        a: "iOS용 .ktheme 파일을 지원합니다. 제작 완료 후 다운로드 버튼을 눌러 파일을 받아 적용하세요.",
     },
     {
         category: "주문/결제",
@@ -194,7 +194,7 @@ const howToSteps = [
     {
         step: "04",
         title: "테마 다운로드",
-        desc: "우측 상단 다운로드 버튼을 눌러 iOS용 .ktheme 파일 또는 Android APK를 받으세요. 앱에서 바로 적용할 수 있어요.",
+        desc: "우측 상단 다운로드 버튼을 눌러 iOS용 .ktheme 파일을 받으세요. 앱에서 바로 적용할 수 있어요.",
     },
     {
         step: "05",

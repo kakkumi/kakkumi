@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { nowKST } from "@/lib/date";
 import { REFUND_ALLOWED_DAYS, CREDIT_EXPIRY_DAYS, DAY_MS } from "@/lib/constants";
 import { notifyRefundComplete } from "@/lib/notification";
-import { getTossAuthHeader } from "@/lib/toss";
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession();
@@ -51,21 +50,20 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: `구매 후 ${REFUND_ALLOWED_DAYS}일이 지나 환불이 불가합니다.` }, { status: 400 });
         }
 
-        const now = nowKST();
-        // pgTransactionId 있음 → 카드 결제 → 토스페이먼츠 원결제 수단 환불
-        const isCardPayment = !!purchase.pgTransactionId;
+        const secretKey = process.env.TOSSPAYMENTS_SECRET_KEY;
+        if (!secretKey) {
+            return NextResponse.json({ error: "결제 설정 오류입니다." }, { status: 500 });
+        }
 
-        if (isCardPayment) {
-            const authHeader = getTossAuthHeader();
-            if (!authHeader) {
-                return NextResponse.json({ error: "결제 설정 오류입니다." }, { status: 500 });
-            }
+        // 토스페이먼츠 환불 요청 (pgTransactionId가 있는 경우)
+        if (purchase.pgTransactionId) {
+            const encryptedSecretKey = Buffer.from(`${secretKey}:`).toString("base64");
             const cancelResponse = await fetch(
                 `https://api.tosspayments.com/v1/payments/${purchase.pgTransactionId}/cancel`,
                 {
                     method: "POST",
                     headers: {
-                        Authorization: authHeader,
+                        Authorization: `Basic ${encryptedSecretKey}`,
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({ cancelReason: reason ?? "고객 요청 환불" }),
@@ -79,20 +77,9 @@ export async function POST(req: NextRequest) {
                     { status: 400 }
                 );
             }
-            // 카드 결제 환불은 원결제 수단으로 돌아가므로 적립금 지급 없음
-        } else {
-            // pgTransactionId 없음 → 적립금 결제 → 적립금으로 환불
-            if (purchase.amount > 0) {
-                const expiresAt = new Date(now.getTime() + CREDIT_EXPIRY_DAYS * DAY_MS);
-                await prisma.$executeRaw`
-                    UPDATE "User" SET credit = credit + ${purchase.amount}, "updatedAt" = NOW() WHERE id = ${session.dbId}
-                `;
-                await prisma.$executeRaw`
-                    INSERT INTO "PointHistory" (id, "userId", amount, type, memo, "expiresAt", "createdAt")
-                    VALUES (${crypto.randomUUID()}, ${session.dbId}, ${purchase.amount}, 'REFUND'::"PointType", ${`환불 적립금: ${purchase.themeTitle}`}, ${expiresAt}, ${now})
-                `;
-            }
         }
+
+        const now = nowKST();
 
         // 구매 상태 REFUNDED로 변경
         try {
@@ -102,6 +89,7 @@ export async function POST(req: NextRequest) {
                 WHERE id = ${purchaseId}
             `;
         } catch {
+            // refundReason/refundedAt 컬럼 없는 경우 (db push 전)
             await prisma.$executeRaw`
                 UPDATE "Purchase"
                 SET status = 'REFUNDED'::"PurchaseStatus"
@@ -109,10 +97,22 @@ export async function POST(req: NextRequest) {
             `;
         }
 
-        // 환불 완료 알림
+        // 적립금 환불 지급
+        if (purchase.amount > 0) {
+            const expiresAt = new Date(now.getTime() + CREDIT_EXPIRY_DAYS * DAY_MS);
+            await prisma.$executeRaw`
+                UPDATE "User" SET credit = credit + ${purchase.amount}, "updatedAt" = NOW() WHERE id = ${session.dbId}
+            `;
+            await prisma.$executeRaw`
+                INSERT INTO "PointHistory" (id, "userId", amount, type, memo, "expiresAt", "createdAt")
+                VALUES (${crypto.randomUUID()}, ${session.dbId}, ${purchase.amount}, 'REFUND'::"PointType", ${`환불 적립금: ${purchase.themeTitle}`}, ${expiresAt}, ${now})
+            `;
+        }
+
+        // 환불 완료 알림 (알림 설정 체크)
         await notifyRefundComplete(session.dbId, purchase.themeTitle);
 
-        return NextResponse.json({ ok: true, isCardPayment });
+        return NextResponse.json({ ok: true });
     } catch (e) {
         console.error("[refund POST]", e);
         return NextResponse.json({ error: "환불 처리 중 오류가 발생했습니다." }, { status: 500 });

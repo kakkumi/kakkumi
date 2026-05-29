@@ -9,10 +9,6 @@ import { THEME_COLORS } from "./data";
 
 const SIDEBAR_MENUS = [
     {
-        category: "플랫폼",
-        items: ["전체", "iOS", "Android"],
-    },
-    {
         category: "카테고리",
         items: ["전체", "인기", "파스텔", "귀여운", "다크", "밝은", "감성"],
     },
@@ -133,7 +129,6 @@ const PLACEHOLDER_GRADIENTS = [
 export default function StoreContent() {
     const router = useRouter();
     const [activeCategory, setActiveCategory] = useState("전체");
-    const [activePlatform, setActivePlatform] = useState("전체");
     const [activePrice, setActivePrice]       = useState("전체");
     const [activeSort, setActiveSort]         = useState<SortKey>("newest");
     const [likedIds, setLikedIds]             = useState<Set<string>>(new Set());
@@ -213,11 +208,6 @@ export default function StoreContent() {
     const themes = dbThemes;
 
     const filtered = themes.filter(t => {
-        const platformMatch =
-            activePlatform === "전체" ||
-            (activePlatform === "iOS"     && (t.os?.includes("ios") ?? false)) ||
-            (activePlatform === "Android" && (t.os?.includes("android") ?? false));
-
         const catMatch =
             activeCategory === "전체" ||
             (activeCategory === "인기" && t.sales > 100) ||
@@ -245,7 +235,7 @@ export default function StoreContent() {
             (searchType === "크리에이터"   && t.author.toLowerCase().includes(q)) ||
             (searchType === "카테고리" && t.category.some(c => c.toLowerCase().includes(q)));
 
-        return platformMatch && catMatch && priceMatch && searchMatch;
+        return catMatch && priceMatch && searchMatch;
     });
 
     const sorted = [...filtered].sort((a, b) => {
@@ -265,7 +255,7 @@ export default function StoreContent() {
 
     // 필터·정렬·검색 바뀌면 1페이지로 리셋
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    useEffect(() => { setCurrentPage(1); }, [activeCategory, activePlatform, activePrice, activeSort, searchQuery, searchType]);
+    useEffect(() => { setCurrentPage(1); }, [activeCategory, activePrice, activeSort, searchQuery, searchType]);
 
     return (
         <div className="flex w-full" style={{ maxWidth: 1400, margin: "0 auto" }}>
@@ -279,14 +269,12 @@ export default function StoreContent() {
                         </span>
                         {group.items.map(item => {
                             const isActive =
-                                group.category === "플랫폼" ? activePlatform === item :
                                 group.category === "카테고리" ? activeCategory === item :
                                 activePrice === item;
                             return (
                                 <button
                                     key={item}
                                     onClick={() =>
-                                        group.category === "플랫폼" ? setActivePlatform(item) :
                                         group.category === "카테고리" ? setActiveCategory(item) :
                                         setActivePrice(item)
                                     }
