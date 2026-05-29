@@ -73,6 +73,13 @@ function buildScreenConfig(
         passcodeKeypadPressedOn: bool("passcodeKeypadPressedOn", false),
         chatRoomNameTimeColor: str("chatRoomNameTimeColor", "#9E9E9E"),
         bubbleSend1CharacterUrl: typeof img["character"] === "string" ? img["character"] : undefined,
+        profileImgUrls: (() => {
+            const defaultProfileOn = bool("uiDefaultProfileOn", false);
+            if (!defaultProfileOn) return undefined;
+            const urls = [img["profileImg01"], img["profileImg02"], img["profileImg03"]]
+                .filter((u): u is string => typeof u === "string" && u.length > 0);
+            return urls.length > 0 ? urls : undefined;
+        })(),
     };
 }
 
