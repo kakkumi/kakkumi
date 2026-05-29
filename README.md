@@ -14,7 +14,7 @@
 
   <p>
     <img src="https://img.shields.io/badge/1인_개발-solo-FF9500" />
-    <img src="https://img.shields.io/badge/상태-사업화_중단-lightgrey" />
+
   </p>
 </div>
 
@@ -29,10 +29,6 @@
 - 📱 편집 내용이 **실시간 폰 목업**에 바로 반영
 - 💸 창작자는 만든 테마를 **스토어에 등록해 판매**
 - 🔍 관리자 **검수 시스템**을 통한 콘텐츠 품질 관리
-
-> 포트폴리오에서 그치지 않고 실제 서비스 런칭 및 사업화를 추진했으나,  
-> 플랫폼 운영 시 발생할 수 있는 법적 리스크를 사전 파악하고  
-> 카카오측에 공식 협업을 제안했습니다. 제안이 받아들여지지 않아 사업화는 중단했습니다.
 
 ---
 
@@ -59,8 +55,6 @@
 - 테마 상세 페이지, 검색, 카테고리 필터
 
 ### 💳 결제 및 정산 (Toss Payments)
-- 카카오페이, 신용카드, 계좌이체 결제 지원
-- 창작자 정산: 판매금액의 **80%** 자동 정산 (매월 1일)
 - 정산 내역 마이페이지에서 조회
 - 적립금 시스템 (구매 시 5% 적립, 유효기간 1년)
 
@@ -150,11 +144,6 @@
 결제 승인 → 구매 내역 저장 → 정산 대상 집계 → Vercel Cron으로 월 1회 자동 정산 처리까지  
 이어지는 전체 흐름을 직접 설계하고 구현했습니다.
 
-### 5. 사업화 과정에서의 법적 리스크 파악
-기능 구현 이후 실제 서비스 운영 시 발생할 수 있는 저작권·플랫폼 정책 리스크를 사전에 파악하고,  
-카카오에 공식 협업을 제안하는 행동으로 이어졌습니다.  
-제안이 받아들여지지 않아 사업화는 중단했으나, 개발 너머의 리스크를 주도적으로 파악한 경험이었습니다.
-
 ---
 
 ## 📁 프로젝트 구조
@@ -185,63 +174,7 @@ kakkumi/
 └── apk-builder/         # APK 빌드 도구
 ```
 
----
 
-## 🚀 로컬 실행
-
-### 1. 저장소 클론
-
-```bash
-git clone https://github.com/kakkumi/kakkumi.git
-cd kakkumi
-```
-
-### 2. 패키지 설치
-
-```bash
-npm install
-```
-
-### 3. 환경변수 설정
-
-`.env.local` 파일을 생성하고 아래 항목을 채워주세요:
-
-```env
-# Database (Supabase)
-DATABASE_URL="postgresql://..."
-
-# Kakao OAuth
-KAKAO_CLIENT_ID=""
-KAKAO_CLIENT_SECRET=""
-KAKAO_REDIRECT_URI=""
-
-# Session
-SESSION_SECRET=""
-
-# Toss Payments
-TOSS_CLIENT_KEY=""
-TOSS_SECRET_KEY=""
-
-# App
-NEXT_PUBLIC_BASE_URL="http://localhost:3000"
-```
-
-### 4. DB 마이그레이션
-
-```bash
-npx prisma migrate dev
-npx prisma db seed   # (선택) 시드 데이터
-```
-
-### 5. 개발 서버 실행
-
-```bash
-npm run dev
-```
-
-`http://localhost:3000` 에서 확인하세요.
-
----
 
 ## 📄 라이선스
 
